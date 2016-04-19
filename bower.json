@@ -1,0 +1,8 @@
+{
+    "name": "Vanilla DataTables",
+    "version": "0.0.1",
+    "ignore": [
+        ".gitattributes",
+        "README.md"
+    ]
+}
