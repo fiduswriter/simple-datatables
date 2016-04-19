@@ -178,7 +178,6 @@
 		var defaults = {
 			perPage: 10,
 			navPosition: 'both',
-			selectorPosition: 'bottom',
 			nextPrev: true,
 			prevText: '&lsaquo;',
 			nextText: '&rsaquo;',
