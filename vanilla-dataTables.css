@@ -20,6 +20,9 @@
 	margin: 20px 0;
 }
 
+/**
+ * SORTERS
+ */
 .dataTable-sorter {
 	display: inline-block;
 	float: right;
@@ -49,9 +52,8 @@
 }
 
 /**
- * PAGINATOR
+ * PAGINATORS
  */
-
 .dataTable-pagination {
 	float: right;
 	border-radius: 4px;
@@ -64,7 +66,7 @@
 	display: inline;
 }
 
-.dataTable-pagination > li > a, .dataTable-pagination > li > span {
+.dataTable-pagination > li > a {
 	background-color: #fff;
 	border: 1px solid #ddd;
 	color: #337ab7;
@@ -75,57 +77,73 @@
 	position: relative;
 	text-decoration: none;
 }
-.dataTable-pagination > li:first-child > a, .dataTable-pagination > li:first-child > span {
+
+.dataTable-pagination > li:first-child > a {
 	border-bottom-left-radius: 4px;
 	border-top-left-radius: 4px;
 	margin-left: 0;
 }
-.dataTable-pagination > li:last-child > a, .dataTable-pagination > li:last-child > span {
+
+.dataTable-pagination > li:last-child > a {
 	border-bottom-right-radius: 4px;
 	border-top-right-radius: 4px;
 }
-.dataTable-pagination > li > a:focus, .dataTable-pagination > li > a:hover, .dataTable-pagination > li > span:focus, .dataTable-pagination > li > span:hover {
+
+.dataTable-pagination > li > a:focus,
+.dataTable-pagination > li > a:hover {
 	background-color: #eee;
 	border-color: #ddd;
 	color: #23527c;
 	z-index: 3;
 }
-.dataTable-pagination > .active > a, .dataTable-pagination > .active > a:focus, .dataTable-pagination > .active > a:hover, .dataTable-pagination > .active > span, .dataTable-pagination > .active > span:focus, .dataTable-pagination > .active > span:hover {
+
+.dataTable-pagination > .active > a,
+.dataTable-pagination > .active > a:focus,
+.dataTable-pagination > .active > a:hover {
 	background-color: #337ab7;
 	border-color: #337ab7;
 	color: #fff;
 	cursor: default;
 	z-index: 2;
 }
-.dataTable-pagination > .disabled > a, .dataTable-pagination > .disabled > a:focus, .dataTable-pagination > .disabled > a:hover, .dataTable-pagination > .disabled > span, .dataTable-pagination > .disabled > span:focus, .dataTable-pagination > .disabled > span:hover {
+
+.dataTable-pagination > .disabled > a,
+.dataTable-pagination > .disabled > a:focus,
+.dataTable-pagination > .disabled > a:hover {
 	background-color: #fff;
 	border-color: #ddd;
 	color: #777;
 	cursor: not-allowed;
 }
-.dataTable-pagination-lg > li > a, .dataTable-pagination-lg > li > span {
+
+.dataTable-pagination-lg > li > a {
 	font-size: 18px;
 	line-height: 1.33333;
 	padding: 10px 16px;
 }
-.dataTable-pagination-lg > li:first-child > a, .dataTable-pagination-lg > li:first-child > span {
+
+.dataTable-pagination-lg > li:first-child > a {
 	border-bottom-left-radius: 6px;
 	border-top-left-radius: 6px;
 }
-.dataTable-pagination-lg > li:last-child > a, .dataTable-pagination-lg > li:last-child > span {
+
+.dataTable-pagination-lg > li:last-child > a {
 	border-bottom-right-radius: 6px;
 	border-top-right-radius: 6px;
 }
-.dataTable-pagination-sm > li > a, .dataTable-pagination-sm > li > span {
+
+.dataTable-pagination-sm > li > a {
 	font-size: 12px;
 	line-height: 1.5;
 	padding: 5px 10px;
 }
-.dataTable-pagination-sm > li:first-child > a, .dataTable-pagination-sm > li:first-child > span {
+
+.dataTable-pagination-sm > li:first-child > a {
 	border-bottom-left-radius: 3px;
 	border-top-left-radius: 3px;
 }
-.dataTable-pagination-sm > li:last-child > a, .dataTable-pagination-sm > li:last-child > span {
+
+.dataTable-pagination-sm > li:last-child > a {
 	border-bottom-right-radius: 3px;
 	border-top-right-radius: 3px;
 }

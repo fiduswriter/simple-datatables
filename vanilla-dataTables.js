@@ -1,5 +1,5 @@
 (function (root, factory) {
-	var plugin = 'Paginator';
+	var plugin = 'DataTable';
 
 	if (typeof define === 'function' && define.amd) {
 		define([], factory(plugin));
