@@ -34,72 +34,68 @@ var dataTable = new dataTable(myTable);
 4 - Choose your options
 
 ```javascript
-		/**
-		 * Plugin defaults
-		 * @type {Object}
-		 */
-		var options = {
-			/**
-			 * Set the number of items (rows) per page
-			 * @type {int}
-			 */
-			perPage: 10,
+var options = {
+	/**
+	 * Set the number of items (rows) per page
+	 * @type {int}
+	 */
+	perPage: 10,
 
-			/**
-			 * Set the position of the pagination buttons (top, bottom, both)
-			 * @type {string}
-			 */
-			navPosition: 'both',
+	/**
+	 * Set the position of the pagination buttons (top, bottom, both)
+	 * @type {string}
+	 */
+	navPosition: 'both',
 
-			/**
-			 * Enable / disable the next and previous pagination buttons
-			 * @type {bool}
-			 */
-			nextPrev: true,
+	/**
+	 * Enable / disable the next and previous pagination buttons
+	 * @type {bool}
+	 */
+	nextPrev: true,
 
-			/**
-			 * Set the text / html for the next and previous pagination buttons
-			 * @type {string}
-			 */
-			prevText: '&lsaquo;',
-			nextText: '&rsaquo;',
+	/**
+	 * Set the text / html for the next and previous pagination buttons
+	 * @type {string}
+	 */
+	prevText: '&lsaquo;',
+	nextText: '&rsaquo;',
 
-			/**
-			 * Enable / disable the sortable feature
-			 * @type {bool}
-			 */
-			sortable: false,
+	/**
+	 * Enable / disable the sortable feature
+	 * @type {bool}
+	 */
+	sortable: false,
 
-			/**
-			 * Enable / disable the fixed height feature. Enabling this will keep the bottom container fixed in place
-			 * @type {bool}
-			 */
-			fixedHeight: true,
+	/**
+	 * Enable / disable the fixed height feature. Enabling this will keep the bottom container fixed in place
+	 * @type {bool}
+	 */
+	fixedHeight: true,
 
-			/**
-			 * Enable / disable the info text (Showing x to y of z items)
-			 * @type {bool}
-			 */
-			info: true,
+	/**
+	 * Enable / disable the info text (Showing x to y of z items)
+	 * @type {bool}
+	 */
+	info: true,
 
-			/**
-			 * Choose hide the next and previous pagination buttons when not needed. Leaving this disabled will just disable the buttons.
-			 * @type {bool}
-			 */
-			hideUnusedNavs: false,
+	/**
+	 * Choose hide the next and previous pagination buttons when not needed. Leaving this disabled will just disable the buttons.
+	 * @type {bool}
+	 */
+	hideUnusedNavs: false,
 
-			/**
-			 * Set the per page options in the dropdown.
-			 * @type {array}
-			 */
-			perPageSelect: [5,10,15,20,25],
+	/**
+	 * Set the per page options in the dropdown.
+	 * @type {array}
+	 */
+	perPageSelect: [5,10,15,20,25],
 
-			/**
-			 * The function that first on page change.
-			 * @return {void}
-			 */
-			change: function() {},
-		};
+	/**
+	 * The function that first on page change.
+	 * @return {void}
+	 */
+	change: function() {},
+};
 
 var dataTable = new dataTable(myTable, options);
 ```
