@@ -7,8 +7,9 @@ Inspired by the jQuery DataTables plugin: https://datatables.net/
 
 ##Bower
 
+```
 bower install vanilla-datatables
-
+```
 
 ##Quick Start
 
