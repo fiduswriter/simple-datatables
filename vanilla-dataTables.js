@@ -187,9 +187,8 @@
 	 */
 	function Plugin(table, options) {
 
-		if (!(this instanceof Plugin)) {
-			return new Plugin(name)
-		}
+		this.initialised = false;
+		this.sortEnabled = false;
 
 		this.isIE = isIE();
 
@@ -229,7 +228,7 @@
 		var defaults = {
 			perPage: 10,
 			navPosition: 'both',
-			selectorPosition: 'bottom',
+			navButtons: true,
 			nextPrev: true,
 			prevText: '&lsaquo;',
 			nextText: '&rsaquo;',
@@ -243,15 +242,19 @@
 
 
 		this.options = extend(defaults, options);
-		this.initialize();
+		this.initialise();
 	}
 
 
 	// Plugin prototype
 	Plugin.prototype = {
 
-		initialize: function()
+		initialise: function()
 		{
+			if (this.initialised) return;
+
+			this.initialised = true;
+
 			this.setInitialDimensions();
 			this.initPages();
 			this.build();
@@ -297,13 +300,13 @@
 		{
 			var topContainer 		= createElement('div', { class: 'dataTable-top' });
 			var bottomContainer 	= createElement('div', { class: 'dataTable-bottom' });
-			var container 			= createElement('div', { class: 'dataTable-wrapper' });
+			var selector 			= this.getSelector();
+			this.wrapper 			= createElement('div', { class: 'dataTable-wrapper' });
 			this.tableContainer 	= createElement('div', { class: 'dataTable-container' });
 			this.label 				= createElement('div', { class: 'dataTable-info' });
-			this.selector 			= this.getSelector();
 
 			// Insert the main container
-			this.table.parentNode.insertBefore(container, this.table);
+			this.table.parentNode.insertBefore(this.wrapper, this.table);
 
 			// Populate table container
 			this.tableContainer.appendChild(this.table);
@@ -312,17 +315,15 @@
 			bottomContainer.appendChild(this.label);
 
 			// Append the containers
-			container.appendChild(topContainer);
-			container.appendChild(this.tableContainer);
-			container.appendChild(bottomContainer);
-			topContainer.appendChild(this.selector);
+			this.wrapper.appendChild(topContainer);
+			this.wrapper.appendChild(this.tableContainer);
+			this.wrapper.appendChild(bottomContainer);
+			topContainer.appendChild(selector);
 
 			// Initialise
 			this.showPage();
 
-			if ( this.options.info ) {
-				this.updateInfo();
-			}
+			this.updateInfo();
 
 			var paginatorA = createElement('ul', { class: 'dataTable-pagination' });
 			this.paginators.push(paginatorA);
@@ -374,7 +375,7 @@
 				paginator.addEventListener('click', that.switchPage.bind(that), false);
 			})
 
-			that.selector.addEventListener('change', that.updateTable.bind(that), false);
+			that.selector.addEventListener('change', that.update.bind(that), false);
 		},
 
 		/**
@@ -422,9 +423,7 @@
 			// Show the selected page;
 			this.showPage(this.currentPage-1);
 
-			if ( this.options.info ) {
-				this.updateInfo();
-			}
+			this.updateInfo();
 
 			this.setClasses();
 
@@ -476,6 +475,11 @@
 		 */
 		updateInfo: function()
 		{
+			if ( !this.options.info ) {
+				this.label.innerHTML = '';
+				return;
+			}
+
 			if ( this.info.pages <= 1 )
 				this.label.innerHTML = '';
 
@@ -503,15 +507,18 @@
 				if ( that.options.nextPrev )
 					paginator.appendChild(that.getButton('prev'));
 
-				forEach(that.pages, function(i, page) {
-					var li 	= createElement('li', { class: ( i == 0 ) ? 'active' : '' });
-					var a 	= createElement('a', { href: '#', 'data-page': i+1 });
-					var t 	= document.createTextNode(i+1);
+				if ( that.options.navButtons )
+				{
+					forEach(that.pages, function(i, page) {
+						var li 	= createElement('li', { class: ( i == 0 ) ? 'active' : '' });
+						var a 	= createElement('a', { href: '#', 'data-page': i+1 });
+						var t 	= document.createTextNode(i+1);
 
-					a.appendChild(t);
-					li.appendChild(a);
-					paginator.appendChild(li);
-				});
+						a.appendChild(t);
+						li.appendChild(a);
+						paginator.appendChild(li);
+					});
+				}
 
 				if ( that.options.nextPrev )
 					paginator.appendChild(that.getButton('next'));
@@ -544,11 +551,11 @@
 				});
 
 				// We're on the first page so disable / hide the prev button.
-				if ( onFirstPage )
+				if ( onFirstPage && self.options.nextPrev )
 					paginator.firstElementChild.classList.add(inactive);
 
 				// We're on the last page so disable / hide the next button.
-				if ( onLastPage )
+				if ( onLastPage && self.options.nextPrev )
 					paginator.lastElementChild.classList.add(inactive);
 
 				// Add the 'active' class to the correct button
@@ -579,25 +586,37 @@
 		 * @param  {event}
 		 * @return {void}
 		 */
-		updateTable: function(event)
+		update: function(event)
 		{
-			event = event || window.event;
+			if ( event ) {
+				event = event || window.event;
 
-			var target = event.target;
+				var target = event.target;
+
+				if ( target.nodeName.toLowerCase() == 'select' )
+					this.options.perPage = parseInt(target.value, 10);
+			}
 
 			this.currentPage = 1;
-
-			if ( target.nodeName.toLowerCase() == 'select' )
-				this.options.perPage = parseInt(target.value, 10);
 
 			this.tableContainer.style.height = null;
 
 			this.initPages();
 			this.showPage();
 			this.setButtons();
+			this.updateInfo();
 
-			if ( this.options.info )
-				this.updateInfo();
+			// Remove the sortable buttons if not initialised.
+			if ( !this.options.sortable )
+			{
+				var headings = this.thead.rows[0].cells;
+
+				forEach(headings, function(index, heading) {
+					heading.innerHTML = heading.textContent ? heading.textContent : heading.innerText;
+				});
+			} else {
+				this.initSortable();
+			}
 
 			this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
 		},
@@ -608,6 +627,8 @@
 		 */
 		initSortable: function()
 		{
+			if ( this.sortEnabled ) return;
+
 			var self = this, cols = self.thead.rows[0].cells;
 
 			forEach(cols, function(index, heading) {
@@ -628,6 +649,8 @@
 					}
 				}(this);
 			});
+
+			this.sortEnabled = true;
 		},
 
 		/**
@@ -712,7 +735,7 @@
 				that.initialRows.push(row['row']);
 			});
 
-			that.updateTable(event);
+			that.update(event);
 		},
 
 		/**
@@ -721,20 +744,31 @@
 		 */
 		getSelector: function()
 		{
-			var select 	= createElement('select', { class: 'form-control dataTable-selector' });
+			var wrapper = createElement('div', { class: 'dataTable-selectWrapper' }),
+				selector = createElement('select', { class: 'dataTable-selector' }),
+				pre = createElement('span'),
+				suff = createElement('span');
 
 			forEach(this.options.perPageSelect, function(i, value) {
 				var option = createElement('option');
 				option.value = value;
 				option.innerHTML = value;
-				select.appendChild(option);
+				selector.appendChild(option);
 			});
 
-			select.value = this.options.perPage;
+			selector.value = this.options.perPage;
 
-			return select;
+			pre.innerHTML = 'Showing';
+			suff.innerHTML = 'entries';
+
+			wrapper.appendChild(pre);
+			wrapper.appendChild(selector);
+			wrapper.appendChild(suff);
+
+			this.selector = selector;
+
+			return wrapper;
 		},
-
 	};
 
 	return Plugin;
