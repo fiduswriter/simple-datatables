@@ -5,10 +5,16 @@ Inspired by the jQuery DataTables plugin: https://datatables.net/
 
 [Demo with all features enabled](http://codepen.io/Mobius1/full/VadmKb/)
 
-##Bower
+##Install
 
+###Bower
 ```
 bower install vanilla-datatables
+```
+###npm
+
+```
+Coming soon....
 ```
 
 ##Quick Start
