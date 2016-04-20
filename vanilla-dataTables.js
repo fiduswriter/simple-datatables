@@ -1,3 +1,19 @@
+/*!
+ *
+ __     __          _ _ _         ____        _       _____     _     _
+ \ \   / /_ _ _ __ (_) | | __ _  |  _ \  __ _| |_ __ |_   _|_ _| |__ | | ___  ___
+  \ \ / / _` | '_ \| | | |/ _` | | | | |/ _` | __/ _` || |/ _` | '_ \| |/ _ \/ __|
+   \ V / (_| | | | | | | | (_| | | |_| | (_| | || (_| || | (_| | |_) | |  __/\__ \
+    \_/ \__,_|_| |_|_|_|_|\__,_| |____/ \__,_|\__\__,_||_|\__,_|_.__/|_|\___||___/
+
+ * Copyright (c) 2015 Karl Saunders (http://mobiuswebdesign.co.uk)
+ * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
+ * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
+ *
+ * Version: 0.0.2
+ *
+ */
+
 (function (root, factory) {
 	var plugin = 'DataTable';
 
@@ -10,6 +26,17 @@
 	}
 }(this, function (plugin) {
 	'use strict';
+
+
+	/*------------------------------------------
+		  _   _      _
+		 | | | | ___| |_ __   ___ _ __ ___
+		 | |_| |/ _ \ | '_ \ / _ \ '__/ __|
+		 |  _  |  __/ | |_) |  __/ |  \__ \
+		 |_| |_|\___|_| .__/ \___|_|  |___/
+		              |_|
+
+	-------------------------------------------*/
 
 	/**
 	 * Merge defaults with user options
@@ -28,7 +55,7 @@
 
 	/**
 	 * Check var is an integer
-	 * @param  {[type]}  value [the var to be checked]
+	 * @param  {mixed} value
 	 * @return {Boolean}
 	 */
 	var isInt = function( value ) {
@@ -59,28 +86,28 @@
 	};
 
 	/**
-	 * Create element and assign attributes
-	 * @param  {string} classname 	className
-	 * @param  {string} id 			id
+	 * Create element helper. Create an element and assign given attributes.
+	 * @param  {NodeType} type 	Type of element to create.
+	 * @param  {Object} attrs 	The attributes to assign to the element.
 	 * @return {HTMLElement}
 	 */
-	var createElement = function(type, attributes) {
-		var element = document.createElement(type);
+	var createElement = function(type, attrs) {
+		var elem = document.createElement(type);
 
-		if ( attributes ) {
-			for (var attribute in attributes) {
-				element.setAttribute(attribute, attributes[attribute]);
+		if ( attrs ) {
+			for (var attr in attrs) {
+				elem.setAttribute(attr, attrs[attr]);
 			}
 		}
 
-		return element;
+		return elem;
 	};
 
 	/**
 	 * https://gist.github.com/scopevale/1663452
-	 * @param  {[type]} arr [description]
-	 * @param  {[type]} dir [description]
-	 * @return {[type]}     [description]
+	 * @param  {Object} arr [description]
+	 * @param  {int} 	dir [description]
+	 * @return {Object}     [description]
 	 */
 	var bubbleSort = function(arr, dir) {
 		var start, end;
@@ -111,10 +138,6 @@
 
 	/**
 	 * forEach helper
-	 * @param  {Object, HTMLElement or Array}   collection
-	 * @param  {Function} callback   [description]
-	 * @param  {[type]}   scope      [description]
-	 * @return {[type]}              [description]
 	 */
 	var forEach = function (collection, callback, scope) {
 		if (Object.prototype.toString.call(collection) === '[object Object]') {
@@ -162,8 +185,13 @@
 		var nodeName = table.tagName.toLowerCase();
 
 		if ( nodeName != "table") {
-			console.warn('The selected element ('+nodeName+') is not a table!');
-			return false;
+			console.warn('ERROR: The selected element ('+nodeName+') is not a table!');
+			return;
+		}
+
+		if ( table.tHead === null && options.sortable ) {
+			console.warn('ERROR: The sortable option requires table headings!');
+			return;
 		}
 
 		this.table = table;
@@ -178,6 +206,7 @@
 		var defaults = {
 			perPage: 10,
 			navPosition: 'both',
+			selectorPosition: 'bottom',
 			nextPrev: true,
 			prevText: '&lsaquo;',
 			nextText: '&rsaquo;',
@@ -205,6 +234,42 @@
 			this.build();
 		},
 
+		/**
+		 * Fix the column widths so they don't change on page switch.
+		 * @return {void}
+		 */
+		setInitialDimensions: function()
+		{
+			var that = this, cells = that.table.tHead.rows[0].cells, pw = getWidth(that.table);
+
+			forEach(cells, function(index, cell) {
+				var w = (getWidth(cell) / pw) * 100;
+				that.initialDimensions.push(w);
+				cell.style.width = w + '%';
+			});
+		},
+
+		/**
+		 * Set up the initial info to construct the datatable.
+		 * @return {void}
+		 */
+		initPages: function()
+		{
+			var that = this;
+
+			this.pages = this.initialRows.map( function(e,i) {
+				return i%that.options.perPage===0 ? that.initialRows.slice(i,i+that.options.perPage) : null;
+			}).filter(function(e){ return e; });
+
+			this.info.items = this.initialRows.length;
+			this.info.pages = this.pages.length;
+			this.last_page = this.info.pages;
+		},
+
+		/**
+		 * Construct the datatable
+		 * @return {void}
+		 */
 		build: function()
 		{
 			var topContainer 		= createElement('div', { class: 'dataTable-top' });
@@ -230,7 +295,7 @@
 			topContainer.appendChild(this.selector);
 
 			// Initialise
-			this.updatePages();
+			this.showPage();
 
 			if ( this.options.info ) {
 				this.updateInfo();
@@ -257,19 +322,253 @@
 					break;
 			}
 
-			this.updateLinks();
+			this.setButtons();
 
+			// Check if the sortable option is set and initialise if so.
 			if ( this.options.sortable ) {
 				this.initSortable();
 			}
 
+			// Fix the height of the table to keep the bottom container fixed in place.
 			if ( this.options.fixedHeight) {
 				this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
 			}
 
+			this.table.classList.add('dataTable-table');
+
+
 			this.addEventListeners();
 		},
 
+		/**
+		 * Attach required event listeners.
+		 */
+		addEventListeners: function()
+		{
+			var that = this;
+
+			forEach(that.paginators, function(index, paginator) {
+				paginator.addEventListener('click', that.switchPage.bind(that), false);
+			})
+
+			that.selector.addEventListener('change', that.updateTable.bind(that), false);
+		},
+
+		/**
+		 * Change the page.
+		 * @param  {event} event
+		 * @return {void}
+		 */
+		switchPage: function(event)
+		{
+			event = event || window.event;
+
+			var target = event.target, tagName = target.tagName.toLowerCase();
+
+			if ( tagName != 'a' ) return;
+
+			event.preventDefault();
+
+			var page = target.getAttribute('data-page');
+
+			// We don't want to load the current page again.
+			if ( page == this.currentPage && target.parentNode.classList.contains('active') )
+				return;
+
+			if ( isInt(page)) {
+				this.currentPage = parseInt(page, 10);
+			}
+
+			// Check we have the nextPrev option enabled
+			if ( this.options.nextPrev ) {
+				if ( page == 'prev' ) {
+					if ( this.onFirstPage )
+						return;
+
+					this.currentPage--;
+				}
+
+				if ( page == 'next' ) {
+					if ( this.onLastPage )
+						return;
+
+					this.currentPage++;
+				}
+			}
+
+			switch (this.currentPage) {
+				case 1:
+					this.onFirstPage = true;
+					this.onLastPage = false;
+					break;
+				case this.last_page:
+					this.onFirstPage = false;
+					this.onLastPage = true
+					break;
+			}
+
+			// Show the selected page;
+			this.showPage(this.currentPage-1);
+
+			if ( this.options.info ) {
+				this.updateInfo();
+			}
+
+			this.setClasses();
+
+			this.options.change(this);
+		},
+
+		/**
+		 * Populate the table with the required page.
+		 * @param  {int} index 	The index of the required page.
+		 * @return {void}
+		 */
+		showPage: function(index)
+		{
+			index = index || 0;
+
+			var that = this, page = document.createDocumentFragment();
+
+			this.tbody.innerHTML = '';
+
+			forEach(this.pages[index], function (i, row) {
+				page.appendChild(row);
+			});
+
+			that.tbody.appendChild(page);
+		},
+
+		/**
+		 * Update the table info (Showing x to y of z rows)
+		 * @return {void}
+		 */
+		updateInfo: function()
+		{
+			if ( this.info.pages <= 1 )
+				this.label.innerHTML = null;
+
+			var current = this.currentPage-1,
+				f = (current) * this.options.perPage,
+				t = f + this.pages[current].length;
+
+			this.label.innerHTML = 'Showing ' + (f + 1) + ' to ' + t + ' of ' + this.info.items + ' rows';
+		},
+
+		/**
+		 * Set the correct number of paginator buttons.
+		 * @return {void}
+		 */
+		setButtons: function()
+		{
+			var that = this;
+
+			forEach(that.paginators, function(index, paginator) {
+				paginator.innerHTML = '';
+
+				if ( that.pages.length <= 1 )
+					return;
+
+				if ( that.options.nextPrev )
+					paginator.appendChild(that.getButton('prev'));
+
+				forEach(that.pages, function(i, page) {
+					var li 	= createElement('li', { class: ( i == 0 ) ? 'active' : '' });
+					var a 	= createElement('a', { href: '#', 'data-page': i+1 });
+					var t 	= document.createTextNode(i+1);
+
+					a.appendChild(t);
+					li.appendChild(a);
+					paginator.appendChild(li);
+				});
+
+				if ( that.options.nextPrev )
+					paginator.appendChild(that.getButton('next'));
+			});
+		},
+
+		/**
+		 * Set the active, disabled and hidden classes on the paginator buttons.
+		 * @param {[type]} node [description]
+		 */
+		setClasses: function(node)
+		{
+			var self = this,
+				onFirstPage = self.onFirstPage,
+				onLastPage = self.onLastPage,
+				nextPrev = self.options.nextPrev,
+				hideNavs = self.options.hideUnusedNavs;
+
+			forEach(self.paginators, function(index, paginator) {
+				var links = paginator.children,
+					inactive = hideNavs ? 'hidden' : 'disabled';
+
+				forEach(links, function(i, link) {
+					link.classList.remove('active', 'disabled', 'hidden');
+				});
+
+				// We're on the first page so disable / hide the prev button.
+				if ( onFirstPage )
+					paginator.firstElementChild.classList.add(inactive);
+
+				// We're on the last page so disable / hide the next button.
+				if ( onLastPage )
+					paginator.lastElementChild.classList.add(inactive);
+
+				// Add the 'active' class to the correct button
+				var n = nextPrev ? self.currentPage : self.currentPage-1;
+				paginator.children[n].classList.add('active');
+			});
+		},
+
+		/**
+		 * Make a next / prev button.
+		 * @param  {string} direction The direction we want (next or prev)
+		 * @return {HTMLElement}
+		 */
+		getButton: function(direction)
+		{
+			var li = createElement('li'),
+				a = createElement('a', { href: '#', 'data-page': direction });
+
+			a.innerHTML = direction == 'prev' ? this.options.prevText : this.options.nextText;
+
+			li.appendChild(a);
+
+			return li;
+		},
+
+		/**
+		 * Update the table contents
+		 * @param  {event}
+		 * @return {void}
+		 */
+		updateTable: function(event)
+		{
+			event = event || window.event;
+
+			var target = event.target;
+
+
+			if ( target.nodeName.toLowerCase() == 'select' )
+				this.options.perPage = parseInt(target.value, 10);
+
+			this.tableContainer.style.height = null;
+
+			this.initPages();
+			this.showPage();
+			this.setButtons();
+
+			if ( this.options.info )
+				this.updateInfo();
+
+			this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
+		},
+
+		/**
+		 * Inititialse the sortable option.
+		 * @return {void}
+		 */
 		initSortable: function()
 		{
 			var self = this, cols = self.thead.rows[0].cells;
@@ -295,267 +594,19 @@
 			});
 		},
 
-		initPages: function()
-		{
-			var that = this;
-
-			this.pages = this.initialRows.map( function(e,i) {
-				return i%that.options.perPage===0 ? that.initialRows.slice(i,i+that.options.perPage) : null;
-			}).filter(function(e){ return e; });
-
-			this.info.items = this.initialRows.length;
-			this.info.pages = this.pages.length;
-			this.last_page = this.info.pages;
-		},
-
-		updatePages: function(index)
-		{
-			index = index || 0;
-
-			var that = this, page = document.createDocumentFragment();
-
-			this.tbody.innerHTML = '';
-
-			forEach(this.pages[index], function (i, row) {
-				page.appendChild(row);
-			});
-
-			that.tbody.appendChild(page);
-		},
-
-		addEventListeners: function()
-		{
-			var that = this;
-
-			forEach(that.paginators, function(index, paginator) {
-				paginator.addEventListener('click', that.switchPage.bind(that), false);
-			})
-
-			that.selector.addEventListener('change', that.updateItems.bind(that), false);
-		},
-
-		removeEventListeners: function()
-		{
-			this.links.removeEventListener('click', this.switchPage);
-			this.selector.removeEventListener('click', this.switchItems);
-		},
-
-		switchPage: function(event)
-		{
-			event = event || window.event;
-
-			var target = event.target, tagName = target.nodeName.toLowerCase();
-
-			if ( tagName == 'a' || tagName == 'i' )
-			{
-				// Deal with font icons
-				if ( tagName == 'i' ) {
-					target = target.parentNode;
-				}
-
-				event.preventDefault();
-
-				this.onFirstPage = false;
-				this.onLastPage = false;
-
-				var page = target.getAttribute('data-page');
-
-				// We don't want to load the current page again
-				if ( page == this.currentPage && target.parentNode.classList.contains('active') ) return false;
-
-
-				if ( isInt(page)) {
-					this.currentPage = parseInt(page,10);
-				}
-
-				if ( this.options.nextPrev ) {
-					if ( page == 'prev' ) {
-						if ( (this.currentPage - 1) < 1 ) {
-							return false;
-						}
-
-						this.currentPage--;
-					}
-
-					if ( page == 'next' ) {
-						if ( (this.currentPage + 1) > this.last_page ) {
-							return false;
-						}
-
-						this.currentPage++;
-					}
-				}
-
-				switch (this.currentPage) {
-					case 1:
-						this.onFirstPage = true
-						break;
-					case this.last_page:
-						this.onLastPage = true
-						break;
-				}
-
-				this.updatePages(this.currentPage-1);
-
-				if ( this.options.info ) {
-					this.updateInfo();
-				}
-				this.setClasses();
-
-				this.options.change(this);
-			}
-
-		},
-
-		setClasses: function(node)
-		{
-			var self = this,
-				onFirstPage = self.onFirstPage,
-				onLastPage = self.onLastPage,
-				nextPrev = self.options.nextPrev,
-				hideNavs = self.options.hideUnusedNavs;
-
-			forEach(self.paginators, function(index, paginator) {
-				var links = paginator.children;
-
-				forEach(links, function(i, link) {
-					link.classList.remove('active', 'disabled', 'hidden')
-				});
-
-				if ( onFirstPage ) {
-					paginator.firstElementChild.classList.add(hideNavs ? 'hidden' : 'disabled');
-				}
-
-				if ( onLastPage ) {
-					paginator.lastElementChild.classList.add(hideNavs ? 'hidden' : 'disabled');
-				}
-
-				if ( nextPrev ) {
-					paginator.children[self.currentPage].classList.add('active');
-				} else {
-					paginator.children[self.currentPage-1].classList.add('active');
-				}
-
-			});
-		},
-
-		updateInfo: function()
-		{
-			if ( this.info.pages <= 1 ) {
-				this.label.innerHTML = '';
-			}
-
-			var current = this.currentPage-1,
-				f = (current) * this.options.perPage,
-				t = f + this.pages[current].length;
-
-			this.label.innerHTML = 'Showing ' + (f + 1) + ' to ' + t + ' of ' + this.info.items + ' rows';
-		},
-
-		getSelector: function()
-		{
-			var select 	= createElement('select', { class: 'form-control dataTable-selector' });
-
-			forEach(this.options.perPageSelect, function(i, value) {
-				var option = createElement('option');
-				option.value = value;
-				option.innerHTML = value;
-				select.appendChild(option);
-			});
-
-			select.value = this.options.perPage;
-
-			return select;
-		},
-
-		updateLinks: function()
-		{
-			var that = this;
-
-			forEach(that.paginators, function(index, paginator) {
-				paginator.innerHTML = '';
-
-				if ( that.pages.length <= 1 ) {
-					return false;
-				}
-
-				if ( that.options.nextPrev ) {
-					paginator.appendChild(that.getNav('prev'));
-				}
-
-				forEach(that.pages, function(i, page) {
-					var li 	= createElement('li', { class: ( i == 0 ) ? 'active' : '' });
-					var a 	= createElement('a', { href: '#', 'data-page': i+1 });
-					var t 	= document.createTextNode(i+1);
-
-					a.appendChild(t);
-					li.appendChild(a);
-					paginator.appendChild(li);
-				});
-
-				if ( that.options.nextPrev ) {
-					paginator.appendChild(that.getNav('next'));
-				}
-			});
-		},
-
-		getNav: function(direction)
-		{
-			var li = createElement('li'),
-				a = createElement('a', { href: '#', 'data-page': direction });
-
-			a.innerHTML = direction == 'prev' ? this.options.prevText : this.options.nextText;
-
-			li.appendChild(a);
-
-			return li;
-		},
-
-		setInitialDimensions: function()
-		{
-			var t = this.table.tHead.rows[0].cells, pw = getWidth(this.table);
-
-			for (var i = 0, len = t.length; i < len; i++) {
-				var w = (getWidth(t[i]) / pw) * 100;
-				this.initialDimensions.push(w);
-				t[i].style.width = w + '%';
-			};
-		},
-
-		updateItems: function(event)
-		{
-			event = event || window.event;
-
-			var target = event.target;
-
-			this.currentPage = 1;
-
-			if ( target.nodeName.toLowerCase() == 'select' ) {
-				this.options.perPage = parseInt(target.value, 10);
-			}
-
-			this.tableContainer.style.height = null;
-
-			this.initPages();
-			this.updatePages();
-			this.updateLinks();
-
-			if ( this.options.info ) {
-				this.updateInfo();
-			}
-
-			this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
-		},
-
+		/**
+		 * Perform the sorting
+		 * @param  {event} event
+		 * @return {void}
+		 */
 		sortItems: function(event)
 		{
 			event = event || window.event;
 
 			var that = this, target = event.target;
 
-			if ( target.nodeName.toLowerCase() != 'a' ) {
-				return false;
-			}
+			if ( target.nodeName.toLowerCase() != 'a' )
+				return;
 
 			/*
 			 * Get cell data for column that is to be sorted from HTML table
@@ -595,41 +646,63 @@
 			 * Sort according to direction (ascending or descending)
 			 */
 			var col = [], top, bottom;
-			if (th.className.match("asc")) {
+			if (th.classList.contains("asc")) {
 				top = bubbleSort(alpha, -1);
 				bottom = bubbleSort(numeric, -1);
-				th.className = th.className.replace(/asc/, "desc");
+				th.classList.remove('asc');
+				th.classList.add('desc');
 			} else {
 				top = bubbleSort(numeric, 1);
 				bottom = bubbleSort(alpha, 1);
-				if (th.className.match("desc")) {
-					th.className = th.className.replace(/desc/, "asc");
+				if (th.classList.contains("desc")) {
+					th.classList.remove('desc');
+					th.classList.add('asc');
 				} else {
-					th.className += "asc";
+					th.classList.add('asc');
 				}
 			}
 
 			/*
-			 * Clear asc/desc class names from the last sorted column's th if it isnt the
+			 * Clear asc/desc class names from the last sorted column's th if it isn't the
 			 * same as the one that was just clicked
 			 */
 			if (this.lastSortedTh && th != this.lastSortedTh) {
-				this.lastSortedTh.className = this.lastSortedTh.className.replace(/desc|asc/g, "");
+				this.lastSortedTh.classList.remove('desc', 'asc');
 			}
 			this.lastSortedTh = th;
 
 
 			/*
-			 *  Reorder HTML table based on new order of data found in the col array
+			 *  Reorder the table
 			 */
 			var rows = top.concat(bottom);
 			this.initialRows = [];
 
-			for ( var id in rows ) {
-				that.initialRows.push(rows[id]['row']);
-			}
+			forEach(rows, function(i, row) {
+				that.initialRows.push(row['row']);
+			});
 
-			that.updateItems(event);
+			that.updateTable(event);
+		},
+
+		/**
+		 * Build the perPage selector;
+		 * @return {HTMLElement}
+		 */
+		getSelector: function()
+		{
+			var select 	= createElement('select', { class: 'form-control dataTable-selector' });
+
+			forEach(this.options.perPageSelect, function(i, value) {
+				var option = createElement('option');
+				option.value = value;
+				option.innerHTML = value;
+				select.appendChild(option);
+			});
+
+			select.value = this.options.perPage;
+
+			return select;
 		},
 
 	};
