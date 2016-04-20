@@ -38,7 +38,7 @@ var myTable = document.getElementById('myTable');
 var dataTable = new dataTable(myTable);
 ```
 
-4 - Choose your options
+##Options
 
 ```javascript
 var options = {
