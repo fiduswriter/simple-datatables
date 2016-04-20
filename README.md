@@ -35,7 +35,7 @@ Coming soon....
 
 ```javascript
 var myTable = document.getElementById('myTable');
-var dataTable = new dataTable(myTable);
+var dataTable = new DataTable(myTable);
 ```
 
 ##Options
@@ -104,5 +104,5 @@ var options = {
 	change: function() {},
 };
 
-var dataTable = new dataTable(myTable, options);
+var dataTable = new DataTable(myTable, options);
 ```
