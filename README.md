@@ -91,7 +91,7 @@ var options = {
 	perPageSelect: [5,10,15,20,25],
 
 	/**
-	 * The function that first on page change.
+	 * The function that fires on page change.
 	 * @return {void}
 	 */
 	change: function() {},
