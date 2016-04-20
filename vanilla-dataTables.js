@@ -396,17 +396,6 @@
 				}
 			}
 
-			switch (this.currentPage) {
-				case 1:
-					this.onFirstPage = true;
-					this.onLastPage = false;
-					break;
-				case this.last_page:
-					this.onFirstPage = false;
-					this.onLastPage = true
-					break;
-			}
-
 			// Show the selected page;
 			this.showPage(this.currentPage-1);
 
@@ -437,6 +426,18 @@
 			});
 
 			that.tbody.appendChild(page);
+
+			this.onFirstPage = false;
+			this.onLastPage = false;
+
+			switch (this.currentPage) {
+				case 1:
+					this.onFirstPage = true;
+					break;
+				case this.last_page:
+					this.onLastPage = true
+					break;
+			}
 		},
 
 		/**
@@ -549,6 +550,7 @@
 
 			var target = event.target;
 
+			this.currentPage = 1;
 
 			if ( target.nodeName.toLowerCase() == 'select' )
 				this.options.perPage = parseInt(target.value, 10);
