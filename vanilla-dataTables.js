@@ -4,13 +4,13 @@
  \ \   / /_ _ _ __ (_) | | __ _  |  _ \  __ _| |_ __ |_   _|_ _| |__ | | ___  ___
   \ \ / / _` | '_ \| | | |/ _` | | | | |/ _` | __/ _` || |/ _` | '_ \| |/ _ \/ __|
    \ V / (_| | | | | | | | (_| | | |_| | (_| | || (_| || | (_| | |_) | |  __/\__ \
-    \_/ \__,_|_| |_|_|_|_|\__,_| |____/ \__,_|\__\__,_||_|\__,_|_.__/|_|\___||___/
+	\_/ \__,_|_| |_|_|_|_|\__,_| |____/ \__,_|\__\__,_||_|\__,_|_.__/|_|\___||___/
 
  * Copyright (c) 2015 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.0.2
+ * Version: 0.0.3
  *
  */
 
@@ -34,7 +34,7 @@
 		 | |_| |/ _ \ | '_ \ / _ \ '__/ __|
 		 |  _  |  __/ | |_) |  __/ |  \__ \
 		 |_| |_|\___|_| .__/ \___|_|  |___/
-		              |_|
+					  |_|
 
 	-------------------------------------------*/
 
@@ -65,6 +65,15 @@
 		}
 		x = parseFloat(value);
 		return (x | 0) === x;
+	}
+
+	/**
+	 * Check if a number (int) is even.
+	 * @param  {int}  n
+	 * @return {Boolean}
+	 */
+	var isEven = function (n) {
+		return n % 2 == 0;
 	}
 
 	/**
@@ -154,6 +163,23 @@
 	};
 
 	/**
+	 * Detect crappy IE browsers... ugh...
+	 * @return {Boolean}
+	 */
+	var isIE = function(browser) {
+		var agent 	= window.navigator.userAgent,
+			msie 	= agent.indexOf('MSIE '),
+			trident = agent.indexOf('Trident/');
+
+		if (msie > 0 || trident > 0) {
+			return true;
+		}
+
+		// not IE
+		return false;
+	}
+
+	/**
 	 * Plugin Object
 	 * @param table The table to initialize
 	 * @param {Object} options User options
@@ -165,22 +191,19 @@
 			return new Plugin(name)
 		}
 
-		this.sorters = [];
-		this.paginators = [];
+		this.isIE = isIE();
 
-		this.initialRows = null;
-		this.initialDimensions = [];
+		this.sorters 			= [];
+		this.paginators 		= [];
 
-		this.currentPage = 1;
-		this.first_page = 1;
-		this.onFirstPage = true;
-		this.onLastPage = false;
+		this.initialRows 		= null;
+		this.initialDimensions 	= [];
 
-		this.info = {
-			items: 0,
-			pages: 0,
-			range: 0,
-		};
+		this.currentPage 		= 1;
+		this.first_page 		= 1;
+		this.onFirstPage 		= true;
+		this.onLastPage 		= false;
+		this.info 				= { items: 0, pages: 0, range: 0 };
 
 		var nodeName = table.tagName.toLowerCase();
 
@@ -196,7 +219,7 @@
 
 		this.table = table;
 		this.thead = this.table.tHead;
-		this.tbody = this.table.tBodies[0];
+		this.tbody = this.table.lastElementChild;
 		this.initialRows = Array.prototype.slice.call(this.tbody.rows);
 
 		/**
@@ -257,8 +280,8 @@
 		{
 			var that = this;
 
-			this.pages = this.initialRows.map( function(e,i) {
-				return i%that.options.perPage===0 ? that.initialRows.slice(i,i+that.options.perPage) : null;
+			this.pages = this.initialRows.map( function(row,i) {
+				return i%that.options.perPage==0 ? that.initialRows.slice(i,i+that.options.perPage) : null;
 			}).filter(function(e){ return e; });
 
 			this.info.items = this.initialRows.length;
@@ -323,6 +346,7 @@
 			}
 
 			this.setButtons();
+			this.setClasses();
 
 			// Check if the sortable option is set and initialise if so.
 			if ( this.options.sortable ) {
@@ -335,7 +359,6 @@
 			}
 
 			this.table.classList.add('dataTable-table');
-
 
 			this.addEventListeners();
 		},
@@ -419,7 +442,14 @@
 
 			var that = this, page = document.createDocumentFragment();
 
-			this.tbody.innerHTML = '';
+			// IE doesn't play nice with innerHTML on tBodies.
+			if ( that.isIE ) {
+				while(that.tbody.hasChildNodes()) {
+					that.tbody.removeChild(that.tbody.firstChild);
+				}
+			} else {
+				this.tbody.innerHTML = '';
+			}
 
 			forEach(this.pages[index], function (i, row) {
 				page.appendChild(row);
@@ -447,7 +477,7 @@
 		updateInfo: function()
 		{
 			if ( this.info.pages <= 1 )
-				this.label.innerHTML = null;
+				this.label.innerHTML = '';
 
 			var current = this.currentPage-1,
 				f = (current) * this.options.perPage,
@@ -505,7 +535,12 @@
 					inactive = hideNavs ? 'hidden' : 'disabled';
 
 				forEach(links, function(i, link) {
-					link.classList.remove('active', 'disabled', 'hidden');
+					// IE won't do multiple removes on classList. I hate IE...
+					if ( self.isIE ) {
+						link.setAttribute('class', '');
+					} else {
+						link.classList.remove('active', 'disabled', 'hidden');
+					}
 				});
 
 				// We're on the first page so disable / hide the prev button.
@@ -582,8 +617,7 @@
 					'class' : 'dataTable-sorter'
 				});
 				heading.cIdx = index;
-				heading.innerHTML = null;
-				heading.className = 'asc';
+				heading.innerHTML = '';
 				heading.appendChild(link);
 
 				link.innerHTML = label;
@@ -618,31 +652,25 @@
 			var aIdx = 0, nIdx = 0;
 			var th = target.parentElement;
 			var cellIndex = th.cIdx;
-			for (var i=0; rows[i]; i++) {
-				var cell = rows[i].cells[cellIndex];
-				var content = cell.textContent ? cell.textContent : cell.innerText;
-				/*
-				 * Split data into two separate arrays, one for numeric content and
-				 * one for everything else (alphabetic). Store both the actual data
-				 * that will be used for comparison by the sort algorithm (thus the need
-				 * to parseFloat() the numeric data) as well as a reference to the
-				 * element's parent row. The row reference will be used after the new
-				 * order of content is determined in order to actually reorder the HTML
-				 * table's rows.
-				 */
-				var num = content.replace(/(\$|\,|\s)/g, "");
+
+			forEach(rows, function(i, row) {
+				var cell 	= row.cells[cellIndex],
+					content = cell.textContent ? cell.textContent : cell.innerText,
+					num 	= content.replace(/(\$|\,|\s)/g, "");
+
 				  if (parseFloat(num) == num) {
 					numeric[nIdx++] = {
 						value: Number(num),
-						row: rows[i]
+						row: row
 					}
 				} else {
 					alpha[aIdx++] = {
 						value: content,
-						row: rows[i]
+						row: row
 					}
 				}
-			}
+			});
+
 
 			/*
 			 * Sort according to direction (ascending or descending)
