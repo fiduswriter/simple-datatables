@@ -103,3 +103,8 @@ var options = {
 	change: function() {},
 };
 ```
+
+## To Do List
+
+- [ ] Search function
+- [ ] IE < 9 support if requested.
