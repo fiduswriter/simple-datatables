@@ -41,13 +41,13 @@
 	/**
 	 * Merge defaults with user options
 	 * @param {Object} source Default settings
-	 * @param {Object} properties User options
+	 * @param {Object} props User options
 	 */
-	var extend = function (source, properties) {
-		var property;
-		for (property in properties) {
-			if (properties.hasOwnProperty(property)) {
-				source[property] = properties[property];
+	var extend = function (source, props) {
+		var prop;
+		for (prop in props) {
+			if (props.hasOwnProperty(prop)) {
+				source[prop] = props[prop];
 			}
 		}
 		return source;
@@ -60,20 +60,9 @@
 	 */
 	var isInt = function( value ) {
 		var x;
-		if (isNaN(value)) {
-			return false;
-		}
+		if (isNaN(value)) return false;
 		x = parseFloat(value);
 		return (x | 0) === x;
-	}
-
-	/**
-	 * Check if a number (int) is even.
-	 * @param  {int}  n
-	 * @return {Boolean}
-	 */
-	var isEven = function (n) {
-		return n % 2 == 0;
 	}
 
 	/**
@@ -101,10 +90,10 @@
 	 * @return {HTMLElement}
 	 */
 	var createElement = function(type, attrs) {
-		var elem = document.createElement(type);
+		var attr, elem = document.createElement(type);
 
 		if ( attrs ) {
-			for (var attr in attrs) {
+			for (attr in attrs) {
 				elem.setAttribute(attr, attrs[attr]);
 			}
 		}
@@ -133,9 +122,7 @@
 			unsorted = false;
 			for (var i=start; i!=end; i=i+dir) {
 				if (arr[i+dir] && arr[i].value > arr[i+dir].value) {
-					var a = arr[i],
-						b = arr[i+dir],
-						c = a;
+					var a = arr[i], b = arr[i+dir], c = a;
 					arr[i] = b;
 					arr[i+dir] = c;
 					unsorted = true;
@@ -167,16 +154,8 @@
 	 * @return {Boolean}
 	 */
 	var isIE = function(browser) {
-		var agent 	= window.navigator.userAgent,
-			msie 	= agent.indexOf('MSIE '),
-			trident = agent.indexOf('Trident/');
-
-		if (msie > 0 || trident > 0) {
-			return true;
-		}
-
-		// not IE
-		return false;
+		var agent = window.navigator.userAgent, ie = agent.indexOf('MSIE '), tri = agent.indexOf('Trident/');
+		return (ie > 0 || tri > 0) ? true : false;
 	}
 
 	/**
@@ -187,17 +166,9 @@
 	 */
 	function Plugin(table, options) {
 
-		this.initialised = false;
-		this.sortEnabled = false;
-
-		this.isIE = isIE();
-
-		this.sorters 			= [];
+		this.isIE 				= false;
 		this.paginators 		= [];
-
 		this.initialRows 		= null;
-		this.initialDimensions 	= [];
-
 		this.currentPage 		= 1;
 		this.first_page 		= 1;
 		this.onFirstPage 		= true;
@@ -206,19 +177,16 @@
 
 		var nodeName = table.tagName.toLowerCase();
 
-		if ( nodeName != "table") {
-			console.warn('ERROR: The selected element ('+nodeName+') is not a table!');
-			return;
-		}
+		if ( nodeName != "table")
+			throw new Error('The selected element ('+nodeName+') is not a table!');
 
-		if ( table.tHead === null && options.sortable ) {
-			console.warn('ERROR: The sortable option requires table headings!');
-			return;
-		}
+		if ( table.tHead === null && options.sortable )
+			throw new Error('The sortable option requires table headings!');
 
-		this.table = table;
-		this.thead = this.table.tHead;
-		this.tbody = this.table.lastElementChild;
+		this.isIE 	= isIE();
+		this.table 	= table;
+		this.thead 	= this.table.tHead;
+		this.tbody 	= this.table.tBodies[0];
 		this.initialRows = Array.prototype.slice.call(this.tbody.rows);
 
 		/**
@@ -238,6 +206,7 @@
 			hideUnusedNavs: false,
 			perPageSelect: [5,10,15,20,25],
 			change: function() {},
+			sorted: function() {},
 		};
 
 
@@ -251,28 +220,18 @@
 
 		initialise: function()
 		{
-			if (this.initialised) return;
-
-			this.initialised = true;
-
-			this.setInitialDimensions();
-			this.initPages();
-			this.build();
-		},
-
-		/**
-		 * Fix the column widths so they don't change on page switch.
-		 * @return {void}
-		 */
-		setInitialDimensions: function()
-		{
 			var that = this, cells = that.table.tHead.rows[0].cells, pw = getWidth(that.table);
 
+			/**
+			 * Fix the column widths so they don't change on page switch.
+			 */
 			forEach(cells, function(index, cell) {
 				var w = (getWidth(cell) / pw) * 100;
-				that.initialDimensions.push(w);
 				cell.style.width = w + '%';
 			});
+
+			this.initPages();
+			this.build();
 		},
 
 		/**
@@ -298,12 +257,15 @@
 		 */
 		build: function()
 		{
-			var topContainer 		= createElement('div', { class: 'dataTable-top' });
-			var bottomContainer 	= createElement('div', { class: 'dataTable-bottom' });
-			var selector 			= this.getSelector();
+			var topContainer 		= createElement('div', { class: 'dataTable-top' }),
+				bottomContainer 	= createElement('div', { class: 'dataTable-bottom' }),
+				selector 			= this.getSelector();
+
 			this.wrapper 			= createElement('div', { class: 'dataTable-wrapper' });
 			this.tableContainer 	= createElement('div', { class: 'dataTable-container' });
 			this.label 				= createElement('div', { class: 'dataTable-info' });
+
+			this.table.classList.add('dataTable-table');
 
 			// Insert the main container
 			this.table.parentNode.insertBefore(this.wrapper, this.table);
@@ -325,7 +287,7 @@
 
 			this.updateInfo();
 
-			var paginatorA = createElement('ul', { class: 'dataTable-pagination' });
+			var paginatorA = createElement('ul', { class: 'dataTable-pagination' }), paginatorB;
 			this.paginators.push(paginatorA);
 
 			switch(this.options.navPosition)
@@ -339,7 +301,7 @@
 					break;
 
 				case 'both':
-					var paginatorB = createElement('ul', { class: 'dataTable-pagination' });
+					paginatorB = createElement('ul', { class: 'dataTable-pagination' });
 					this.paginators.push(paginatorB);
 					topContainer.appendChild(paginatorA);
 					bottomContainer.appendChild(paginatorB);
@@ -358,8 +320,6 @@
 			if ( this.options.fixedHeight) {
 				this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
 			}
-
-			this.table.classList.add('dataTable-table');
 
 			this.addEventListeners();
 		},
@@ -542,7 +502,7 @@
 					inactive = hideNavs ? 'hidden' : 'disabled';
 
 				forEach(links, function(i, link) {
-					// IE won't do multiple removes on classList. I hate IE...
+					// IE won't do multiple removes on classList... ugh...
 					if ( self.isIE ) {
 						link.setAttribute('class', '');
 					} else {
@@ -606,18 +566,6 @@
 			this.setButtons();
 			this.updateInfo();
 
-			// Remove the sortable buttons if not initialised.
-			if ( !this.options.sortable )
-			{
-				var headings = this.thead.rows[0].cells;
-
-				forEach(headings, function(index, heading) {
-					heading.innerHTML = heading.textContent ? heading.textContent : heading.innerText;
-				});
-			} else {
-				this.initSortable();
-			}
-
 			this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
 		},
 
@@ -627,8 +575,6 @@
 		 */
 		initSortable: function()
 		{
-			if ( this.sortEnabled ) return;
-
 			var self = this, cols = self.thead.rows[0].cells;
 
 			forEach(cols, function(index, heading) {
@@ -670,11 +616,11 @@
 			/*
 			 * Get cell data for column that is to be sorted from HTML table
 			 */
-			var rows = that.initialRows;
-			var alpha = [], numeric = [];
-			var aIdx = 0, nIdx = 0;
-			var th = target.parentElement;
-			var cellIndex = th.cIdx;
+			var dir, rows = that.initialRows,
+				alpha = [], numeric = [],
+				aIdx = 0, nIdx = 0,
+				th = target.parentElement,
+				cellIndex = th.cIdx;
 
 			forEach(rows, function(i, row) {
 				var cell 	= row.cells[cellIndex],
@@ -704,15 +650,15 @@
 				bottom = bubbleSort(numeric, -1);
 				th.classList.remove('asc');
 				th.classList.add('desc');
+				dir = 'descending';
 			} else {
 				top = bubbleSort(numeric, 1);
 				bottom = bubbleSort(alpha, 1);
 				if (th.classList.contains("desc")) {
 					th.classList.remove('desc');
-					th.classList.add('asc');
-				} else {
-					th.classList.add('asc');
 				}
+				th.classList.add('asc');
+				dir = 'ascending';
 			}
 
 			/*
@@ -720,10 +666,14 @@
 			 * same as the one that was just clicked
 			 */
 			if (this.lastSortedTh && th != this.lastSortedTh) {
-				this.lastSortedTh.classList.remove('desc', 'asc');
+				// IE won't do multiple removes on classList... ugh...
+				if ( self.isIE ) {
+					this.lastSortedTh.setAttribute('class', '');
+				} else {
+					this.lastSortedTh.classList.remove('desc', 'asc');
+				}
 			}
 			this.lastSortedTh = th;
-
 
 			/*
 			 *  Reorder the table
@@ -736,6 +686,7 @@
 			});
 
 			that.update(event);
+			that.options.sorted(dir, this);
 		},
 
 		/**
@@ -744,7 +695,8 @@
 		 */
 		getSelector: function()
 		{
-			var wrapper = createElement('div', { class: 'dataTable-selectWrapper' }),
+			var frag = document.createDocumentFragment(),
+				wrapper = createElement('div', { class: 'dataTable-selectWrapper' }),
 				selector = createElement('select', { class: 'dataTable-selector' }),
 				pre = createElement('span'),
 				suff = createElement('span');
@@ -761,9 +713,11 @@
 			pre.innerHTML = 'Showing';
 			suff.innerHTML = 'entries';
 
-			wrapper.appendChild(pre);
-			wrapper.appendChild(selector);
-			wrapper.appendChild(suff);
+			frag.appendChild(pre);
+			frag.appendChild(selector);
+			frag.appendChild(suff);
+
+			wrapper.appendChild(frag);
 
 			this.selector = selector;
 
