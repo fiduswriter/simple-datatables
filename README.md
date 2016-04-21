@@ -1,5 +1,5 @@
 # Vanilla-DataTables
-A lightweight (8kb minified), dependency-free javascript HTML table plugin
+A lightweight (just 3kb minified and gzipped), dependency-free javascript HTML table plugin
 
 Inspired by the jQuery DataTables plugin: https://datatables.net/
 
