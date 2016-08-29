@@ -9,21 +9,38 @@
 /**
  * SELECTOR
  */
-.dataTable-selectWrapper {
+.dataTable-info,
+.dataTable-selectWrapper,
+.dataTable-search,
+.dataTable-pagination {
 	float: left;
 }
 
-.dataTable-selector {
+.dataTable-selectWrapper, .dataTable-pagination {
+	width: 25%;
+}
+
+.dataTable-search {
+	text-align: center;
+	width: 50%;
+}
+
+.dataTable-selector, .dataTable-input {
 	margin: 0 10px;
 	padding: 6px 8px;
 	width: 80px;
 }
 
+.dataTable-input {
+	width: 200px;
+}
+
 .dataTable-info {
-	float: left;
+    width: 75%;
 }
 
 .dataTable-info,
+.dataTable-search,
 .dataTable-selectWrapper {
 	margin: 20px 0;
 }
@@ -66,7 +83,6 @@
  */
 .dataTable-sorter {
 	display: inline-block;
-	float: right;
 	height: 100%;
 	position: relative;
 	width: 100%;
@@ -103,15 +119,15 @@
  * PAGINATORS
  */
 .dataTable-pagination {
-	float: right;
 	border-radius: 4px;
 	display: inline-block;
 	margin: 20px 0;
 	padding-left: 0;
+	text-align: right;
 }
 
 .dataTable-pagination > li {
-	display: inline;
+	display: inline-block;
 }
 
 .dataTable-pagination > li > a {

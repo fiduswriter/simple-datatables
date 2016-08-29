@@ -10,7 +10,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.0.3
+ * Version: 0.0.4
  *
  */
 
@@ -91,13 +91,28 @@
 	 */
 	var createElement = function(type, attrs) {
 		var attr, elem = document.createElement(type);
-
-		if ( attrs ) {
+		if ( attrs && typeof attrs === 'object' ) {
 			for (attr in attrs) {
-				elem.setAttribute(attr, attrs[attr]);
+				if ( attr in elem ) {
+					if ( attr === 'innerHTML' ) {
+						elem.innerHTML = attrs[attr];
+					} else {
+						elem[attr] = attrs[attr];
+					}
+				} else {
+					if ( attr === 'class' ) {
+						if ( attrs[attr] !== '' ) {
+							var classNames = attrs[attr].split(' ');
+							for (var i = classNames.length - 1; i >= 0; i--) {
+								elem.classList.add(classNames[i]);
+							};
+						}
+					} else {
+						elem.setAttribute(attr, attrs[attr]);
+					}
+				}
 			}
 		}
-
 		return elem;
 	};
 
@@ -166,9 +181,15 @@
 	 */
 	function Plugin(table, options) {
 
+		this.initialised 		= false;
+		this.sortEnabled 		= false;
+
 		this.isIE 				= false;
+
 		this.paginators 		= [];
+
 		this.initialRows 		= null;
+
 		this.currentPage 		= 1;
 		this.first_page 		= 1;
 		this.onFirstPage 		= true;
@@ -188,6 +209,9 @@
 		this.thead 	= this.table.tHead;
 		this.tbody 	= this.table.tBodies[0];
 		this.initialRows = Array.prototype.slice.call(this.tbody.rows);
+		this.pages = [];
+		this.searchPages = [];
+		this.searching = false;
 
 		/**
 		 * Plugin defaults
@@ -201,6 +225,7 @@
 			prevText: '&lsaquo;',
 			nextText: '&rsaquo;',
 			sortable: false,
+			searchable: false,
 			fixedHeight: true,
 			info: true,
 			hideUnusedNavs: false,
@@ -220,13 +245,17 @@
 
 		initialise: function()
 		{
-			var that = this, cells = that.table.tHead.rows[0].cells, pw = getWidth(that.table);
+			if (this.initialised) return;
+
+			this.initialised = true;
+
+			var that = this, cells = that.table.tHead.rows[0].cells, tw = getWidth(that.table);
 
 			/**
 			 * Fix the column widths so they don't change on page switch.
 			 */
 			forEach(cells, function(index, cell) {
-				var w = (getWidth(cell) / pw) * 100;
+				var w = (getWidth(cell) / tw) * 100;
 				cell.style.width = w + '%';
 			});
 
@@ -242,12 +271,21 @@
 		{
 			var that = this;
 
+			if ( !!this.searching ) {
+				this.initialSearchRows = this.searchPages;
+
+				this.searchPages = this.initialSearchRows.map( function(row,i) {
+					return i%that.options.perPage==0 ? that.initialSearchRows.slice(i,i+that.options.perPage) : null;
+				}).filter(function(e){ return e; });
+			}
+
 			this.pages = this.initialRows.map( function(row,i) {
 				return i%that.options.perPage==0 ? that.initialRows.slice(i,i+that.options.perPage) : null;
 			}).filter(function(e){ return e; });
 
-			this.info.items = this.initialRows.length;
-			this.info.pages = this.pages.length;
+
+			this.info.items = !!this.searching ? this.initialSearchRows.length : this.initialRows.length;
+			this.info.pages = !!this.searching ? this.searchPages.length : this.pages.length;
 			this.last_page = this.info.pages;
 		},
 
@@ -257,21 +295,17 @@
 		 */
 		build: function()
 		{
-			var topContainer 		= createElement('div', { class: 'dataTable-top' }),
-				bottomContainer 	= createElement('div', { class: 'dataTable-bottom' }),
-				selector 			= this.getSelector();
+			var topContainer 		= createElement('div', { class: 'dataTable-top' });
+			var bottomContainer 	= createElement('div', { class: 'dataTable-bottom' });
+			var selector 			= this.getSelector();
 
 			this.wrapper 			= createElement('div', { class: 'dataTable-wrapper' });
 			this.tableContainer 	= createElement('div', { class: 'dataTable-container' });
 			this.label 				= createElement('div', { class: 'dataTable-info' });
 
+
 			this.table.classList.add('dataTable-table');
 
-			// Insert the main container
-			this.table.parentNode.insertBefore(this.wrapper, this.table);
-
-			// Populate table container
-			this.tableContainer.appendChild(this.table);
 
 			// Populate bottom container
 			bottomContainer.appendChild(this.label);
@@ -281,6 +315,13 @@
 			this.wrapper.appendChild(this.tableContainer);
 			this.wrapper.appendChild(bottomContainer);
 			topContainer.appendChild(selector);
+
+			if ( this.options.searchable ) {
+				this.searchInput = createElement('input', { type: 'text', 'class': 'dataTable-input', placeholder: 'Search...' })
+				this.searchForm = createElement('div', { class: 'dataTable-search' });
+				this.searchForm.appendChild(this.searchInput);
+				topContainer.appendChild(this.searchForm);
+			}
 
 			// Initialise
 			this.showPage();
@@ -316,6 +357,13 @@
 				this.initSortable();
 			}
 
+
+			// Insert the main container
+			this.table.parentNode.insertBefore(this.wrapper, this.table);
+
+			// Populate table container
+			this.tableContainer.appendChild(this.table);
+
 			// Fix the height of the table to keep the bottom container fixed in place.
 			if ( this.options.fixedHeight) {
 				this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
@@ -331,11 +379,51 @@
 		{
 			var that = this;
 
+			that.searchPages = [];
+
 			forEach(that.paginators, function(index, paginator) {
 				paginator.addEventListener('click', that.switchPage.bind(that), false);
 			})
 
 			that.selector.addEventListener('change', that.update.bind(that), false);
+
+			this.searchInput.addEventListener('keyup', function(event) {
+				var val = this.value.toLowerCase(), frag = document.createDocumentFragment();
+
+				that.searching = true;
+				that.searchPages = [];
+
+				if ( !val.length ) {
+					that.searching = false;
+					that.update()
+					return;
+				}
+
+
+				// IE doesn't play nice with innerHTML on tBodies.
+				if ( that.isIE ) {
+					while(that.tbody.hasChildNodes()) {
+						that.tbody.removeChild(that.tbody.firstChild);
+					}
+				} else {
+					that.tbody.innerHTML = '';
+				}
+
+				forEach(that.pages, function(index, page) {
+					forEach(page, function(idx, tr) {
+						forEach(tr.cells, function(i, cell) {
+							let text = cell.textContent.toLowerCase();
+							var inArray = that.searchPages.indexOf(tr) > -1;
+							if ( text.includes(val) && !inArray ) {
+								that.searchPages.push(tr);
+							}
+						});
+					});
+				});
+
+				that.update();
+
+			}, false);
 		},
 
 		/**
@@ -399,7 +487,13 @@
 		{
 			index = index || 0;
 
-			var that = this, page = document.createDocumentFragment();
+			var pages = this.pages;
+
+			if ( !!this.searching ) {
+				pages = this.searchPages;
+			}
+
+			var that = this, docFrag = document.createDocumentFragment();
 
 			// IE doesn't play nice with innerHTML on tBodies.
 			if ( that.isIE ) {
@@ -410,11 +504,11 @@
 				this.tbody.innerHTML = '';
 			}
 
-			forEach(this.pages[index], function (i, row) {
-				page.appendChild(row);
+			forEach(pages[index], function (i, row) {
+				docFrag.appendChild(row);
 			});
 
-			that.tbody.appendChild(page);
+			that.tbody.appendChild(docFrag);
 
 			this.onFirstPage = false;
 			this.onLastPage = false;
@@ -440,14 +534,17 @@
 				return;
 			}
 
-			if ( this.info.pages <= 1 )
+			var pages = !!this.searching ? this.searchPages : this.pages;
+
+			if ( pages.length <= 1 )
 				this.label.innerHTML = '';
 
-			var current = this.currentPage-1,
-				f = (current) * this.options.perPage,
-				t = f + this.pages[current].length;
+			var current = this.currentPage-1;
+			var f = current * this.options.perPage;
+			var t = f + pages[current].length;
+			var template = 'Showing {x} to {y} of {r} rows';
 
-			this.label.innerHTML = 'Showing ' + (f + 1) + ' to ' + t + ' of ' + this.info.items + ' rows';
+			this.label.innerHTML = template.replace('{x}', (f + 1) ).replace('{y}', t).replace('{r}', this.info.items);
 		},
 
 		/**
@@ -456,12 +553,12 @@
 		 */
 		setButtons: function()
 		{
-			var that = this;
+			var that = this, pages = !!this.searching ? this.searchPages : this.pages;
 
 			forEach(that.paginators, function(index, paginator) {
 				paginator.innerHTML = '';
 
-				if ( that.pages.length <= 1 )
+				if ( pages.length <= 1 )
 					return;
 
 				if ( that.options.nextPrev )
@@ -469,7 +566,7 @@
 
 				if ( that.options.navButtons )
 				{
-					forEach(that.pages, function(i, page) {
+					forEach(pages, function(i, page) {
 						var li 	= createElement('li', { class: ( i == 0 ) ? 'active' : '' });
 						var a 	= createElement('a', { href: '#', 'data-page': i+1 });
 						var t 	= document.createTextNode(i+1);
@@ -575,6 +672,8 @@
 		 */
 		initSortable: function()
 		{
+			if ( this.sortEnabled ) return;
+
 			var self = this, cols = self.thead.rows[0].cells;
 
 			forEach(cols, function(index, heading) {
@@ -583,7 +682,7 @@
 					'href' : '#',
 					'class' : 'dataTable-sorter'
 				});
-				heading.cIdx = index;
+				heading.idx = index;
 				heading.innerHTML = '';
 				heading.appendChild(link);
 
@@ -616,27 +715,23 @@
 			/*
 			 * Get cell data for column that is to be sorted from HTML table
 			 */
-			var dir, rows = that.initialRows,
-				alpha = [], numeric = [],
-				aIdx = 0, nIdx = 0,
-				th = target.parentElement,
-				cellIndex = th.cIdx;
+			var dir;
+			var rows = that.initialRows;
+			var alpha = [];
+			var numeric = [];
+			var aIdx = 0;
+			var nIdx = 0;
+			var th = target.parentNode;
 
 			forEach(rows, function(i, row) {
-				var cell 	= row.cells[cellIndex],
-					content = cell.textContent ? cell.textContent : cell.innerText,
-					num 	= content.replace(/(\$|\,|\s)/g, "");
+				var cell 	= row.cells[th.idx];
+				var content = cell.textContent ? cell.textContent : cell.innerText;
+				var num 	= content.replace(/(\$|\,|\s)/g, "");
 
-				  if (parseFloat(num) == num) {
-					numeric[nIdx++] = {
-						value: Number(num),
-						row: row
-					}
+				if (parseFloat(num) == num) {
+					numeric[nIdx++] = { value: Number(num), row: row }
 				} else {
-					alpha[aIdx++] = {
-						value: content,
-						row: row
-					}
+					alpha[aIdx++] = { value: content, row: row }
 				}
 			});
 
@@ -675,6 +770,7 @@
 			}
 			this.lastSortedTh = th;
 
+
 			/*
 			 *  Reorder the table
 			 */
@@ -685,7 +781,7 @@
 				that.initialRows.push(row['row']);
 			});
 
-			that.update(event);
+			that.update(event, false);
 			that.options.sorted(dir, this);
 		},
 
@@ -698,20 +794,18 @@
 			var frag = document.createDocumentFragment(),
 				wrapper = createElement('div', { class: 'dataTable-selectWrapper' }),
 				selector = createElement('select', { class: 'dataTable-selector' }),
-				pre = createElement('span'),
-				suff = createElement('span');
+				pre = createElement('span', { innerHTML: 'Showing' }),
+				suff = createElement('span', { innerHTML: 'entries' });
 
 			forEach(this.options.perPageSelect, function(i, value) {
-				var option = createElement('option');
-				option.value = value;
-				option.innerHTML = value;
+				var option = createElement('option', {
+					value: value,
+					innerHTML: value
+				});
 				selector.appendChild(option);
 			});
 
 			selector.value = this.options.perPage;
-
-			pre.innerHTML = 'Showing';
-			suff.innerHTML = 'entries';
 
 			frag.appendChild(pre);
 			frag.appendChild(selector);
@@ -723,6 +817,56 @@
 
 			return wrapper;
 		},
+
+		destroy: function()
+		{
+			// No need to destroy if the plugin isn't initialised!
+			if (!this instanceof DataTable) return;
+
+			var that = this, headings = that.thead.rows[0].cells;
+
+			this.table.classList.remove('dataTable-table');
+
+			// Remove the event listeners
+			forEach(that.paginators, function(index, paginator) {
+				paginator.removeEventListener('click', that.switchPage);
+			})
+
+			that.selector.removeEventListener('change', that.update);
+
+			// Remove the sortable buttons if the option is enabled.
+			if ( that.options.sortable )
+			{
+				forEach(headings, function(index, heading) {
+					var link = heading.firstElementChild,
+						label = heading.textContent ? heading.textContent : heading.innerText;
+					heading.innerHTML = label;
+				});
+			}
+
+			if ( that.isIE ) {
+				while(that.tbody.hasChildNodes()) {
+					that.tbody.removeChild(that.tbody.firstChild);
+				}
+			} else {
+				this.tbody.innerHTML = '';
+			}
+
+			var page = document.createDocumentFragment();
+
+			forEach(this.initialRows, function (i, row) {
+				page.appendChild(row);
+			});
+
+			that.tbody.appendChild(page);
+
+			// Remove the wrapper and all child elements.
+			that.wrapper.parentNode.appendChild(that.table);
+			that.wrapper.parentNode.removeChild(that.wrapper);
+
+			this.initialised = false;
+		}
+
 	};
 
 	return Plugin;
