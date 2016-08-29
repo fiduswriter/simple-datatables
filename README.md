@@ -67,10 +67,16 @@ var options = {
 	nextText: '&rsaquo;',
 
 	/**
+	 * Enable / disable the option to search the data set.
+	 * @type {bool}
+	 */
+	searchable: false,
+	
+	/**
 	 * Enable / disable the sortable feature
 	 * @type {bool}
 	 */
-	sortable: false,
+	sortable: false,	
 
 	/**
 	 * Enable / disable the fixed height feature. Enabling this will keep the bottom container fixed in place
