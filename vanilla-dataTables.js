@@ -10,7 +10,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.0.4
+ * Version: 0.0.5
  *
  */
 
@@ -226,6 +226,7 @@
 			nextText: '&rsaquo;',
 			sortable: false,
 			searchable: false,
+			highlightMatches: false,
 			fixedHeight: true,
 			info: true,
 			hideUnusedNavs: false,
@@ -272,10 +273,8 @@
 			var that = this;
 
 			if ( !!this.searching ) {
-				this.initialSearchRows = this.searchPages;
-
-				this.searchPages = this.initialSearchRows.map( function(row,i) {
-					return i%that.options.perPage==0 ? that.initialSearchRows.slice(i,i+that.options.perPage) : null;
+				this.searchPages = this.searchRows.map( function(row,i) {
+					return i%that.options.perPage==0 ? that.searchRows.slice(i,i+that.options.perPage) : null;
 				}).filter(function(e){ return e; });
 			}
 
@@ -284,7 +283,7 @@
 			}).filter(function(e){ return e; });
 
 
-			this.info.items = !!this.searching ? this.initialSearchRows.length : this.initialRows.length;
+			this.info.items = !!this.searching ? this.searchRows.length : this.initialRows.length;
 			this.info.pages = !!this.searching ? this.searchPages.length : this.pages.length;
 			this.last_page = this.info.pages;
 		},
@@ -379,7 +378,7 @@
 		{
 			var that = this;
 
-			that.searchPages = [];
+			that.searchRows = [];
 
 			forEach(that.paginators, function(index, paginator) {
 				paginator.addEventListener('click', that.switchPage.bind(that), false);
@@ -391,11 +390,16 @@
 				var val = this.value.toLowerCase(), frag = document.createDocumentFragment();
 
 				that.searching = true;
-				that.searchPages = [];
+
+				if ( that.options.highlightMatches ) {
+					that.resetMatches();
+				}
+
+				that.searchRows = [];
 
 				if ( !val.length ) {
 					that.searching = false;
-					that.update()
+					that.update();
 					return;
 				}
 
@@ -413,9 +417,14 @@
 					forEach(page, function(idx, tr) {
 						forEach(tr.cells, function(i, cell) {
 							let text = cell.textContent.toLowerCase();
-							var inArray = that.searchPages.indexOf(tr) > -1;
+							var inArray = that.searchRows.indexOf(tr) > -1;
 							if ( text.includes(val) && !inArray ) {
-								that.searchPages.push(tr);
+
+								if ( that.options.highlightMatches ) {
+									cell.classList.add('match');
+								}
+
+								that.searchRows.push(tr);
 							}
 						});
 					});
@@ -424,6 +433,19 @@
 				that.update();
 
 			}, false);
+		},
+
+		resetMatches: function()
+		{
+			var that = this;
+
+			forEach(that.searchPages, function(index, page) {
+				forEach(page, function(idx, tr) {
+					forEach(tr.cells, function(i, cell) {
+						cell.classList.remove('match');
+					});
+				});
+			});
 		},
 
 		/**
@@ -716,7 +738,7 @@
 			 * Get cell data for column that is to be sorted from HTML table
 			 */
 			var dir;
-			var rows = that.initialRows;
+			var rows = !!that.searching ? that.searchRows : that.initialRows;
 			var alpha = [];
 			var numeric = [];
 			var aIdx = 0;
@@ -768,21 +790,30 @@
 					this.lastSortedTh.classList.remove('desc', 'asc');
 				}
 			}
-			this.lastSortedTh = th;
 
+			this.lastSortedTh = th;
 
 			/*
 			 *  Reorder the table
 			 */
 			var rows = top.concat(bottom);
-			this.initialRows = [];
 
-			forEach(rows, function(i, row) {
-				that.initialRows.push(row['row']);
-			});
+			if ( !!that.searching ) {
+				that.searchRows = [];
 
-			that.update(event, false);
-			that.options.sorted(dir, this);
+				forEach(rows, function(i, row) {
+					that.searchRows.push(row['row']);
+				});
+			} else {
+				that.initialRows = [];
+
+				forEach(rows, function(i, row) {
+					that.initialRows.push(row['row']);
+				});
+			}
+
+			that.update(event);
+			that.options.sorted(dir, that);
 		},
 
 		/**
