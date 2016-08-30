@@ -118,6 +118,8 @@ var options = {
 
 ##Changelog
 
+Further additions will be via a plugin-based interface to keep the original lightweight as I originally intended.
+
 ### 0.0.4
 Added search option
 
