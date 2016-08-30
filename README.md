@@ -71,6 +71,12 @@ var options = {
 	 * @type {bool}
 	 */
 	searchable: false,
+
+	/**
+	 * Adds the .match class to the cell with the matched string during search to allow highlighting.
+	 * @type {bool}
+	 */	
+	highlightMatches: false,
 	
 	/**
 	 * Enable / disable the sortable feature
@@ -110,7 +116,7 @@ var options = {
 };
 ```
 
-## To Do List
+##Changelog
 
-- [ ] Search function
-- [ ] IE < 9 support if requested.
+### 0.0.4
+Added search function
