@@ -48,6 +48,12 @@ var options = {
 	perPage: 10,
 
 	/**
+	 * Set the per page options in the dropdown.
+	 * @type {array}
+	 */
+	perPageSelect: [5,10,15,20,25],
+
+	/**
 	 * Set the position of the pagination buttons (top, bottom, both)
 	 * @type {string}
 	 */
@@ -65,7 +71,13 @@ var options = {
 	 */
 	prevText: '&lsaquo;',
 	nextText: '&rsaquo;',
-
+	
+	/**
+	 * Enable / disable the sortable feature
+	 * @type {bool}
+	 */
+	sortable: false,
+	
 	/**
 	 * Enable / disable the option to search the data set.
 	 * @type {bool}
@@ -77,12 +89,6 @@ var options = {
 	 * @type {bool}
 	 */	
 	highlightMatches: false,
-	
-	/**
-	 * Enable / disable the sortable feature
-	 * @type {bool}
-	 */
-	sortable: false,	
 
 	/**
 	 * Enable / disable the fixed height feature. Enabling this will keep the bottom container fixed in place
@@ -101,12 +107,6 @@ var options = {
 	 * @type {bool}
 	 */
 	hideUnusedNavs: false,
-
-	/**
-	 * Set the per page options in the dropdown.
-	 * @type {array}
-	 */
-	perPageSelect: [5,10,15,20,25],
 
 	/**
 	 * The function that fires on page change.
