@@ -119,4 +119,7 @@ var options = {
 ##Changelog
 
 ### 0.0.4
-Added search function
+Added search option
+
+### 0.0.3
+Added sortable option
