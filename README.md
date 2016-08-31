@@ -110,6 +110,26 @@ var options = {
 };
 ```
 
+##Events
+
+```javascript
+
+/* Event listeners */
+dataTable.on('datatable.init', function(table) {
+	// Do something when the plugin initialises
+});
+
+dataTable.on('datatable.change', function(table) {
+	// Do something on page change
+});
+
+dataTable.on('datatable.sort', function(table) {
+	// Do something when the table is sorted
+});
+
+```
+
+
 ##Changelog
 
 Further additions will be via a plugin-based interface to keep the original lightweight as I originally intended.
