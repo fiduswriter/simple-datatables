@@ -101,12 +101,6 @@ var options = {
 	 * @type {bool}
 	 */
 	hideUnusedNavs: false,
-
-	/**
-	 * The function that fires on page change.
-	 * @return {void}
-	 */
-	change: function() {},
 };
 ```
 
