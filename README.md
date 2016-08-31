@@ -85,12 +85,6 @@ var options = {
 	searchable: false,
 
 	/**
-	 * Adds the .match class to the cell with the matched string during search to allow highlighting.
-	 * @type {bool}
-	 */	
-	highlightMatches: false,
-
-	/**
 	 * Enable / disable the fixed height feature. Enabling this will keep the bottom container fixed in place
 	 * @type {bool}
 	 */
