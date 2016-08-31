@@ -114,7 +114,6 @@ var options = {
 
 ```javascript
 
-/* Event listeners */
 dataTable.on('datatable.init', function(table) {
 	// Do something when the plugin initialises
 });
