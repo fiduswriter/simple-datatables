@@ -181,10 +181,22 @@
 	 */
 	function Plugin(table, options) {
 
+		this.table 	= table;
+		this.thead 	= this.table.tHead;
+		this.tbody 	= this.table.tBodies[0];
+
+		var nodeName = table.tagName.toLowerCase();
+
+		if ( nodeName != "table")
+			throw new Error('The selected element ('+nodeName+') is not a table!');
+
+		if ( table.tHead === null && options.sortable )
+			throw new Error('The sortable option requires table headings!');
+
 		this.initialised 		= false;
 		this.sortEnabled 		= false;
 
-		this.isIE 				= false;
+		this.isIE 				= isIE();
 
 		this.paginators 		= [];
 
@@ -196,18 +208,7 @@
 		this.onLastPage 		= false;
 		this.info 				= { items: 0, pages: 0, range: 0 };
 
-		var nodeName = table.tagName.toLowerCase();
 
-		if ( nodeName != "table")
-			throw new Error('The selected element ('+nodeName+') is not a table!');
-
-		if ( table.tHead === null && options.sortable )
-			throw new Error('The sortable option requires table headings!');
-
-		this.isIE 	= isIE();
-		this.table 	= table;
-		this.thead 	= this.table.tHead;
-		this.tbody 	= this.table.tBodies[0];
 		this.initialRows = Array.prototype.slice.call(this.tbody.rows);
 		this.pages = [];
 		this.searchPages = [];
@@ -226,11 +227,11 @@
 			nextText: '&rsaquo;',
 			sortable: false,
 			searchable: false,
-			highlightMatches: false,
 			fixedHeight: true,
 			info: true,
 			hideUnusedNavs: false,
 			perPageSelect: [5,10,15,20,25],
+			plugins: [],
 			change: function() {},
 			sorted: function() {},
 		};
@@ -262,6 +263,23 @@
 
 			this.initPages();
 			this.build();
+
+			this.on = function(event, callback) {
+				that.table.addEventListener(event, function(e) {
+					callback.call(that, this);
+				});
+			};
+
+			if ( this.options.plugins.length ) {
+				forEach(this.options.plugins, function(index, plugin) {
+					that[plugin].initialise(that);
+				});
+			}
+
+			setTimeout(function() {
+				that.emit('datatable.init');
+			}, 50);
+
 		},
 
 		/**
@@ -389,11 +407,9 @@
 			this.searchInput.addEventListener('keyup', function(event) {
 				var val = this.value.toLowerCase(), frag = document.createDocumentFragment();
 
-				that.searching = true;
+				that.emit("datatable.search");
 
-				if ( that.options.highlightMatches ) {
-					that.resetMatches();
-				}
+				that.searching = true;
 
 				that.searchRows = [];
 
@@ -419,11 +435,6 @@
 							let text = cell.textContent.toLowerCase();
 							var inArray = that.searchRows.indexOf(tr) > -1;
 							if ( text.includes(val) && !inArray ) {
-
-								if ( that.options.highlightMatches ) {
-									cell.classList.add('match');
-								}
-
 								that.searchRows.push(tr);
 							}
 						});
@@ -433,19 +444,6 @@
 				that.update();
 
 			}, false);
-		},
-
-		resetMatches: function()
-		{
-			var that = this;
-
-			forEach(that.searchPages, function(index, page) {
-				forEach(page, function(idx, tr) {
-					forEach(tr.cells, function(i, cell) {
-						cell.classList.remove('match');
-					});
-				});
-			});
 		},
 
 		/**
@@ -497,7 +495,7 @@
 
 			this.setClasses();
 
-			this.options.change(this);
+			this.emit('datatable.change');
 		},
 
 		/**
@@ -812,8 +810,10 @@
 				});
 			}
 
+			this.sortOrder = dir;
+
 			that.update(event);
-			that.options.sorted(dir, that);
+			this.emit('datatable.sort');
 		},
 
 		/**
@@ -849,54 +849,11 @@
 			return wrapper;
 		},
 
-		destroy: function()
+		emit: function(event)
 		{
-			// No need to destroy if the plugin isn't initialised!
-			if (!this instanceof DataTable) return;
+			this.table.dispatchEvent(new Event(event));
+		},
 
-			var that = this, headings = that.thead.rows[0].cells;
-
-			this.table.classList.remove('dataTable-table');
-
-			// Remove the event listeners
-			forEach(that.paginators, function(index, paginator) {
-				paginator.removeEventListener('click', that.switchPage);
-			})
-
-			that.selector.removeEventListener('change', that.update);
-
-			// Remove the sortable buttons if the option is enabled.
-			if ( that.options.sortable )
-			{
-				forEach(headings, function(index, heading) {
-					var link = heading.firstElementChild,
-						label = heading.textContent ? heading.textContent : heading.innerText;
-					heading.innerHTML = label;
-				});
-			}
-
-			if ( that.isIE ) {
-				while(that.tbody.hasChildNodes()) {
-					that.tbody.removeChild(that.tbody.firstChild);
-				}
-			} else {
-				this.tbody.innerHTML = '';
-			}
-
-			var page = document.createDocumentFragment();
-
-			forEach(this.initialRows, function (i, row) {
-				page.appendChild(row);
-			});
-
-			that.tbody.appendChild(page);
-
-			// Remove the wrapper and all child elements.
-			that.wrapper.parentNode.appendChild(that.table);
-			that.wrapper.parentNode.removeChild(that.wrapper);
-
-			this.initialised = false;
-		}
 
 	};
 
