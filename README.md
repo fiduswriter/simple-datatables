@@ -101,6 +101,12 @@ var options = {
 	 * @type {bool}
 	 */
 	hideUnusedNavs: false,
+	
+	/**
+	 * Enable plugins.
+	 * @type {array}
+	 */
+	plugins: ['plugin_name_1', 'plugin_name_2', ...],	
 };
 ```
 
