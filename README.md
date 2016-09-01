@@ -131,8 +131,6 @@ dataTable.on('datatable.sort', function(table) {
 
 ##Changelog
 
-Further additions will be via a plugin-based interface to keep the original lightweight as I originally intended.
-
 ## 0.0.5
 Added plugin interface to allow future additions to be optional and thus keeping the original size down.
 
