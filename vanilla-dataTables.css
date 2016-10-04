@@ -16,7 +16,15 @@
 	float: left;
 }
 
-.dataTable-selectWrapper, .dataTable-pagination {
+.dataTable-pagination {
+	width: 25%;
+}
+
+.dataTable-selectWrapper {
+	width: 75%;
+}
+
+.dataTable-top.searchable .dataTable-selectWrapper {
 	width: 25%;
 }
 
@@ -210,4 +218,8 @@
 .dataTable-pagination-sm > li:last-child > a {
 	border-bottom-right-radius: 3px;
 	border-top-right-radius: 3px;
+}
+
+.dataTables-empty {
+	text-align: center;
 }

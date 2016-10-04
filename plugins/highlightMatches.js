@@ -3,26 +3,27 @@
  * @type {Object}
  */
 DataTable.prototype.highlightMatches = {
-	initialise: function(datatable) {
+	init: function(datatable) {
 		if ( !this instanceof DataTable ) return;
 
 		this.datatable = datatable;
+		this.className = 'match'
 
-		datatable.on('datatable.search', this.highlight.bind(this));
+		this.datatable.table.on('datatable.search', this.highlight.bind(this));
 	},
 
 	highlight: function() {
-		var _scope = this, val = this.datatable.searchInput.value;
+		var _this = this, val = this.datatable.searchInput.value;
 
 		if ( !val.length ) {
-			_scope.resetMatches();
+			_this.resetMatches();
 			return false;
 		}
 
 		var matches = [];
 
-		for( var i = 0, len = _scope.datatable.searchPages.length; i < len; i++ ) {
-			let page = _scope.datatable.searchPages[i];
+		for( var i = 0, len = _this.datatable.searchPages.length; i < len; i++ ) {
+			let page = _this.datatable.searchPages[i];
 			for( var _i = 0, _len = page.length; _i < _len; _i++ ) {
 				let tr = page[_i];
 				for( var _j = 0, _jlen = tr.cells.length; _j < _jlen; _j++ ) {
@@ -31,9 +32,9 @@ DataTable.prototype.highlightMatches = {
 					let inArray = matches.indexOf(tr) > -1;
 					if ( text.includes(val) && !inArray ) {
 						matches.push(tr);
-						cell.classList.add('match');
+						cell.classList.add(_this.className);
 					} else {
-						cell.classList.remove('match');
+						cell.classList.remove(_this.className);
 					}
 				};
 			};
@@ -41,14 +42,14 @@ DataTable.prototype.highlightMatches = {
 	},
 
 	resetMatches: function() {
-		var _scope = this;
-		for( var i = 0, len = _scope.datatable.searchPages.length; i < len; i++ ) {
-			let page = _scope.datatable.searchPages[i];
+		var _this = this;
+		for( var i = 0, len = _this.datatable.searchPages.length; i < len; i++ ) {
+			let page = _this.datatable.searchPages[i];
 			for( var _i = 0, _len = page.length; _i < _len; _i++ ) {
 				let tr = page[_i];
 				for( var _j = 0, _jlen = tr.cells.length; _j < _jlen; _j++ ) {
 					let cell = tr.cells[_j];
-					cell.classList.remove('match');
+					cell.classList.remove(_this.className);
 				};
 			};
 		};

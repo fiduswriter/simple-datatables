@@ -1,16 +1,11 @@
 /*!
  *
- __     __          _ _ _         ____        _       _____     _     _
- \ \   / /_ _ _ __ (_) | | __ _  |  _ \  __ _| |_ __ |_   _|_ _| |__ | | ___  ___
-  \ \ / / _` | '_ \| | | |/ _` | | | | |/ _` | __/ _` || |/ _` | '_ \| |/ _ \/ __|
-   \ V / (_| | | | | | | | (_| | | |_| | (_| | || (_| || | (_| | |_) | |  __/\__ \
-	\_/ \__,_|_| |_|_|_|_|\__,_| |____/ \__,_|\__\__,_||_|\__,_|_.__/|_|\___||___/
-
+ * Vanilla-DataTables
  * Copyright (c) 2015 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.0.5
+ * Version: 0.0.6
  *
  */
 
@@ -28,36 +23,14 @@
 	'use strict';
 
 
-	/*------------------------------------------
-		  _   _      _
-		 | | | | ___| |_ __   ___ _ __ ___
-		 | |_| |/ _ \ | '_ \ / _ \ '__/ __|
-		 |  _  |  __/ | |_) |  __/ |  \__ \
-		 |_| |_|\___|_| .__/ \___|_|  |___/
-					  |_|
+	/* HELPERS */
 
-	-------------------------------------------*/
-
-	/**
-	 * Merge defaults with user options
-	 * @param {Object} source Default settings
-	 * @param {Object} props User options
-	 */
-	var extend = function (source, props) {
-		var prop;
-		for (prop in props) {
-			if (props.hasOwnProperty(prop)) {
-				source[prop] = props[prop];
-			}
-		}
-		return source;
+	var extend = function(a, b) {
+		var c;
+		for (c in b) b.hasOwnProperty(c) && (a[c] = b[c]);
+		return a
 	};
 
-	/**
-	 * Check var is an integer
-	 * @param  {mixed} value
-	 * @return {Boolean}
-	 */
 	var isInt = function( value ) {
 		var x;
 		if (isNaN(value)) return false;
@@ -65,161 +38,85 @@
 		return (x | 0) === x;
 	}
 
-	/**
-	 * Get the width of an element.
-	 * @param  {Node} elem The element to get the height of
-	 * @return {Number}    The element's height in pixels
-	 */
 	var getWidth = function ( elem ) {
 		return Math.max( elem.scrollWidth, elem.offsetWidth, elem.clientWidth );
 	};
 
-	/**
-	 * Get the height of an element.
-	 * @param  {Node} elem The element to get the height of
-	 * @return {Number}    The element's height in pixels
-	 */
-	var getHeight = function ( elem ) {
+	var _getHeight = function ( elem ) {
 		return Math.max( elem.scrollHeight, elem.offsetHeight, elem.clientHeight );
 	};
 
-	/**
-	 * Create element helper. Create an element and assign given attributes.
-	 * @param  {NodeType} type 	Type of element to create.
-	 * @param  {Object} attrs 	The attributes to assign to the element.
-	 * @return {HTMLElement}
-	 */
-	var createElement = function(type, attrs) {
-		var attr, elem = document.createElement(type);
-		if ( attrs && typeof attrs === 'object' ) {
-			for (attr in attrs) {
-				if ( attr in elem ) {
-					if ( attr === 'innerHTML' ) {
-						elem.innerHTML = attrs[attr];
-					} else {
-						elem[attr] = attrs[attr];
-					}
-				} else {
-					if ( attr === 'class' ) {
-						if ( attrs[attr] !== '' ) {
-							var classNames = attrs[attr].split(' ');
-							for (var i = classNames.length - 1; i >= 0; i--) {
-								elem.classList.add(classNames[i]);
-							};
-						}
-					} else {
-						elem.setAttribute(attr, attrs[attr]);
-					}
-				}
-			}
-		}
-		return elem;
+	var _hasClass = function(e,c) {
+		return e.classList ? e.classList.contains(c) : !!e.className.match(new RegExp('(\\s|^)'+c+'(\\s|$)'));
+	}
+
+	var _addClass = function(a, b) {
+		a.classList ? a.classList.add(b) : _hasClass(b) || (a.className = a.className.trim() + " " + b)
 	};
+
+	var _removeClass = function(a, b) {
+		a.classList ? a.classList.remove(b) : _hasClass(b) && (a.className = a.className.replace(new RegExp("(^|\\b)" + b.split(" ").join("|") + "(\\b|$)", "gi"), " "))
+	};
+
+	var _newElement = function(a, b) {
+		var c, d = document.createElement(a);
+		if (b && "object" == typeof b)
+			for (c in b)
+				if (c in d) "innerHTML" === c ? d.innerHTML = b[c] : d[c] = b[c];
+				else if ("class" === c) {
+			if ("" !== b[c])
+				for (var e = b[c].split(" "), f = e.length - 1; f >= 0; f--) _addClass(d, e[f])
+		} else d.setAttribute(c, b[c]);
+		return d
+	};
+
+	var _newFragment = function() { return document.createDocumentFragment() }
 
 	/**
 	 * https://gist.github.com/scopevale/1663452
-	 * @param  {Object} arr [description]
-	 * @param  {int} 	dir [description]
-	 * @return {Object}     [description]
 	 */
-	var bubbleSort = function(arr, dir) {
-		var start, end;
-		if (dir === 1) {
-			start = 0;
-			end = arr.length;
-		} else if (dir === -1) {
-			start = arr.length-1;
-			end = -1;
-		}
-
-		var unsorted = true;
-		while (unsorted) {
-			unsorted = false;
-			for (var i=start; i!=end; i=i+dir) {
-				if (arr[i+dir] && arr[i].value > arr[i+dir].value) {
-					var a = arr[i], b = arr[i+dir], c = a;
-					arr[i] = b;
-					arr[i+dir] = c;
-					unsorted = true;
+	var _sort = function(a, b) {
+		var c, d;
+		1 === b ? (c = 0, d = a.length) : b === -1 && (c = a.length - 1, d = -1);
+		for (var e = !0; e;) {
+			e = !1;
+			for (var f = c; f != d; f += b)
+				if (a[f + b] && a[f].value > a[f + b].value) {
+					var g = a[f],
+						h = a[f + b],
+						i = g;
+					a[f] = h, a[f + b] = i, e = !0
 				}
-			}
 		}
-		return arr;
-	}
+		return a
+	};
 
-	/**
-	 * forEach helper
-	 */
-	var forEach = function (collection, callback, scope) {
-		if (Object.prototype.toString.call(collection) === '[object Object]') {
-			for (var prop in collection) {
-				if (Object.prototype.hasOwnProperty.call(collection, prop)) {
-					callback.call(scope, prop, collection[prop], collection);
-				}
-			}
-		} else {
-			for (var i = 0, len = collection.length; i < len; i++) {
-				callback.call(scope, i, collection[i], collection);
-			}
-		}
+	var _forEach = function(a, b, c) {
+		if ("[object Object]" === Object.prototype.toString.call(a))
+			for (var d in a) Object.prototype.hasOwnProperty.call(a, d) && b.call(c, d, a[d], a);
+		else
+			for (var e = 0, f = a.length; e < f; e++) b.call(c, e, a[e], a)
 	};
 
 	/**
-	 * Detect crappy IE browsers... ugh...
-	 * @return {Boolean}
+	 * Detect crappy IE browsers
 	 */
 	var isIE = function(browser) {
 		var agent = window.navigator.userAgent, ie = agent.indexOf('MSIE '), tri = agent.indexOf('Trident/');
-		return (ie > 0 || tri > 0) ? true : false;
+		return (ie > 0 || tri > 0);
 	}
 
 	/**
 	 * Plugin Object
-	 * @param table The table to initialize
-	 * @param {Object} options User options
-	 * @constructor
 	 */
 	function Plugin(table, options) {
 
-		this.table 	= table;
-		this.thead 	= this.table.tHead;
-		this.tbody 	= this.table.tBodies[0];
-
-		var nodeName = table.tagName.toLowerCase();
-
-		if ( nodeName != "table")
-			throw new Error('The selected element ('+nodeName+') is not a table!');
-
-		if ( table.tHead === null && options.sortable )
-			throw new Error('The sortable option requires table headings!');
-
-		this.initialised 		= false;
-		this.sortEnabled 		= false;
-
-		this.isIE 				= isIE();
-
-		this.paginators 		= [];
-
-		this.initialRows 		= null;
-
-		this.currentPage 		= 1;
-		this.first_page 		= 1;
-		this.onFirstPage 		= true;
-		this.onLastPage 		= false;
-		this.info 				= { items: 0, pages: 0, range: 0 };
-
-
-		this.initialRows = Array.prototype.slice.call(this.tbody.rows);
-		this.pages = [];
-		this.searchPages = [];
-		this.searching = false;
-
 		/**
 		 * Plugin defaults
-		 * @type {Object}
 		 */
 		var defaults = {
 			perPage: 10,
+			perPageSelect: [5,10,15,20,25],
 			navPosition: 'both',
 			navButtons: true,
 			nextPrev: true,
@@ -230,33 +127,65 @@
 			fixedHeight: true,
 			info: true,
 			hideUnusedNavs: false,
-			perPageSelect: [5,10,15,20,25],
 			plugins: [],
-			change: function() {},
-			sorted: function() {},
 		};
 
 
 		this.options = extend(defaults, options);
-		this.initialise();
+
+		var nodeName = table.tagName.toLowerCase();
+
+		if ( nodeName != "table" ) throw new Error('The selected element ('+nodeName+') is not a table!');
+
+		if ( table.tHead === null && this.options.sortable ) throw new Error('The sortable option requires table headings!');
+
+		this.table 	= table;
+		this.thead 	= this.table.tHead;
+
+		if ( this.options.data ) {
+			this.jsonToTable();
+		}
+
+		this.tbody = this.table.tBodies[0];
+		this.initialRows = Array.prototype.slice.call(this.tbody.rows);
+
+		this.colspan = this.thead.rows[0].cells.length;
+
+		this.initialised 		= false;
+		this.sortEnabled 		= false;
+
+		this.isIE 				= isIE();
+
+		this.paginators 		= [];
+
+		this.currentPage 		= 1;
+		this.first_page 		= 1;
+		this.onFirstPage 		= true;
+		this.onLastPage 		= false;
+		this.info 				= { items: 0, pages: 0, range: 0 };
+
+		this.pages = [];
+		this.searchPages = [];
+		this.searching = false;
+
+		this.init();
 	}
 
-
-	// Plugin prototype
 	Plugin.prototype = {
 
-		initialise: function()
+		init: function()
 		{
 			if (this.initialised) return;
 
 			this.initialised = true;
 
-			var that = this, cells = that.table.tHead.rows[0].cells, tw = getWidth(that.table);
+			var _this = this, cells = _this.table.tHead.rows[0].cells, tw = getWidth(_this.table);
 
 			/**
 			 * Fix the column widths so they don't change on page switch.
+			 * Use percentages so we don't have to update the width of each cell on window resize
 			 */
-			forEach(cells, function(index, cell) {
+			_forEach(cells, function(index, cell) {
 				var w = (getWidth(cell) / tw) * 100;
 				cell.style.width = w + '%';
 			});
@@ -264,21 +193,25 @@
 			this.initPages();
 			this.build();
 
-			this.on = function(event, callback) {
-				that.table.addEventListener(event, function(e) {
-					callback.call(that, this);
+			/* Events */
+			this.table.on = function(event, callback) {
+				_this.table.addEventListener(event, function(e) {
+					callback.call(_this, this);
 				});
 			};
 
+			/* Plugins */
 			if ( this.options.plugins.length ) {
-				forEach(this.options.plugins, function(index, plugin) {
-					that[plugin].initialise(that);
+				_forEach(this.options.plugins, function(i, plugin) {
+					if ( _this[plugin] && typeof _this[plugin].init === 'function' ) {
+						_this[plugin].init(_this);
+					}
 				});
 			}
 
 			setTimeout(function() {
-				that.emit('datatable.init');
-			}, 50);
+				_this.emit('datatable.init');
+			}, 10);
 
 		},
 
@@ -288,16 +221,16 @@
 		 */
 		initPages: function()
 		{
-			var that = this;
+			var _this = this;
 
 			if ( !!this.searching ) {
 				this.searchPages = this.searchRows.map( function(row,i) {
-					return i%that.options.perPage==0 ? that.searchRows.slice(i,i+that.options.perPage) : null;
+					return i%_this.options.perPage==0 ? _this.searchRows.slice(i,i+_this.options.perPage) : null;
 				}).filter(function(e){ return e; });
 			}
 
 			this.pages = this.initialRows.map( function(row,i) {
-				return i%that.options.perPage==0 ? that.initialRows.slice(i,i+that.options.perPage) : null;
+				return i%_this.options.perPage==0 ? _this.initialRows.slice(i,i+_this.options.perPage) : null;
 			}).filter(function(e){ return e; });
 
 
@@ -312,17 +245,15 @@
 		 */
 		build: function()
 		{
-			var topContainer 		= createElement('div', { class: 'dataTable-top' });
-			var bottomContainer 	= createElement('div', { class: 'dataTable-bottom' });
-			var selector 			= this.getSelector();
+			var topContainer 		= _newElement('div', { class: 'dataTable-top' });
+			var bottomContainer 	= _newElement('div', { class: 'dataTable-bottom' });
+			var selector 			= this.getSelect();
 
-			this.wrapper 			= createElement('div', { class: 'dataTable-wrapper' });
-			this.tableContainer 	= createElement('div', { class: 'dataTable-container' });
-			this.label 				= createElement('div', { class: 'dataTable-info' });
+			this.wrapper 			= _newElement('div', { class: 'dataTable-wrapper' });
+			this.tableContainer 	= _newElement('div', { class: 'dataTable-container' });
+			this.label 				= _newElement('div', { class: 'dataTable-info' });
 
-
-			this.table.classList.add('dataTable-table');
-
+			_addClass(this.table, 'dataTable-table');
 
 			// Populate bottom container
 			bottomContainer.appendChild(this.label);
@@ -334,10 +265,11 @@
 			topContainer.appendChild(selector);
 
 			if ( this.options.searchable ) {
-				this.searchInput = createElement('input', { type: 'text', 'class': 'dataTable-input', placeholder: 'Search...' })
-				this.searchForm = createElement('div', { class: 'dataTable-search' });
+				this.searchInput = _newElement('input', { type: 'text', 'class': 'dataTable-input', placeholder: 'Search...' })
+				this.searchForm = _newElement('div', { class: 'dataTable-search' });
 				this.searchForm.appendChild(this.searchInput);
 				topContainer.appendChild(this.searchForm);
+				_addClass(topContainer, 'searchable');
 			}
 
 			// Initialise
@@ -345,7 +277,7 @@
 
 			this.updateInfo();
 
-			var paginatorA = createElement('ul', { class: 'dataTable-pagination' }), paginatorB;
+			var paginatorA = _newElement('ul', { class: 'dataTable-pagination' }), paginatorB;
 			this.paginators.push(paginatorA);
 
 			switch(this.options.navPosition)
@@ -359,7 +291,7 @@
 					break;
 
 				case 'both':
-					paginatorB = createElement('ul', { class: 'dataTable-pagination' });
+					paginatorB = _newElement('ul', { class: 'dataTable-pagination' });
 					this.paginators.push(paginatorB);
 					topContainer.appendChild(paginatorA);
 					bottomContainer.appendChild(paginatorB);
@@ -369,7 +301,7 @@
 			this.setButtons();
 			this.setClasses();
 
-			// Check if the sortable option is set and initialise if so.
+			// Check if the sortable option is set
 			if ( this.options.sortable ) {
 				this.initSortable();
 			}
@@ -383,7 +315,8 @@
 
 			// Fix the height of the table to keep the bottom container fixed in place.
 			if ( this.options.fixedHeight) {
-				this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
+				this.tableHeight = _getHeight(this.tableContainer);
+				this.tableContainer.style.height = this.tableHeight + 'px';
 			}
 
 			this.addEventListeners();
@@ -394,56 +327,17 @@
 		 */
 		addEventListeners: function()
 		{
-			var that = this;
+			var _this = this;
 
-			that.searchRows = [];
+			_this.searchRows = [];
 
-			forEach(that.paginators, function(index, paginator) {
-				paginator.addEventListener('click', that.switchPage.bind(that), false);
+			_forEach(_this.paginators, function(index, paginator) {
+				paginator.addEventListener('click', _this.switchPage.bind(_this), false);
 			})
 
-			that.selector.addEventListener('change', that.update.bind(that), false);
+			_this.selector.addEventListener('change', _this.update.bind(_this), false);
 
-			this.searchInput.addEventListener('keyup', function(event) {
-				var val = this.value.toLowerCase(), frag = document.createDocumentFragment();
-
-				that.emit("datatable.search");
-
-				that.searching = true;
-
-				that.searchRows = [];
-
-				if ( !val.length ) {
-					that.searching = false;
-					that.update();
-					return;
-				}
-
-
-				// IE doesn't play nice with innerHTML on tBodies.
-				if ( that.isIE ) {
-					while(that.tbody.hasChildNodes()) {
-						that.tbody.removeChild(that.tbody.firstChild);
-					}
-				} else {
-					that.tbody.innerHTML = '';
-				}
-
-				forEach(that.pages, function(index, page) {
-					forEach(page, function(idx, tr) {
-						forEach(tr.cells, function(i, cell) {
-							let text = cell.textContent.toLowerCase();
-							var inArray = that.searchRows.indexOf(tr) > -1;
-							if ( text.includes(val) && !inArray ) {
-								that.searchRows.push(tr);
-							}
-						});
-					});
-				});
-
-				that.update();
-
-			}, false);
+			_this.searchInput.addEventListener('keyup', _this.search.bind(_this), false);
 		},
 
 		/**
@@ -457,7 +351,7 @@
 
 			var target = event.target, tagName = target.tagName.toLowerCase();
 
-			if ( tagName != 'a' ) return;
+			if ( tagName !== 'a' ) return;
 
 			event.preventDefault();
 
@@ -513,131 +407,168 @@
 				pages = this.searchPages;
 			}
 
-			var that = this, docFrag = document.createDocumentFragment();
+			if ( pages.length ) {
 
-			// IE doesn't play nice with innerHTML on tBodies.
-			if ( that.isIE ) {
-				while(that.tbody.hasChildNodes()) {
-					that.tbody.removeChild(that.tbody.firstChild);
+				var that = this, frag = _newFragment();
+
+				this.truncate();
+
+				_forEach(pages[index], function (i, row) {
+					frag.appendChild(row);
+				});
+
+				that.tbody.appendChild(frag);
+
+				this.onFirstPage = false;
+				this.onLastPage = false;
+
+				switch (this.currentPage) {
+					case 1:
+						this.onFirstPage = true;
+						break;
+					case this.last_page:
+						this.onLastPage = true
+						break;
 				}
-			} else {
-				this.tbody.innerHTML = '';
-			}
-
-			forEach(pages[index], function (i, row) {
-				docFrag.appendChild(row);
-			});
-
-			that.tbody.appendChild(docFrag);
-
-			this.onFirstPage = false;
-			this.onLastPage = false;
-
-			switch (this.currentPage) {
-				case 1:
-					this.onFirstPage = true;
-					break;
-				case this.last_page:
-					this.onLastPage = true
-					break;
 			}
 		},
 
 		/**
 		 * Update the table info (Showing x to y of z rows)
-		 * @return {void}
 		 */
 		updateInfo: function()
 		{
-			if ( !this.options.info ) {
-				this.label.innerHTML = '';
+			if ( !this.options.info ) return;
+
+			var pages = !!this.searching ? this.searchPages : this.pages, current = 0, f = 0, t = 0;
+
+			if ( pages.length ) {
+				current = this.currentPage-1;
+				f = current * this.options.perPage;
+				t = f + pages[current].length;
+				f = f+1;
+			}
+
+			var template = ['Showing ', f, ' to ', t, ' of ', this.info.items, ' rows'];
+
+			this.label.innerHTML = template.join('');
+		},
+
+		search: function(event)
+		{
+			var _this = this, val = this.searchInput.value.toLowerCase();
+			var frag = _newFragment();
+
+			this.emit("datatable.search");
+
+			this.searching = true;
+
+			this.searchRows = [];
+
+			if ( !val.length ) {
+				this.searching = false;
+				this.update();
 				return;
 			}
 
-			var pages = !!this.searching ? this.searchPages : this.pages;
+			this.truncate();
 
-			if ( pages.length <= 1 )
-				this.label.innerHTML = '';
+			_forEach(_this.pages, function(index, page) {
+				_forEach(page, function(idx, tr) {
+					_forEach(tr.cells, function(i, cell) {
+						var text = cell.textContent.toLowerCase();
+						var inArray = _this.searchRows.indexOf(tr) > -1;
+						if ( text.indexOf(val) > -1 && !inArray ) {
+							_this.searchRows.push(tr);
+						}
+					});
+				});
+			});
 
-			var current = this.currentPage-1;
-			var f = current * this.options.perPage;
-			var t = f + pages[current].length;
-			var template = 'Showing {x} to {y} of {r} rows';
+			if ( !_this.searchRows.length ) {
+				_this.setMessage('No entries found.');
+				// return;
+			}
 
-			this.label.innerHTML = template.replace('{x}', (f + 1) ).replace('{y}', t).replace('{r}', this.info.items);
+			this.update();
+		},
+
+		setMessage: function(message)
+		{
+			this.truncate();
+			this.tbody.appendChild(_newElement('tr', {innerHTML: '<td class="dataTables-empty" colspan="'+this.colspan+'">'+message+'</td>'}));
 		},
 
 		/**
 		 * Set the correct number of paginator buttons.
-		 * @return {void}
 		 */
 		setButtons: function()
 		{
 			var that = this, pages = !!this.searching ? this.searchPages : this.pages;
 
-			forEach(that.paginators, function(index, paginator) {
+			_forEach(that.paginators, function(index, paginator) {
+				var frag = _newFragment();
+
 				paginator.innerHTML = '';
 
 				if ( pages.length <= 1 )
 					return;
 
-				if ( that.options.nextPrev )
-					paginator.appendChild(that.getButton('prev'));
+				if ( that.options.nextPrev ) {
+					frag.appendChild(that.getButton('prev'));
+				}
 
 				if ( that.options.navButtons )
 				{
-					forEach(pages, function(i, page) {
-						var li 	= createElement('li', { class: ( i == 0 ) ? 'active' : '' });
-						var a 	= createElement('a', { href: '#', 'data-page': i+1 });
-						var t 	= document.createTextNode(i+1);
+					_forEach(pages, function(i, page) {
+						var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
+						var a 	= _newElement('a', { href: '#', 'data-page': i+1, innerHTML: i+1 });
 
-						a.appendChild(t);
 						li.appendChild(a);
-						paginator.appendChild(li);
+						frag.appendChild(li);
 					});
 				}
 
-				if ( that.options.nextPrev )
-					paginator.appendChild(that.getButton('next'));
+				if ( that.options.nextPrev ) {
+					frag.appendChild(that.getButton('next'));
+				}
+
+				paginator.appendChild(frag);
 			});
 		},
 
 		/**
 		 * Set the active, disabled and hidden classes on the paginator buttons.
-		 * @param {[type]} node [description]
 		 */
 		setClasses: function(node)
 		{
-			var self = this,
-				onFirstPage = self.onFirstPage,
-				onLastPage = self.onLastPage,
-				nextPrev = self.options.nextPrev,
-				hideNavs = self.options.hideUnusedNavs;
+			var _this = this,
+				onFirstPage = _this.onFirstPage,
+				onLastPage = _this.onLastPage,
+				nextPrev = _this.options.nextPrev,
+				hideNavs = _this.options.hideUnusedNavs;
 
-			forEach(self.paginators, function(index, paginator) {
+			_forEach(_this.paginators, function(index, paginator) {
 				var links = paginator.children,
 					inactive = hideNavs ? 'hidden' : 'disabled';
 
-				forEach(links, function(i, link) {
-					// IE won't do multiple removes on classList... ugh...
-					if ( self.isIE ) {
-						link.setAttribute('class', '');
-					} else {
-						link.classList.remove('active', 'disabled', 'hidden');
-					}
+				_forEach(links, function(i, link) {
+					_removeClass(link, 'active');
+					_removeClass(link, 'disabled');
+					_removeClass(link, 'hidden');
 				});
 
 				// We're on the first page so disable / hide the prev button.
-				if ( onFirstPage && self.options.nextPrev )
-					paginator.firstElementChild.classList.add(inactive);
+				if ( onFirstPage && _this.options.nextPrev )
+					_addClass(paginator.firstElementChild, inactive);
 
 				// We're on the last page so disable / hide the next button.
-				if ( onLastPage && self.options.nextPrev )
-					paginator.lastElementChild.classList.add(inactive);
+				if ( onLastPage && _this.options.nextPrev )
+					_addClass(paginator.lastElementChild, inactive);
 
 				// Add the 'active' class to the correct button
-				var n = nextPrev ? self.currentPage : self.currentPage-1;
-				paginator.children[n].classList.add('active');
+				var n = nextPrev ? _this.currentPage : _this.currentPage-1;
+				_addClass(paginator.children[n], 'active');
 			});
 		},
 
@@ -648,30 +579,25 @@
 		 */
 		getButton: function(direction)
 		{
-			var li = createElement('li'),
-				a = createElement('a', { href: '#', 'data-page': direction });
-
-			a.innerHTML = direction == 'prev' ? this.options.prevText : this.options.nextText;
-
+			var li = _newElement('li'),
+				a = _newElement('a', { href: '#', 'data-page': direction, innerHTML: direction == 'prev' ? this.options.prevText : this.options.nextText });
 			li.appendChild(a);
-
 			return li;
 		},
 
 		/**
 		 * Update the table contents
-		 * @param  {event}
-		 * @return {void}
 		 */
-		update: function(event)
+		update: function(e)
 		{
-			if ( event ) {
-				event = event || window.event;
+			if ( e ) {
+				e = e || window.event;
 
-				var target = event.target;
+				if ( e.target === this.selector ) {
+					this.options.perPage = parseInt(e.target.value, 10);
+				}
 
-				if ( target.nodeName.toLowerCase() == 'select' )
-					this.options.perPage = parseInt(target.value, 10);
+				this.emit('datatable.perpage');
 			}
 
 			this.currentPage = 1;
@@ -683,7 +609,9 @@
 			this.setButtons();
 			this.updateInfo();
 
-			this.tableContainer.style.height = getHeight(this.tableContainer) + 'px';
+			/* Nasty reflow */
+			this.tableHeight = _getHeight(this.tableContainer)
+			this.tableContainer.style.height = this.tableHeight + 'px';
 		},
 
 		/**
@@ -694,25 +622,20 @@
 		{
 			if ( this.sortEnabled ) return;
 
-			var self = this, cols = self.thead.rows[0].cells;
+			var _this = this, cols = _this.thead.rows[0].cells;
 
-			forEach(cols, function(index, heading) {
-				var label = heading.innerHTML;
-				var link = createElement('a', {
+			_forEach(cols, function(i, head) {
+				var label = head.innerHTML;
+				var link = _newElement('a', {
 					'href' : '#',
-					'class' : 'dataTable-sorter'
+					'class' : 'dataTable-sorter',
+					innerHTML: label
 				});
-				heading.idx = index;
-				heading.innerHTML = '';
-				heading.appendChild(link);
+				head.idx = i;
+				head.innerHTML = '';
+				head.appendChild(link);
 
-				link.innerHTML = label;
-				link.onclick = function (that) {
-					return function (event) {
-						self.sortItems(event);
-						return false;
-					}
-				}(this);
+				link.addEventListener('click', _this.sortItems.bind(_this))
 			});
 
 			this.sortEnabled = true;
@@ -720,38 +643,35 @@
 
 		/**
 		 * Perform the sorting
-		 * @param  {event} event
-		 * @return {void}
 		 */
-		sortItems: function(event)
+		sortItems: function(e)
 		{
-			event = event || window.event;
+			e = e || window.e;
 
-			var that = this, target = event.target;
+			var _this = this, target = e.target;
 
-			if ( target.nodeName.toLowerCase() != 'a' )
-				return;
+			if ( target.nodeName.toLowerCase() !== 'a' ) return;
 
 			/*
 			 * Get cell data for column that is to be sorted from HTML table
 			 */
 			var dir;
-			var rows = !!that.searching ? that.searchRows : that.initialRows;
+			var rows = !!_this.searching ? _this.searchRows : _this.initialRows;
 			var alpha = [];
 			var numeric = [];
-			var aIdx = 0;
-			var nIdx = 0;
+			var a = 0;
+			var n = 0;
 			var th = target.parentNode;
 
-			forEach(rows, function(i, row) {
+			_forEach(rows, function(i, row) {
 				var cell 	= row.cells[th.idx];
 				var content = cell.textContent ? cell.textContent : cell.innerText;
 				var num 	= content.replace(/(\$|\,|\s)/g, "");
 
 				if (parseFloat(num) == num) {
-					numeric[nIdx++] = { value: Number(num), row: row }
+					numeric[n++] = { value: Number(num), row: row }
 				} else {
-					alpha[aIdx++] = { value: content, row: row }
+					alpha[a++] = { value: content, row: row }
 				}
 			});
 
@@ -760,76 +680,65 @@
 			 * Sort according to direction (ascending or descending)
 			 */
 			var col = [], top, bottom;
-			if (th.classList.contains("asc")) {
-				top = bubbleSort(alpha, -1);
-				bottom = bubbleSort(numeric, -1);
-				th.classList.remove('asc');
-				th.classList.add('desc');
-				dir = 'descending';
+			if (_hasClass(th, "asc")) {
+				top = _sort(alpha, -1); bottom = _sort(numeric, -1); dir = 'descending';
+				_removeClass(th, 'asc');
+				_addClass(th, 'desc');
 			} else {
-				top = bubbleSort(numeric, 1);
-				bottom = bubbleSort(alpha, 1);
-				if (th.classList.contains("desc")) {
-					th.classList.remove('desc');
-				}
-				th.classList.add('asc');
-				dir = 'ascending';
+				top = _sort(numeric, 1); bottom = _sort(alpha, 1); dir = 'ascending';
+				_removeClass(th, 'desc');
+				_addClass(th, 'asc');
 			}
 
 			/*
 			 * Clear asc/desc class names from the last sorted column's th if it isn't the
-			 * same as the one that was just clicked
+			 * same as the one _this was just clicked
 			 */
-			if (this.lastSortedTh && th != this.lastSortedTh) {
-				// IE won't do multiple removes on classList... ugh...
-				if ( self.isIE ) {
-					this.lastSortedTh.setAttribute('class', '');
-				} else {
-					this.lastSortedTh.classList.remove('desc', 'asc');
-				}
+			if (this.lastTh && th != this.lastTh) {
+				_removeClass(this.lastTh, 'desc');
+				_removeClass(this.lastTh, 'asc');
 			}
 
-			this.lastSortedTh = th;
+			this.lastTh = th;
 
 			/*
 			 *  Reorder the table
 			 */
 			var rows = top.concat(bottom);
 
-			if ( !!that.searching ) {
-				that.searchRows = [];
+			if ( !!_this.searching ) {
+				_this.searchRows = [];
 
-				forEach(rows, function(i, row) {
-					that.searchRows.push(row['row']);
+				_forEach(rows, function(i, row) {
+					_this.searchRows.push(row['row']);
 				});
 			} else {
-				that.initialRows = [];
+				_this.initialRows = [];
 
-				forEach(rows, function(i, row) {
-					that.initialRows.push(row['row']);
+				_forEach(rows, function(i, row) {
+					_this.initialRows.push(row['row']);
 				});
 			}
 
-			this.sortOrder = dir;
+			_this.sortOrder = dir;
 
-			that.update(event);
-			this.emit('datatable.sort');
+			_this.update(e);
+			_this.emit('datatable.sort');
 		},
 
 		/**
 		 * Build the perPage selector;
-		 * @return {HTMLElement}
 		 */
-		getSelector: function()
+		getSelect: function()
 		{
-			var frag = document.createDocumentFragment(),
-				wrapper = createElement('div', { class: 'dataTable-selectWrapper' }),
-				selector = createElement('select', { class: 'dataTable-selector' }),
-				pre = createElement('span', { innerHTML: 'Showing' }),
-				suff = createElement('span', { innerHTML: 'entries' });
+			var frag = _newFragment(),
+				wrapper = _newElement('div', { class: 'dataTable-selectWrapper' }),
+				selector = _newElement('select', { class: 'dataTable-selector' }),
+				pre = _newElement('span', { innerHTML: 'Showing' }),
+				suff = _newElement('span', { innerHTML: 'entries' });
 
-			forEach(this.options.perPageSelect, function(i, value) {
-				var option = createElement('option', {
+			_forEach(this.options.perPageSelect, function(i, value) {
+				var option = _newElement('option', {
 					value: value,
 					innerHTML: value
 				});
@@ -849,11 +758,41 @@
 			return wrapper;
 		},
 
-		emit: function(event)
+		truncate: function()
 		{
-			this.table.dispatchEvent(new Event(event));
+			// IE doesn't play nice with innerHTML on tBodies.
+			if ( this.isIE ) {
+				while(this.tbody.hasChildNodes()) {
+					this.tbody.removeChild(this.tbody.firstChild);
+				}
+			} else {
+				this.tbody.innerHTML = '';
+			}
 		},
 
+		emit: function(event) { this.table.dispatchEvent(new Event(event)) },
+
+		/**
+		 * Parse JSON data to HTML
+		 * @return {[type]} [description]
+		 */
+		jsonToTable: function()
+		{
+			var frag = _newFragment(),
+				tbody = _newElement('tbody');
+
+			_forEach(this.options.data, function(i, row) {
+				var tr = _newElement('tr');
+				_forEach(row, function(k, value) {
+					var td = _newElement('td', { innerHTML: value });
+					tr.appendChild(td);
+				});
+				frag.appendChild(tr);
+			});
+
+			tbody.appendChild(frag);
+			this.table.appendChild(tbody);
+		},
 
 	};
 
