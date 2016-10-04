@@ -1,23 +1,17 @@
 # Vanilla-DataTables
-A lightweight (just 3kb minified and gzipped), dependency-free javascript HTML table plugin
+A lightweight (just 3.4kb minified and gzipped), dependency-free javascript HTML table plugin.
 
 Inspired by the awesome jQuery DataTables plugin: https://datatables.net/
 
 [Demo with all features enabled](http://codepen.io/Mobius1/full/VadmKb/)
 
-##Install
+## Install
 
-###Bower
 ```
 bower install vanilla-datatables
 ```
-###npm
 
-```
-Coming soon....
-```
-
-##Quick Start
+## Quick Start
 
 1. Add the css file in your document's head:
 
@@ -34,10 +28,11 @@ Coming soon....
 3. Initialise the plugin
 
 ```javascript
-var dataTable = new DataTable(document.getElementById('myTable'), options);
+var myTable = document.getElementById('myTable');
+var dataTable = new DataTable(myTable, options);
 ```
 
-##Options
+## Options
 
 ```javascript
 var options = {
@@ -110,26 +105,27 @@ var options = {
 };
 ```
 
-##Events
+## Events
+
+* ```datatable.init``` fires when the table is ready
+* ```datatable.change``` fires on page change
+* ```datatable.sort``` fires when when the table is sorted
+* ```datatable.perpage``` fires when the perPage option is changed with the dropdown
+* ```datatable.search``` fires on keyup during a search
 
 ```javascript
 
-dataTable.on('datatable.init', function(table) {
-	// Do something when the plugin initialises
-});
-
-dataTable.on('datatable.change', function(table) {
-	// Do something on page change
-});
-
-dataTable.on('datatable.sort', function(table) {
-	// Do something when the table is sorted
+myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
+	// Do something when datatable.XXXX fires
 });
 
 ```
 
 
-##Changelog
+## Changelog
+
+## 0.0.6
+Improved support for IE < 9
 
 ## 0.0.5
 Added plugin interface to allow future additions to be optional and thus keeping the original size down.
