@@ -1,0 +1,24 @@
+{
+  "name": "vanilla-datatables",
+  "version": "0.0.6",
+  "description": "A lightweight, dependency-free javascript HTML table plugin.",
+  "main": "vanilla-dataTables.min.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Mobius1/Vanilla-DataTables.git"
+  },
+  "keywords": [
+    "tables",
+    "html table",
+    "datatable"
+  ],
+  "author": "Karl Saunders",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Mobius1/Vanilla-DataTables/issues"
+  },
+  "homepage": "https://github.com/Mobius1/Vanilla-DataTables#readme"
+}
