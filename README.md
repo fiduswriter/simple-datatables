@@ -7,8 +7,14 @@ Inspired by the awesome jQuery DataTables plugin: https://datatables.net/
 
 ## Install
 
+### Bower
 ```
 bower install vanilla-datatables
+```
+
+### npm
+```
+npm install vanilla-datatables
 ```
 
 ## Quick Start
