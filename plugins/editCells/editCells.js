@@ -75,6 +75,7 @@ DataTable.prototype.editCells = {
 		}
 
 		if ( canDismiss ) {
+			this.td.classList.remove('dataTable-editing');
 			document.body.removeChild(this.editor);
 			document.body.removeEventListener('click', this.handleDismiss);
 			document.body.removeEventListener('keyup', this.handleDismiss);
