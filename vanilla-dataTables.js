@@ -59,14 +59,17 @@
 	};
 
 	var _newElement = function(a, b) {
-		var c, d = document.createElement(a);
-		if (b && "object" == typeof b)
-			for (c in b)
-				if (c in d) "innerHTML" === c ? d.innerHTML = b[c] : d[c] = b[c];
-				else if ("class" === c) {
-			if ("" !== b[c])
-				for (var e = b[c].split(" "), f = e.length - 1; f >= 0; f--) _addClass(d, e[f])
-		} else d.setAttribute(c, b[c]);
+		var c = document,
+			d = c.createElement(a);
+		if (b && "object" == typeof b) {
+			var e;
+			for (e in b)
+				if ("html" === e) d.innerHTML = b[e];
+				else if ("text" === e) {
+				var f = c.createTextNode(b[e]);
+				d.appendChild(f)
+			} else d.setAttribute(e, b[e])
+		}
 		return d
 	};
 
@@ -496,7 +499,7 @@
 		setMessage: function(message)
 		{
 			this.truncate();
-			this.tbody.appendChild(_newElement('tr', {innerHTML: '<td class="dataTables-empty" colspan="'+this.colspan+'">'+message+'</td>'}));
+			this.tbody.appendChild(_newElement('tr', {html: '<td class="dataTables-empty" colspan="'+this.colspan+'">'+message+'</td>'}));
 		},
 
 		/**
@@ -522,7 +525,7 @@
 				{
 					_forEach(pages, function(i, page) {
 						var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
-						var a 	= _newElement('a', { href: '#', 'data-page': i+1, innerHTML: i+1 });
+						var a 	= _newElement('a', { href: '#', 'data-page': i+1, html: i+1 });
 
 						li.appendChild(a);
 						frag.appendChild(li);
@@ -580,7 +583,7 @@
 		getButton: function(direction)
 		{
 			var li = _newElement('li'),
-				a = _newElement('a', { href: '#', 'data-page': direction, innerHTML: direction == 'prev' ? this.options.prevText : this.options.nextText });
+				a = _newElement('a', { href: '#', 'data-page': direction, html: direction == 'prev' ? this.options.prevText : this.options.nextText });
 			li.appendChild(a);
 			return li;
 		},
@@ -629,7 +632,7 @@
 				var link = _newElement('a', {
 					'href' : '#',
 					'class' : 'dataTable-sorter',
-					innerHTML: label
+					html: label
 				});
 				head.idx = i;
 				head.innerHTML = '';
@@ -734,13 +737,13 @@
 			var frag = _newFragment(),
 				wrapper = _newElement('div', { class: 'dataTable-selectWrapper' }),
 				selector = _newElement('select', { class: 'dataTable-selector' }),
-				pre = _newElement('span', { innerHTML: 'Showing' }),
-				suff = _newElement('span', { innerHTML: 'entries' });
+				pre = _newElement('span', { html: 'Showing' }),
+				suff = _newElement('span', { html: 'entries' });
 
 			_forEach(this.options.perPageSelect, function(i, value) {
 				var option = _newElement('option', {
 					value: value,
-					innerHTML: value
+					html: value
 				});
 				selector.appendChild(option);
 			});
@@ -784,7 +787,7 @@
 			_forEach(this.options.data, function(i, row) {
 				var tr = _newElement('tr');
 				_forEach(row, function(k, value) {
-					var td = _newElement('td', { innerHTML: value });
+					var td = _newElement('td', { html: value });
 					tr.appendChild(td);
 				});
 				frag.appendChild(tr);
