@@ -5,7 +5,7 @@
 	box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.3);
 	display: flex;
 	justify-content: center;
-	padding: 10px;
+	padding: 5px;
 }
 
 .datatable-editor::after {
@@ -23,6 +23,7 @@
 .datatable-editor input {
 	background-color: rgba(0, 0, 0, 0.1);
 	border-radius: 3px;
+	margin: 0;
 }
 
 
