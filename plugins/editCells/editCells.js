@@ -19,7 +19,7 @@ DataTable.prototype.editCells = {
 		var _this = this;
 
 		this.td = e.target;
-		this.td = e.target;
+		this.value = this.td.textContent;
 		this.td.classList.add('dataTable-editing');
 
 		this.scrollX = window.scrollX || window.pageXOffset;
@@ -42,7 +42,7 @@ DataTable.prototype.editCells = {
 
 		this.input.classList.add('dataTable-input');
 		this.input.type = 'text';
-		this.input.value = this.td.textContent;
+		this.input.value = this.value;
 
 		this.editor.appendChild(this.input);
 		this.editor.appendChild(this.submit);
@@ -84,6 +84,9 @@ DataTable.prototype.editCells = {
 
 	save: function()
 	{
-		this.td.textContent = this.input.value.trim();
+		var value = this.input.value.trim();
+		if ( value !== this.value ) {
+			this.td.textContent = this.input.value.trim();
+		}
 	}
 };
