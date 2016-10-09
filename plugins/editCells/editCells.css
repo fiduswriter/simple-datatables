@@ -24,6 +24,7 @@
 	background-color: rgba(0, 0, 0, 0.1);
 	border-radius: 3px;
 	margin: 0;
+    width: auto;
 }
 
 .datatable-editor button {
