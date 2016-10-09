@@ -334,6 +334,10 @@
 
 			_this.searchRows = [];
 
+			this.handleClickEvents = this.handleEvents.bind(this);
+
+			this.table.addEventListener('click', this.handleClickEvents, false);
+
 			_forEach(_this.paginators, function(index, paginator) {
 				paginator.addEventListener('click', _this.switchPage.bind(_this), false);
 			})
@@ -341,6 +345,18 @@
 			_this.selector.addEventListener('change', _this.update.bind(_this), false);
 
 			_this.searchInput.addEventListener('keyup', _this.search.bind(_this), false);
+		},
+
+		handleEvents: function(e)
+		{
+			e = e || window.event;
+			var target = e.target;
+			var node = target.nodeName.toLowerCase();
+
+			if ( node === 'a' && _hasClass(target, 'dataTable-sorter') ) {
+				this.sortItems(e);
+				return;
+			}
 		},
 
 		/**
@@ -637,8 +653,6 @@
 				head.idx = i;
 				head.innerHTML = '';
 				head.appendChild(link);
-
-				link.addEventListener('click', _this.sortItems.bind(_this))
 			});
 
 			this.sortEnabled = true;
@@ -654,6 +668,8 @@
 			var _this = this, target = e.target;
 
 			if ( target.nodeName.toLowerCase() !== 'a' ) return;
+
+			e.preventDefault();
 
 			/*
 			 * Get cell data for column that is to be sorted from HTML table
