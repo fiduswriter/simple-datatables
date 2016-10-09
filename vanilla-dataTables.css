@@ -32,11 +32,11 @@
 }
 
 .dataTable-input {
-	width: 200px;
+	width: 60%;
 }
 
 .dataTable-info {
-    width: 75%;
+	width: 75%;
 }
 
 .dataTable-info,
@@ -59,13 +59,13 @@
 .dataTable-table > tbody > tr > td, .dataTable-table > tbody > tr > th,
 .dataTable-table > tfoot > tr > td, .dataTable-table > tfoot > tr > th,
 .dataTable-table > thead > tr > td, .dataTable-table > thead > tr > th {
-	border-top: 1px solid #ddd;
+	border-top: 1px solid #999;
 	line-height: 1.42857;
 	padding: 8px;
 	vertical-align: top;
 }
 .dataTable-table > thead > tr > th {
-	border-bottom: 2px solid #ddd;
+	border-bottom: 2px solid #999;
 	vertical-align: bottom;
 }
 .dataTable-table > caption + thead > tr:first-child > td,
@@ -132,8 +132,8 @@
 
 .dataTable-pagination > li > a {
 	background-color: #fff;
-	border: 1px solid #ddd;
-	color:  #00a8ff;
+	border: 1px solid #999;
+	color:  #333;
 	float: left;
 	line-height: 1.42857;
 	margin-left: -1px;
@@ -156,7 +156,7 @@
 .dataTable-pagination > li > a:focus,
 .dataTable-pagination > li > a:hover {
 	background-color: #eee;
-	border-color: #ddd;
+	border-color: #999;
 	color: #23527c;
 	z-index: 3;
 }
@@ -175,41 +175,9 @@
 .dataTable-pagination > .disabled > a:focus,
 .dataTable-pagination > .disabled > a:hover {
 	background-color: #fff;
-	border-color: #ddd;
-	color: #777;
+	border-color: #999;
+	color: #aaa;
 	cursor: not-allowed;
-}
-
-.dataTable-pagination-lg > li > a {
-	font-size: 18px;
-	line-height: 1.33333;
-	padding: 10px 16px;
-}
-
-.dataTable-pagination-lg > li:first-child > a {
-	border-bottom-left-radius: 6px;
-	border-top-left-radius: 6px;
-}
-
-.dataTable-pagination-lg > li:last-child > a {
-	border-bottom-right-radius: 6px;
-	border-top-right-radius: 6px;
-}
-
-.dataTable-pagination-sm > li > a {
-	font-size: 12px;
-	line-height: 1.5;
-	padding: 5px 10px;
-}
-
-.dataTable-pagination-sm > li:first-child > a {
-	border-bottom-left-radius: 3px;
-	border-top-left-radius: 3px;
-}
-
-.dataTable-pagination-sm > li:last-child > a {
-	border-bottom-right-radius: 3px;
-	border-top-right-radius: 3px;
 }
 
 .dataTables-empty {
@@ -217,7 +185,7 @@
 }
 
 .dataTable-bottom::after {
-    clear: both;
-    content: " ";
-    display: table;
+	clear: both;
+	content: " ";
+	display: table;
 }
