@@ -1,11 +1,3 @@
-.dataTable-wrapper {
-	overflow: hidden;
-}
-
-.dataTable-container {
-	transition: height 150ms;
-}
-
 /**
  * SELECTOR
  */
@@ -222,4 +214,10 @@
 
 .dataTables-empty {
 	text-align: center;
+}
+
+.dataTable-bottom::after {
+    clear: both;
+    content: " ";
+    display: table;
 }
