@@ -134,11 +134,14 @@
 	background-color: rgba(0, 0, 0, 0.1);
 	border: 1px solid transparent;
 	color: #333;
+	display: inline-block;
 	float: left;
-	line-height: 1.42857;
+	line-height: 20px;
 	margin-left: 2px;
+	min-width: 35px;
 	padding: 6px 12px;
 	position: relative;
+	text-align: center;
 	text-decoration: none;
 }
 
