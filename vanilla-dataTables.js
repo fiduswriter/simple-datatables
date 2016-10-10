@@ -429,6 +429,7 @@
 			if ( !val.length ) {
 				this.searching = false;
 				this.update();
+				this.emit("datatable.search");
 				return;
 			}
 
