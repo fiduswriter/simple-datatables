@@ -421,9 +421,6 @@
 		search: function(event)
 		{
 			var _this = this, val = this.searchInput.value.toLowerCase();
-			var frag = _newFragment();
-
-			this.emit("datatable.search");
 
 			this.searching = true;
 
@@ -454,6 +451,8 @@
 			}
 
 			this.update();
+
+			this.emit("datatable.search");
 		},
 
 		setMessage: function(message)
