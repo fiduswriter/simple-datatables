@@ -21,7 +21,6 @@ DataTable.prototype.highlightMatches = {
 		}
 
 		var matches = [];
-		console.log(_this.datatable.searchPages)
 		for( var i = 0, len = _this.datatable.searchPages.length; i < len; i++ ) {
 			let page = _this.datatable.searchPages[i];
 			for( var _i = 0, _len = page.length; _i < _len; _i++ ) {
