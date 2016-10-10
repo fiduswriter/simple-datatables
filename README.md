@@ -126,6 +126,11 @@ myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
 ```
 
 ## Plugins
+The plugin feature allows the Vanilla-DataTable package to remain lightweight whilst allowing a multitude of extra functionality yo be added.
+
+### Enable Plugins
+Only a handful of plugins are included with the package, but users can add their own over time (see **Custom Plugins**).
+
 The plugin files must be added after the main file like so:
 
 ``` javascript
@@ -134,7 +139,7 @@ The plugin files must be added after the main file like so:
 <script type="text/javascript" src="path/to/my/DataTable-Plugin-2.js"></script>
 ```
 
-The plugin can then be enabled within the options:
+The plugins can then be enabled within the options:
 
 ```javascript
 var dataTable = new DataTable(myTable, {
@@ -142,6 +147,7 @@ var dataTable = new DataTable(myTable, {
 });
 ```
 
+### Custom Plugins
 Creating your own plugin is easy. Just extend the DataTable object and make sure to include the mandatory `init()` method otherwise your plugin won't be called. This method accepts the DataTable plugin instance as the first parameter.
 
 If you think your plugin will benefit other users then create a pull request and I'll add it.
