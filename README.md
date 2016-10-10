@@ -58,7 +58,7 @@ var options = {
 	 * Set the position of the pagination buttons (top, bottom, both)
 	 * @type {string}
 	 */
-	navPosition: 'both',
+	navPosition: 'bottom',
 
 	/**
 	 * Enable / disable the next and previous pagination buttons
@@ -89,7 +89,7 @@ var options = {
 	 * Enable / disable the fixed height feature. Enabling this will keep the bottom container fixed in place
 	 * @type {bool}
 	 */
-	fixedHeight: true,
+	fixedHeight: false,
 
 	/**
 	 * Enable / disable the info text (Showing x to y of z items)
@@ -113,11 +113,11 @@ var options = {
 
 ## Events
 
-* ```datatable.init``` fires when the table is ready
-* ```datatable.change``` fires on page change
-* ```datatable.sort``` fires when when the table is sorted
-* ```datatable.perpage``` fires when the perPage option is changed with the dropdown
-* ```datatable.search``` fires on keyup during a search
+* `datatable.init` fires when the table is ready
+* `datatable.change` fires on page change
+* `datatable.sort` fires when when the table is sorted
+* `datatable.perpage` fires when the perPage option is changed with the dropdown
+* `datatable.search` fires on keyup during a search
 
 ```javascript
 myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
