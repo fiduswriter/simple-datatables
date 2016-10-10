@@ -28,7 +28,7 @@ npm install vanilla-datatables
 2. Add the js file at the bottom of your document's body
 
 ```html
-<script type="text/javascript" src="path/to/vanilla-dataTables.min.js">
+<script type="text/javascript" src="path/to/vanilla-dataTables.min.js"></script>
 ```
 
 3. Initialise the plugin
@@ -111,6 +111,41 @@ var options = {
 };
 ```
 
+## Plugins
+The plugin files must be added after the main file like so:
+
+``` javascript
+<script type="text/javascript" src="path/to/vanilla-dataTables.min.js"></script>
+<script type="text/javascript" src="path/to/my/DataTable-Plugin-1.js"></script>
+<script type="text/javascript" src="path/to/my/DataTable-Plugin-2.js"></script>
+```
+
+The plugin can then be enabled within the options:
+
+```javascript
+var dataTable = new DataTable(myTable, {
+    plugins: ['DataTable-Plugin-1', 'DataTable-Plugin-2']
+});
+```
+
+Creating your own plugin is easy. Just extend the DataTable object and make sure to include the mandatory `init()` method otherwise your plugin won't be called. This method accepts the DataTable plugin instance as the first parameter.
+
+```javascript
+/**
+ * [MY_PLUGIN_NAME description]
+ * @type {Object}
+ */
+DataTable.prototype.MY_PLUGIN_NAME = {
+	/**
+	 * initialise the plugin
+	 * @param  {object} datatable | DataTable plugin instance
+	 */
+	init: function(datatable) {
+		//
+	}
+}
+```
+
 ## Events
 
 * ```datatable.init``` fires when the table is ready
@@ -120,10 +155,8 @@ var options = {
 * ```datatable.search``` fires on keyup during a search
 
 ```javascript
-
 myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
 	// Do something when datatable.XXXX fires
 });
-
 ```
 Copyright © 2016 Karl Saunders | BSD & MIT license
