@@ -126,18 +126,4 @@ myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
 });
 
 ```
-
-
-## Changelog
-
-## 0.0.6
-Improved support for IE 9
-
-## 0.0.5
-Added plugin interface to allow future additions to be optional and thus keeping the original size down.
-
-### 0.0.4
-Added search option
-
-### 0.0.3
-Added sortable option
+Copyright © 2016 Karl Saunders | BSD & MIT license
