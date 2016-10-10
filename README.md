@@ -111,6 +111,20 @@ var options = {
 };
 ```
 
+## Events
+
+* ```datatable.init``` fires when the table is ready
+* ```datatable.change``` fires on page change
+* ```datatable.sort``` fires when when the table is sorted
+* ```datatable.perpage``` fires when the perPage option is changed with the dropdown
+* ```datatable.search``` fires on keyup during a search
+
+```javascript
+myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
+	// Do something when datatable.XXXX fires
+});
+```
+
 ## Plugins
 The plugin files must be added after the main file like so:
 
@@ -130,6 +144,9 @@ var dataTable = new DataTable(myTable, {
 
 Creating your own plugin is easy. Just extend the DataTable object and make sure to include the mandatory `init()` method otherwise your plugin won't be called. This method accepts the DataTable plugin instance as the first parameter.
 
+If you think your plugin will benefit other users then create a pull request and I'll add it.
+
+#### Example
 ```javascript
 /**
  * [MY_PLUGIN_NAME description]
@@ -145,18 +162,17 @@ DataTable.prototype.MY_PLUGIN_NAME = {
 	}
 }
 ```
+Save your file and include it after the main plugin file:
+```html
+<script type="text/javascript" src="path/to/vanilla-dataTables.min.js"></script>
+<script type="text/javascript" src="MY_PLUGIN_NAME.js"></script>
+```
 
-## Events
-
-* ```datatable.init``` fires when the table is ready
-* ```datatable.change``` fires on page change
-* ```datatable.sort``` fires when when the table is sorted
-* ```datatable.perpage``` fires when the perPage option is changed with the dropdown
-* ```datatable.search``` fires on keyup during a search
-
+Finally add your plugin's name to the `plugins` array in your options:
 ```javascript
-myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
-	// Do something when datatable.XXXX fires
+var dataTable = new DataTable(myTable, {
+    plugins: ['MY_PLUGIN_NAME']
 });
 ```
+
 Copyright © 2016 Karl Saunders | BSD & MIT license
