@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.0.6
+ * Version: 0.0.7
  *
  */
 
@@ -24,39 +24,19 @@
 
 
 	/* HELPERS */
-
 	var extend = function(a, b) {
 		var c;
 		for (c in b) b.hasOwnProperty(c) && (a[c] = b[c]);
 		return a
 	};
 
-	var isInt = function( value ) {
-		var x;
-		if (isNaN(value)) return false;
-		x = parseFloat(value);
-		return (x | 0) === x;
-	}
+	var _hasClass = function(e,c) { return e.classList ? e.classList.contains(c) : !!e.className.match(new RegExp('(\\s|^)'+c+'(\\s|$)')) }
 
-	var getWidth = function ( elem ) {
-		return Math.max( elem.scrollWidth, elem.offsetWidth, elem.clientWidth );
-	};
+	var _addClass = function(e,c) { e.classList ? e.classList.add(c) : _hasClass(c) || (e.className = e.className.trim() + " " + c) }
 
-	var _getHeight = function ( elem ) {
-		return Math.max( elem.scrollHeight, elem.offsetHeight, elem.clientHeight );
-	};
+	var _removeClass = function(a,c) { a.classList ? a.classList.remove(c) : _hasClass(c) && (a.className = a.className.replace(new RegExp("(^|\\c)" + c.split(" ").join("|") + "(\\c|$)", "gi"), " ")) }
 
-	var _hasClass = function(e,c) {
-		return e.classList ? e.classList.contains(c) : !!e.className.match(new RegExp('(\\s|^)'+c+'(\\s|$)'));
-	}
-
-	var _addClass = function(a, b) {
-		a.classList ? a.classList.add(b) : _hasClass(b) || (a.className = a.className.trim() + " " + b)
-	};
-
-	var _removeClass = function(a, b) {
-		a.classList ? a.classList.remove(b) : _hasClass(b) && (a.className = a.className.replace(new RegExp("(^|\\b)" + b.split(" ").join("|") + "(\\b|$)", "gi"), " "))
-	};
+	var _newFragment = function() { return document.createDocumentFragment() }
 
 	var _newElement = function(a, b) {
 		var c = document,
@@ -72,8 +52,6 @@
 		}
 		return d
 	};
-
-	var _newFragment = function() { return document.createDocumentFragment() }
 
 	/**
 	 * https://gist.github.com/scopevale/1663452
@@ -102,37 +80,26 @@
 	};
 
 	/**
-	 * Detect crappy IE browsers
-	 */
-	var isIE = function(browser) {
-		var agent = window.navigator.userAgent, ie = agent.indexOf('MSIE '), tri = agent.indexOf('Trident/');
-		return (ie > 0 || tri > 0);
-	}
-
-	/**
 	 * Plugin Object
 	 */
 	function Plugin(table, options) {
 
-		/**
-		 * Plugin defaults
-		 */
+		/* Plugin defaults */
 		var defaults = {
 			perPage: 10,
 			perPageSelect: [5,10,15,20,25],
-			navPosition: 'both',
+			navPosition: 'bottom',
 			navButtons: true,
 			nextPrev: true,
 			prevText: '&lsaquo;',
 			nextText: '&rsaquo;',
 			sortable: false,
 			searchable: false,
-			fixedHeight: true,
+			fixedHeight: false,
 			info: true,
 			hideUnusedNavs: false,
 			plugins: [],
 		};
-
 
 		this.options = extend(defaults, options);
 
@@ -150,14 +117,14 @@
 		}
 
 		this.tbody = this.table.tBodies[0];
-		this.initialRows = Array.prototype.slice.call(this.tbody.rows);
+		this.rows = Array.prototype.slice.call(this.tbody.rows);
 
 		this.colspan = this.thead.rows[0].cells.length;
 
 		this.initialised 		= false;
 		this.sortEnabled 		= false;
 
-		this.isIE 				= isIE();
+		this.isIE 				= !!/(msie|trident)/i.test(navigator.userAgent);
 
 		this.paginators 		= [];
 
@@ -180,18 +147,7 @@
 		{
 			if (this.initialised) return;
 
-			this.initialised = true;
-
-			var _this = this, cells = _this.table.tHead.rows[0].cells, tw = getWidth(_this.table);
-
-			/**
-			 * Fix the column widths so they don't change on page switch.
-			 * Use percentages so we don't have to update the width of each cell on window resize
-			 */
-			_forEach(cells, function(index, cell) {
-				var w = (getWidth(cell) / tw) * 100;
-				cell.style.width = w + '%';
-			});
+			var _this = this;
 
 			this.initPages();
 			this.build();
@@ -216,11 +172,11 @@
 				_this.emit('datatable.init');
 			}, 10);
 
+			this.initialised = true;
 		},
 
 		/**
 		 * Set up the initial info to construct the datatable.
-		 * @return {void}
 		 */
 		initPages: function()
 		{
@@ -232,22 +188,22 @@
 				}).filter(function(e){ return e; });
 			}
 
-			this.pages = this.initialRows.map( function(row,i) {
-				return i%_this.options.perPage==0 ? _this.initialRows.slice(i,i+_this.options.perPage) : null;
+			this.pages = this.rows.map( function(row,i) {
+				return i%_this.options.perPage==0 ? _this.rows.slice(i,i+_this.options.perPage) : null;
 			}).filter(function(e){ return e; });
 
 
-			this.info.items = !!this.searching ? this.searchRows.length : this.initialRows.length;
+			this.info.items = !!this.searching ? this.searchRows.length : this.rows.length;
 			this.info.pages = !!this.searching ? this.searchPages.length : this.pages.length;
 			this.last_page = this.info.pages;
 		},
 
 		/**
 		 * Construct the datatable
-		 * @return {void}
 		 */
 		build: function()
 		{
+			var _this = this;
 			var topContainer 		= _newElement('div', { class: 'dataTable-top' });
 			var bottomContainer 	= _newElement('div', { class: 'dataTable-bottom' });
 			var selector 			= this.getSelect();
@@ -309,25 +265,33 @@
 				this.initSortable();
 			}
 
-
 			// Insert the main container
 			this.table.parentNode.insertBefore(this.wrapper, this.table);
 
 			// Populate table container
 			this.tableContainer.appendChild(this.table);
 
+			this.containerRect = this.tableContainer.getBoundingClientRect();
+
 			// Fix the height of the table to keep the bottom container fixed in place.
 			if ( this.options.fixedHeight) {
-				this.tableHeight = _getHeight(this.tableContainer);
-				this.tableContainer.style.height = this.tableHeight + 'px';
+				this.tableContainer.style.height = this.containerRect.height + 'px';
 			}
+
+			/* Fix the column widths so they don't change on page switch.
+			 * Use percentages so we don't have to update the width of each cell on window resize */
+			var cells = _this.table.tHead.rows[0].cells;
+
+			_forEach(cells, function(index, cell) {
+				var rect = cell.getBoundingClientRect();
+				var w = (rect.width / _this.containerRect.width) * 100;
+				cell.style.width = w + '%';
+			});
 
 			this.addEventListeners();
 		},
 
-		/**
-		 * Attach required event listeners.
-		 */
+		/* Attach required event listeners. */
 		addEventListeners: function()
 		{
 			var _this = this;
@@ -336,11 +300,7 @@
 
 			this.handleClickEvents = this.handleEvents.bind(this);
 
-			this.table.addEventListener('click', this.handleClickEvents, false);
-
-			_forEach(_this.paginators, function(index, paginator) {
-				paginator.addEventListener('click', _this.switchPage.bind(_this), false);
-			})
+			this.wrapper.addEventListener('click', this.handleClickEvents, false);
 
 			_this.selector.addEventListener('change', _this.update.bind(_this), false);
 
@@ -353,49 +313,42 @@
 			var target = e.target;
 			var node = target.nodeName.toLowerCase();
 
-			if ( node === 'a' && _hasClass(target, 'dataTable-sorter') ) {
-				this.sortItems(e);
-				return;
+			if ( node === 'a' ) {
+				if ( target.hasAttribute('data-page') ) {
+					this.switchPage(target);
+				}
+
+				if ( _hasClass(target, 'dataTable-sorter') ) {
+					this.sortItems(e);
+				}
+
+				e.preventDefault();
 			}
 		},
 
-		/**
-		 * Change the page.
-		 * @param  {event} event
-		 * @return {void}
-		 */
-		switchPage: function(event)
+		/* Change the page. */
+		switchPage: function(target)
 		{
-			event = event || window.event;
-
-			var target = event.target, tagName = target.tagName.toLowerCase();
-
-			if ( tagName !== 'a' ) return;
-
-			event.preventDefault();
-
 			var page = target.getAttribute('data-page');
 
 			// We don't want to load the current page again.
 			if ( page == this.currentPage && target.parentNode.classList.contains('active') )
 				return;
 
-			if ( isInt(page)) {
+			if ( !isNaN(page)) {
 				this.currentPage = parseInt(page, 10);
 			}
 
 			// Check we have the nextPrev option enabled
 			if ( this.options.nextPrev ) {
 				if ( page == 'prev' ) {
-					if ( this.onFirstPage )
-						return;
+					if ( this.onFirstPage ) return;
 
 					this.currentPage--;
 				}
 
 				if ( page == 'next' ) {
-					if ( this.onLastPage )
-						return;
+					if ( this.onLastPage ) return;
 
 					this.currentPage++;
 				}
@@ -403,19 +356,13 @@
 
 			// Show the selected page;
 			this.showPage(this.currentPage-1);
-
 			this.updateInfo();
-
 			this.setClasses();
 
 			this.emit('datatable.change');
 		},
 
-		/**
-		 * Populate the table with the required page.
-		 * @param  {int} index 	The index of the required page.
-		 * @return {void}
-		 */
+		/* Populate the table with the required page. */
 		showPage: function(index)
 		{
 			index = index || 0;
@@ -452,9 +399,7 @@
 			}
 		},
 
-		/**
-		 * Update the table info (Showing x to y of z rows)
-		 */
+		/* Update the table info (Showing x to y of z rows) */
 		updateInfo: function()
 		{
 			if ( !this.options.info ) return;
@@ -506,7 +451,6 @@
 
 			if ( !_this.searchRows.length ) {
 				_this.setMessage('No entries found.');
-				// return;
 			}
 
 			this.update();
@@ -515,12 +459,10 @@
 		setMessage: function(message)
 		{
 			this.truncate();
-			this.tbody.appendChild(_newElement('tr', {html: '<td class="dataTables-empty" colspan="'+this.colspan+'">'+message+'</td>'}));
+			this.tbody.appendChild(_newElement('tr', { html: '<td class="dataTables-empty" colspan="'+this.colspan+'">'+message+'</td>' }));
 		},
 
-		/**
-		 * Set the correct number of paginator buttons.
-		 */
+		/* Set the correct number of paginator buttons. */
 		setButtons: function()
 		{
 			var that = this, pages = !!this.searching ? this.searchPages : this.pages;
@@ -556,9 +498,7 @@
 			});
 		},
 
-		/**
-		 * Set the active, disabled and hidden classes on the paginator buttons.
-		 */
+		/* Set the active, disabled and hidden classes on the paginator buttons. */
 		setClasses: function(node)
 		{
 			var _this = this,
@@ -591,11 +531,7 @@
 			});
 		},
 
-		/**
-		 * Make a next / prev button.
-		 * @param  {string} direction The direction we want (next or prev)
-		 * @return {HTMLElement}
-		 */
+		/* Make a next / prev button. */
 		getButton: function(direction)
 		{
 			var li = _newElement('li'),
@@ -604,16 +540,13 @@
 			return li;
 		},
 
-		/**
-		 * Update the table contents
-		 */
+		/* Update the table contents */
 		update: function(e)
 		{
 			if ( e ) {
-				e = e || window.event;
-
-				if ( e.target === this.selector ) {
-					this.options.perPage = parseInt(e.target.value, 10);
+				var t = e.target;
+				if ( t === this.selector ) {
+					this.options.perPage = parseInt(t.value, 10);
 				}
 
 				this.emit('datatable.perpage');
@@ -621,22 +554,19 @@
 
 			this.currentPage = 1;
 
-			this.tableContainer.style.height = null;
-
 			this.initPages();
 			this.showPage();
 			this.setButtons();
 			this.updateInfo();
 
-			/* Nasty reflow */
-			this.tableHeight = _getHeight(this.tableContainer)
-			this.tableContainer.style.height = this.tableHeight + 'px';
+			this.tableContainer.style.height = null;
+			if ( this.options.fixedHeight ) {
+				this.containerRect = this.tableContainer.getBoundingClientRect();
+				this.tableContainer.style.height = this.containerRect.height + 'px';
+			}
 		},
 
-		/**
-		 * Inititialse the sortable option.
-		 * @return {void}
-		 */
+		/* Inititialse the sortable option. */
 		initSortable: function()
 		{
 			if ( this.sortEnabled ) return;
@@ -644,12 +574,7 @@
 			var _this = this, cols = _this.thead.rows[0].cells;
 
 			_forEach(cols, function(i, head) {
-				var label = head.innerHTML;
-				var link = _newElement('a', {
-					'href' : '#',
-					'class' : 'dataTable-sorter',
-					html: label
-				});
+				var link = _newElement('a', { 'href' : '#', 'class' : 'dataTable-sorter', html: head.innerHTML });
 				head.idx = i;
 				head.innerHTML = '';
 				head.appendChild(link);
@@ -658,26 +583,14 @@
 			this.sortEnabled = true;
 		},
 
-		/**
-		 * Perform the sorting
-		 */
+		/* Perform the sorting */
 		sortItems: function(e)
 		{
-			e = e || window.e;
-
 			var _this = this, target = e.target;
-
-			if ( target.nodeName.toLowerCase() !== 'a' ) return;
-
-			e.preventDefault();
-
-			/*
-			 * Get cell data for column that is to be sorted from HTML table
-			 */
 			var dir;
-			var rows = !!_this.searching ? _this.searchRows : _this.initialRows;
+			var rows = !!_this.searching ? _this.searchRows : _this.rows;
 			var alpha = [];
-			var numeric = [];
+			var num = [];
 			var a = 0;
 			var n = 0;
 			var th = target.parentNode;
@@ -688,31 +601,26 @@
 				var num 	= content.replace(/(\$|\,|\s)/g, "");
 
 				if (parseFloat(num) == num) {
-					numeric[n++] = { value: Number(num), row: row }
+					num[n++] = { value: Number(num), row: row }
 				} else {
 					alpha[a++] = { value: content, row: row }
 				}
 			});
 
 
-			/*
-			 * Sort according to direction (ascending or descending)
-			 */
+			/* Sort according to direction (ascending or descending) */
 			var col = [], top, bottom;
 			if (_hasClass(th, "asc")) {
-				top = _sort(alpha, -1); bottom = _sort(numeric, -1); dir = 'descending';
+				top = _sort(alpha, -1); bottom = _sort(num, -1); dir = 'descending';
 				_removeClass(th, 'asc');
 				_addClass(th, 'desc');
 			} else {
-				top = _sort(numeric, 1); bottom = _sort(alpha, 1); dir = 'ascending';
+				top = _sort(num, 1); bottom = _sort(alpha, 1); dir = 'ascending';
 				_removeClass(th, 'desc');
 				_addClass(th, 'asc');
 			}
 
-			/*
-			 * Clear asc/desc class names from the last sorted column's th if it isn't the
-			 * same as the one _this was just clicked
-			 */
+			/* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
 			if (this.lastTh && th != this.lastTh) {
 				_removeClass(this.lastTh, 'desc');
 				_removeClass(this.lastTh, 'asc');
@@ -720,9 +628,7 @@
 
 			this.lastTh = th;
 
-			/*
-			 *  Reorder the table
-			 */
+			/* Reorder the table */
 			var rows = top.concat(bottom);
 
 			if ( !!_this.searching ) {
@@ -732,10 +638,10 @@
 					_this.searchRows.push(row['row']);
 				});
 			} else {
-				_this.initialRows = [];
+				_this.rows = [];
 
 				_forEach(rows, function(i, row) {
-					_this.initialRows.push(row['row']);
+					_this.rows.push(row['row']);
 				});
 			}
 
@@ -746,7 +652,7 @@
 		},
 
 		/**
-		 * Build the perPage selector;
+		 * Build the perPage selector.
 		 */
 		getSelect: function()
 		{
@@ -756,11 +662,8 @@
 				pre = _newElement('span', { html: 'Showing' }),
 				suff = _newElement('span', { html: 'entries' });
 
-			_forEach(this.options.perPageSelect, function(i, value) {
-				var option = _newElement('option', {
-					value: value,
-					html: value
-				});
+			_forEach(this.options.perPageSelect, function(i, val) {
+				var option = _newElement('option', { value: val, html: val });
 				selector.appendChild(option);
 			});
 
@@ -793,12 +696,10 @@
 
 		/**
 		 * Parse JSON data to HTML
-		 * @return {[type]} [description]
 		 */
 		jsonToTable: function()
 		{
-			var frag = _newFragment(),
-				tbody = _newElement('tbody');
+			var frag = _newFragment(), tbody = _newElement('tbody');
 
 			_forEach(this.options.data, function(i, row) {
 				var tr = _newElement('tr');
