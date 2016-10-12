@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.0.7
+ * Version: 0.0.8
  *
  */
 
@@ -30,13 +30,19 @@
 		return a
 	};
 
-	var _hasClass = function(e,c) { return e.classList ? e.classList.contains(c) : !!e.className.match(new RegExp('(\\s|^)'+c+'(\\s|$)')) }
+	var _hasClass = function(e, c) {
+		return e.classList ? e.classList.contains(c) : !!e.className.match(new RegExp('(\\s|^)' + c + '(\\s|$)'))
+	}
+	var _addClass = function(e, c) {
+		e.classList ? e.classList.add(c) : _hasClass(c) || (e.className = e.className.trim() + " " + c)
+	}
+	var _removeClass = function(a, c) {
+		a.classList ? a.classList.remove(c) : _hasClass(c) && (a.className = a.className.replace(new RegExp("(^|\\c)" + c.split(" ").join("|") + "(\\c|$)", "gi"), " "))
+	}
 
-	var _addClass = function(e,c) { e.classList ? e.classList.add(c) : _hasClass(c) || (e.className = e.className.trim() + " " + c) }
-
-	var _removeClass = function(a,c) { a.classList ? a.classList.remove(c) : _hasClass(c) && (a.className = a.className.replace(new RegExp("(^|\\c)" + c.split(" ").join("|") + "(\\c|$)", "gi"), " ")) }
-
-	var _newFragment = function() { return document.createDocumentFragment() }
+	var _newFragment = function() {
+		return document.createDocumentFragment()
+	}
 
 	var _newElement = function(a, b) {
 		var c = document,
@@ -79,6 +85,27 @@
 			for (var e = 0, f = a.length; e < f; e++) b.call(c, e, a[e], a)
 	};
 
+	/* Parse JSON string to HTML */
+	var jsonToTable = function(data) {
+		var frag = _newFragment(),
+			tbody = _newElement('tbody');
+
+		_forEach(data, function(i, row) {
+			var tr = _newElement('tr');
+			_forEach(row, function(k, value) {
+				var td = _newElement('td', {
+					html: value
+				});
+				tr.appendChild(td);
+			});
+			frag.appendChild(tr);
+		});
+
+		tbody.appendChild(frag);
+
+		return tbody;
+	};
+
 	/**
 	 * Plugin Object
 	 */
@@ -113,13 +140,13 @@
 		this.thead 	= this.table.tHead;
 
 		if ( this.options.data ) {
-			this.jsonToTable();
+			var tbody = jsonToTable(this.options.data);
+			this.table.truncate();
+			this.table.appendChild(tbody);
 		}
 
 		this.tbody = this.table.tBodies[0];
 		this.rows = Array.prototype.slice.call(this.tbody.rows);
-
-		this.colspan = this.thead.rows[0].cells.length;
 
 		this.initialised 		= false;
 		this.sortEnabled 		= false;
@@ -129,13 +156,9 @@
 		this.paginators 		= [];
 
 		this.currentPage 		= 1;
-		this.first_page 		= 1;
 		this.onFirstPage 		= true;
 		this.onLastPage 		= false;
-		this.info 				= { items: 0, pages: 0, range: 0 };
 
-		this.pages = [];
-		this.searchPages = [];
 		this.searching = false;
 
 		this.init();
@@ -149,69 +172,31 @@
 
 			var _this = this;
 
-			this.initPages();
-			this.build();
+			this.paginate();
 
-			/* Events */
-			this.table.on = function(event, callback) {
-				_this.table.addEventListener(event, function(e) {
-					callback.call(_this, this);
-				});
-			};
+			this.wrapper = _newElement('div', { class: 'dataTable-wrapper' });
+			this.tableContainer = _newElement('div', { class: 'dataTable-container' })
+			this.selector = _newElement('select', { class: 'dataTable-selector' });
+			this.searchInput = _newElement('input', { type: 'text', 'class': 'dataTable-input', placeholder: 'Search...' });
+			this.label = _newElement('div', { class: 'dataTable-info' });
 
-			/* Plugins */
-			if ( this.options.plugins.length ) {
-				_forEach(this.options.plugins, function(i, plugin) {
-					if ( _this[plugin] && typeof _this[plugin].init === 'function' ) {
-						_this[plugin].init(_this);
-					}
-				});
-			}
-
-			setTimeout(function() {
-				_this.emit('datatable.init');
-			}, 10);
-
-			this.initialised = true;
-		},
-
-		/**
-		 * Set up the initial info to construct the datatable.
-		 */
-		initPages: function()
-		{
-			var _this = this;
-
-			if ( !!this.searching ) {
-				this.searchPages = this.searchRows.map( function(row,i) {
-					return i%_this.options.perPage==0 ? _this.searchRows.slice(i,i+_this.options.perPage) : null;
-				}).filter(function(e){ return e; });
-			}
-
-			this.pages = this.rows.map( function(row,i) {
-				return i%_this.options.perPage==0 ? _this.rows.slice(i,i+_this.options.perPage) : null;
-			}).filter(function(e){ return e; });
-
-
-			this.info.items = !!this.searching ? this.searchRows.length : this.rows.length;
-			this.info.pages = !!this.searching ? this.searchPages.length : this.pages.length;
-			this.last_page = this.info.pages;
-		},
-
-		/**
-		 * Construct the datatable
-		 */
-		build: function()
-		{
-			var _this = this;
 			var topContainer 		= _newElement('div', { class: 'dataTable-top' });
 			var bottomContainer 	= _newElement('div', { class: 'dataTable-bottom' });
-			var selector 			= this.getSelect();
 
-			this.wrapper 			= _newElement('div', { class: 'dataTable-wrapper' });
-			this.tableContainer 	= _newElement('div', { class: 'dataTable-container' });
-			this.label 				= _newElement('div', { class: 'dataTable-info' });
+			// Build the selector
+			var wrapper = _newElement('label', { class: 'dataTable-selectWrapper' });
 
+			_forEach(this.options.perPageSelect, function(i, val) {
+				_this.selector.appendChild(_newElement('option', { value: val, html: val }));
+			});
+
+			this.selector.value = this.options.perPage;
+
+			wrapper.appendChild(this.selector);
+			wrapper.insertAdjacentHTML('beforeend', ' entries per page');
+			topContainer.appendChild(wrapper);
+
+			// Add class
 			_addClass(this.table, 'dataTable-table');
 
 			// Populate bottom container
@@ -221,20 +206,17 @@
 			this.wrapper.appendChild(topContainer);
 			this.wrapper.appendChild(this.tableContainer);
 			this.wrapper.appendChild(bottomContainer);
-			topContainer.appendChild(selector);
 
 			if ( this.options.searchable ) {
-				this.searchInput = _newElement('input', { type: 'text', 'class': 'dataTable-input', placeholder: 'Search...' })
-				this.searchForm = _newElement('div', { class: 'dataTable-search' });
-				this.searchForm.appendChild(this.searchInput);
-				topContainer.appendChild(this.searchForm);
+
+				var form = _newElement('div', { class: 'dataTable-search' });
+				form.appendChild(this.searchInput);
+				topContainer.appendChild(form);
 				_addClass(topContainer, 'searchable');
 			}
 
 			// Initialise
 			this.showPage();
-
-			this.updateInfo();
 
 			var paginatorA = _newElement('ul', { class: 'dataTable-pagination' }), paginatorB;
 			this.paginators.push(paginatorA);
@@ -257,12 +239,22 @@
 					break;
 			}
 
-			this.setButtons();
-			this.setClasses();
+			this.update();
 
 			// Check if the sortable option is set
 			if ( this.options.sortable ) {
-				this.initSortable();
+				if ( this.sortEnabled ) return;
+
+				var _this = this, cols = _this.thead.rows[0].cells;
+
+				_forEach(cols, function(i, head) {
+					var link = _newElement('a', { 'href' : '#', 'class' : 'dataTable-sorter', html: head.innerHTML });
+					head.idx = i;
+					head.innerHTML = '';
+					head.appendChild(link);
+				});
+
+				this.sortEnabled = true;
 			}
 
 			// Insert the main container
@@ -288,76 +280,117 @@
 				cell.style.width = w + '%';
 			});
 
-			this.addEventListeners();
-		},
-
-		/* Attach required event listeners. */
-		addEventListeners: function()
-		{
-			var _this = this;
-
-			_this.searchRows = [];
-
-			this.handleClickEvents = this.handleEvents.bind(this);
-
-			this.wrapper.addEventListener('click', this.handleClickEvents, false);
-
-			_this.selector.addEventListener('change', _this.update.bind(_this), false);
-
-			_this.searchInput.addEventListener('keyup', _this.search.bind(_this), false);
-		},
-
-		handleEvents: function(e)
-		{
-			e = e || window.event;
-			var target = e.target;
-			var node = target.nodeName.toLowerCase();
-
-			if ( node === 'a' ) {
-				if ( target.hasAttribute('data-page') ) {
-					this.switchPage(target);
-				}
-
-				if ( _hasClass(target, 'dataTable-sorter') ) {
-					this.sortItems(e);
-				}
-
-				e.preventDefault();
+			/* Plugins */
+			if ( this.options.plugins.length ) {
+				_forEach(this.options.plugins, function(i, plugin) {
+					if ( _this[plugin] && typeof _this[plugin].init === 'function' ) {
+						_this[plugin].init(_this);
+					}
+				});
 			}
+
+			// Event listeners
+			this.table.on = function(event, callback) {
+				_this.table.addEventListener(event, function(e) {
+					callback.call(_this, this);
+				});
+			};
+
+			_this.handleClickEvents = function(e) {
+				e = e || window.event;
+				var target = e.target;
+				var node = target.nodeName.toLowerCase();
+
+				if ( node === 'a' ) {
+					if ( target.hasAttribute('data-page') ) {
+						_this.switchPage(target.getAttribute('data-page'));
+					}
+
+					if ( _hasClass(target, 'dataTable-sorter') ) {
+						_this.sortItems(e);
+					}
+
+					e.preventDefault();
+				}
+			};
+
+			this.wrapper.addEventListener('click', _this.handleClickEvents, false);
+
+			this.selector.addEventListener('change', _this.update.bind(_this), false);
+
+			this.searchInput.addEventListener('keyup', _this.search.bind(_this), false);
+
+			setTimeout(function() {
+				_this.emit('datatable.init');
+			}, 10);
+
+			_this.initialised = true;
+		},
+
+		/**
+		 * Set up the initial info to construct the datatable.
+		 */
+		paginate: function()
+		{
+			var perPage = this.options.perPage, rows = !!this.searching ? this.searchRows : this.rows;
+
+			this.pages = rows.map( function(tr, i) {
+				return i % perPage == 0 ? rows.slice(i, i+perPage) : null;
+			}).filter(function(pages){ return pages; });
+
+			this.lastPage = this.pages.length;
 		},
 
 		/* Change the page. */
-		switchPage: function(target)
+		switchPage: function(page)
 		{
-			var page = target.getAttribute('data-page');
+			var _this = this;
 
 			// We don't want to load the current page again.
-			if ( page == this.currentPage && target.parentNode.classList.contains('active') )
+			if ( page == this.currentPage )
 				return;
 
 			if ( !isNaN(page)) {
 				this.currentPage = parseInt(page, 10);
 			}
 
-			// Check we have the nextPrev option enabled
-			if ( this.options.nextPrev ) {
-				if ( page == 'prev' ) {
-					if ( this.onFirstPage ) return;
+			if ( page == 'prev' ) {
+				if ( this.onFirstPage ) return;
 
-					this.currentPage--;
-				}
+				this.currentPage--;
+			}
 
-				if ( page == 'next' ) {
-					if ( this.onLastPage ) return;
+			if ( page == 'next' ) {
+				if ( this.onLastPage ) return;
 
-					this.currentPage++;
-				}
+				this.currentPage++;
 			}
 
 			// Show the selected page;
 			this.showPage(this.currentPage-1);
-			this.updateInfo();
-			this.setClasses();
+
+			_forEach(_this.paginators, function(index, paginator) {
+				var links = paginator.children,
+					inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
+
+				_forEach(links, function(i, link) {
+					_removeClass(link, 'active');
+					_removeClass(link, 'disabled');
+					_removeClass(link, 'hidden');
+				});
+
+				// We're on the first page so disable / hide the prev button.
+				if ( _this.onFirstPage && _this.options.nextPrev )
+					_addClass(paginator.firstElementChild, inactive);
+
+				// We're on the last page so disable / hide the next button.
+				if ( _this.onLastPage && _this.options.nextPrev )
+					_addClass(paginator.lastElementChild, inactive);
+
+				// Add the 'active' class to the correct button
+				var n = _this.options.nextPrev ? _this.currentPage : _this.currentPage-1;
+				_addClass(paginator.children[n], 'active');
+			});
 
 			this.emit('datatable.change');
 		},
@@ -367,60 +400,54 @@
 		{
 			index = index || 0;
 
-			var pages = this.pages;
-
-			if ( !!this.searching ) {
-				pages = this.searchPages;
-			}
+			var _this = this, pages = this.pages;
 
 			if ( pages.length ) {
 
-				var that = this, frag = _newFragment();
-
-				this.truncate();
+				// Use a fragment to limit touching the DOM
+				var frag = _newFragment();
 
 				_forEach(pages[index], function (i, row) {
 					frag.appendChild(row);
 				});
 
-				that.tbody.appendChild(frag);
+				_this.truncate();
+				_this.tbody.appendChild(frag);
 
-				this.onFirstPage = false;
-				this.onLastPage = false;
+				_this.onFirstPage = false;
+				_this.onLastPage = false;
 
-				switch (this.currentPage) {
+				switch (_this.currentPage) {
 					case 1:
-						this.onFirstPage = true;
+						_this.onFirstPage = true;
 						break;
-					case this.last_page:
-						this.onLastPage = true
+					case _this.lastPage:
+						_this.onLastPage = true
 						break;
 				}
 			}
-		},
 
-		/* Update the table info (Showing x to y of z rows) */
-		updateInfo: function()
-		{
-			if ( !this.options.info ) return;
+			// Update the info
+			if ( _this.options.info ) {
+				var current = 0, f = 0, t = 0, items;
 
-			var pages = !!this.searching ? this.searchPages : this.pages, current = 0, f = 0, t = 0;
+				if ( pages.length ) {
+					current = _this.currentPage-1;
+					f = current * _this.options.perPage;
+					t = f + pages[current].length;
+					f = f+1;
+					items = !!this.searching ? this.searchRows.length : this.rows.length;
+				}
 
-			if ( pages.length ) {
-				current = this.currentPage-1;
-				f = current * this.options.perPage;
-				t = f + pages[current].length;
-				f = f+1;
+				var template = ['Showing ', f, ' to ', t, ' of ', items, ' rows'];
+
+				this.label.innerHTML = template.join('');
 			}
-
-			var template = ['Showing ', f, ' to ', t, ' of ', this.info.items, ' rows'];
-
-			this.label.innerHTML = template.join('');
 		},
 
 		search: function(event)
 		{
-			var _this = this, val = this.searchInput.value.toLowerCase();
+			var _this = this, val = event.target.value.toLowerCase();
 
 			this.searching = true;
 
@@ -435,15 +462,13 @@
 
 			this.truncate();
 
-			_forEach(_this.pages, function(index, page) {
-				_forEach(page, function(idx, tr) {
-					_forEach(tr.cells, function(i, cell) {
-						var text = cell.textContent.toLowerCase();
-						var inArray = _this.searchRows.indexOf(tr) > -1;
-						if ( text.indexOf(val) > -1 && !inArray ) {
-							_this.searchRows.push(tr);
-						}
-					});
+			_forEach(this.rows, function(idx, tr) {
+				_forEach(tr.cells, function(i, cell) {
+					var text = cell.textContent.toLowerCase();
+					var inArray = _this.searchRows.indexOf(tr) > -1;
+					if ( text.indexOf(val) > -1 && !inArray ) {
+						_this.searchRows.push(tr);
+					}
 				});
 			});
 
@@ -462,84 +487,6 @@
 			this.tbody.appendChild(_newElement('tr', { html: '<td class="dataTables-empty" colspan="'+this.colspan+'">'+message+'</td>' }));
 		},
 
-		/* Set the correct number of paginator buttons. */
-		setButtons: function()
-		{
-			var that = this, pages = !!this.searching ? this.searchPages : this.pages;
-
-			_forEach(that.paginators, function(index, paginator) {
-				var frag = _newFragment();
-
-				paginator.innerHTML = '';
-
-				if ( pages.length <= 1 )
-					return;
-
-				if ( that.options.nextPrev ) {
-					frag.appendChild(that.getButton('prev'));
-				}
-
-				if ( that.options.navButtons )
-				{
-					_forEach(pages, function(i, page) {
-						var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
-						var a 	= _newElement('a', { href: '#', 'data-page': i+1, html: i+1 });
-
-						li.appendChild(a);
-						frag.appendChild(li);
-					});
-				}
-
-				if ( that.options.nextPrev ) {
-					frag.appendChild(that.getButton('next'));
-				}
-
-				paginator.appendChild(frag);
-			});
-		},
-
-		/* Set the active, disabled and hidden classes on the paginator buttons. */
-		setClasses: function(node)
-		{
-			var _this = this,
-				onFirstPage = _this.onFirstPage,
-				onLastPage = _this.onLastPage,
-				nextPrev = _this.options.nextPrev,
-				hideNavs = _this.options.hideUnusedNavs;
-
-			_forEach(_this.paginators, function(index, paginator) {
-				var links = paginator.children,
-					inactive = hideNavs ? 'hidden' : 'disabled';
-
-				_forEach(links, function(i, link) {
-					_removeClass(link, 'active');
-					_removeClass(link, 'disabled');
-					_removeClass(link, 'hidden');
-				});
-
-				// We're on the first page so disable / hide the prev button.
-				if ( onFirstPage && _this.options.nextPrev )
-					_addClass(paginator.firstElementChild, inactive);
-
-				// We're on the last page so disable / hide the next button.
-				if ( onLastPage && _this.options.nextPrev )
-					_addClass(paginator.lastElementChild, inactive);
-
-				// Add the 'active' class to the correct button
-				var n = nextPrev ? _this.currentPage : _this.currentPage-1;
-				_addClass(paginator.children[n], 'active');
-			});
-		},
-
-		/* Make a next / prev button. */
-		getButton: function(direction)
-		{
-			var li = _newElement('li'),
-				a = _newElement('a', { href: '#', 'data-page': direction, html: direction == 'prev' ? this.options.prevText : this.options.nextText });
-			li.appendChild(a);
-			return li;
-		},
-
 		/* Update the table contents */
 		update: function(e)
 		{
@@ -554,33 +501,56 @@
 
 			this.currentPage = 1;
 
-			this.initPages();
+			this.paginate();
 			this.showPage();
-			this.setButtons();
-			this.updateInfo();
 
-			this.tableContainer.style.height = null;
-			if ( this.options.fixedHeight ) {
-				this.containerRect = this.tableContainer.getBoundingClientRect();
-				this.tableContainer.style.height = this.containerRect.height + 'px';
-			}
-		},
+			// Set the correct number of buttons
+			var _this = this, pages = this.pages;
 
-		/* Inititialse the sortable option. */
-		initSortable: function()
-		{
-			if ( this.sortEnabled ) return;
+			_forEach(_this.paginators, function(index, paginator) {
+				var frag = _newFragment();
 
-			var _this = this, cols = _this.thead.rows[0].cells;
+				paginator.innerHTML = '';
 
-			_forEach(cols, function(i, head) {
-				var link = _newElement('a', { 'href' : '#', 'class' : 'dataTable-sorter', html: head.innerHTML });
-				head.idx = i;
-				head.innerHTML = '';
-				head.appendChild(link);
+				if ( pages.length <= 1 )
+					return;
+
+				if ( _this.options.nextPrev ) {
+					frag.appendChild(newButton('prev'));
+				}
+
+				if ( _this.options.navButtons )
+				{
+					_forEach(pages, function(i, page) {
+						var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
+						var a 	= _newElement('a', { href: '#', 'data-page': i+1, html: i+1 });
+
+						li.appendChild(a);
+						frag.appendChild(li);
+					});
+				}
+
+				if ( _this.options.nextPrev ) {
+					frag.appendChild(newButton('next'));
+				}
+
+				paginator.appendChild(frag);
 			});
 
-			this.sortEnabled = true;
+			function newButton(direction) {
+				var li = _newElement('li'),
+					a = _newElement('a', { href: '#', 'data-page': direction, html: direction == 'prev' ? _this.options.prevText : _this.options.nextText });
+				li.appendChild(a);
+				return li;
+			}
+
+			if ( this.initialised ) {
+				this.tableContainer.style.height = null;
+				if ( this.options.fixedHeight ) {
+					this.containerRect = this.tableContainer.getBoundingClientRect();
+					this.tableContainer.style.height = this.containerRect.height + 'px';
+				}
+			}
 		},
 
 		/* Perform the sorting */
@@ -651,35 +621,6 @@
 			_this.emit('datatable.sort');
 		},
 
-		/**
-		 * Build the perPage selector.
-		 */
-		getSelect: function()
-		{
-			var frag = _newFragment(),
-				wrapper = _newElement('div', { class: 'dataTable-selectWrapper' }),
-				selector = _newElement('select', { class: 'dataTable-selector' }),
-				pre = _newElement('span', { html: 'Showing' }),
-				suff = _newElement('span', { html: 'entries' });
-
-			_forEach(this.options.perPageSelect, function(i, val) {
-				var option = _newElement('option', { value: val, html: val });
-				selector.appendChild(option);
-			});
-
-			selector.value = this.options.perPage;
-
-			frag.appendChild(pre);
-			frag.appendChild(selector);
-			frag.appendChild(suff);
-
-			wrapper.appendChild(frag);
-
-			this.selector = selector;
-
-			return wrapper;
-		},
-
 		truncate: function()
 		{
 			// IE doesn't play nice with innerHTML on tBodies.
@@ -693,26 +634,6 @@
 		},
 
 		emit: function(event) { this.table.dispatchEvent(new Event(event)) },
-
-		/**
-		 * Parse JSON data to HTML
-		 */
-		jsonToTable: function()
-		{
-			var frag = _newFragment(), tbody = _newElement('tbody');
-
-			_forEach(this.options.data, function(i, row) {
-				var tr = _newElement('tr');
-				_forEach(row, function(k, value) {
-					var td = _newElement('td', { html: value });
-					tr.appendChild(td);
-				});
-				frag.appendChild(tr);
-			});
-
-			tbody.appendChild(frag);
-			this.table.appendChild(tbody);
-		},
 
 	};
 
