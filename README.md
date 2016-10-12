@@ -102,12 +102,6 @@ var options = {
 	 * @type {bool}
 	 */
 	hideUnusedNavs: false,
-	
-	/**
-	 * Enable plugins.
-	 * @type {array}
-	 */
-	plugins: ['plugin_name_1', 'plugin_name_2', ...],	
 };
 ```
 
@@ -122,62 +116,6 @@ var options = {
 ```javascript
 myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
 	// Do something when datatable.XXXX fires
-});
-```
-
-## Plugins
-The plugin feature allows the Vanilla-DataTable package to remain lightweight whilst allowing a multitude of extra functionality yo be added.
-
-### Enable Plugins
-Only a handful of plugins are included with the package, but users can add their own over time (see **Custom Plugins**).
-
-The plugin files must be added after the main file like so:
-
-``` javascript
-<script type="text/javascript" src="path/to/vanilla-dataTables.min.js"></script>
-<script type="text/javascript" src="path/to/my/DataTable-Plugin-1.js"></script>
-<script type="text/javascript" src="path/to/my/DataTable-Plugin-2.js"></script>
-```
-
-The plugins can then be enabled within the options:
-
-```javascript
-var dataTable = new DataTable(myTable, {
-    plugins: ['DataTable-Plugin-1', 'DataTable-Plugin-2']
-});
-```
-
-### Custom Plugins
-Creating your own plugin is easy. Just extend the DataTable object and make sure to include the mandatory `init()` method otherwise your plugin won't be called. This method accepts the DataTable plugin instance as the first parameter.
-
-If you think your plugin will benefit other users then create a pull request and I'll add it.
-
-#### Example
-```javascript
-/**
- * [MY_PLUGIN_NAME description]
- * @type {Object}
- */
-DataTable.prototype.MY_PLUGIN_NAME = {
-	/**
-	 * initialise the plugin
-	 * @param  {object} datatable | DataTable plugin instance
-	 */
-	init: function(datatable) {
-		//
-	}
-}
-```
-Save your file and include it after the main plugin file:
-```html
-<script type="text/javascript" src="path/to/vanilla-dataTables.min.js"></script>
-<script type="text/javascript" src="MY_PLUGIN_NAME.js"></script>
-```
-
-Finally add your plugin's name to the `plugins` array in your options:
-```javascript
-var dataTable = new DataTable(myTable, {
-    plugins: ['MY_PLUGIN_NAME']
 });
 ```
 
