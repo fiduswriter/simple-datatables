@@ -590,20 +590,20 @@
 			var dir;
 			var rows = !!_this.searching ? _this.searchRows : _this.rows;
 			var alpha = [];
-			var num = [];
+			var numeric = [];
 			var a = 0;
 			var n = 0;
 			var th = target.parentNode;
 
-			_forEach(rows, function(i, row) {
-				var cell 	= row.cells[th.idx];
+			_forEach(rows, function(i, tr) {
+				var cell 	= tr.cells[th.idx];
 				var content = cell.textContent ? cell.textContent : cell.innerText;
 				var num 	= content.replace(/(\$|\,|\s)/g, "");
 
 				if (parseFloat(num) == num) {
-					num[n++] = { value: Number(num), row: row }
+					numeric[n++] = { value: Number(num), row: tr }
 				} else {
-					alpha[a++] = { value: content, row: row }
+					alpha[a++] = { value: content, row: tr }
 				}
 			});
 
@@ -611,11 +611,11 @@
 			/* Sort according to direction (ascending or descending) */
 			var col = [], top, bottom;
 			if (_hasClass(th, "asc")) {
-				top = _sort(alpha, -1); bottom = _sort(num, -1); dir = 'descending';
+				top = _sort(alpha, -1); bottom = _sort(numeric, -1); dir = 'descending';
 				_removeClass(th, 'asc');
 				_addClass(th, 'desc');
 			} else {
-				top = _sort(num, 1); bottom = _sort(alpha, 1); dir = 'ascending';
+				top = _sort(numeric, 1); bottom = _sort(alpha, 1); dir = 'ascending';
 				_removeClass(th, 'desc');
 				_addClass(th, 'asc');
 			}
@@ -634,14 +634,14 @@
 			if ( !!_this.searching ) {
 				_this.searchRows = [];
 
-				_forEach(rows, function(i, row) {
-					_this.searchRows.push(row['row']);
+				_forEach(rows, function(i, tr) {
+					_this.searchRows.push(tr['row']);
 				});
 			} else {
 				_this.rows = [];
 
-				_forEach(rows, function(i, row) {
-					_this.rows.push(row['row']);
+				_forEach(rows, function(i, tr) {
+					_this.rows.push(tr['row']);
 				});
 			}
 
