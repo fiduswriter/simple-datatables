@@ -623,13 +623,15 @@
 
 		truncate: function()
 		{
-			// IE doesn't play nice with innerHTML on tBodies.
-			if ( this.isIE ) {
-				while(this.tbody.hasChildNodes()) {
-					this.tbody.removeChild(this.tbody.firstChild);
+			if ( this.table.tBodies.length ) {
+				// IE doesn't play nice with innerHTML on tBodies.
+				if ( this.isIE ) {
+					while(this.tbody.hasChildNodes()) {
+						this.tbody.removeChild(this.tbody.firstChild);
+					}
+				} else {
+					this.tbody.innerHTML = '';
 				}
-			} else {
-				this.tbody.innerHTML = '';
 			}
 		},
 
