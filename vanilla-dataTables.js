@@ -141,7 +141,7 @@
 
 		if ( this.options.data ) {
 			var tbody = jsonToTable(this.options.data);
-			this.table.truncate();
+			this.truncate();
 			this.table.appendChild(tbody);
 		}
 
