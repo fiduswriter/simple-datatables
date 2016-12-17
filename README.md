@@ -114,7 +114,9 @@ var options = {
 * `datatable.search` fires on keyup during a search
 
 ```javascript
-myTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
+var dataTable = new DataTable(myTable, options);
+
+dataTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
 	// Do something when datatable.XXXX fires
 });
 ```
