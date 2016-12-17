@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.0.8
+ * Version: 0.0.9
  *
  */
 
@@ -78,7 +78,7 @@
 		return a
 	};
 
-	var _forEach = function(a, b, c) {
+	var _each = function(a, b, c) {
 		if ("[object Object]" === Object.prototype.toString.call(a))
 			for (var d in a) Object.prototype.hasOwnProperty.call(a, d) && b.call(c, d, a[d], a);
 		else
@@ -90,9 +90,9 @@
 		var frag = _newFragment(),
 			tbody = _newElement('tbody');
 
-		_forEach(data, function(i, row) {
+		_each(data, function(i, row) {
 			var tr = _newElement('tr');
-			_forEach(row, function(k, value) {
+			_each(row, function(k, value) {
 				var td = _newElement('td', {
 					html: value
 				});
@@ -186,7 +186,7 @@
 			// Build the selector
 			var wrapper = _newElement('label', { class: 'dataTable-selectWrapper' });
 
-			_forEach(this.options.perPageSelect, function(i, val) {
+			_each(this.options.perPageSelect, function(i, val) {
 				_this.selector.appendChild(_newElement('option', { value: val, html: val }));
 			});
 
@@ -247,7 +247,7 @@
 
 				var _this = this, cols = _this.thead.rows[0].cells;
 
-				_forEach(cols, function(i, head) {
+				_each(cols, function(i, head) {
 					var link = _newElement('a', { 'href' : '#', 'class' : 'dataTable-sorter', html: head.innerHTML });
 					head.idx = i;
 					head.innerHTML = '';
@@ -274,7 +274,7 @@
 			 * Use percentages so we don't have to update the width of each cell on window resize */
 			var cells = _this.table.tHead.rows[0].cells;
 
-			_forEach(cells, function(index, cell) {
+			_each(cells, function(index, cell) {
 				var rect = cell.getBoundingClientRect();
 				var w = (rect.width / _this.containerRect.width) * 100;
 				cell.style.width = w + '%';
@@ -282,7 +282,7 @@
 
 			/* Plugins */
 			if ( this.options.plugins.length ) {
-				_forEach(this.options.plugins, function(i, plugin) {
+				_each(this.options.plugins, function(i, plugin) {
 					if ( _this[plugin] && typeof _this[plugin].init === 'function' ) {
 						_this[plugin].init(_this);
 					}
@@ -290,9 +290,9 @@
 			}
 
 			// Event listeners
-			this.table.on = function(event, callback) {
+			this.on = function(event, callback) {
 				_this.table.addEventListener(event, function(e) {
-					callback.call(_this, this);
+					callback.call(_this);
 				});
 			};
 
@@ -369,11 +369,11 @@
 			// Show the selected page;
 			this.showPage(this.currentPage-1);
 
-			_forEach(_this.paginators, function(index, paginator) {
+			_each(_this.paginators, function(index, paginator) {
 				var links = paginator.children,
 					inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
 
-				_forEach(links, function(i, link) {
+				_each(links, function(i, link) {
 					_removeClass(link, 'active');
 					_removeClass(link, 'disabled');
 					_removeClass(link, 'hidden');
@@ -407,7 +407,7 @@
 				// Use a fragment to limit touching the DOM
 				var frag = _newFragment();
 
-				_forEach(pages[index], function (i, row) {
+				_each(pages[index], function (i, row) {
 					frag.appendChild(row);
 				});
 
@@ -462,8 +462,8 @@
 
 			this.truncate();
 
-			_forEach(this.rows, function(idx, tr) {
-				_forEach(tr.cells, function(i, cell) {
+			_each(this.rows, function(idx, tr) {
+				_each(tr.cells, function(i, cell) {
 					var text = cell.textContent.toLowerCase();
 					var inArray = _this.searchRows.indexOf(tr) > -1;
 					if ( text.indexOf(val) > -1 && !inArray ) {
@@ -507,7 +507,7 @@
 			// Set the correct number of buttons
 			var _this = this, pages = this.pages;
 
-			_forEach(_this.paginators, function(index, paginator) {
+			_each(_this.paginators, function(index, paginator) {
 				var frag = _newFragment();
 
 				paginator.innerHTML = '';
@@ -521,7 +521,7 @@
 
 				if ( _this.options.navButtons )
 				{
-					_forEach(pages, function(i, page) {
+					_each(pages, function(i, page) {
 						var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
 						var a 	= _newElement('a', { href: '#', 'data-page': i+1, html: i+1 });
 
@@ -565,7 +565,7 @@
 			var n = 0;
 			var th = target.parentNode;
 
-			_forEach(rows, function(i, tr) {
+			_each(rows, function(i, tr) {
 				var cell 	= tr.cells[th.idx];
 				var content = cell.textContent ? cell.textContent : cell.innerText;
 				var num 	= content.replace(/(\$|\,|\s)/g, "");
@@ -604,13 +604,13 @@
 			if ( !!_this.searching ) {
 				_this.searchRows = [];
 
-				_forEach(rows, function(i, tr) {
+				_each(rows, function(i, tr) {
 					_this.searchRows.push(tr['row']);
 				});
 			} else {
 				_this.rows = [];
 
-				_forEach(rows, function(i, tr) {
+				_each(rows, function(i, tr) {
 					_this.rows.push(tr['row']);
 				});
 			}
