@@ -35,14 +35,19 @@
 	width: 60%;
 }
 
-.dataTable-info {
-	width: 75%;
-}
 
 .dataTable-info,
 .dataTable-search,
 .dataTable-selectWrapper {
 	margin: 20px 0;
+}
+
+.dataTable-bottom .dataTable-pagination {
+	width: 50%;
+}
+
+.dataTable-info {
+	width: 50%;
 }
 
 /**
