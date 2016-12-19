@@ -304,13 +304,13 @@
 				if ( node === 'a' ) {
 					if ( target.hasAttribute('data-page') ) {
 						_this.switchPage(target.getAttribute('data-page'));
+						e.preventDefault();
 					}
 
 					if ( _hasClass(target, 'dataTable-sorter') ) {
 						_this.sortItems(e);
+						e.preventDefault();
 					}
-
-					e.preventDefault();
 				}
 			};
 
