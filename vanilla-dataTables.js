@@ -590,12 +590,18 @@
 		/* Render the pager when truncation is allowed */
 		renderPager: function()
 		{
+			_each(this.paginators, function(i,p) {
+				p.innerHTML = '';
+			});
+
 			if ( this.pages.length <= 1 ) return;
 
 			var _this = this, frag = _newFragment(), inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
 
 			// prev button
-			frag.appendChild(_button('prev', _this.onFirstPage ? inactive : ''));
+			if ( _this.options.nextPrev ) {
+				frag.appendChild(_button('prev', _this.onFirstPage ? inactive : ''));
+			}
 
 			// truncate the links
 			var pager = _truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
@@ -604,7 +610,7 @@
 			_addClass(this.links[this.currentPage-1], 'active');
 
 			// append the links
-			_each(pager, (i,p) => {
+			_each(pager, function(i,p) {
 				frag.appendChild(p);
 			});
 
@@ -619,12 +625,10 @@
 			{
 				case 'top':
 				case 'bottom':
-					this.paginators[0].innerHTML = '';
 					this.paginators[0].appendChild(frag);
 					break;
 
 				case 'both':
-					this.paginators[0].innerHTML = '';
 					this.paginators[0].appendChild(frag);
 
 					this.paginators[1].innerHTML = this.paginators[0].innerHTML;
