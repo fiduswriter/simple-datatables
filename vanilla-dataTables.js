@@ -125,7 +125,7 @@
 				if (page - p == 2) {
 					pager.push(links[p]);
 				} else if (page - p != 1) {
-					var ellipsis = _createElement('li', { class:'ellipsis', html: '<a href="#">&hellip;</a>' })
+					var ellipsis = _newElement('li', { class:'ellipsis', html: '<a href="#">&hellip;</a>' })
 					pager.push(ellipsis);
 				}
 			}
@@ -569,8 +569,8 @@
 			this.links = [];
 
 			_each(this.pages, function(i, page) {
-				var li 	= _createElement('li', { class: ( i == 0 ) ? 'active' : '' });
-				var a 	= _createElement('a', { href: '#', 'data-page': i+1, html: i+1 });
+				var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
+				var a 	= _newElement('a', { href: '#', 'data-page': i+1, html: i+1 });
 
 				li.appendChild(a);
 				_this.links.push(li);
@@ -627,14 +627,13 @@
 					this.paginators[0].innerHTML = '';
 					this.paginators[0].appendChild(frag);
 
-					this.paginators[1].innerHTML = '';
-					this.paginators[1].appendChild(this.paginators[0].cloneNode(true));
+					this.paginators[1].innerHTML = this.paginators[0].innerHTML;
 					break;
 			}
 
 			function _button(dir, cn) {
-				var li = _createElement('li', {class: cn}),
-					a = _createElement('a', { href: '#', 'data-page': dir, html: dir == 'prev' ? _this.options.prevText : _this.options.nextText });
+				var li = _newElement('li', {class: cn}),
+					a = _newElement('a', { href: '#', 'data-page': dir, html: dir == 'prev' ? _this.options.prevText : _this.options.nextText });
 				li.appendChild(a);
 				return li;
 			}
