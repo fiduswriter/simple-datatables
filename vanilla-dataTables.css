@@ -9,20 +9,21 @@
 }
 
 .dataTable-pagination {
-	width: 25%;
+	width: 50%;
 }
 
 .dataTable-selectWrapper {
-	width: 75%;
+	width: 50%;
 }
 
-.dataTable-top.searchable .dataTable-selectWrapper {
-	width: 25%;
+.dataTable-top.searchable .dataTable-selectWrapper,
+.dataTable-top.searchable .dataTable-pagination {
+	width: 40%;
 }
 
 .dataTable-search {
 	text-align: center;
-	width: 50%;
+	width: 20%;
 }
 
 .dataTable-selector, .dataTable-input {
@@ -32,7 +33,7 @@
 }
 
 .dataTable-input {
-	width: 60%;
+	width: 100%;
 }
 
 

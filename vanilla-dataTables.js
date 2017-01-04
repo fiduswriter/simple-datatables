@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.0.9
+ * Version: 0.1.0
  *
  */
 
@@ -85,6 +85,57 @@
 			for (var e = 0, f = a.length; e < f; e++) b.call(c, e, a[e], a)
 	};
 
+	/**
+	 * Algorithm for truncating the pagination links
+	 * @param  {array} The HTML pagination links
+	 * @param  {int} Current page number
+	 * @param  {int} Total number of pages
+	 * @param  {int} The number of links visible either side of the active link
+	 *                e.g. current page = 7, delta = 2 gives 1 ... 5 6 7 8 9 ... 25
+	 *                e.g. current page = 11, delta = 3 gives 1 ... 7 8 9 11 12 13 14 ... 25
+	 * @return {array} The collection of links (including ellipsis).
+	 */
+	var _truncate = function(links, page, pages, delta) {
+		delta = delta || 2;
+		var offset = (delta * 2);
+		var left = page - delta;
+		var right = page + delta;
+		var range = [];
+		var pager = [];
+		var k;
+
+		if ( page < (4 - delta) + offset ) {
+			right = 3 + offset;
+		} else if ( page > pages - ((3 - delta) + offset)  ) {
+			left = pages - (2 + offset);
+		}
+
+		for (let i = 1; i <= pages; i++) {
+			if (i == 1 || i == pages || i >= left && i <= right) {
+				var a = links[i-1];
+				_removeClass(a, 'active');
+				range.push(a);
+			}
+		}
+
+		_each(range, (i,link) => {
+			var page = link.children[0].getAttribute('data-page');
+			if (k) {
+				var p = k.children[0].getAttribute('data-page');
+				if (page - p == 2) {
+					pager.push(links[p]);
+				} else if (page - p != 1) {
+					var ellipsis = _createElement('li', { class:'ellipsis', html: '<a href="#">&hellip;</a>' })
+					pager.push(ellipsis);
+				}
+			}
+			pager.push(link);
+			k = link;
+		});
+
+		return pager;
+	};
+
 	/* Parse JSON string to HTML */
 	var jsonToTable = function(data) {
 		var frag = _newFragment(),
@@ -125,6 +176,8 @@
 			fixedHeight: false,
 			info: true,
 			hideUnusedNavs: false,
+			truncatePager: true,
+			pagerDelta: 2,
 			plugins: [],
 		};
 
@@ -141,7 +194,7 @@
 
 		if ( this.options.data ) {
 			var tbody = jsonToTable(this.options.data);
-			this.truncate();
+			this.clear();
 			this.table.appendChild(tbody);
 		}
 
@@ -369,28 +422,34 @@
 			// Show the selected page;
 			this.showPage(this.currentPage-1);
 
-			_each(_this.paginators, function(index, paginator) {
-				var links = paginator.children,
-					inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
 
-				_each(links, function(i, link) {
-					_removeClass(link, 'active');
-					_removeClass(link, 'disabled');
-					_removeClass(link, 'hidden');
+			// render pager or simple class change
+			if ( this.options.truncatePager ) {
+				this.renderPager();
+			} else {
+				_each(_this.paginators, function(index, paginator) {
+					var links = paginator.children,
+						inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
+
+					_each(links, function(i, link) {
+						_removeClass(link, 'active');
+						_removeClass(link, 'disabled');
+						_removeClass(link, 'hidden');
+					});
+
+					// We're on the first page so disable / hide the prev button.
+					if ( _this.onFirstPage && _this.options.nextPrev )
+						_addClass(paginator.firstElementChild, inactive);
+
+					// We're on the last page so disable / hide the next button.
+					if ( _this.onLastPage && _this.options.nextPrev )
+						_addClass(paginator.lastElementChild, inactive);
+
+					// Add the 'active' class to the correct button
+					var n = _this.options.nextPrev ? _this.currentPage : _this.currentPage-1;
+					_addClass(paginator.children[n], 'active');
 				});
-
-				// We're on the first page so disable / hide the prev button.
-				if ( _this.onFirstPage && _this.options.nextPrev )
-					_addClass(paginator.firstElementChild, inactive);
-
-				// We're on the last page so disable / hide the next button.
-				if ( _this.onLastPage && _this.options.nextPrev )
-					_addClass(paginator.lastElementChild, inactive);
-
-				// Add the 'active' class to the correct button
-				var n = _this.options.nextPrev ? _this.currentPage : _this.currentPage-1;
-				_addClass(paginator.children[n], 'active');
-			});
+			}
 
 			this.emit('datatable.change');
 		},
@@ -411,7 +470,7 @@
 					frag.appendChild(row);
 				});
 
-				_this.truncate();
+				_this.clear();
 				_this.tbody.appendChild(frag);
 
 				_this.onFirstPage = false;
@@ -460,7 +519,7 @@
 				return;
 			}
 
-			this.truncate();
+			this.clear();
 
 			_each(this.rows, function(idx, tr) {
 				_each(tr.cells, function(i, cell) {
@@ -483,7 +542,7 @@
 
 		setMessage: function(message)
 		{
-			this.truncate();
+			this.clear();
 			this.tbody.appendChild(_newElement('tr', { html: '<td class="dataTables-empty" colspan="'+this.colspan+'">'+message+'</td>' }));
 		},
 
@@ -505,44 +564,19 @@
 			this.showPage();
 
 			// Set the correct number of buttons
-			var _this = this, pages = this.pages;
+			var _this = this;
 
-			_each(_this.paginators, function(index, paginator) {
-				var frag = _newFragment();
+			this.links = [];
 
-				paginator.innerHTML = '';
+			_each(this.pages, function(i, page) {
+				var li 	= _createElement('li', { class: ( i == 0 ) ? 'active' : '' });
+				var a 	= _createElement('a', { href: '#', 'data-page': i+1, html: i+1 });
 
-				if ( pages.length <= 1 )
-					return;
-
-				if ( _this.options.nextPrev ) {
-					frag.appendChild(newButton('prev'));
-				}
-
-				if ( _this.options.navButtons )
-				{
-					_each(pages, function(i, page) {
-						var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
-						var a 	= _newElement('a', { href: '#', 'data-page': i+1, html: i+1 });
-
-						li.appendChild(a);
-						frag.appendChild(li);
-					});
-				}
-
-				if ( _this.options.nextPrev ) {
-					frag.appendChild(newButton('next'));
-				}
-
-				paginator.appendChild(frag);
+				li.appendChild(a);
+				_this.links.push(li);
 			});
 
-			function newButton(direction) {
-				var li = _newElement('li'),
-					a = _newElement('a', { href: '#', 'data-page': direction, html: direction == 'prev' ? _this.options.prevText : _this.options.nextText });
-				li.appendChild(a);
-				return li;
-			}
+			this.renderPager();
 
 			if ( this.initialised ) {
 				this.tableContainer.style.height = null;
@@ -550,6 +584,59 @@
 					this.containerRect = this.tableContainer.getBoundingClientRect();
 					this.tableContainer.style.height = this.containerRect.height + 'px';
 				}
+			}
+		},
+
+		/* Render the pager when truncation is allowed */
+		renderPager: function()
+		{
+			if ( this.pages.length <= 1 ) return;
+
+			var _this = this, frag = _newFragment(), inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
+
+			// prev button
+			frag.appendChild(_button('prev', _this.onFirstPage ? inactive : ''));
+
+			// truncate the links
+			var pager = _truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
+
+			// active page link
+			_addClass(this.links[this.currentPage-1], 'active');
+
+			// append the links
+			_each(pager, (i,p) => {
+				frag.appendChild(p);
+			});
+
+			// next button
+			if ( _this.options.nextPrev ) {
+				frag.appendChild(_button('next', _this.onLastPage ? inactive : ''));
+			}
+
+
+			// append the fragment
+			switch(this.options.navPosition)
+			{
+				case 'top':
+				case 'bottom':
+					this.paginators[0].innerHTML = '';
+					this.paginators[0].appendChild(frag);
+					break;
+
+				case 'both':
+					this.paginators[0].innerHTML = '';
+					this.paginators[0].appendChild(frag);
+
+					this.paginators[1].innerHTML = '';
+					this.paginators[1].appendChild(this.paginators[0].cloneNode(true));
+					break;
+			}
+
+			function _button(dir, cn) {
+				var li = _createElement('li', {class: cn}),
+					a = _createElement('a', { href: '#', 'data-page': dir, html: dir == 'prev' ? _this.options.prevText : _this.options.nextText });
+				li.appendChild(a);
+				return li;
 			}
 		},
 
@@ -621,7 +708,7 @@
 			_this.emit('datatable.sort');
 		},
 
-		truncate: function()
+		clear: function()
 		{
 			if ( this.table.tBodies.length ) {
 				// IE doesn't play nice with innerHTML on tBodies.
