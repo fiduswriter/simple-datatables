@@ -72,7 +72,22 @@ var options = {
 	 */
 	prevText: '&lsaquo;',
 	nextText: '&rsaquo;',
+
+	/**
+	 * Truncate pager links when there is a large amount of pagers
+	 * e.g.: 1 ... 5 6 7 8 9 ... 25
+	 * @type {bool}
+	 */
+	truncatePager: true,
 	
+	/**
+	 * The number of links visible either side of the active link when truncatePager is set to true
+	 *                e.g. current page = 7, delta = 2 gives 1 ... 5 6 7 8 9 ... 25
+	 *                e.g. current page = 11, delta = 3 gives 1 ... 7 8 9 11 12 13 14 ... 25
+	 * @type {integer}
+	 */
+	pagerDelta: 2,	
+
 	/**
 	 * Enable / disable the sortable feature
 	 * @type {bool}
@@ -116,7 +131,7 @@ var options = {
 ```javascript
 var dataTable = new DataTable(myTable, options);
 
-dataTable.on('datatable.XXXX', function(dataTable /* plugin instance */) {
+dataTable.on('datatable.XXXX', function(table) {
 	// Do something when datatable.XXXX fires
 });
 ```
