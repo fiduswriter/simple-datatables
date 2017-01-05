@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.1.0
+ * Version: 0.1.1
  *
  */
 
@@ -424,32 +424,7 @@
 
 
 			// render pager or simple class change
-			if ( this.options.truncatePager ) {
-				this.renderPager();
-			} else {
-				_each(_this.paginators, function(index, paginator) {
-					var links = paginator.children,
-						inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
-
-					_each(links, function(i, link) {
-						_removeClass(link, 'active');
-						_removeClass(link, 'disabled');
-						_removeClass(link, 'hidden');
-					});
-
-					// We're on the first page so disable / hide the prev button.
-					if ( _this.onFirstPage && _this.options.nextPrev )
-						_addClass(paginator.firstElementChild, inactive);
-
-					// We're on the last page so disable / hide the next button.
-					if ( _this.onLastPage && _this.options.nextPrev )
-						_addClass(paginator.lastElementChild, inactive);
-
-					// Add the 'active' class to the correct button
-					var n = _this.options.nextPrev ? _this.currentPage : _this.currentPage-1;
-					_addClass(paginator.children[n], 'active');
-				});
-			}
+			this.renderPager();
 
 			this.emit('datatable.change');
 		},
@@ -603,16 +578,26 @@
 				frag.appendChild(_button('prev', _this.onFirstPage ? inactive : ''));
 			}
 
-			// truncate the links
-			var pager = _truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
+			var pager = [];
+
+			if ( this.options.truncatePager ) {
+				// truncate the links
+				pager = _truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
+			} else {
+
+				pager = this.links;
+			}
 
 			// active page link
 			_addClass(this.links[this.currentPage-1], 'active');
 
 			// append the links
 			_each(pager, function(i,p) {
+				_removeClass(p, 'active');
 				frag.appendChild(p);
 			});
+
+			_addClass(this.links[this.currentPage-1], 'active');
 
 			// next button
 			if ( _this.options.nextPrev ) {
