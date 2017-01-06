@@ -119,7 +119,7 @@
 		}
 
 		_each(range, function(i,link) {
-			var page = link.children[0].getAttribute('data-page');
+			var page = if ( link.children.length ) link.children[0].getAttribute('data-page');
 			if (k) {
 				var p = k.children[0].getAttribute('data-page');
 				if (page - p == 2) {
