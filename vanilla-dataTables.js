@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.1.1
+ * Version: 0.1.2
  *
  */
 
@@ -119,7 +119,7 @@
 		}
 
 		_each(range, function(i,link) {
-			var page = if ( link.children.length ) link.children[0].getAttribute('data-page');
+			var page = link.children[0].getAttribute('data-page');
 			if (k) {
 				var p = k.children[0].getAttribute('data-page');
 				if (page - p == 2) {
@@ -156,6 +156,41 @@
 
 		return tbody;
 	};
+
+	// Emitter
+	var Emitter	= function(){};
+	Emitter.prototype	= {
+		on: function(event, fct){
+			this._events = this._events || {};
+			this._events[event] = this._events[event]	|| [];
+			this._events[event].push(fct);
+		},
+		off: function(event, fct){
+			this._events = this._events || {};
+			if( event in this._events === false  )	return;
+			this._events[event].splice(this._events[event].indexOf(fct), 1);
+		},
+		trigger: function(event /* , args... */){
+			this._events = this._events || {};
+			if( event in this._events === false  )	return;
+			for(var i = 0; i < this._events[event].length; i++){
+				this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+			}
+		}
+	};
+
+
+	Emitter.mixin	= function(obj){
+		var props	= ['on', 'off', 'trigger'];
+		for(var i = 0; i < props.length; i ++){
+			if( typeof obj === 'function' ){
+				obj.prototype[props[i]]	= Emitter.prototype[props[i]];
+			}else{
+				obj[props[i]] = Emitter.prototype[props[i]];
+			}
+		}
+		return obj;
+	}
 
 	/**
 	 * Plugin Object
@@ -343,11 +378,7 @@
 			}
 
 			// Event listeners
-			this.on = function(event, callback) {
-				_this.table.addEventListener(event, function(e) {
-					callback.call(_this);
-				});
-			};
+			Emitter.mixin(this);
 
 			_this.handleClickEvents = function(e) {
 				e = e || window.event;
@@ -374,7 +405,7 @@
 			this.searchInput.addEventListener('keyup', _this.search.bind(_this), false);
 
 			setTimeout(function() {
-				_this.emit('datatable.init');
+				_this.trigger('datatable.init');
 			}, 10);
 
 			_this.initialised = true;
@@ -422,11 +453,10 @@
 			// Show the selected page;
 			this.showPage(this.currentPage-1);
 
-
 			// render pager or simple class change
 			this.renderPager();
 
-			this.emit('datatable.change');
+			this.trigger('datatable.change');
 		},
 
 		/* Populate the table with the required page. */
@@ -490,7 +520,7 @@
 			if ( !val.length ) {
 				this.searching = false;
 				this.update();
-				this.emit("datatable.search");
+				this.trigger("datatable.search");
 				return;
 			}
 
@@ -512,7 +542,7 @@
 
 			this.update();
 
-			this.emit("datatable.search");
+			this.trigger("datatable.search");
 		},
 
 		setMessage: function(message)
@@ -530,7 +560,7 @@
 					this.options.perPage = parseInt(t.value, 10);
 				}
 
-				this.emit('datatable.perpage');
+				this.trigger('datatable.perpage');
 			}
 
 			this.currentPage = 1;
@@ -544,11 +574,15 @@
 			this.links = [];
 
 			_each(this.pages, function(i, page) {
+				var num = i + 1;
 				var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
-				var a 	= _newElement('a', { href: '#', 'data-page': i+1, html: i+1 });
+				var link 	= _newElement('a', { href: '#', 'data-page': num, html: num });
 
-				li.appendChild(a);
+
+				li.appendChild(link);
 				_this.links.push(li);
+
+				console.log(li, link);
 			});
 
 			this.renderPager();
@@ -565,27 +599,32 @@
 		/* Render the pager when truncation is allowed */
 		renderPager: function()
 		{
+			var _this = this;
+
 			_each(this.paginators, function(i,p) {
-				p.innerHTML = '';
+				if ( _this.isIE ) {
+					while(p.hasChildNodes()) {
+						p.removeChild(p.firstChild);
+					}
+				} else {
+					p.innerHTML = '';
+				}
 			});
 
 			if ( this.pages.length <= 1 ) return;
 
-			var _this = this, frag = _newFragment(), inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
+			var  frag = _newFragment(), inactive = _this.options.hideNavs ? 'hidden' : 'disabled';
 
 			// prev button
 			if ( _this.options.nextPrev ) {
 				frag.appendChild(_button('prev', _this.onFirstPage ? inactive : ''));
 			}
 
-			var pager = [];
+			var pager = this.links;
 
 			if ( this.options.truncatePager ) {
 				// truncate the links
 				pager = _truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
-			} else {
-
-				pager = this.links;
 			}
 
 			// active page link
@@ -693,7 +732,7 @@
 			_this.sortOrder = dir;
 
 			_this.update(e);
-			_this.emit('datatable.sort');
+			_this.trigger('datatable.sort');
 		},
 
 		clear: function()
@@ -709,9 +748,6 @@
 				}
 			}
 		},
-
-		emit: function(event) { this.table.dispatchEvent(new Event(event)) },
-
 	};
 
 	return Plugin;
