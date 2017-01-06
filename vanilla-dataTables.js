@@ -578,11 +578,8 @@
 				var li 	= _newElement('li', { class: ( i == 0 ) ? 'active' : '' });
 				var link 	= _newElement('a', { href: '#', 'data-page': num, html: num });
 
-
 				li.appendChild(link);
 				_this.links.push(li);
-
-				console.log(li, link);
 			});
 
 			this.renderPager();
