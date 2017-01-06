@@ -118,7 +118,7 @@
 			}
 		}
 
-		_each(range, (i,link) => {
+		_each(range, function(i,link) {
 			var page = link.children[0].getAttribute('data-page');
 			if (k) {
 				var p = k.children[0].getAttribute('data-page');
