@@ -110,7 +110,7 @@
 			left = pages - (2 + offset);
 		}
 
-		for (let i = 1; i <= pages; i++) {
+		for (var i = 1; i <= pages; i++) {
 			if (i == 1 || i == pages || i >= left && i <= right) {
 				var a = links[i-1];
 				_removeClass(a, 'active');
