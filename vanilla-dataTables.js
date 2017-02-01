@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.1.3
+ * Version: 0.1.2
  *
  */
 
@@ -95,34 +95,45 @@
 	 *                e.g. current page = 11, delta = 3 gives 1 ... 7 8 9 11 12 13 14 ... 25
 	 * @return {array} The collection of links (including ellipsis).
 	 */
-	var _truncate = function(a, b, c, d) {
-		d = d || 2;
-		var j, e = 2 * d,
-			f = b - d,
-			g = b + d,
-			h = [],
-			i = [];
-		b < 4 - d + e ? g = 3 + e : b > c - (3 - d + e) && (f = c - (2 + e));
-		for (var k = 1; k <= c; k++)
-			if (1 == k || k == c || k >= f && k <= g) {
-				var l = a[k - 1];
-				_removeClass(l, "active"), h.push(l)
+	var _truncate = function(links, page, pages, delta) {
+		delta = delta || 2;
+		var offset = (delta * 2);
+		var left = page - delta;
+		var right = page + delta;
+		var range = [];
+		var pager = [];
+		var k;
+
+		if ( page < (4 - delta) + offset ) {
+			right = 3 + offset;
+		} else if ( page > pages - ((3 - delta) + offset)  ) {
+			left = pages - (2 + offset);
+		}
+
+		for (var i = 1; i <= pages; i++) {
+			if (i == 1 || i == pages || i >= left && i <= right) {
+				var a = links[i-1];
+				_removeClass(a, 'active');
+				range.push(a);
 			}
-		return _each(h, function(b, c) {
-			var d = c.children[0].getAttribute("data-page");
-			if (j) {
-				var e = j.children[0].getAttribute("data-page");
-				if (d - e == 2) i.push(a[e]);
-				else if (d - e != 1) {
-					var f = _newElement("li", {
-						class: "ellipsis",
-						html: '<a href="#">&hellip;</a>'
-					});
-					i.push(f)
+		}
+
+		_each(range, function(i,link) {
+			var page = link.children[0].getAttribute('data-page');
+			if (k) {
+				var p = k.children[0].getAttribute('data-page');
+				if (page - p == 2) {
+					pager.push(links[p]);
+				} else if (page - p != 1) {
+					var ellipsis = _newElement('li', { class:'ellipsis', html: '<a href="#">&hellip;</a>' })
+					pager.push(ellipsis);
 				}
 			}
-			i.push(c), j = c
-		}), i
+			pager.push(link);
+			k = link;
+		});
+
+		return pager;
 	};
 
 	/* Parse JSON string to HTML */
@@ -148,24 +159,38 @@
 
 	// Emitter
 	var Emitter	= function(){};
-	Emitter.prototype = {
-		on: function(a, b) {
-			this._events = this._events || {}, this._events[a] = this._events[a] || [], this._events[a].push(b)
+	Emitter.prototype	= {
+		on: function(event, fct){
+			this._events = this._events || {};
+			this._events[event] = this._events[event]	|| [];
+			this._events[event].push(fct);
 		},
-		off: function(a, b) {
-			this._events = this._events || {}, a in this._events != !1 && this._events[a].splice(this._events[a].indexOf(b), 1)
+		off: function(event, fct){
+			this._events = this._events || {};
+			if( event in this._events === false  )	return;
+			this._events[event].splice(this._events[event].indexOf(fct), 1);
 		},
-		trigger: function(a) {
-			if (this._events = this._events || {}, a in this._events != !1)
-				for (var b = 0; b < this._events[a].length; b++) this._events[a][b].apply(this, Array.prototype.slice.call(arguments, 1))
+		trigger: function(event /* , args... */){
+			this._events = this._events || {};
+			if( event in this._events === false  )	return;
+			for(var i = 0; i < this._events[event].length; i++){
+				this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+			}
 		}
 	};
 
 
-	Emitter.mixin = function(a) {
-		for (var b = ["on", "off", "trigger"], c = 0; c < b.length; c++) "function" == typeof a ? a.prototype[b[c]] = Emitter.prototype[b[c]] : a[b[c]] = Emitter.prototype[b[c]];
-		return a
-	};
+	Emitter.mixin	= function(obj){
+		var props	= ['on', 'off', 'trigger'];
+		for(var i = 0; i < props.length; i ++){
+			if( typeof obj === 'function' ){
+				obj.prototype[props[i]]	= Emitter.prototype[props[i]];
+			}else{
+				obj[props[i]] = Emitter.prototype[props[i]];
+			}
+		}
+		return obj;
+	}
 
 	/**
 	 * Plugin Object
@@ -235,9 +260,12 @@
 
 			var _this = this;
 
+			this.paginate();
+
 			this.wrapper = _newElement('div', { class: 'dataTable-wrapper' });
 			this.tableContainer = _newElement('div', { class: 'dataTable-container' })
 			this.selector = _newElement('select', { class: 'dataTable-selector' });
+			this.searchInput = _newElement('input', { type: 'text', 'class': 'dataTable-input', placeholder: 'Search...' });
 			this.label = _newElement('div', { class: 'dataTable-info' });
 
 			var topContainer 		= _newElement('div', { class: 'dataTable-top' });
@@ -268,15 +296,14 @@
 			this.wrapper.appendChild(bottomContainer);
 
 			if ( this.options.searchable ) {
+
 				var form = _newElement('div', { class: 'dataTable-search' });
-				this.searchInput = _newElement('input', { type: 'text', 'class': 'dataTable-input', placeholder: 'Search...' });
 				form.appendChild(this.searchInput);
 				topContainer.appendChild(form);
 				_addClass(topContainer, 'searchable');
 			}
 
 			// Initialise
-			this.paginate();
 			this.showPage();
 
 			var paginatorA = _newElement('ul', { class: 'dataTable-pagination' }), paginatorB;
@@ -389,10 +416,6 @@
 		 */
 		paginate: function()
 		{
-			if ( !this.searchInput.value.length ) {
-				this.searching = false;
-			}
-
 			var perPage = this.options.perPage, rows = !!this.searching ? this.searchRows : this.rows;
 
 			this.pages = rows.map( function(tr, i) {
