@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.1.3
+ * Version: 0.1.4
  *
  */
 
@@ -744,26 +744,6 @@
 			_this.sortOrder = dir;
 
 			_this.update(e);
-			_this.trigger('datatable.sort');
-		},
-
-		clear: function()
-		{
-			if ( this.table.tBodies.length ) {
-				// IE doesn't play nice with innerHTML on tBodies.
-				if ( this.isIE ) {
-					while(this.tbody.hasChildNodes()) {
-						this.tbody.removeChild(this.tbody.firstChild);
-					}
-				} else {
-					this.tbody.innerHTML = '';
-				}
-			}
-		},
-	};
-
-	return Plugin;
-}));update(e);
 			_this.trigger('datatable.sort');
 		},
 
