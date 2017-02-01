@@ -5,7 +5,7 @@
  * Dual licensed under the MIT (http://www.opensource.org/licenses/mit-license.php)
  * and GPL (http://www.opensource.org/licenses/gpl-license.php) licenses.
  *
- * Version: 0.1.2
+ * Version: 0.1.3
  *
  */
 
@@ -260,8 +260,6 @@
 
 			var _this = this;
 
-			this.paginate();
-
 			this.wrapper = _newElement('div', { class: 'dataTable-wrapper' });
 			this.tableContainer = _newElement('div', { class: 'dataTable-container' })
 			this.selector = _newElement('select', { class: 'dataTable-selector' });
@@ -304,6 +302,7 @@
 			}
 
 			// Initialise
+			this.paginate();
 			this.showPage();
 
 			var paginatorA = _newElement('ul', { class: 'dataTable-pagination' }), paginatorB;
@@ -402,6 +401,7 @@
 
 			this.selector.addEventListener('change', _this.update.bind(_this), false);
 
+			this.searchInput.addEventListener('change', _this.search.bind(_this), false);
 			this.searchInput.addEventListener('keyup', _this.search.bind(_this), false);
 
 			setTimeout(function() {
@@ -416,6 +416,10 @@
 		 */
 		paginate: function()
 		{
+			if ( !this.searchInput.value.length ) {
+				this.searching = false;
+			}
+
 			var perPage = this.options.perPage, rows = !!this.searching ? this.searchRows : this.rows;
 
 			this.pages = rows.map( function(tr, i) {
@@ -511,7 +515,9 @@
 
 		search: function(event)
 		{
-			var _this = this, val = event.target.value.toLowerCase();
+			var _this = this,
+				target = event ? event.target : this.searchInput,
+				val = target.value.toLowerCase();
 
 			this.searching = true;
 
@@ -591,6 +597,15 @@
 					this.tableContainer.style.height = this.containerRect.height + 'px';
 				}
 			}
+		},
+
+		refresh: function()
+		{
+			this.searchInput.value = '';
+			this.searching = false;
+			this.update();
+
+			this.trigger("datatable.refresh");
 		},
 
 		/* Render the pager when truncation is allowed */
@@ -729,6 +744,26 @@
 			_this.sortOrder = dir;
 
 			_this.update(e);
+			_this.trigger('datatable.sort');
+		},
+
+		clear: function()
+		{
+			if ( this.table.tBodies.length ) {
+				// IE doesn't play nice with innerHTML on tBodies.
+				if ( this.isIE ) {
+					while(this.tbody.hasChildNodes()) {
+						this.tbody.removeChild(this.tbody.firstChild);
+					}
+				} else {
+					this.tbody.innerHTML = '';
+				}
+			}
+		},
+	};
+
+	return Plugin;
+}));update(e);
 			_this.trigger('datatable.sort');
 		},
 
