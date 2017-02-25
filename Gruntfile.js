@@ -4,7 +4,7 @@ module.exports = function (grunt) {
 
 	grunt.initConfig({
 		jshint: {
-			all: ['vanilla-dataTables.js', 'test/*.js']
+			all: ['vanilla-dataTables.js', 'test/index.js']
 		},
 		qunit: {
 			all: ['test/index.html']
