@@ -122,7 +122,8 @@
 	
 	var dt = new DataTable(t, { data: data });
 	
-	QUnit.test( "test", function( assert ) {
+	QUnit.module('General');
+	QUnit.test( "init", function( assert ) {
 	  assert.ok( Object.prototype.toString.call(dt) === '[object Object]', "Passed!" );
-	});
+	});	
 })();
