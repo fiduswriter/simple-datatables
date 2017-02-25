@@ -1,4 +1,4 @@
-# Vanilla-DataTables
+# Vanilla-DataTables [![Build Status](https://travis-ci.org/larsthorup/jsdevenv.png)](https://travis-ci.org/larsthorup/jsdevenv)
 A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery DataTables, but without the dependencies.
 
 [Demos](http://mobius.ovh/docs/vanilla-datatables/pages/demos)
