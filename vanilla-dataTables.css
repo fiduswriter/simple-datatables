@@ -4,26 +4,26 @@
 .dataTable-info,
 .dataTable-selectWrapper,
 .dataTable-search,
-.dataTable-pagination {
+.dataTable-pagination,
+.dataTable-dropdown {
 	float: left;
+}
+
+.dataTable-menu {
+	display: none;
 }
 
 .dataTable-pagination {
 	width: 50%;
 }
 
+.dataTable-search,
 .dataTable-selectWrapper {
 	width: 50%;
 }
 
-.dataTable-top.searchable .dataTable-selectWrapper,
-.dataTable-top.searchable .dataTable-pagination {
-	width: 40%;
-}
-
 .dataTable-search {
-	text-align: center;
-	width: 20%;
+	text-align: right;
 }
 
 .dataTable-selector, .dataTable-input {
@@ -33,9 +33,8 @@
 }
 
 .dataTable-input {
-	width: 100%;
+	width: 50%;
 }
-
 
 .dataTable-info,
 .dataTable-search,
@@ -65,24 +64,11 @@
 .dataTable-table > tbody > tr > td, .dataTable-table > tbody > tr > th,
 .dataTable-table > tfoot > tr > td, .dataTable-table > tfoot > tr > th,
 .dataTable-table > thead > tr > td, .dataTable-table > thead > tr > th {
-	border-top: 1px solid #999;
-	line-height: 1.42857;
-	padding: 8px;
 	vertical-align: top;
 }
 .dataTable-table > thead > tr > th {
-	border-bottom: 2px solid #999;
 	vertical-align: bottom;
 }
-.dataTable-table > caption + thead > tr:first-child > td,
-.dataTable-table > caption + thead > tr:first-child > th,
-.dataTable-table > colgroup + thead > tr:first-child > td,
-.dataTable-table > colgroup + thead > tr:first-child > th,
-.dataTable-table > thead:first-child > tr:first-child > td,
-.dataTable-table > thead:first-child > tr:first-child > th {
-	border-top: 0 none;
-}
-
 
 /**
  * SORTERS
@@ -103,6 +89,7 @@
 	right: 6px;
 	border-left: 6px solid transparent;
 	border-right: 6px solid transparent;
+	opacity: 0;
 }
 
 .dataTable-sorter::before {
@@ -137,27 +124,18 @@
 }
 
 .dataTable-pagination > li > a {
-	background-color: rgba(0, 0, 0, 0.1);
 	border: 1px solid transparent;
-	color: #333;
 	float: left;
-	line-height: 1.42857;
 	margin-left: 2px;
 	padding: 6px 12px;
 	position: relative;
 	text-decoration: none;
 }
 
-.dataTable-pagination > li > a:focus,
-.dataTable-pagination > li > a:hover {
-	background-color: rgba(0, 0, 0, 0.15);
-}
-
 .dataTable-pagination > .active > a,
 .dataTable-pagination > .active > a:focus,
 .dataTable-pagination > .active > a:hover {
-	background-color:  #00a8ff;
-	border-color:  #00a8ff;
+	background-color: #337ab7;
 	color: #fff;
 	cursor: default;
 	z-index: 2;
@@ -167,6 +145,7 @@
 .dataTable-pagination > .disabled > a:focus,
 .dataTable-pagination > .disabled > a:hover {
 	cursor: not-allowed;
+	opacity: 0.4;
 }
 
 .dataTables-empty {
