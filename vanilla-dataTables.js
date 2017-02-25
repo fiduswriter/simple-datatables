@@ -33,9 +33,9 @@
 		},
 		each: function(a, b, c) {
 			if ("[object Object]" === Object.prototype.toString.call(a))
-				for (var d in a) Object.prototype.hasOwnProperty.call(a, d) && b.call(c, d, a[d], a);
+				for (var d in a) {if ( Object.prototype.hasOwnProperty.call(a, d) ) { b.call(c, d, a[d], a); }}
 			else
-				for (var e = 0, f = a.length; e < f; e++) b.call(c, e, a[e], a)
+				for (var e = 0, f = a.length; e < f; e++) { b.call(c, e, a[e], a); }
 		},
 		createElement: function(a, b) {
 			var c = document,
