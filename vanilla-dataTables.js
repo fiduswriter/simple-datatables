@@ -9,7 +9,7 @@
  */
 
 (function (root, factory) {
-	var plugin = 'DataTable';
+	var plugin = 'DataTable', define, module;
 
 	if (typeof define === 'function' && define.amd) {
 		define([], factory(plugin));
@@ -61,10 +61,11 @@
 			return a.classList ? a.classList.contains(b) : !!a.className && !!a.className.match(new RegExp("(\\s|^)" + b + "(\\s|$)"));
 		},
 		addClass: function(a, b) {
-			if (!util.hasClass(a, b)) { if (a.classList) { a.classList.add(b); } else { a.className = a.className.trim() + " " + b); } }
+			if (!util.hasClass(a, b)) {
+        if (a.classList) { a.classList.add(b); } else { a.className = a.className.trim() + " " + b; } }
 		},
 		removeClass: function(a, b) {
-			if (util.hasClass(a, b)) { if (a.classList) { a.classList.remove(b); } else { a.className = a.className.replace(new RegExp("(^|\\s)" + b.split(" ").join("|") + "(\\s|$)", "gi"), " ")); }}
+			if (util.hasClass(a, b)) { if (a.classList) { a.classList.remove(b); } else { a.className = a.className.replace(new RegExp("(^|\\s)" + b.split(" ").join("|") + "(\\s|$)", "gi"), " "); }}
 		},
 		append: function(p, e) {
 			return p && e && p.appendChild(e);
@@ -74,6 +75,8 @@
 		},
 		getBoundingRect: function(el) {
 			var win = window;
+      var doc = document;
+      var body = doc.body;
 			var rect = el.getBoundingClientRect();
 			var offsetX = win.pageXOffset !== undefined ? win.pageXOffset : (doc.documentElement || body.parentNode || body).scrollLeft;
 			var offsetY = win.pageYOffset !== undefined ? win.pageYOffset : (doc.documentElement || body.parentNode || body).scrollTop;
@@ -114,8 +117,7 @@
 		_.tbody = _.table.tBodies[0];
 
 		var _wrapper = util.createElement('div', { class: 'dataTable-wrapper'});
-		_.container = util.createElement('div', { class: 'dataTable-container'})
-		var _columnSelector = util.createElement('select', { class: 'dataTable-selector'});
+		_.container = util.createElement('div', { class: 'dataTable-container'});
 		_.label = util.createElement('div', { class: 'dataTable-info' });
 
 		var top = util.createElement('div', { class: 'dataTable-top' });
@@ -252,7 +254,7 @@
 			rows = !!_.searching ? _.searchData : _.rows;
 
 		_.pages = rows.map(function(tr, i) {
-			return i % perPage == 0 ? rows.slice(i, i + perPage) : null;
+			return i % perPage === 0 ? rows.slice(i, i + perPage) : null;
 		}).filter(function(page) {
 			return page;
 		});
@@ -286,7 +288,7 @@
 					_.onFirstPage = true;
 					break;
 				case _.lastPage:
-					_.onLastPage = true
+					_.onLastPage = true;
 					break;
 			}
 		}
@@ -361,18 +363,25 @@
 
 	var sortItems = function(a, b) {
 		var c, d;
-		1 === b ? (c = 0, d = a.length) : b === -1 && (c = a.length - 1, d = -1);
+    if ( 1 === b ) {
+      c = 0; d = a.length;
+    } else {
+      if ( b === -1 ) {
+        c = a.length - 1; d = -1;
+      }
+    }
 		for (var e = !0; e;) {
 			e = !1;
-			for (var f = c; f != d; f += b)
+      for (var f = c; f != d; f += b) {
 				if (a[f + b] && a[f].value > a[f + b].value) {
 					var g = a[f],
 						h = a[f + b],
 						i = g;
-					a[f] = h, a[f + b] = i, e = !0
+					a[f] = h; a[f + b] = i; e = !0;
 				}
+      }
 		}
-		return a
+		return a;
 	};
 
 	var fixHeight = function() {
@@ -388,11 +397,11 @@
 			g = b + d,
 			h = [],
 			i = [];
-		b < 4 - d + e ? g = 3 + e : b > c - (3 - d + e) && (f = c - (2 + e));
+    if ( b < 4 - d + e ) {g = 3 + e; } else if ( b > c - (3 - d + e)) { f = c - (2 + e); }
 		for (var k = 1; k <= c; k++)
 			if (1 == k || k == c || k >= f && k <= g) {
 				var l = a[k - 1];
-				util.removeClass(l, "active"), h.push(l)
+				util.removeClass(l, "active"); h.push(l);
 			}
 		return util.each(h, function(b, c) {
 			var d = c.children[0].getAttribute("data-page");
@@ -401,11 +410,11 @@
 				if (d - e == 2) i.push(a[e]);
 				else if (d - e != 1) {
 					var f = util.createElement("li", { class: "ellipsis", html: '<a href="#">&hellip;</a>' });
-					i.push(f)
+					i.push(f);
 				}
 			}
-			i.push(c), j = c
-		}), i
+			i.push(c); j = c;
+		}), i;
 	};
 
 
@@ -428,7 +437,7 @@
 		}
 
 		if ( data.rows ) {
-			tbody = util.createElement('tbody')
+			tbody = util.createElement('tbody');
 			util.each(data.rows, function(i, row) {
 				var tr = util.createElement('tr');
 				util.each(row, function(k, value) {
@@ -459,21 +468,35 @@
 	// Emitter
 	var Emitter = function() {};
 	Emitter.prototype = {
-		on: function(a, b) {
-			this._events = this._events || {}, this._events[a] = this._events[a] || [], this._events[a].push(b)
+		on: function(event, fct){
+			this._events = this._events || {};
+			this._events[event] = this._events[event]	|| [];
+			this._events[event].push(fct);
 		},
-		off: function(a, b) {
-			this._events = this._events || {}, a in this._events != !1 && this._events[a].splice(this._events[a].indexOf(b), 1)
+		off: function(event, fct){
+			this._events = this._events || {};
+			if( event in this._events === false  )	return;
+			this._events[event].splice(this._events[event].indexOf(fct), 1);
 		},
-		emit: function(a) {
-			if (this._events = this._events || {}, a in this._events != !1)
-				for (var b = 0; b < this._events[a].length; b++) this._events[a][b].apply(this, Array.prototype.slice.call(arguments, 1))
+		emit: function(event /* , args... */){
+			this._events = this._events || {};
+			if( event in this._events === false  )	return;
+			for(var i = 0; i < this._events[event].length; i++){
+				this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+			}
 		}
 	};
 
-	Emitter.mixin = function(a) {
-		for (var b = ["on", "off", "emit"], c = 0; c < b.length; c++) "function" == typeof a ? a.prototype[b[c]] = Emitter.prototype[b[c]] : a[b[c]] = Emitter.prototype[b[c]];
-		return a
+	Emitter.mixin = function(obj) {
+		var props	= ['on', 'off', 'emit'];
+		for(var i = 0; i < props.length; i ++){
+			if( typeof obj === 'function' ){
+				obj.prototype[props[i]]	= Emitter.prototype[props[i]];
+			}else{
+				obj[props[i]] = Emitter.prototype[props[i]];
+			}
+		}
+		return obj;
 	};
 
 	/////////////////
@@ -554,7 +577,7 @@
 		setTimeout(function() {
 			_.emit('datatable.init');
 		}, 10);
-	};
+	}
 
 	Plugin.prototype.update = function() {
 		var _ = this;
@@ -567,7 +590,7 @@
 		var i = _.pages.length;
 		while(i--) {
 			var num = i + 1;
-			_.links[i] = util.button((i == 0) ? 'active' : '', num, num);
+			_.links[i] = util.button((i === 0) ? 'active' : '', num, num);
 		}
 
 		renderPager.call(_);
@@ -646,15 +669,15 @@
 			var num 	= content.replace(/(\$|\,|\s)/g, "");
 
 			if (parseFloat(num) == num) {
-				numeric[n++] = { value: Number(num), row: tr }
+				numeric[n++] = { value: Number(num), row: tr };
 			} else {
-				alpha[a++] = { value: content, row: tr }
+				alpha[a++] = { value: content, row: tr };
 			}
 		});
 
 
 		/* Sort according to direction (ascending or descending) */
-		var col = [], top, btm;
+		var top, btm;
 		if (util.hasClass(th, "asc") || direction == "asc") {
 			top = sortItems(alpha, -1); btm = sortItems(numeric, -1); dir = 'descending';
 			util.removeClass(th, 'asc');
@@ -674,7 +697,7 @@
 		this.lastTh = th;
 
 		/* Reorder the table */
-		var rows = top.concat(btm);
+		rows = top.concat(btm);
 
 		if ( !!_.searching ) {
 			_.searchData = [];
@@ -714,7 +737,7 @@
 		});
 
 		this.update();
-	},
+	};
 
 	Plugin.prototype.refresh = function() {
 		this.input.value = '';
@@ -722,7 +745,7 @@
 		this.update();
 
 		this.emit("datatable.refresh");
-	},
+	};
 
 	Plugin.prototype.clear = function(html) {
 		if ( this.tbody ) {
@@ -735,7 +758,8 @@
 		}
 
 		if ( html ) {
-			util.append(parent, html); }
+			util.append(parent, html);
+    }
 	};
 
 	Plugin.prototype.setMessage = function(message) {
