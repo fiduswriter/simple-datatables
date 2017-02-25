@@ -61,10 +61,10 @@
 			return a.classList ? a.classList.contains(b) : !!a.className && !!a.className.match(new RegExp("(\\s|^)" + b + "(\\s|$)"));
 		},
 		addClass: function(a, b) {
-			util.hasClass(a, b) || (a.classList ? a.classList.add(b) : a.className = a.className.trim() + " " + b);
+			if (!util.hasClass(a, b)) { if (a.classList) { a.classList.add(b); } else { a.className = a.className.trim() + " " + b); } }
 		},
 		removeClass: function(a, b) {
-			util.hasClass(a, b) && (a.classList ? a.classList.remove(b) : a.className = a.className.replace(new RegExp("(^|\\s)" + b.split(" ").join("|") + "(\\s|$)", "gi"), " "));
+			if (util.hasClass(a, b)) { if (a.classList) { a.classList.remove(b); } else { a.className = a.className.replace(new RegExp("(^|\\s)" + b.split(" ").join("|") + "(\\s|$)", "gi"), " ")); }}
 		},
 		append: function(p, e) {
 			return p && e && p.appendChild(e);
@@ -91,8 +91,6 @@
 			e = e || window.event;
 			if (e.preventDefault) {
 				return e.preventDefault();
-			} else {
-				return e.returnValue = false;
 			}
 		},
 		includes: function(a,b) {
