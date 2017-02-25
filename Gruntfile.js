@@ -1,1 +1,0 @@
-grunt.registerTask('travis', 'jshint');
