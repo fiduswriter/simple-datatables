@@ -122,5 +122,7 @@
 	
 	var dt = new DataTable(t, { data: data });
 	
-	dt.refresh();
+	QUnit.test( "test", function( assert ) {
+	  assert.ok( Object.prototype.toString.call(dt) === '[object Object]', "Passed!" );
+	});
 })();
