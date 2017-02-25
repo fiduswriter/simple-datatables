@@ -1,14 +1,16 @@
-module.exports = function(grunt) {
-  // Project configuration.
-  grunt.initConfig({
-    qunit: {
-      files: ['./test/index.html']
-    }
-  });
+module.exports = function (grunt) {
+	grunt.loadNpmTasks('grunt-contrib-jshint');
+	grunt.loadNpmTasks('grunt-contrib-qunit');
 
-  // Load plugin
-  grunt.loadNpmTasks('grunt-contrib-qunit');
+	grunt.initConfig({
+		jshint: {
+			all: ['*.js', 'src/*.js', 'test/*.js']
+		},
+		qunit: {
+			all: ['test/index.html']
+		}
+	});
 
-  // Task to run tests
-  grunt.registerTask('test', 'qunit');
+	grunt.registerTask('test', ['jshint', 'qunit']);
+	grunt.registerTask('default', ['test']);
 };
