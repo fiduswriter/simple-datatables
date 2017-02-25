@@ -397,7 +397,7 @@
 			g = b + d,
 			h = [],
 			i = [];
-    		if ( b < 4 - d + e ) {g = 3 + e; } else if ( b > c - (3 - d + e)) { f = c - (2 + e); }
+		if ( b < 4 - d + e ) {g = 3 + e; } else if ( b > c - (3 - d + e)) { f = c - (2 + e); }
 		for (var k = 1; k <= c; k++) {
 			if (1 == k || k == c || k >= f && k <= g) {
 				var l = a[k - 1];
@@ -524,7 +524,7 @@
 			fixedColumns: false,
 			fixedHeight: false,
 			truncatePager: true,
-			pagerDelta: 2,
+			pagerDelta: 2
 		};
 
 		// user options
@@ -572,8 +572,8 @@
 		// IE detection
 		_.isIE = !!/(msie|trident)/i.test(navigator.userAgent);
 
-		_.currentPage 		= 1;
-		_.onFirstPage 		= true;
+		_.currentPage = 1;
+		_.onFirstPage = true;
 
 		build.call(_);
 
@@ -667,9 +667,9 @@
 		var th = _.table.tHead.rows[0].cells[column];
 
 		util.each(rows, function(i, tr) {
-			var cell 	= tr.cells[th.idx];
+			var cell = tr.cells[th.idx];
 			var content = cell.textContent;
-			var num 	= content.replace(/(\$|\,|\s)/g, "");
+			var num = content.replace(/(\$|\,|\s)/g, "");
 
 			if (parseFloat(num) == num) {
 				numeric[n++] = { value: Number(num), row: tr };
