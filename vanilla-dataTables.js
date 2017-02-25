@@ -42,26 +42,29 @@
 				d = c.createElement(a);
 			if (b && "object" == typeof b) {
 				var e;
-				for (e in b)
-					if ("html" === e) d.innerHTML = b[e];
-					else if ("text" === e) {
-					var f = c.createTextNode(b[e]);
-					d.appendChild(f)
-				} else d.setAttribute(e, b[e])
+				for (e in b) {
+					if ("html" === e) {
+						d.innerHTML = b[e];
+					} else if ("text" === e) {
+						d.appendChild(c.createTextNode(b[e]));
+					} else {
+						d.setAttribute(e, b[e]);
+					}
+				}
 			}
 			return d;
 		},
 		createFragment: function() {
-			return document.createDocumentFragment()
+			return document.createDocumentFragment();
 		},
 		hasClass: function(a, b) {
-			return a.classList ? a.classList.contains(b) : !!a.className && !!a.className.match(new RegExp("(\\s|^)" + b + "(\\s|$)"))
+			return a.classList ? a.classList.contains(b) : !!a.className && !!a.className.match(new RegExp("(\\s|^)" + b + "(\\s|$)"));
 		},
 		addClass: function(a, b) {
-			util.hasClass(a, b) || (a.classList ? a.classList.add(b) : a.className = a.className.trim() + " " + b)
+			util.hasClass(a, b) || (a.classList ? a.classList.add(b) : a.className = a.className.trim() + " " + b);
 		},
 		removeClass: function(a, b) {
-			util.hasClass(a, b) && (a.classList ? a.classList.remove(b) : a.className = a.className.replace(new RegExp("(^|\\s)" + b.split(" ").join("|") + "(\\s|$)", "gi"), " "))
+			util.hasClass(a, b) && (a.classList ? a.classList.remove(b) : a.className = a.className.replace(new RegExp("(^|\\s)" + b.split(" ").join("|") + "(\\s|$)", "gi"), " "));
 		},
 		append: function(p, e) {
 			return p && e && p.appendChild(e);
