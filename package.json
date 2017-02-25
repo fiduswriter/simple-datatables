@@ -20,5 +20,11 @@
   "bugs": {
     "url": "https://github.com/Mobius1/Vanilla-DataTables/issues"
   },
-  "homepage": "https://github.com/Mobius1/Vanilla-DataTables#readme"
+  "homepage": "https://github.com/Mobius1/Vanilla-DataTables#readme",
+  "devDependencies": {
+    "jasmine-core": "^2.3.2",
+    "karma": "^0.12.31",
+    "karma-firefox-launcher": "^0.1.4",
+    "karma-jasmine": "^0.3.5"
+  }  
 }
