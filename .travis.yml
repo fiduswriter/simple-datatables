@@ -6,4 +6,4 @@ before_install:
     - sh -e /etc/init.d/xvfb start
 before_script:
 - npm install
-script: node_modules/karma/bin/karma start conf.js
+script: node_modules/karma/bin/karma start conf.js --single-run
