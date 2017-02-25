@@ -9,7 +9,7 @@
  */
 
 (function (root, factory) {
-	var plugin = 'DataTable', define, module;
+	var plugin = 'DataTable';
 
 	if (typeof define === 'function' && define.amd) {
 		define([], factory(plugin));
@@ -397,13 +397,14 @@
 			g = b + d,
 			h = [],
 			i = [];
-    if ( b < 4 - d + e ) {g = 3 + e; } else if ( b > c - (3 - d + e)) { f = c - (2 + e); }
-		for (var k = 1; k <= c; k++)
+    		if ( b < 4 - d + e ) {g = 3 + e; } else if ( b > c - (3 - d + e)) { f = c - (2 + e); }
+		for (var k = 1; k <= c; k++) {
 			if (1 == k || k == c || k >= f && k <= g) {
 				var l = a[k - 1];
 				util.removeClass(l, "active"); h.push(l);
 			}
-		return util.each(h, function(b, c) {
+		}
+		util.each(h, function(b, c) {
 			var d = c.children[0].getAttribute("data-page");
 			if (j) {
 				var e = j.children[0].getAttribute("data-page");
@@ -414,7 +415,9 @@
 				}
 			}
 			i.push(c); j = c;
-		}), i;
+		});
+		
+		return i;
 	};
 
 
