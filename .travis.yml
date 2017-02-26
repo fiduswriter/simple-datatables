@@ -1,10 +1,12 @@
 language: node_js
 node_js:
-  - "6"
+  "6"
 before_install:
-  - npm update -g npm
-  - npm install -g grunt-cli
+  npm update -g npm
+  npm install -g grunt-cli
 
 sudo: false
 addons:
-  - sauce_connect: true
+  sauce_connect:
+    username: "Mobius1"
+    access_key: "e9f5a604-efc3-4c94-b79c-51da2ed37004"
