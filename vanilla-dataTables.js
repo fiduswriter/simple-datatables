@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.0.0
+ * Version: 1.0.1
  *
  */
 
