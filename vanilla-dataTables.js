@@ -4,10 +4,9 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.0.2
+ * Version: 1.0.3
  *
  */
-
 (function (root, factory) {
 	var plugin = 'DataTable';
 
@@ -20,7 +19,6 @@
 	}
 }(this, function (plugin) {
 	'use strict';
-
 
 	/* PRIVATE VARS */
 
@@ -82,8 +80,8 @@
 		},
 		getBoundingRect: function(el) {
 			var win = window;
-      var doc = document;
-      var body = doc.body;
+      		var doc = document;
+      		var body = doc.body;
 			var rect = el.getBoundingClientRect();
 			var offsetX = win.pageXOffset !== undefined ? win.pageXOffset : (doc.documentElement || body.parentNode || body).scrollLeft;
 			var offsetY = win.pageYOffset !== undefined ? win.pageYOffset : (doc.documentElement || body.parentNode || body).scrollTop;
@@ -134,7 +132,8 @@
 		// Per Page Select
 		if (_.options.perPageSelect) {
 			// Build the selector
-			var wrap = util.createElement('label', { class: 'dataTable-selectWrapper' });
+			var wrap = util.createElement('div', { class: 'dataTable-dropdown' });
+			var label = util.createElement('label', { class: 'dataTable-selectWrapper' });
 			var _ppSelector = util.createElement('select', { class: 'dataTable-selector'});
 
 			util.each(_.options.perPageSelect, function(i, val) {
@@ -143,8 +142,9 @@
 
 			_ppSelector.value = _.options.perPage;
 
-			util.append(wrap, _ppSelector);
-			wrap.insertAdjacentHTML('beforeend', ' entries per page');
+			util.append(label, _ppSelector);
+			label.insertAdjacentHTML('beforeend', ' rows per page');
+			util.append(wrap, label);
 			util.append(top, wrap);
 
 			// Change per page
@@ -167,7 +167,6 @@
 			_.input = util.createElement('input', { type: 'text', class: 'dataTable-input', placeholder: 'Search...'});
 			util.append(form, _.input);
 			util.append(top, form);
-			util.addClass(top, 'searchable');
 
 			util.listen(_.input, 'keyup', function(e) {
 				_.search(this.value);
@@ -211,8 +210,10 @@
 		util.append(_wrapper, bottom);
 
 		// Paginator
-		_.paginator = util.createElement('ul', { class: 'dataTable-pagination' });
-		util.append(bottom, _.paginator);
+		var wrap = util.createElement('div', { class: 'dataTable-pagination' });
+		_.paginator = util.createElement('ul');
+		util.append(wrap, _.paginator);
+		util.append(bottom, wrap);
 
 		// Switch pages
 		util.listen(_.paginator, 'click', function(e) {
@@ -328,19 +329,17 @@
 
 		if (_.totalPages <= 1) return;
 
-		var frag = util.createFragment(),
-			c = _.options.hideNavs ? 'hidden' : 'disabled',
+		var c = 'pager', frag = util.createFragment(),
 			prev = _.onFirstPage ? 1 : _.currentPage - 1,
 			next = _.onlastPage ? _.totalPages : _.currentPage + 1;
 
-
 		// first button
 		if (_.options.firstLast) {
-			util.append(frag, util.button(_.onFirstPage ? c : '', 1, _.options.firstText)); }
+			util.append(frag, util.button(c, 1, _.options.firstText)); }
 
 		// prev button
 		if (_.options.nextPrev) {
-			util.append(frag, util.button(_.onFirstPage ? c : '', prev, _.options.prevText)); }
+			util.append(frag, util.button(c, prev, _.options.prevText)); }
 
 		var pager = _.links;
 
@@ -361,11 +360,11 @@
 
 		// next button
 		if (_.options.nextPrev) {
-			util.append(frag, util.button(_.onLastPage ? c : '', next, _.options.nextText)); }
+			util.append(frag, util.button(c, next, _.options.nextText)); }
 
 		// first button
 		if (_.options.firstLast) {
-			util.append(frag, util.button(_.onLastPage ? c : '', _.totalPages, _.options.lastText)); }
+			util.append(frag, util.button(c, _.totalPages, _.options.lastText)); }
 
 		// append the fragment
 		util.append(_.paginator, frag);
@@ -426,7 +425,7 @@
 			}
 			i.push(c); j = c;
 		});
-		
+
 		return i;
 	};
 
@@ -451,9 +450,14 @@
 
 		if ( data.rows ) {
 			tbody = util.createElement('tbody');
-			util.each(data.rows, function(i, row) {
+			util.each(data.rows, function(i, rows) {
+				if ( data.headings ) {
+					if ( data.headings.length !== rows.length ) {
+						throw new Error("The number of rows do not match the number of headings.");
+					}
+				}
 				var tr = util.createElement('tr');
-				util.each(row, function(k, value) {
+				util.each(rows, function(k, value) {
 					var td = util.createElement('td', {
 						html: value
 					});
@@ -524,14 +528,14 @@
 			perPage: 10,
 			perPageSelect: [5, 10, 15, 20, 25],
 			nextPrev: true,
-			firstLast: true,
+			firstLast: false,
 			prevText: '&lsaquo;',
 			nextText: '&rsaquo;',
 			firstText: '&laquo;',
 			lastText: '&raquo;',
 			sortable: true,
 			searchable: true,
-			fixedColumns: false,
+			fixedColumns: true,
 			fixedHeight: false,
 			truncatePager: true,
 			pagerDelta: 2
@@ -543,6 +547,15 @@
 		// Checks
 		if (!table) {
 			throw new Error("The plugin requires a table as the first parameter"); }
+
+		if (typeof table === "string") {
+			var selector = table;
+			table = document.querySelector(table);
+
+			if ( !table ) {
+				throw new Error("The element '"+selector+"' can not be found.");
+			}
+		}
 
 		if (table.tagName.toLowerCase() != "table") {
 			throw new Error("The selected element is not a table."); }
@@ -638,7 +651,7 @@
 		});
 
 		if ( !_.searchData.length ) {
-			_.setMessage('No entries found.'); }
+			_.setMessage('No rows found.'); }
 
 		_.update();
 

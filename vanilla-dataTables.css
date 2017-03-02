@@ -1,78 +1,113 @@
-/**
- * SELECTOR
- */
+/* CONTAINERS */
+.dataTable-container {}
+
+.dataTable-top,
+.dataTable-bottom {
+	padding: 8px 10px;
+}
+
 .dataTable-info,
-.dataTable-selectWrapper,
-.dataTable-search,
-.dataTable-pagination,
 .dataTable-dropdown {
-	float: left;
-}
-
-.dataTable-menu {
-	display: none;
-}
-
-.dataTable-pagination {
-	width: 50%;
+    float: left;
 }
 
 .dataTable-search,
-.dataTable-selectWrapper {
-	width: 50%;
+.dataTable-pagination {
+    float: right;
 }
 
-.dataTable-search {
-	text-align: right;
-}
-
-.dataTable-selector, .dataTable-input {
-	margin: 0 10px;
-	padding: 6px 8px;
-	width: 80px;
+.dataTable-selector {
+	padding: 6px;
 }
 
 .dataTable-input {
-	width: 50%;
+	padding: 6px 12px;
 }
 
-.dataTable-info,
-.dataTable-search,
-.dataTable-selectWrapper {
-	margin: 20px 0;
+.dataTable-pagination ul {
+	margin: 0;
+	padding-left: 0;
 }
 
-.dataTable-bottom .dataTable-pagination {
-	width: 50%;
+.dataTable-pagination li {
+	list-style: none;
+	display: inline-block;
 }
 
-.dataTable-info {
-	width: 50%;
+.dataTable-pagination li a {
+	border: 1px solid transparent;
+	float: left;
+	margin-left: 2px;
+	padding: 6px 12px;
+	position: relative;
+	text-decoration: none;
+	color: #333;
 }
 
-/**
- * TABLES
- */
+.dataTable-pagination a:hover {
+	background-color: #d9d9d9;
+}
+
+.dataTable-pagination .active a,
+.dataTable-pagination .active a:focus,
+.dataTable-pagination .active a:hover {
+	background-color: #d9d9d9;
+	cursor: default;
+}
+
+.dataTable-pagination .ellipsis a,
+.dataTable-pagination .disabled a,
+.dataTable-pagination .disabled a:focus,
+.dataTable-pagination .disabled a:hover {
+	cursor: not-allowed;
+}
+
+.dataTable-pagination .disabled a,
+.dataTable-pagination .disabled a:focus,
+.dataTable-pagination .disabled a:hover {
+	cursor: not-allowed;
+	opacity: 0.4;
+}
+
+.dataTable-pagination .pager a {
+	font-weight: bold;
+}
+
+
+/* TABLE */
 .dataTable-table {
-	margin-bottom: 20px;
+	margin: 15px 0;
 	max-width: 100%;
 	width: 100%;
-	border-collapse: collapse;
 	border-spacing: 0;
 }
 
-.dataTable-table > tbody > tr > td, .dataTable-table > tbody > tr > th,
-.dataTable-table > tfoot > tr > td, .dataTable-table > tfoot > tr > th,
-.dataTable-table > thead > tr > td, .dataTable-table > thead > tr > th {
-	vertical-align: top;
-}
+.dataTable-table > tbody > tr > td,
+.dataTable-table > tbody > tr > th,
+.dataTable-table > tfoot > tr > td,
+.dataTable-table > tfoot > tr > th,
+.dataTable-table > thead > tr > td,
 .dataTable-table > thead > tr > th {
-	vertical-align: bottom;
+	vertical-align: top;
+	padding: 8px 10px;
 }
 
-/**
- * SORTERS
- */
+.dataTable-table > thead > tr > th {
+	vertical-align: bottom;
+	text-align: left;
+	border-bottom: 1px solid #d9d9d9;
+}
+
+.dataTable-table th {
+	vertical-align: bottom;
+	text-align: left;
+}
+
+.dataTable-table th a {
+	text-decoration: none;
+	color: inherit;
+}
+
 .dataTable-sorter {
 	display: inline-block;
 	height: 100%;
@@ -86,73 +121,33 @@
 	height: 0;
 	width: 0;
 	position: absolute;
-	right: 6px;
-	border-left: 6px solid transparent;
-	border-right: 6px solid transparent;
+	right: 4px;
+	border-left: 4px solid transparent;
+	border-right: 4px solid transparent;
 	opacity: 0;
 }
 
 .dataTable-sorter::before {
-	border-top: 6px solid #000;
-	bottom: 3px;
+	border-top: 4px solid #000;
+	bottom: 2px;
 }
 
 .dataTable-sorter::after {
-	border-bottom: 6px solid #000;
-	border-top: 6px solid transparent;
-	top: -3px;
+	border-bottom: 4px solid #000;
+	border-top: 4px solid transparent;
+	top: -2px;
 }
 
 .asc .dataTable-sorter::after,
 .desc .dataTable-sorter::before {
-	opacity: 0.1;
-}
-
-/**
- * PAGINATORS
- */
-.dataTable-pagination {
-	border-radius: 4px;
-	display: inline-block;
-	margin: 20px 0;
-	padding-left: 0;
-	text-align: right;
-}
-
-.dataTable-pagination > li {
-	display: inline-block;
-}
-
-.dataTable-pagination > li > a {
-	border: 1px solid transparent;
-	float: left;
-	margin-left: 2px;
-	padding: 6px 12px;
-	position: relative;
-	text-decoration: none;
-}
-
-.dataTable-pagination > .active > a,
-.dataTable-pagination > .active > a:focus,
-.dataTable-pagination > .active > a:hover {
-	background-color: #337ab7;
-	color: #fff;
-	cursor: default;
-	z-index: 2;
-}
-
-.dataTable-pagination > .disabled > a,
-.dataTable-pagination > .disabled > a:focus,
-.dataTable-pagination > .disabled > a:hover {
-	cursor: not-allowed;
-	opacity: 0.4;
+	opacity: 0.6;
 }
 
 .dataTables-empty {
 	text-align: center;
 }
 
-.dataTable-bottom::after {
+.dataTable-top::after, .dataTable-bottom::after {
 	clear: both;
 	content: " ";
 	display: table;
