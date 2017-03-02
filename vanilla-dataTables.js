@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.0.1
+ * Version: 1.0.2
  *
  */
 
@@ -241,6 +241,7 @@
 		// Fixed height
 		if (_.options.fixedHeight) {
 			fixHeight.call(_);
+			util.addClass(_.table, 'fixed-height');
 		}
 
 		/* Fixed column widths */
@@ -252,6 +253,8 @@
 				var w = (rect.width / _.rect.width) * 100;
 				cell.style.width = w + '%';
 			});
+
+			util.addClass(_.table, 'fixed-columns');
 		}
 
 	};
