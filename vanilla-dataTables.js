@@ -210,10 +210,10 @@
 		util.append(_wrapper, bottom);
 
 		// Paginator
-		var wrap = util.createElement('div', { class: 'dataTable-pagination' });
+		var w = util.createElement('div', { class: 'dataTable-pagination' });
 		_.paginator = util.createElement('ul');
-		util.append(wrap, _.paginator);
-		util.append(bottom, wrap);
+		util.append(w, _.paginator);
+		util.append(bottom, w);
 
 		// Switch pages
 		util.listen(_.paginator, 'click', function(e) {
