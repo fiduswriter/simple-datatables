@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.0.4
+ * Version: 1.0.5
  *
  */
 (function(root, factory) {
@@ -25,8 +25,15 @@
 	var util = {
 		extend: function(src, props) {
 			var p;
-			for (p in props)
-				if (props.hasOwnProperty(p)) src[p] = props[p];
+			for (p in props) {
+				if (props.hasOwnProperty(p)) {
+					if ( typeof src[p] === "object") {
+						util.extend(src[p], props[p]);
+					} else {
+						src[p] = props[p];
+					}
+				}
+			}
 			return src;
 		},
 		each: function(a, b, c) {
@@ -183,8 +190,11 @@
 
 			_ppSelector.value = _.options.perPage;
 
+			var string = _.options.labels.perPage.split("{select}");
+
 			util.append(label, _ppSelector);
-			label.insertAdjacentHTML('beforeend', ' rows per page');
+			label.insertAdjacentHTML('afterbegin', string[0]);
+			label.insertAdjacentHTML('beforeend', string[1]);
 			util.append(wrap, label);
 			util.append(top, wrap);
 
@@ -210,7 +220,7 @@
 			_.input = util.createElement('input', {
 				type: 'text',
 				class: 'dataTable-input',
-				placeholder: 'Search...'
+				placeholder: _.options.labels.placeholder
 			});
 			util.append(form, _.input);
 			util.append(top, form);
@@ -411,7 +421,9 @@
 			items = !!_.searching ? _.searchData.length : _.rows.length;
 		}
 
-		_.label.innerHTML = ['Showing ', f, ' to ', t, ' of ', items, ' rows'].join('');
+		var string = _.options.labels.info.replace("{page}", f).replace("{current}", t).replace("{pages}", items);
+
+		_.label.innerHTML = items ? string : "";
 
 		if (_.options.fixedHeight && _.currentPage == 1) {
 			fixHeight.call(_);
@@ -648,12 +660,24 @@
 			nextText: '&rsaquo;',
 			firstText: '&laquo;',
 			lastText: '&raquo;',
+
 			sortable: true,
-			searchable: true,
+
 			fixedColumns: true,
 			fixedHeight: false,
+
 			truncatePager: true,
-			pagerDelta: 2
+			pagerDelta: 2,
+
+			searchable: true,
+
+			// Customise the display text
+			labels: {
+				placeholder: "Search...", // The search input placeholder
+				perPage: "{select} entries per page", // per-page dropdown label
+				noRows: "No entries to found", // Message shown when there are no search results
+				info: "Showing {page} to {current} of {pages} entries", // 
+			}
 		};
 
 		// user options
@@ -766,7 +790,7 @@
 		});
 
 		if (!_.searchData.length) {
-			_.setMessage('No rows found.');
+			_.setMessage(_.options.labels.noRows);
 		}
 
 		_.update();
@@ -921,7 +945,7 @@
 	};
 
 	DataTable.prototype.setMessage = function(message) {
-		var colspan = this.table.tBodies[0].rows[0].cells.length;
+		var colspan = this.rows[0].cells.length;
 		this.clear(util.createElement('tr', {
 			html: '<td class="dataTables-empty" colspan="' + colspan + '">' + message + '</td>'
 		}));
