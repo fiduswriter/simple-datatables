@@ -4,12 +4,14 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 [Demos](http://mobius.ovh/docs/vanilla-datatables/pages/demos) | [Documentation](http://mobius.ovh/docs/vanilla-datatables)
 
 
-### Bower
+### Install
+
+## Bower
 ```
 bower install vanilla-datatables --save
 ```
 
-### npm
+## npm
 ```
 npm install vanilla-datatables --save
 ```
@@ -26,7 +28,13 @@ Add the css and js files from the CDN:
 <script type="text/javascript" src="https://cdn.jsdelivr.net/vanilla-datatables/latest/vanilla-dataTables.min.js"></script>
 ```
 
+Note that the CDN can take a few hours to update after a new release. If you need the latest version and the CDN is still behind then simply replace `latest` in the URLs with the latest release number.
+
 The JS file should be included before any scripts that call the plugin.
+
+---
+
+### Quick Start
 
 Then just initialise the plugin by either passing a reference to the table or a CSS3 selector string as the first parameter:
 
