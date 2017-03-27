@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.0.5
+ * Version: 1.0.6
  *
  */
 (function(root, factory) {
@@ -27,7 +27,7 @@
 			var p;
 			for (p in props) {
 				if (props.hasOwnProperty(p)) {
-					if ( typeof src[p] === "object") {
+					if ("[object Object]" === Object.prototype.toString.call(src[p])) {
 						util.extend(src[p], props[p]);
 					} else {
 						src[p] = props[p];
@@ -421,9 +421,16 @@
 			items = !!_.searching ? _.searchData.length : _.rows.length;
 		}
 
-		var string = _.options.labels.info.replace("{page}", f).replace("{current}", t).replace("{pages}", items);
+		if ( _.options.labels.info.length ) {
 
-		_.label.innerHTML = items ? string : "";
+			var string = _.options.labels.info.replace("{start}", f)
+												.replace("{end}", t)
+												.replace("{page}", _.currentPage)
+												.replace("{pages}", _.totalPages)
+												.replace("{rows}", items);
+
+			_.label.innerHTML = items  ? string : "";
+		}
 
 		if (_.options.fixedHeight && _.currentPage == 1) {
 			fixHeight.call(_);
@@ -675,8 +682,8 @@
 			labels: {
 				placeholder: "Search...", // The search input placeholder
 				perPage: "{select} entries per page", // per-page dropdown label
-				noRows: "No entries to found", // Message shown when there are no search results
-				info: "Showing {page} to {current} of {pages} entries", // 
+				noRows: "No entries found", // Message shown when there are no search results
+				info: "Showing {start} to {end} of {rows} entries", // 
 			}
 		};
 
