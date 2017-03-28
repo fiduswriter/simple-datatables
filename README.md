@@ -23,12 +23,10 @@ npm install vanilla-datatables --save
 Add the css and js files from the CDN:
 
 ```html
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/vanilla-datatables/latest/vanilla-dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/vanilla-datatables/1.0.6/vanilla-dataTables.min.css">
 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/vanilla-datatables/latest/vanilla-dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/vanilla-datatables/1.0.6/vanilla-dataTables.min.js"></script>
 ```
-
-Note that the CDN can take a few hours to update after a new release. If you need the latest version and the CDN is still behind then simply replace `latest` in the URLs with the latest release number.
 
 The JS file should be included before any scripts that call the plugin.
 
