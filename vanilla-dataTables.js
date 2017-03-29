@@ -148,7 +148,21 @@
 			dataToTable.call(_);
 		}
 
+		// Store references
 		_.tbody = _.table.tBodies[0];
+		_.tHead = _.table.tHead;
+		_.tFoot = _.table.tFoot;
+
+		// Make a tHead if there isn't one (fixes #8)
+		if ( !_.tHead ) {
+			var h = util.createElement("thead");
+			var t = util.createElement("tr");
+			util.each(_.tbody.rows[0].cells, function(i, cell) {
+				util.append(t, util.createElement("th"));
+			});
+			util.append(h, t);
+			_.tHead = h;
+		}
 
 		var _wrapper = util.createElement('div', {
 			class: 'dataTable-wrapper'
@@ -232,27 +246,27 @@
 
 		// Sortable
 		if (_.options.sortable) {
-			var cols = _.table.tHead.rows[0].cells;
+			var cols = _.tHead.rows[0].cells;
 
-			util.each(cols, function(i, head) {
+			util.each(cols, function(i, th) {
 				var link = util.createElement('a', {
 					href: '#',
 					class: 'dataTable-sorter',
-					html: head.innerHTML
+					html: th.innerHTML
 				});
-				head.idx = i;
-				head.innerHTML = '';
-				util.append(head, link);
+				th.idx = i;
+				th.innerHTML = '';
+				util.append(th, link);
 			});
 
 			// Sort items
-			util.listen(_.table.tHead, 'click', function(e) {
+			util.listen(_.tHead, 'click', function(e) {
 				e = e || window.event;
 				var target = e.target;
 
 				if (target.nodeName.toLowerCase() === 'a') {
 					if (util.hasClass(target, 'dataTable-sorter')) {
-						_.sortColumn(target.parentNode.idx);
+						_.sortColumn(target.parentNode.idx + 1);
 						util.preventDefault(e);
 					}
 				}
@@ -683,7 +697,7 @@
 				placeholder: "Search...", // The search input placeholder
 				perPage: "{select} entries per page", // per-page dropdown label
 				noRows: "No entries found", // Message shown when there are no search results
-				info: "Showing {start} to {end} of {rows} entries", // 
+				info: "Showing {start} to {end} of {rows} entries", //
 			}
 		};
 
@@ -709,10 +723,8 @@
 		}
 
 		if (table.tHead === null ) {
-			if ( _.options.sortable ) {
-				if ( !_.options.data || (_.options.data && !_.options.data.headings) ) {
-					_.options.sortable = false;
-				}
+			if ( !_.options.data || (_.options.data && !_.options.data.headings) ) {
+				_.options.sortable = false;
 			}
 		}
 
@@ -829,8 +841,16 @@
 	};
 
 	/* Perform the sorting */
-	/* TODO: Allow method to work in the absence of headings */
 	DataTable.prototype.sortColumn = function(column, direction) {
+
+		// Check column is present
+		if ( column < 1 || column > this.tHead.rows[0].cells.length ) {
+			return false;
+		}
+
+		// Convert to zero-indexed
+		column = column - 1;
+
 		var _ = this;
 		var dir;
 		var rows = !!_.searching ? _.searchData : _.rows;
@@ -838,26 +858,19 @@
 		var numeric = [];
 		var a = 0;
 		var n = 0;
-		var th = _.table.tHead.rows[0].cells[column];
+		var th = _.tHead.rows[0].cells[column];
 
 		util.each(rows, function(i, tr) {
-			var cell = tr.cells[th.idx];
+			var cell = tr.cells[column];
 			var content = cell.textContent;
 			var num = content.replace(/(\$|\,|\s)/g, "");
 
 			if (parseFloat(num) == num) {
-				numeric[n++] = {
-					value: Number(num),
-					row: tr
-				};
+				numeric[n++] = { value: Number(num), row: tr };
 			} else {
-				alpha[a++] = {
-					value: content,
-					row: tr
-				};
+				alpha[a++] = { value: content, row: tr };
 			}
 		});
-
 
 		/* Sort according to direction (ascending or descending) */
 		var top, btm;
