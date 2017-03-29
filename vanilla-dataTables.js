@@ -929,8 +929,11 @@
 	};
 
 	DataTable.prototype.refresh = function() {
-		this.input.value = '';
-		this.searching = false;
+		if ( this.options.searchable ) {
+			this.input.value = '';
+			this.searching = false;
+		}
+		this.currentPage = 1;
 		this.update();
 
 		this.emit("datatable.refresh");
