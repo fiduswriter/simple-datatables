@@ -187,7 +187,7 @@
 			if ( _.tHead && !_.tFoot) {
 				_.tFoot = util.createElement('tfoot', {
 					html: _.tHead.innerHTML
-				})
+				});
 				_.table.appendChild(_.tFoot);
 			}
 		} else {
@@ -227,7 +227,7 @@
 			// Create the options
 			util.each(o.perPageSelect, function(i, val) {
 				var selected = val === o.perPage;
-				var option = new Option(val, val, selected, selected)
+				var option = new Option(val, val, selected, selected);
 				select.add(option);
 			});
 
@@ -308,7 +308,7 @@
 
 		// Fixed column widths
 		if (o.fixedColumns) {
-			var cells, h = false;
+			var cells, hd = false;
 
 			// If we have a headings we need only set the widths on them
 			// otherwise we need a temp header and the widths need applying to all cells
@@ -325,7 +325,7 @@
 				cells = [];
 
 				// Make temperary headings
-				h = util.createElement("thead");
+				hd = util.createElement("thead");
 				var r = util.createElement("tr");
 				var c = _.table.tBodies[0].rows[0].cells;
 				util.each(c, function(i, row) {
@@ -334,8 +334,8 @@
 					cells.push(th);
 				});
 
-				h.appendChild(r);
-				_.table.insertBefore(h, _.table.tBodies[0]);
+				hd.appendChild(r);
+				_.table.insertBefore(hd, _.table.tBodies[0]);
 
 				var widths = [];
 				util.each(cells, function(i, cell) {
@@ -351,7 +351,7 @@
 				});
 
 				// Discard the temp header
-				_.table.removeChild(h);
+				_.table.removeChild(hd);
 			}
 		}
 
