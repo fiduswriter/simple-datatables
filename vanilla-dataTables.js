@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.1.6
+ * Version: 1.0.6
  *
  */
 (function(root, factory) {
@@ -131,31 +131,20 @@
 			});
 		},
 		flush: function(el, ie) {
-			if ( el instanceof NodeList ) {
-				util.each(el, function(i,e) {
-					util.flush(e, ie);
-				});
-			} else {
-				if (ie) {
-					while (el.hasChildNodes()) {
-						el.removeChild(el.firstChild);
-					}
-				} else {
-					el.innerHTML = '';
+			if (ie) {
+				while (el.hasChildNodes()) {
+					el.removeChild(el.firstChild);
 				}
+			} else {
+				el.innerHTML = '';
 			}
 		}
 	};
 
 	var build = function() {
-		var _ = this, o = _.options;
-		var template = "";
+		var _ = this;
 
-		// Event listeners
-		Emitter.mixin(_);
-
-		// Convert data to HTML
-		if (o.data) {
+		if (_.options.data) {
 			dataToTable.call(_);
 		}
 
@@ -175,139 +164,166 @@
 			_.tHead = h;
 		}
 
-		// Header
-		if ( !o.header ) {
-			if ( _.tHead ) {
-				_.table.removeChild(_.table.tHead);
-			}
-		}
-
-		// Footer
-		if ( o.footer ) {
-			if ( _.tHead && !_.tFoot) {
-				_.tFoot = util.createElement('tfoot', {
-					html: _.tHead.innerHTML
-				})
-				_.table.appendChild(_.tFoot);
-			}
-		} else {
-			if ( _.tFoot ) {
-				_.table.removeChild(_.table.tFoot);
-			}
-		}
-
-		// Build
-		_.wrapper = util.createElement('div', {
-			class: 'dataTable-wrapper',
+		var _wrapper = util.createElement('div', {
+			class: 'dataTable-wrapper'
+		});
+		_.container = util.createElement('div', {
+			class: 'dataTable-container'
+		});
+		_.label = util.createElement('div', {
+			class: 'dataTable-info'
 		});
 
-		// Template for custom layouts
-		template += "<div class='dataTable-top'>";
-		template += o.layout.top;
-		template += "</div>";
-		template += "<div class='dataTable-container'></div>";
-		template += "<div class='dataTable-bottom'>";
-		template += o.layout.bottom;
-		template += "</div>";
+		var top = util.createElement('div', {
+			class: 'dataTable-top'
+		});
+		var bottom = util.createElement('div', {
+			class: 'dataTable-bottom'
+		});
 
-		// Info placement
-		template = template.replace("{info}", "<div class='dataTable-info'></div>");
 
 		// Per Page Select
-		if (o.perPageSelect) {
-			var wrap = "<div class='dataTable-dropdown'><label>";
-			wrap += o.labels.perPage;
-			wrap += "</label></div>";
-
-			// Create the select
-			var select = util.createElement('select', {
+		if (_.options.perPageSelect) {
+			// Build the selector
+			var wrap = util.createElement('div', {
+				class: 'dataTable-dropdown'
+			});
+			var label = util.createElement('label', {
+				class: 'dataTable-selectWrapper'
+			});
+			var _ppSelector = util.createElement('select', {
 				class: 'dataTable-selector'
 			});
 
-			// Create the options
-			util.each(o.perPageSelect, function(i, val) {
-				var selected = val === o.perPage;
-				var option = new Option(val, val, selected, selected)
-				select.add(option);
+			util.each(_.options.perPageSelect, function(i, val) {
+				util.append(_ppSelector, util.createElement('option', {
+					value: val,
+					html: val
+				}));
 			});
 
-			// Custom label
-			wrap = wrap.replace("{select}", select.outerHTML);
+			_ppSelector.value = _.options.perPage;
 
-			// Selector placement
-			template = template.replace("{select}", wrap);
-		} else {
-			template = template.replace("{select}", "");
+			var string = _.options.labels.perPage.split("{select}");
+
+			util.append(label, _ppSelector);
+			label.insertAdjacentHTML('afterbegin', string[0]);
+			label.insertAdjacentHTML('beforeend', string[1]);
+			util.append(wrap, label);
+			util.append(top, wrap);
+
+			// Change per page
+			util.listen(_ppSelector, 'change', function(e) {
+				_.options.perPage = parseInt(this.value, 10);
+				_.update();
+
+				if (_.options.fixedHeight) {
+					fixHeight.call(_);
+				}
+
+				_.emit('datatable.perpage');
+			});
 		}
 
 		// Searchable
-		if (o.searchable) {
-			var form = "<div class='dataTable-search'><input class='dataTable-input' placeholder='"+o.labels.placeholder+"' type='text'></div>";
+		if (_.options.searchable) {
 
-			// Search input placement
-			template = template.replace("{search}", form);
-		} else {
-			template = template.replace("{search}", "");
+			var form = util.createElement('div', {
+				class: 'dataTable-search'
+			});
+			_.input = util.createElement('input', {
+				type: 'text',
+				class: 'dataTable-input',
+				placeholder: _.options.labels.placeholder
+			});
+			util.append(form, _.input);
+			util.append(top, form);
+
+			util.listen(_.input, 'keyup', function(e) {
+				_.search(this.value);
+			});
 		}
 
 		// Sortable
-		var cols = _.tHead.rows[0].cells;
+		if (_.options.sortable) {
+			var cols = _.tHead.rows[0].cells;
 
-		util.each(cols, function(i, th) {
-			th.idx = i;
-
-			if (o.sortable) {
+			util.each(cols, function(i, th) {
 				var link = util.createElement('a', {
 					href: '#',
 					class: 'dataTable-sorter',
 					html: th.innerHTML
 				});
+				th.idx = i;
 				th.innerHTML = '';
 				util.append(th, link);
-			}
-		});
+			});
 
-		// Add table class
+			// Sort items
+			util.listen(_.tHead, 'click', function(e) {
+				e = e || window.event;
+				var target = e.target;
+
+				if (target.nodeName.toLowerCase() === 'a') {
+					if (util.hasClass(target, 'dataTable-sorter')) {
+						_.sortColumn(target.parentNode.idx + 1);
+						util.preventDefault(e);
+					}
+				}
+			});
+		}
+
+		// Add class
 		util.addClass(_.table, 'dataTable-table');
+
+		// Populate bottom container
+		util.append(bottom, _.label);
+
+		// Append the containers
+		util.append(_wrapper, top);
+		util.append(_wrapper, _.container);
+		util.append(_wrapper, bottom);
 
 		// Paginator
 		var w = util.createElement('div', {
 			class: 'dataTable-pagination'
 		});
-		var paginator = util.createElement('ul');
-		util.append(w, paginator);
+		_.paginator = util.createElement('ul');
+		util.append(w, _.paginator);
+		util.append(bottom, w);
 
-		// Pager(s) placement
-		template = template.replace(/\{pager\}/g, w.outerHTML);
+		// Switch pages
+		util.listen(_.paginator, 'click', function(e) {
+			var t = e.target;
+			if (t.nodeName.toLowerCase() === 'a' && t.hasAttribute('data-page')) {
+				_.page(t.getAttribute('data-page'));
+				util.preventDefault(e);
+			}
+		});
 
-		_.wrapper.innerHTML = template;
+		// Insert the main container
+		_.table.parentNode.insertBefore(_wrapper, _.table);
 
-		_.container = _.wrapper.querySelector(".dataTable-container");
+		// Populate table container
+		util.append(_.container, _.table);
 
-		_.paginators = _.wrapper.querySelectorAll(".dataTable-pagination");
-
-		_.label = _.wrapper.querySelector(".dataTable-info");
-
-		// Insert in to DOM tree
-		_.table.parentNode.replaceChild(_.wrapper, _.table);
-		_.container.appendChild(_.table);
-
-		// Store the table dimensions
 		_.rect = util.getBoundingRect(_.table);
 
-		// Convert rows to array for processing
 		_.rows = Array.prototype.slice.call(_.tbody.rows);
 
-		// Update
+		// Event listeners
+		Emitter.mixin(_);
+
 		_.update();
 
 		// Fixed height
-		if (o.fixedHeight) {
+		if (_.options.fixedHeight) {
 			fixHeight.call(_);
+			util.addClass(_.table, 'fixed-height');
 		}
 
-		// Fixed column widths
-		if (o.fixedColumns) {
+		/* Fixed column widths */
+		if (_.options.fixedColumns) {
 			var cells, h = false;
 
 			// If we have a headings we need only set the widths on them
@@ -353,90 +369,12 @@
 				// Discard the temp header
 				_.table.removeChild(h);
 			}
+
+			util.addClass(_.table, 'fixed-columns');
 		}
 
-		setClassNames.call(_);
-		addEventListeners.call(_);
 	};
 
-	var setClassNames = function() {
-		var o = this.options;
-		if ( !o.header ) {
-			util.addClass(this.wrapper, 'no-header'); }
-
-		if ( !o.footer ) {
-			util.addClass(this.wrapper, 'no-footer'); }
-
-		if ( o.sortable ) {
-			util.addClass(this.wrapper, 'sortable'); }
-
-		if (o.searchable) {
-			util.addClass(this.wrapper, 'searchable'); }
-
-		if (o.fixedHeight) {
-			util.addClass(this.wrapper, 'fixed-height'); }
-
-		if ( o.fixedColumns ) {
-			util.addClass(this.wrapper, 'fixed-columns'); }
-	};
-
-	var addEventListeners = function() {
-		var _ = this, o = _.options;
-
-		// Per page selector
-		if ( o.perPageSelect ) {
-			var selector = _.wrapper.querySelector(".dataTable-selector");
-			if ( selector ) {
-				// Change per page
-				util.listen(selector, 'change', function(e) {
-					o.perPage = parseInt(this.value, 10);
-					_.update();
-
-					if (o.fixedHeight) {
-						fixHeight.call(_);
-					}
-
-					_.emit('datatable.perpage');
-				});
-			}
-		}
-
-		// Search input
-		if ( o.searchable ) {
-			_.input = _.wrapper.querySelector(".dataTable-input");
-			if ( _.input ) {
-				util.listen(_.input, 'keyup', function(e) {
-					_.search(this.value);
-				});
-			}
-		}
-
-		// Pager(s)
-		util.listen(_.wrapper, 'click', function(e) {
-			var t = e.target;
-			if (t.nodeName.toLowerCase() === 'a' && t.hasAttribute('data-page')) {
-				util.preventDefault(e);
-				_.page(t.getAttribute('data-page'));
-			}
-		});
-
-		// Sort items
-		if ( o.sortable ) {
-			util.listen(_.tHead, 'click', function(e) {
-				e = e || window.event;
-				var target = e.target;
-
-				if (target.nodeName.toLowerCase() === 'a') {
-					if (util.hasClass(target, 'dataTable-sorter')) {
-						util.preventDefault(e);
-						_.sortColumn(target.parentNode.idx + 1);
-					}
-				}
-			});
-		}
-	};
-
-	// Sort the rows into pages
 	var paginate = function() {
 		var _ = this,
 			perPage = _.options.perPage,
@@ -451,7 +389,6 @@
 		_.totalPages = _.lastPage = _.pages.length;
 	};
 
-	// Render a page
 	var render = function() {
 		var _ = this;
 
@@ -498,9 +435,8 @@
 			items = !!_.searching ? _.searchData.length : _.rows.length;
 		}
 
-		if ( _.label && _.options.labels.info.length ) {
+		if ( _.options.labels.info.length ) {
 
-			// CUSTOM LABELS
 			var string = _.options.labels.info.replace("{start}", f)
 												.replace("{end}", t)
 												.replace("{page}", _.currentPage)
@@ -515,11 +451,10 @@
 		}
 	};
 
-	// Render the pager(s)
 	var renderPager = function() {
 		var _ = this;
 
-		util.flush(_.paginators, _.isIE);
+		util.flush(_.paginator, _.isIE);
 
 		if (_.totalPages <= 1) return;
 
@@ -566,13 +501,10 @@
 			util.append(frag, util.button(c, _.totalPages, _.options.lastText));
 		}
 
-		// We may have more than one pager
-		util.each(_.paginators, function(i,pager) {
-			util.append(pager, frag.cloneNode(true));
-		});
+		// append the fragment
+		util.append(_.paginator, frag);
 	};
 
-	// Bubble sort algorithm
 	var sortItems = function(a, b) {
 		var c, d;
 		if (1 === b) {
@@ -600,14 +532,12 @@
 		return a;
 	};
 
-	// Fix container heigh
 	var fixHeight = function() {
 		this.container.style.height = null;
 		this.rect = util.getBoundingRect(this.container);
 		this.container.style.height = this.rect.height + 'px';
 	};
 
-	// Pager truncation algorithm
 	var _truncate = function(a, b, c, d) {
 		d = d || 2;
 		var j, e = 2 * d,
@@ -647,7 +577,7 @@
 		return i;
 	};
 
-	// Parse data to HTML
+
 	var dataToTable = function() {
 		var data = this.options.data,
 			thead = false,
@@ -700,7 +630,7 @@
 		}
 	};
 
-	// Event emitter
+	// Emitter
 	var Emitter = function() {};
 	Emitter.prototype = {
 		on: function(event, fct) {
@@ -745,25 +675,22 @@
 		var defaults = {
 			perPage: 10,
 			perPageSelect: [5, 10, 15, 20, 25],
-
-			sortable: true,
-			searchable: true,
-
-			// Pagination
 			nextPrev: true,
 			firstLast: false,
 			prevText: '&lsaquo;',
 			nextText: '&rsaquo;',
 			firstText: '&laquo;',
 			lastText: '&raquo;',
-			truncatePager: true,
-			pagerDelta: 2,
+
+			sortable: true,
 
 			fixedColumns: true,
 			fixedHeight: false,
 
-			header: true,
-			footer: false,
+			truncatePager: true,
+			pagerDelta: 2,
+
+			searchable: true,
 
 			// Customise the display text
 			labels: {
@@ -771,13 +698,7 @@
 				perPage: "{select} entries per page", // per-page dropdown label
 				noRows: "No entries found", // Message shown when there are no search results
 				info: "Showing {start} to {end} of {rows} entries", //
-			},
-
-			// Customise the layout
-			layout: {
-				top: "{select}{search}",
-				bottom: "{info}{pager}"
-			},
+			}
 		};
 
 		// user options
@@ -799,11 +720,6 @@
 
 		if (table.tagName.toLowerCase() !== "table") {
 			throw new Error("The selected element is not a table.");
-		}
-
-		// Disable manual sorting if no header is present (#4)
-		if ( !_.options.header ) {
-			_.options.sortable = false;
 		}
 
 		if (table.tHead === null ) {
@@ -879,8 +795,7 @@
 			_.searching = false;
 			_.update();
 			_.emit("datatable.search", query, _.searchData);
-			util.removeClass(this.wrapper, 'search-results');
-			return false;
+			return;
 		}
 
 		_.clear();
@@ -893,10 +808,7 @@
 			}
 		});
 
-		util.addClass(this.wrapper, 'search-results');
-
 		if (!_.searchData.length) {
-			util.removeClass(this.wrapper, 'search-results');
 			_.setMessage(_.options.labels.noRows);
 		}
 
@@ -911,7 +823,7 @@
 
 		// We don't want to load the current page again.
 		if (page == _.currentPage) {
-			return false;
+			return;
 		}
 
 		if (!isNaN(page)) {
@@ -919,7 +831,7 @@
 		}
 
 		if (page > _.pages.length || page < 0) {
-			return false;
+			return;
 		}
 
 		render.call(_);
@@ -1035,7 +947,6 @@
 			this.searching = false;
 		}
 		this.currentPage = 1;
-		this.onFirstPage = true;
 		this.update();
 
 		this.emit("datatable.refresh");
