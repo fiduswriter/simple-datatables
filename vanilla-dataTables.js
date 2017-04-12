@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.1.6
+ * Version: 1.1.7
  *
  */
 (function(root, factory) {
@@ -780,6 +780,8 @@
 			},
 		};
 
+		_.initialized = false;
+
 		// user options
 		_.options = util.extend(defaults, options);
 
@@ -834,19 +836,74 @@
 
 		_.table = table;
 
+		this.init();
+	}
+
+	/**
+	 * Initialize the instance
+	 * @param  {object} options
+	 * @return {void}
+	 */
+	DataTable.prototype.init = function(options) {
+
+		if ( this.initialized || util.hasClass(this.table, "dataTable-table") ) {
+			return false;
+		}
+
+		var _ = this;
+
+		this.options = util.extend(this.options, options || {});
+
 		// IE detection
-		_.isIE = !!/(msie|trident)/i.test(navigator.userAgent);
+		this.isIE = !!/(msie|trident)/i.test(navigator.userAgent);
 
-		_.currentPage = 1;
-		_.onFirstPage = true;
+		this.currentPage = 1;
+		this.onFirstPage = true;
 
-		build.call(_);
+		build.call(this);
 
 		setTimeout(function() {
 			_.emit('datatable.init');
+			_.initialized = true;
 		}, 10);
-	}
+	};
 
+	/**
+	 * Destroy the instance
+	 * @return {void}
+	 */
+	DataTable.prototype.destroy = function() {
+		var o = this.options;
+
+		// Remove the sorters
+		if ( o.sortable ) {
+			util.each(this.tHead.rows[0].cells, function(i, th) {
+				var html = th.firstElementChild.innerHTML;
+				th.innerHTML = html;
+				th.removeAttribute("style");
+			}, this);
+		}
+
+		// Populate the table
+		var f = util.createFragment();
+		util.each(this.rows, function(i, tr) {
+			f.appendChild(tr);
+		}, this);
+		this.clear(f);
+
+		// Remove the className
+		util.removeClass(this.table, "dataTable-table");
+
+		// Remove the containers
+		this.wrapper.parentNode.replaceChild(this.table, this.wrapper);
+
+		this.initialized = false;
+	};
+
+	/**
+	 * Update the instance
+	 * @return {[type]} [description]
+	 */
 	DataTable.prototype.update = function() {
 		var _ = this;
 
@@ -866,6 +923,11 @@
 		_.emit('datatable.update');
 	};
 
+	/**
+	 * Perform a search of the data set
+	 * @param  {string} query
+	 * @return {void}
+	 */
 	DataTable.prototype.search = function(query) {
 		var _ = this;
 
@@ -905,7 +967,11 @@
 		_.emit("datatable.search", query, _.searchData);
 	};
 
-	/* Change the page. */
+	/**
+	 * Change page
+	 * @param  {int} page
+	 * @return {void}
+	 */
 	DataTable.prototype.page = function(page) {
 		var _ = this;
 
@@ -928,7 +994,12 @@
 		_.emit('datatable.page', page);
 	};
 
-	/* Perform the sorting */
+	/**
+	 * Sort by column
+	 * @param  {int} column - The column no.
+	 * @param  {string} direction - asc or desc
+	 * @return {void}
+	 */
 	DataTable.prototype.sortColumn = function(column, direction) {
 
 		// Check column is present
@@ -1005,6 +1076,10 @@
 		_.emit('datatable.sort', column, dir);
 	};
 
+	/**
+	 * Add new row data
+	 * @param {object} data
+	 */
 	DataTable.prototype.addRows = function(data) {
 		if (Object.prototype.toString.call(data) !== '[object Object]') {
 			throw new Error("Function addRows: The method requires an object.");
@@ -1029,6 +1104,10 @@
 		this.update();
 	};
 
+	/**
+	 * Refresh the instance
+	 * @return {void}
+	 */
 	DataTable.prototype.refresh = function() {
 		if ( this.options.searchable ) {
 			this.input.value = '';
@@ -1041,6 +1120,11 @@
 		this.emit("datatable.refresh");
 	};
 
+	/**
+	 * Truncate the table
+	 * @param  {mixes} html - HTML string or HTMLElement
+	 * @return {void}
+	 */
 	DataTable.prototype.clear = function(html) {
 		if (this.tbody) {
 			util.flush(this.tbody, this.isIE);
@@ -1052,10 +1136,18 @@
 		}
 
 		if (html) {
-			util.append(parent, html);
+			if ( typeof html === "string" ) {
+				parent.innerHTML = html;
+			} else {
+				util.append(parent, html);
+			}
 		}
 	};
 
+	/**
+	 * Show a message in the table
+	 * @param {string} message
+	 */
 	DataTable.prototype.setMessage = function(message) {
 		var colspan = this.rows[0].cells.length;
 		this.clear(util.createElement('tr', {
