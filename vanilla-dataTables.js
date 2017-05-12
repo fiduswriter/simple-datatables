@@ -663,7 +663,7 @@
 		var thead = false,
 			tbody = false;
 
-		data = data || this.options.data
+		data = data || this.options.data;
 
 		if (data.headings) {
 			thead = util.createElement('thead');
@@ -1163,7 +1163,7 @@
 	 * @return {void}
 	 */
 	DataTable.prototype.export = function(type, filename, columnDelimiter, lineDelimiter, selection) {
-		var that = this, rows = [], data = [], ctr, keys, data = [];
+		var that = this, rows = [], data = [], ctr, keys;
 
 		if ( type === "csv" ) {
 			// Include headings
@@ -1195,8 +1195,8 @@
 			if ( type === "csv" ) {
 				var csv, link, j;
 
-				columnDelimiter = columnDelimiter || ",",
-				lineDelimiter =  lineDelimiter || "\n"
+				columnDelimiter = columnDelimiter || ",";
+				lineDelimiter =  lineDelimiter || "\n";
 
 				util.each(rows, function(i, row) {
 					j = 0;
