@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.1.7
+ * Version: 1.1.8
  *
  */
 (function(root, factory) {
@@ -97,6 +97,17 @@
 			e.addEventListener(type, function(e) {
 				callback.call(scope || this, e);
 			}, false);
+		},
+		isObject: function(a) {
+			return "[object Object]" === Object.prototype.toString.call(a);
+		},
+		isArray: function(a) {
+			return "[object Array]" === Object.prototype.toString.call(a);
+		},
+		isInt: function(val) {
+			return !isNaN(val) && (function(x) {
+				return (x || 0) === x;
+			})(parseFloat(val));
 		},
 		getBoundingRect: function(el) {
 			var win = window;
@@ -648,10 +659,11 @@
 	};
 
 	// Parse data to HTML
-	var dataToTable = function() {
-		var data = this.options.data,
-			thead = false,
+	var dataToTable = function(data) {
+		var thead = false,
 			tbody = false;
+
+		data = data || this.options.data
 
 		if (data.headings) {
 			thead = util.createElement('thead');
@@ -1142,6 +1154,132 @@
 				util.append(parent, html);
 			}
 		}
+	};
+
+	/**
+	 * Export data
+	 * @param  {string} type | Export type (csv only, for now)
+	 * @param  {mixed} selection | single or array of page numbers
+	 * @return {void}
+	 */
+	DataTable.prototype.export = function(type, filename, columnDelimiter, lineDelimiter, selection) {
+		var that = this, rows = [], data = [], ctr, keys, data = [];
+
+		if ( type === "csv" ) {
+			// Include headings
+			rows.push(this.tHead.rows[0]);
+		}
+
+		if ( selection ) {
+			if ( util.isInt(selection) ) {
+				var page = that.pages[selection - 1];
+				util.each(page, function(i, p) {
+					rows.push(p);
+				});
+			} else if ( util.isArray(selection) ) {
+				util.each(selection, function(i, page) {
+
+					page = that.pages[page-1];
+
+					util.each(page, function(i, p) {
+						rows.push(p);
+					});
+				});
+			}
+		} else {
+			rows = rows.concat(this.rows);
+		}
+
+		if ( rows.length ) {
+
+			if ( type === "csv" ) {
+				var csv, link, j;
+
+				columnDelimiter = columnDelimiter || ",",
+				lineDelimiter =  lineDelimiter || "\n"
+
+				util.each(rows, function(i, row) {
+					j = 0;
+
+					util.each(row.cells, function(x, cell) {
+						if (j > 0) data.push(columnDelimiter);
+						data.push(cell.textContent);
+						j++;
+					});
+					data.push(lineDelimiter);
+				});
+
+				// Convert the array to string
+				csv = data.join("");
+
+				filename = filename || 'datatable_export';
+				filename += ".csv";
+
+				if (!csv.match(/^data:text\/csv/i)) {
+					csv = 'data:text/csv;charset=utf-8,' + csv;
+				}
+
+				// Create a link to trigger the download
+				csv = encodeURI(csv);
+				link = util.createElement('a');
+				link.setAttribute('href', csv);
+				link.setAttribute('download', filename);
+
+				document.body.appendChild(link);
+
+				// Trigger the download
+				link.click();
+
+				document.body.removeChild(link);
+			}
+
+			this.emit("datatable.export", type, rows);
+		}
+	};
+
+	/**
+	 * Print the table
+	 * @return {void}
+	 */
+	DataTable.prototype.print = function() {
+		var headings = this.tHead.rows[0].cells;
+		var rows = this.rows;
+		var table = util.createElement("table");
+		var thead = util.createElement("thead");
+		var tbody = util.createElement("tbody");
+
+		var tr = util.createElement("tr");
+		util.each(headings, function(i, th) {
+			tr.appendChild(util.createElement("th", {
+				html: th.textContent
+			}));
+		});
+
+		thead.appendChild(tr);
+
+		util.each(rows, function(i, row) {
+			var tr = util.createElement('tr');
+			util.each(row.cells, function(k, cell) {
+				tr.appendChild(util.createElement('td', {
+					html: cell.textContent
+				}));
+			});
+			tbody.appendChild(tr);
+		});
+
+		table.appendChild(thead);
+		table.appendChild(tbody);
+
+		// Open new window
+		var w = window.open();
+
+		// Append the table to the body
+		w.document.body.appendChild(table);
+
+		// Print
+		w.print();
+
+		this.emit("datatable.print", table);
 	};
 
 	/**
