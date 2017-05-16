@@ -961,8 +961,13 @@
 
 		util.each(_.rows, function(idx, row) {
 			var inArray = util.includes(_.searchData, row);
+			
+			var doesQueryMatch = query.split (" ").reduce (function (bool, word) {
+				return bool && util.includes(row.textContent.toLowerCase(), word);
+			}, true);
+			
 			// Cheat and get the row's textContent instead of searching each cell :P
-			if (util.includes(row.textContent.toLowerCase(), query) && !inArray) {
+			if (doesQueryMatch && !inArray) {
 				_.searchData.push(row);
 			}
 		});
