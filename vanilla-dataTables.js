@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.1.8
+ * Version: 1.1.9
  *
  */
 (function(root, factory) {
@@ -93,7 +93,7 @@
 		append: function(p, e) {
 			return p && e && p.appendChild(e);
 		},
-		listen: function(e, type, callback, scope) {
+		on: function(e, type, callback, scope) {
 			e.addEventListener(type, function(e) {
 				callback.call(scope || this, e);
 			}, false);
@@ -159,56 +159,56 @@
 	};
 
 	var build = function() {
-		var _ = this, o = _.options;
+		var o = this.options;
 		var template = "";
 
 		// Event listeners
-		Emitter.mixin(_);
+		Emitter.mixin(this);
 
 		// Convert data to HTML
 		if (o.data) {
-			dataToTable.call(_);
+			dataToTable.call(this);
 		}
 
 		// Store references
-		_.tbody = _.table.tBodies[0];
-		_.tHead = _.table.tHead;
-		_.tFoot = _.table.tFoot;
+		this.tbody = this.table.tBodies[0];
+		this.tHead = this.table.tHead;
+		this.tFoot = this.table.tFoot;
 
 		// Make a tHead if there isn't one (fixes #8)
-		if ( !_.tHead ) {
+		if ( !this.tHead ) {
 			var h = util.createElement("thead");
 			var t = util.createElement("tr");
-			util.each(_.tbody.rows[0].cells, function(i, cell) {
+			util.each(this.tbody.rows[0].cells, function(i, cell) {
 				util.append(t, util.createElement("th"));
 			});
 			util.append(h, t);
-			_.tHead = h;
+			this.tHead = h;
 		}
 
 		// Header
 		if ( !o.header ) {
-			if ( _.tHead ) {
-				_.table.removeChild(_.table.tHead);
+			if ( this.tHead ) {
+				this.table.removeChild(this.table.tHead);
 			}
 		}
 
 		// Footer
 		if ( o.footer ) {
-			if ( _.tHead && !_.tFoot) {
-				_.tFoot = util.createElement('tfoot', {
-					html: _.tHead.innerHTML
+			if ( this.tHead && !this.tFoot) {
+				this.tFoot = util.createElement('tfoot', {
+					html: this.tHead.innerHTML
 				});
-				_.table.appendChild(_.tFoot);
+				this.table.appendChild(this.tFoot);
 			}
 		} else {
-			if ( _.tFoot ) {
-				_.table.removeChild(_.table.tFoot);
+			if ( this.tFoot ) {
+				this.table.removeChild(this.table.tFoot);
 			}
 		}
 
 		// Build
-		_.wrapper = util.createElement('div', {
+		this.wrapper = util.createElement('div', {
 			class: 'dataTable-wrapper',
 		});
 
@@ -262,7 +262,7 @@
 		}
 
 		// Sortable
-		var cols = _.tHead.rows[0].cells;
+		var cols = this.tHead.rows[0].cells;
 
 		util.each(cols, function(i, th) {
 			th.idx = i;
@@ -279,7 +279,7 @@
 		});
 
 		// Add table class
-		util.addClass(_.table, 'dataTable-table');
+		util.addClass(this.table, 'dataTable-table');
 
 		// Paginator
 		var w = util.createElement('div', {
@@ -291,30 +291,30 @@
 		// Pager(s) placement
 		template = template.replace(/\{pager\}/g, w.outerHTML);
 
-		_.wrapper.innerHTML = template;
+		this.wrapper.innerHTML = template;
 
-		_.container = _.wrapper.querySelector(".dataTable-container");
+		this.container = this.wrapper.querySelector(".dataTable-container");
 
-		_.paginators = _.wrapper.querySelectorAll(".dataTable-pagination");
+		this.paginators = this.wrapper.querySelectorAll(".dataTable-pagination");
 
-		_.label = _.wrapper.querySelector(".dataTable-info");
+		this.label = this.wrapper.querySelector(".dataTable-info");
 
 		// Insert in to DOM tree
-		_.table.parentNode.replaceChild(_.wrapper, _.table);
-		_.container.appendChild(_.table);
+		this.table.parentNode.replaceChild(this.wrapper, this.table);
+		this.container.appendChild(this.table);
 
 		// Store the table dimensions
-		_.rect = util.getBoundingRect(_.table);
+		this.rect = util.getBoundingRect(this.table);
 
 		// Convert rows to array for processing
-		_.rows = Array.prototype.slice.call(_.tbody.rows);
+		this.rows = Array.prototype.slice.call(this.tbody.rows);
 
 		// Update
-		_.update();
+		this.update();
 
 		// Fixed height
 		if (o.fixedHeight) {
-			fixHeight.call(_);
+			fixHeight.call(this);
 		}
 
 		// Fixed column widths
@@ -323,14 +323,14 @@
 
 			// If we have a headings we need only set the widths on them
 			// otherwise we need a temp header and the widths need applying to all cells
-			if (_.table.tHead) {
-				cells = _.table.tHead.rows[0].cells;
+			if (this.table.tHead) {
+				cells = this.table.tHead.rows[0].cells;
 
 				util.each(cells, function(i, cell) {
 					var rect = util.getBoundingRect(cell);
-					var w = (rect.width / _.rect.width) * 100;
+					var w = (rect.width / this.rect.width) * 100;
 					cell.style.width = w + '%';
-				});
+				}, this);
 			} else {
 
 				cells = [];
@@ -338,7 +338,7 @@
 				// Make temperary headings
 				hd = util.createElement("thead");
 				var r = util.createElement("tr");
-				var c = _.table.tBodies[0].rows[0].cells;
+				var c = this.table.tBodies[0].rows[0].cells;
 				util.each(c, function(i, row) {
 					var th = util.createElement("th");
 					r.appendChild(th);
@@ -346,14 +346,14 @@
 				});
 
 				hd.appendChild(r);
-				_.table.insertBefore(hd, _.table.tBodies[0]);
+				this.table.insertBefore(hd, this.table.tBodies[0]);
 
 				var widths = [];
 				util.each(cells, function(i, cell) {
 					var rect = util.getBoundingRect(cell);
-					var w = (rect.width / _.rect.width) * 100;
+					var w = (rect.width / this.rect.width) * 100;
 					widths.push(w);
-				});
+				}, this);
 
 				util.each(this.rows, function(idx, row) {
 					util.each(row.cells, function(i, cell) {
@@ -362,12 +362,12 @@
 				});
 
 				// Discard the temp header
-				_.table.removeChild(hd);
+				this.table.removeChild(hd);
 			}
 		}
 
-		setClassNames.call(_);
-		addEventListeners.call(_);
+		setClassNames.call(this);
+		addEventListeners.call(this);
 	};
 
 	var setClassNames = function() {
@@ -392,55 +392,55 @@
 	};
 
 	var addEventListeners = function() {
-		var _ = this, o = _.options;
+		var that = this, o = that.options;
 
 		// Per page selector
 		if ( o.perPageSelect ) {
-			var selector = _.wrapper.querySelector(".dataTable-selector");
+			var selector = that.wrapper.querySelector(".dataTable-selector");
 			if ( selector ) {
 				// Change per page
-				util.listen(selector, 'change', function(e) {
+				util.on(selector, 'change', function(e) {
 					o.perPage = parseInt(this.value, 10);
-					_.update();
+					that.update();
 
 					if (o.fixedHeight) {
-						fixHeight.call(_);
+						fixHeight.call(that);
 					}
 
-					_.emit('datatable.perpage');
+					that.emit('datatable.perpage');
 				});
 			}
 		}
 
 		// Search input
 		if ( o.searchable ) {
-			_.input = _.wrapper.querySelector(".dataTable-input");
-			if ( _.input ) {
-				util.listen(_.input, 'keyup', function(e) {
-					_.search(this.value);
+			that.input = that.wrapper.querySelector(".dataTable-input");
+			if ( that.input ) {
+				util.on(that.input, 'keyup', function(e) {
+					that.search(this.value);
 				});
 			}
 		}
 
 		// Pager(s)
-		util.listen(_.wrapper, 'click', function(e) {
+		util.on(that.wrapper, 'click', function(e) {
 			var t = e.target;
 			if (t.nodeName.toLowerCase() === 'a' && t.hasAttribute('data-page')) {
 				util.preventDefault(e);
-				_.page(t.getAttribute('data-page'));
+				that.page(t.getAttribute('data-page'));
 			}
 		});
 
 		// Sort items
 		if ( o.sortable ) {
-			util.listen(_.tHead, 'click', function(e) {
+			util.on(that.tHead, 'click', function(e) {
 				e = e || window.event;
 				var target = e.target;
 
 				if (target.nodeName.toLowerCase() === 'a') {
 					if (util.hasClass(target, 'dataTable-sorter')) {
 						util.preventDefault(e);
-						_.sortColumn(target.parentNode.idx + 1);
+						that.sortColumn(target.parentNode.idx + 1);
 					}
 				}
 			});
@@ -449,48 +449,46 @@
 
 	// Sort the rows into pages
 	var paginate = function() {
-		var _ = this,
-			perPage = _.options.perPage,
-			rows = !!_.searching ? _.searchData : _.rows;
+		var perPage = this.options.perPage,
+			rows = !!this.searching ? this.searchData : this.rows;
 
-		_.pages = rows.map(function(tr, i) {
+		this.pages = rows.map(function(tr, i) {
 			return i % perPage === 0 ? rows.slice(i, i + perPage) : null;
 		}).filter(function(page) {
 			return page;
 		});
 
-		_.totalPages = _.lastPage = _.pages.length;
+		this.totalPages = this.lastPage = this.pages.length;
 	};
 
 	// Render a page
 	var render = function() {
-		var _ = this;
 
-		if (_.totalPages) {
+		if (this.totalPages) {
 
-			if (_.currentPage > _.totalPages) {
-				_.currentPage = 1;
+			if (this.currentPage > this.totalPages) {
+				this.currentPage = 1;
 			}
 
 			// Use a fragment to limit touching the DOM
-			var _index = _.currentPage - 1,
+			var index = this.currentPage - 1,
 				frag = util.createFragment();
 
-			util.each(_.pages[_index], function(i, v) {
+			util.each(this.pages[index], function(i, v) {
 				util.append(frag, v);
 			});
 
-			_.clear(frag);
+			this.clear(frag);
 
-			_.onFirstPage = false;
-			_.onLastPage = false;
+			this.onFirstPage = false;
+			this.onLastPage = false;
 
-			switch (_.currentPage) {
+			switch (this.currentPage) {
 				case 1:
-					_.onFirstPage = true;
+					this.onFirstPage = true;
 					break;
-				case _.lastPage:
-					_.onLastPage = true;
+				case this.lastPage:
+					this.onLastPage = true;
 					break;
 			}
 		}
@@ -501,63 +499,62 @@
 			t = 0,
 			items;
 
-		if (_.totalPages) {
-			current = _.currentPage - 1;
-			f = current * _.options.perPage;
-			t = f + _.pages[current].length;
+		if (this.totalPages) {
+			current = this.currentPage - 1;
+			f = current * this.options.perPage;
+			t = f + this.pages[current].length;
 			f = f + 1;
-			items = !!_.searching ? _.searchData.length : _.rows.length;
+			items = !!this.searching ? this.searchData.length : this.rows.length;
 		}
 
-		if ( _.label && _.options.labels.info.length ) {
+		if ( this.label && this.options.labels.info.length ) {
 
 			// CUSTOM LABELS
-			var string = _.options.labels.info.replace("{start}", f)
+			var string = this.options.labels.info.replace("{start}", f)
 												.replace("{end}", t)
-												.replace("{page}", _.currentPage)
-												.replace("{pages}", _.totalPages)
+												.replace("{page}", this.currentPage)
+												.replace("{pages}", this.totalPages)
 												.replace("{rows}", items);
 
-			_.label.innerHTML = items  ? string : "";
+			this.label.innerHTML = items  ? string : "";
 		}
 
-		if (_.options.fixedHeight && _.currentPage == 1) {
-			fixHeight.call(_);
+		if (this.options.fixedHeight && this.currentPage == 1) {
+			fixHeight.call(this);
 		}
 	};
 
 	// Render the pager(s)
 	var renderPager = function() {
-		var _ = this;
 
-		util.flush(_.paginators, _.isIE);
+		util.flush(this.paginators, this.isIE);
 
-		if (_.totalPages <= 1) return;
+		if (this.totalPages <= 1) return;
 
 		var c = 'pager',
 			frag = util.createFragment(),
-			prev = _.onFirstPage ? 1 : _.currentPage - 1,
-			next = _.onlastPage ? _.totalPages : _.currentPage + 1;
+			prev = this.onFirstPage ? 1 : this.currentPage - 1,
+			next = this.onlastPage ? this.totalPages : this.currentPage + 1;
 
 		// first button
-		if (_.options.firstLast) {
-			util.append(frag, util.button(c, 1, _.options.firstText));
+		if (this.options.firstLast) {
+			util.append(frag, util.button(c, 1, this.options.firstText));
 		}
 
 		// prev button
-		if (_.options.nextPrev) {
-			util.append(frag, util.button(c, prev, _.options.prevText));
+		if (this.options.nextPrev) {
+			util.append(frag, util.button(c, prev, this.options.prevText));
 		}
 
-		var pager = _.links;
+		var pager = this.links;
 
 		// truncate the links
-		if (_.options.truncatePager) {
-			pager = _truncate(_.links, _.currentPage, _.pages.length, _.options.pagerDelta);
+		if (this.options.truncatePager) {
+			pager = truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
 		}
 
 		// active page link
-		util.addClass(_.links[_.currentPage - 1], 'active');
+		util.addClass(this.links[this.currentPage - 1], 'active');
 
 		// append the links
 		util.each(pager, function(i, p) {
@@ -565,20 +562,20 @@
 			util.append(frag, p);
 		});
 
-		util.addClass(_.links[_.currentPage - 1], 'active');
+		util.addClass(this.links[this.currentPage - 1], 'active');
 
 		// next button
-		if (_.options.nextPrev) {
-			util.append(frag, util.button(c, next, _.options.nextText));
+		if (this.options.nextPrev) {
+			util.append(frag, util.button(c, next, this.options.nextText));
 		}
 
 		// first button
-		if (_.options.firstLast) {
-			util.append(frag, util.button(c, _.totalPages, _.options.lastText));
+		if (this.options.firstLast) {
+			util.append(frag, util.button(c, this.totalPages, this.options.lastText));
 		}
 
 		// We may have more than one pager
-		util.each(_.paginators, function(i,pager) {
+		util.each(this.paginators, function(i,pager) {
 			util.append(pager, frag.cloneNode(true));
 		});
 	};
@@ -619,7 +616,7 @@
 	};
 
 	// Pager truncation algorithm
-	var _truncate = function(a, b, c, d) {
+	var truncate = function(a, b, c, d) {
 		d = d || 2;
 		var j, e = 2 * d,
 			f = b - d,
@@ -752,8 +749,6 @@
 
 	function DataTable(table, options) {
 
-		var _ = this;
-
 		var defaults = {
 			perPage: 10,
 			perPageSelect: [5, 10, 15, 20, 25],
@@ -792,10 +787,10 @@
 			},
 		};
 
-		_.initialized = false;
+		this.initialized = false;
 
 		// user options
-		_.options = util.extend(defaults, options);
+		this.options = util.extend(defaults, options);
 
 		// Checks
 		if (!table) {
@@ -816,19 +811,19 @@
 		}
 
 		// Disable manual sorting if no header is present (#4)
-		if ( !_.options.header ) {
-			_.options.sortable = false;
+		if ( !this.options.header ) {
+			this.options.sortable = false;
 		}
 
 		if (table.tHead === null ) {
-			if ( !_.options.data || (_.options.data && !_.options.data.headings) ) {
-				_.options.sortable = false;
+			if ( !this.options.data || (this.options.data && !this.options.data.headings) ) {
+				this.options.sortable = false;
 			}
 		}
 
 		if (!table.tBodies.length) {
-			if (_.options.data) {
-				if (!_.options.data.rows) {
+			if (this.options.data) {
+				if (!this.options.data.rows) {
 					throw new Error("You seem to be using the data option, but you've not defined any rows.");
 				}
 			} else {
@@ -837,8 +832,8 @@
 		}
 
 		if (table.tBodies.length && !table.tBodies[0].rows.length) {
-			if (_.options.data) {
-				if (!_.options.data.rows) {
+			if (this.options.data) {
+				if (!this.options.data.rows) {
 					throw new Error("You seem to be using the data option, but you've not defined any rows.");
 				}
 			} else {
@@ -846,7 +841,7 @@
 			}
 		}
 
-		_.table = table;
+		this.table = table;
 
 		this.init();
 	}
@@ -862,7 +857,7 @@
 			return false;
 		}
 
-		var _ = this;
+		var that = this;
 
 		this.options = util.extend(this.options, options || {});
 
@@ -875,8 +870,8 @@
 		build.call(this);
 
 		setTimeout(function() {
-			_.emit('datatable.init');
-			_.initialized = true;
+			that.emit('datatable.init');
+			that.initialized = true;
 		}, 10);
 	};
 
@@ -917,22 +912,21 @@
 	 * @return {[type]} [description]
 	 */
 	DataTable.prototype.update = function() {
-		var _ = this;
 
-		paginate.call(_);
-		render.call(_);
+		paginate.call(this);
+		render.call(this);
 
-		_.links = [];
+		this.links = [];
 
-		var i = _.pages.length;
+		var i = this.pages.length;
 		while (i--) {
 			var num = i + 1;
-			_.links[i] = util.button((i === 0) ? 'active' : '', num, num);
+			this.links[i] = util.button((i === 0) ? 'active' : '', num, num);
 		}
 
-		renderPager.call(_);
+		renderPager.call(this);
 
-		_.emit('datatable.update');
+		this.emit('datatable.update');
 	};
 
 	/**
@@ -941,47 +935,47 @@
 	 * @return {void}
 	 */
 	DataTable.prototype.search = function(query) {
-		var _ = this;
 
 		query = query.toLowerCase();
 
-		_.currentPage = 1;
-		_.searching = true;
-		_.searchData = [];
+		this.currentPage = 1;
+		this.searching = true;
+		this.searchData = [];
 
 		if (!query.length) {
-			_.searching = false;
-			_.update();
-			_.emit("datatable.search", query, _.searchData);
+			this.searching = false;
+			this.update();
+			this.emit("datatable.search", query, this.searchData);
 			util.removeClass(this.wrapper, 'search-results');
 			return false;
 		}
 
-		_.clear();
+		this.clear();
 
-		util.each(_.rows, function(idx, row) {
-			var inArray = util.includes(_.searchData, row);
-			
+		util.each(this.rows, function(idx, row) {
+			var inArray = util.includes(this.searchData, row);
+
+			// https://github.com/Mobius1/Vanilla-DataTables/issues/12
 			var doesQueryMatch = query.split (" ").reduce (function (bool, word) {
 				return bool && util.includes(row.textContent.toLowerCase(), word);
 			}, true);
-			
+
 			// Cheat and get the row's textContent instead of searching each cell :P
 			if (doesQueryMatch && !inArray) {
-				_.searchData.push(row);
+				this.searchData.push(row);
 			}
-		});
+		}, this);
 
 		util.addClass(this.wrapper, 'search-results');
 
-		if (!_.searchData.length) {
+		if (!this.searchData.length) {
 			util.removeClass(this.wrapper, 'search-results');
-			_.setMessage(_.options.labels.noRows);
+			this.setMessage(this.options.labels.noRows);
 		}
 
-		_.update();
+		this.update();
 
-		_.emit("datatable.search", query, _.searchData);
+		this.emit("datatable.search", query, this.searchData);
 	};
 
 	/**
@@ -990,25 +984,23 @@
 	 * @return {void}
 	 */
 	DataTable.prototype.page = function(page) {
-		var _ = this;
-
 		// We don't want to load the current page again.
-		if (page == _.currentPage) {
+		if (page == this.currentPage) {
 			return false;
 		}
 
 		if (!isNaN(page)) {
-			_.currentPage = parseInt(page, 10);
+			this.currentPage = parseInt(page, 10);
 		}
 
-		if (page > _.pages.length || page < 0) {
+		if (page > this.pages.length || page < 0) {
 			return false;
 		}
 
-		render.call(_);
-		renderPager.call(_);
+		render.call(this);
+		renderPager.call(this);
 
-		_.emit('datatable.page', page);
+		this.emit('datatable.page', page);
 	};
 
 	/**
@@ -1027,14 +1019,13 @@
 		// Convert to zero-indexed
 		column = column - 1;
 
-		var _ = this;
 		var dir;
-		var rows = !!_.searching ? _.searchData : _.rows;
+		var rows = !!this.searching ? this.searchData : this.rows;
 		var alpha = [];
 		var numeric = [];
 		var a = 0;
 		var n = 0;
-		var th = _.tHead.rows[0].cells[column];
+		var th = this.tHead.rows[0].cells[column];
 
 		util.each(rows, function(i, tr) {
 			var cell = tr.cells[column];
@@ -1075,22 +1066,22 @@
 		/* Reorder the table */
 		rows = top.concat(btm);
 
-		if (!!_.searching) {
-			_.searchData = [];
+		if (!!this.searching) {
+			this.searchData = [];
 
 			util.each(rows, function(i, v) {
-				_.searchData.push(v.row);
-			});
+				this.searchData.push(v.row);
+			}, this);
 		} else {
-			_.rows = [];
+			this.rows = [];
 
 			util.each(rows, function(i, v) {
-				_.rows.push(v.row);
-			});
+				this.rows.push(v.row);
+			}, this);
 		}
 
-		_.update();
-		_.emit('datatable.sort', column, dir);
+		this.update();
+		this.emit('datatable.sort', column, dir);
 	};
 
 	/**
