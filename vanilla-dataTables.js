@@ -836,8 +836,6 @@
 				if (!this.options.data.rows) {
 					throw new Error("You seem to be using the data option, but you've not defined any rows.");
 				}
-			} else {
-				throw new Error("You don't seem to have any rows in your table.");
 			}
 		}
 
