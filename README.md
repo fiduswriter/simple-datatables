@@ -23,9 +23,9 @@ npm install vanilla-datatables --save
 Add the css and js files from the CDN:
 
 ```html
-<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/vanilla-datatables/1.1.8/vanilla-dataTables.min.css">
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/vanilla-dataTables.min.css">
 
-<script type="text/javascript" src="https://cdn.jsdelivr.net/vanilla-datatables/1.1.8/vanilla-dataTables.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/vanilla-dataTables.min.js"></script>
 ```
 
 The JS file should be included before any scripts that call the plugin.
