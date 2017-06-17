@@ -14,13 +14,13 @@ Refreshes the table. This will recount the rows, reset any search and remove any
 
 ---
 
-### `page(num [int])`
+### page(`num [int]`)
 
 Load a chosen page.
 
 ---
 
-### addRows(`data [object])
+### addRows(`data [object]`)
 Add new rows to the table. Must be an object with the `rows` propery set and the number of values for each row must match the column count of the table.
 
 ```javascript
