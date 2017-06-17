@@ -1,9 +1,11 @@
-### Bower
+### Install
+
+#### Bower
 ```
 bower install vanilla-datatables --save
 ```
 
-### npm
+#### npm
 ```
 npm install vanilla-datatables --save
 ```
