@@ -28,3 +28,24 @@ Sets the per page options in the dropdown. Must be an array of integers.
 Setting this to `false` will hide the dropdown.
 
 ---
+
+### `nextPrev`
+#### Default: `true`
+#### Type: `integer`
+
+Toggle the next and previous pagination buttons
+
+---
+
+### `prevText`
+#### Type: `string`
+#### defaut: `'&lsaquo;'`
+
+Set the content on the previous button.
+
+
+```javascript
+new DataTable("#myTable", {
+	prevText: "Previous"
+});
+```
