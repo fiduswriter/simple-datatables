@@ -22,6 +22,8 @@ Add the css and js files from the CDN:
 <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/vanilla-dataTables.min.js"></script>
 ```
 
+### Initialise
+
 The JS file should be included before any scripts that call the plugin.
 
 Then just initialise the plugin by either passing a reference to the table or a CSS3 selector string as the first parameter:
