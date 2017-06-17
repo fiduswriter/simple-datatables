@@ -95,11 +95,9 @@ Export the table to various formats.
 * `lineDelimiter` - The line delimiter (default: `"\n"`)
 * `selection` - Either a page number or array of page numbers to export. Omitting will export the entire table.
 
----
 
 > As of v1.1.8 it is only possible to export to CSV.
 
----
 
 ```javascript
 var datatable = new DataTable("#myTable");
