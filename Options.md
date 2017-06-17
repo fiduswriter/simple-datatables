@@ -278,15 +278,15 @@ Allows for custom arranging of the DOM elements in the top and bottom containers
 Let's say you wanted the following layout:
 
 ```
--------------------------
+---------------------------------
 |	info	|	pager	|
--------------------------
-|						|
-|		  table			|
-|						|
--------------------------
+---------------------------------
+|				|
+|		table		|
+|				|
+---------------------------------
 |  search	|  select 	|
-------------------------- 
+---------------------------------
 ```
 
 The markup for the top container would be:
@@ -310,13 +310,9 @@ Combined:
  
 ```javascript
 layout: {
-	top: "{info}{pager}",
+    top: "{info}{pager}",
     bottom: "{search}{select}"
 },
 ```
- 
-Which would result in the following layout:
-
-<table data-table="layoutA"></table>
 
 ---
