@@ -43,9 +43,153 @@ Toggle the next and previous pagination buttons
 
 Set the content on the previous button.
 
+---
+
+### `nextText`
+#### Type: `string`
+#### defaut: `'&rsaquo;'`
+
+Set the content on the next button.
+
+---
+
+### `firstLast`
+#### Type: `boolean`
+#### Default: `false`
+
+Toggle the skip to first page and skip to last page buttons.
+
+---
+
+### `firstText`
+#### Type: `string`
+#### defaut: `'&laquo;'`
+
+Set the content of the skip to first page button.
+
+---
+
+### `lastText`
+#### Type: `string`
+#### defaut: `'&raquo;'`
+
+Set the content of the skip to last page button.
+
+---
+
+### `searchable`
+#### Type: `boolean`
+#### Default: `true`
+
+Toggle the ability to search the dataset
+
+---
+
+### `sortable`
+#### Type: `boolean`
+#### Default: `true`
+
+Toggle the ability to sort the columns.
+
+> This option will be forced to `false` if the table has no headings.
+
+---
+
+### `truncatePager`
+#### Type: `boolean`
+#### Default: `true`
+
+Truncate the page links to prevent overflow with large datasets.
+
+---
+
+### `fixedColumns`
+#### Type: `boolean`
+#### Default: `true`
+
+Fix the width of the columns. This stops the columns changing width when loading a new page.
+
+---
+
+### 'fixedHeight`
+#### Type: `boolean`
+#### Default: `false`
+
+Fix the height of the table. This is useful if your last page contains less rows than set in the perPage options and simply stops the table from changing size and affecting the layout of the page.
+
+---
+
+### `data`
+#### Type: `object`
+#### Default: `undefined`
+
+Pass an object of data to populate the table.
+
+You can set both the headings and rows with `headings` and `rows` properties, respectively. The headings property is optional.
 
 ```javascript
-new DataTable("#myTable", {
-	prevText: "Previous"
+var myData = {
+	"headings": [
+		"Name",
+		"Company",
+		"Ext.",
+		"Start Date",
+		"Email",
+		"Phone No."
+	],
+	"rows": [
+		[
+			"Hedwig F. Nguyen",
+			"Arcu Vel Foundation",
+			"9875",
+			"03/27/2017",
+			"nunc.ullamcorper@metusvitae.com",
+			"070 8206 9605"
+		],
+		[
+			"Genevieve U. Watts",
+			"Eget Incorporated",
+			"9557",
+			"07/18/2017",
+			"Nullam.vitae@egestas.edu",
+			"0800 106980"
+		],
+        ...
+	};
+
+var dataTable = new DataTable(myTable, {
+	data: myData
 });
+```
+
+> NOTE: If the headings count and rows count do not match, the library will throw an exception.
+
+---
+
+### `labels`
+#### Type: `object`
+
+Customise the displayed labels. (v1.0.6 and above)
+
+#### Defaults
+```javascript
+labels: {
+    placeholder: "Search...",
+    perPage: "{select} entries per page",
+    noRows: "No entries to found",
+    info: "Showing {start} to {end} of {rows} entries",
+}
+```
+
+#### Type: `[object]`
+Customise the displayed labels. (v1.0.6 and above)
+
+#### Defaults
+```javascript
+labels: {
+    placeholder: "Search...",
+    perPage: "{select} entries per page",
+    noRows: "No entries to found",
+    info: "Showing {start} to {end} of {rows} entries",
+}
 ```
