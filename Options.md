@@ -314,5 +314,20 @@ layout: {
     bottom: "{search}{select}"
 },
 ```
+---
+
+### `header`
+#### Default: `true`
+#### Type: `boolean`
+
+Enable or disable the table header.
+
+---
+
+### `footer`
+#### Default: `false`
+#### Type: `boolean`
+
+Enable or disable the table footer.
 
 ---
