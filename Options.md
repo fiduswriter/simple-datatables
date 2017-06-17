@@ -267,7 +267,7 @@ Allows for custom arranging of the DOM elements in the top and bottom containers
 
 > A maximum of 2 variables per container (`top` or `bottom`) is recommended. If you need to use more than 2 then you'll have to sort the CSS out to make them fit.
 
-> Note, also, that while the `{select}`, `{search}` and `{info}` variables are single-use only, the `{pager}` variable can be used multiple times to produce multiple pagers as seen in **Example 2**.
+> Note, also, that while the `{select}`, `{search}` and `{info}` variables are single-use only, the `{pager}` variable can be used multiple times to produce multiple pagers.
 
 > Use of the `{select}` variable depends on the option `perPageSelect` being enabled and use of the `{search}` variable depends on the option `searchable` being enabled. Trying to use these variables while their corresponding options are disabled will result in nothing being inserted.
 
