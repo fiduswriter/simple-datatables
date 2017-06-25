@@ -1151,84 +1151,155 @@
 	};
 
 	/**
-	 * Export data
-	 * @param  {string} type | Export type (csv only, for now)
-	 * @param  {mixed} selection | single or array of page numbers
-	 * @return {void}
+	 * Export table to various formats (csv, txt or sql)
+	 * @param  {Object} options User options
+	 * @return {Boolean}
 	 */
-	DataTable.prototype.export = function(type, filename, columnDelimiter, lineDelimiter, selection) {
-		var that = this, rows = [], data = [], ctr, keys;
+	DataTable.prototype.export = function(options) {
+		var rows = [], p, str, link;
 
-		if ( type === "csv" ) {
-			// Include headings
-			rows.push(this.tHead.rows[0]);
+		var defaults = {
+			download: true,
+			skipColumn: [],
+
+			// csv
+			lineDelimiter:  "\n",
+			columnDelimiter:  ",",
+
+			// sql
+			tableName: "myTable"
+		};
+
+		// Check for the options object
+		if ( !util.isObject(options) ) {
+			return false;
 		}
 
-		if ( selection ) {
-			if ( util.isInt(selection) ) {
-				var page = that.pages[selection - 1];
-				util.each(page, function(i, p) {
-					rows.push(p);
-				});
-			} else if ( util.isArray(selection) ) {
-				util.each(selection, function(i, page) {
+		options = util.extend(defaults, options);
 
-					page = that.pages[page-1];
+		if ( options.type ) {
 
-					util.each(page, function(i, p) {
-						rows.push(p);
-					});
-				});
+			if ( options.type === "txt" || options.type === "csv" ) {
+				// Include headings
+				rows[0] = this.tHead.rows[0];
 			}
-		} else {
-			rows = rows.concat(this.rows);
-		}
 
-		if ( rows.length ) {
+			// Selection or whole table
+			if ( options.selection ) {
+				// Page number
+				if ( util.isInt(options.selection) ) {
+					rows = rows.concat(this.pages[options.selection - 1]);
+				}
+				// Array of page numbers
+				else if ( util.isArray(options.selection) ) {
+					for ( var i = 0; i < options.selection.length; i++ ) {
+						rows = rows.concat(this.pages[options.selection[i] - 1]);
+					};
+				}
+			} else {
+				rows = rows.concat(this.rows);
+			}
 
-			if ( type === "csv" ) {
-				var csv, link, j;
+			// Only proceed if we have data
+			if ( rows.length ) {
 
-				columnDelimiter = columnDelimiter || ",";
-				lineDelimiter =  lineDelimiter || "\n";
+				if ( options.type === "txt" || options.type === "csv" ) {
+					str = "";
 
-				util.each(rows, function(i, row) {
-					j = 0;
+					for ( var i = 0; i < rows.length; i++ ) {
+						for ( var x = 0; x < rows[i].cells.length; x++ ) {
+							// Check for column skip
+							if ( options.skipColumn.indexOf(x) < 0 ) {
+								str += rows[i].cells[x].textContent + options.columnDelimiter;
+							}
+						};
+						// Remove trailing column delimiter
+						str = str.trim().substring(0, str.length - 1);
 
-					util.each(row.cells, function(x, cell) {
-						if (j > 0) data.push(columnDelimiter);
-						data.push(cell.textContent);
-						j++;
-					});
-					data.push(lineDelimiter);
-				});
+						// Apply line delimiter
+						str += options.lineDelimiter;
+					};
 
-				// Convert the array to string
-				csv = data.join("");
+					// Remove trailing line delimiter
+					str = str.trim().substring(0, str.length - 1);
 
-				filename = filename || 'datatable_export';
-				filename += ".csv";
+					if ( options.download ) {
+						str = "data:text/csv;charset=utf-8," + str;
+					}
+				} else if ( options.type === "sql" ) {
 
-				if (!csv.match(/^data:text\/csv/i)) {
-					csv = 'data:text/csv;charset=utf-8,' + csv;
+					// Begin INSERT statement
+					str = "INSERT INTO `" + options.tableName + "` (";
+
+					// Convert table headings to column names
+					for ( var i = 0; i < this.tHead.rows[0].cells.length; i++ ) {
+						if ( options.skipColumn.indexOf(i) < 0 ) {
+							str += "`" + this.tHead.rows[0].cells[i].textContent + "`,";
+						}
+					};
+
+					// Remove trailing comma
+					str = str.trim().substring(0, str.length - 1);
+
+					// Begin VALUES
+					str += ") VALUES ";
+
+					// Iterate rows and convert cell data to column values
+					for ( var i = 0; i < rows.length; i++ ) {
+						str += "(";
+
+						for ( var x = 0; x < rows[i].cells.length; x++ ) {
+							if ( options.skipColumn.indexOf(x) < 0 ) {
+								str += '"'+ rows[i].cells[x].textContent + '",';
+							}
+						};
+
+						// Remove trailing comma
+						str = str.trim().substring(0, str.length - 1);
+
+						// end VALUES
+						str += "),";
+					};
+
+					// Remove trailing comma
+					str = str.trim().substring(0, str.length - 1);
+
+					// Add trailing colon
+					str += ";";
+
+					if ( options.download ) {
+						str = 'data:application/sql;charset=utf-8,' + str;
+					}
 				}
 
-				// Create a link to trigger the download
-				csv = encodeURI(csv);
-				link = util.createElement('a');
-				link.setAttribute('href', csv);
-				link.setAttribute('download', filename);
+				// Download
+				if ( options.download ) {
+					// Filename
+					options.filename = options.filename || 'datatable_export';
+					options.filename += "." + options.type;
 
-				document.body.appendChild(link);
+					// Create a link to trigger the download
+					str = encodeURI(str);
 
-				// Trigger the download
-				link.click();
+					link = document.createElement('a');
+					link.href = str;
+					link.download = options.filename;
 
-				document.body.removeChild(link);
+					// Append the link
+					document.body.appendChild(link);
+
+					// Trigger the download
+					link.click();
+
+					// Remove the link
+					document.body.removeChild(link);
+				}
+
+				return str;
 			}
-
-			this.emit("datatable.export", type, rows);
 		}
+
+		return false;
 	};
 
 	/**
