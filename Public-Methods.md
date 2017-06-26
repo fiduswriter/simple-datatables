@@ -89,31 +89,26 @@ Export the table to various formats. The `options` argument must be an object of
 
 ```javascript
 {
-    download: true,
-    skipColumn: [],
+    download: true, // trigger download of file or return the string
+    skipColumn: [], // array of column indexes to skip
 
     // csv
-    lineDelimiter:  "\n",
-    columnDelimiter:  ",",
+    lineDelimiter:  "\n", // line delimiter for csv type
+    columnDelimiter:  ",", // column delimiter for csv type
 
     // sql
-    tableName: "myTable",
+    tableName: "myTable", // SQL table name for sql type
 
     // json
-    replacer: null,
-    space: 4
+    replacer: null, // JSON.stringify's replacer parameter for json type
+    space: 4 // JSON.stringify's space parameter for json type
 };
 ```
-
-#### Properties
-
-`download` - test
-
 
 #### Examples
 
 ```javascript
-// Export the current page as a csv file
+// Export the current page as a .csv file
 dataTable.export({
     type: "csv",
     filename: "my-csv-file"
@@ -122,13 +117,19 @@ dataTable.export({
 ```
 
 ```javascript
-// Export page 24
-var currentPage = dataTable.currentPage;
-dataTable.export("csv", "my_csv_file", null, null, 24);
+// Export pages 1-5 as an .sql file
+
+dataTable.export({
+    type: "sql",
+    tableName: "sql_users",
+    selection: [1,2,3,4,5]
+});
 ```
 
 ```javascript
-// Export pages 1-5
-var currentPage = dataTable.currentPage;
-dataTable.export("csv", "my_csv_file", null, null, [1,2,3,4,5]);
+// Export to json string
+dataTable.export({
+    type: "json",
+    download: false
+});
 ```
