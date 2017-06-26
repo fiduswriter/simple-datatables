@@ -120,7 +120,6 @@ dataTable.export({
 
 ```javascript
 // Export pages 1-5 as an .sql file
-
 dataTable.export({
     type: "sql",
     tableName: "sql_users",
