@@ -24,9 +24,9 @@
 * [header](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#header)
 * [footer](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#footer)
 
-#### Public Methods
-* [refresh()](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#refresh)
-* [page()](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#pagenum-int)
+#### API
+* [refresh](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#refresh)
+* [page](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#pagenum-int)
 * [addRows](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#addrowsdata-object)
 * [sortColumn](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#sortcolumncolumn-int-direction-string)
 * [setMessage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#setmessagemessage-string)
