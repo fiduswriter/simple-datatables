@@ -6,6 +6,8 @@ var datatable = new DataTable("#myTable");
 datatable.methodnName();
 ```
 
+>Please note that the API is not finalised and may change so check back once in while.
+
 ---
 
 ### refresh()
