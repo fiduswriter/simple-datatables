@@ -135,3 +135,11 @@ dataTable.export({
     download: false
 });
 ```
+
+```javascript
+// Export to .json file, omitting the 1st, 3rd and 5th columns
+dataTable.export({
+    type: "json",
+    skipColumn: [0,2,4],
+});
+```
