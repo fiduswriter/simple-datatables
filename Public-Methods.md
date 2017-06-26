@@ -129,17 +129,17 @@ dataTable.export({
 ```
 
 ```javascript
-// Export to json string
+// Export to .json file
 dataTable.export({
     type: "json",
-    download: false
 });
 ```
 
 ```javascript
-// Export to .json file, omitting the 1st, 3rd and 5th columns
+// Export to json string, omitting the 1st, 3rd and 5th columns
 dataTable.export({
     type: "json",
     skipColumn: [0,2,4],
+    download: false // return formatted string instead of file
 });
 ```
