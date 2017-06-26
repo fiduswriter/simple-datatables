@@ -32,4 +32,4 @@
 * [setMessage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#setmessagemessage-string)
 * [init](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#init)
 * [destroy](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#destroy)
-* [export](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#exporttype-string-filename-string-columndelimiter-string-linedelimiter-string-selection-mixed)
+* [export](https://github.com/Mobius1/Vanilla-DataTables/wiki/Public-Methods#exportoptions-object)
