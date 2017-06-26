@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.1.9
+ * Version: 1.1.10
  *
  */
 (function(root, factory) {
@@ -1156,7 +1156,7 @@
 	 * @return {Boolean}
 	 */
 	DataTable.prototype.export = function(options) {
-		var headers = this.tHead.rows[0].cells, rows = [], arr = [], p, str, link;
+		var headers = this.tHead.rows[0].cells, rows = [], arr = [], i, x, str, link;
 
 		var defaults = {
 			download: true,
@@ -1196,9 +1196,9 @@
 				}
 				// Array of page numbers
 				else if ( util.isArray(options.selection) ) {
-					for ( var i = 0; i < options.selection.length; i++ ) {
+					for ( i = 0; i < options.selection.length; i++ ) {
 						rows = rows.concat(this.pages[options.selection[i] - 1]);
-					};
+					}
 				}
 			} else {
 				rows = rows.concat(this.rows);
@@ -1210,19 +1210,19 @@
 				if ( options.type === "txt" || options.type === "csv" ) {
 					str = "";
 
-					for ( var i = 0; i < rows.length; i++ ) {
-						for ( var x = 0; x < rows[i].cells.length; x++ ) {
+					for ( i = 0; i < rows.length; i++ ) {
+						for ( x = 0; x < rows[i].cells.length; x++ ) {
 							// Check for column skip
 							if ( options.skipColumn.indexOf(x) < 0 ) {
 								str += rows[i].cells[x].textContent + options.columnDelimiter;
 							}
-						};
+						}
 						// Remove trailing column delimiter
 						str = str.trim().substring(0, str.length - 1);
 
 						// Apply line delimiter
 						str += options.lineDelimiter;
-					};
+					}
 
 					// Remove trailing line delimiter
 					str = str.trim().substring(0, str.length - 1);
@@ -1236,11 +1236,11 @@
 					str = "INSERT INTO `" + options.tableName + "` (";
 
 					// Convert table headings to column names
-					for ( var i = 0; i < headers.length; i++ ) {
+					for ( i = 0; i < headers.length; i++ ) {
 						if ( options.skipColumn.indexOf(i) < 0 ) {
 							str += "`" + headers[i].textContent + "`,";
 						}
-					};
+					}
 
 					// Remove trailing comma
 					str = str.trim().substring(0, str.length - 1);
@@ -1249,21 +1249,21 @@
 					str += ") VALUES ";
 
 					// Iterate rows and convert cell data to column values
-					for ( var i = 0; i < rows.length; i++ ) {
+					for ( i = 0; i < rows.length; i++ ) {
 						str += "(";
 
-						for ( var x = 0; x < rows[i].cells.length; x++ ) {
+						for ( x = 0; x < rows[i].cells.length; x++ ) {
 							if ( options.skipColumn.indexOf(x) < 0 ) {
 								str += '"'+ rows[i].cells[x].textContent + '",';
 							}
-						};
+						}
 
 						// Remove trailing comma
 						str = str.trim().substring(0, str.length - 1);
 
 						// end VALUES
 						str += "),";
-					};
+					}
 
 					// Remove trailing comma
 					str = str.trim().substring(0, str.length - 1);
@@ -1277,10 +1277,10 @@
 				} else if ( options.type === "json" ) {
 
 					// Iterate rows
-					for ( var x = 0; x < rows.length; x++ ) {
+					for ( x = 0; x < rows.length; x++ ) {
 						arr[x] = arr[x] || {};
 						// Iterate columns
-						for ( var i = 0; i < headers.length; i++ ) {
+						for ( i = 0; i < headers.length; i++ ) {
 							arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
 						}
 					}
