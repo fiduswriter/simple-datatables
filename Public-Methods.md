@@ -87,34 +87,38 @@ Destroy the instance.
 ### export(`options [object]`)
 Export the table to various formats. The `options` argument must be an object of options. The only required property is the `type` property which accepts either `csv`, `txt`, `json` or `sql` as it's value. The rest are optional:
 
-#### Arguments:
-
 ```javascript
+{
+    download: true,
+    skipColumn: [],
 
-var defaults = {
-	download: true,
-	skipColumn: [],
+    // csv
+    lineDelimiter:  "\n",
+    columnDelimiter:  ",",
 
-	// csv
-	lineDelimiter:  "\n",
-	columnDelimiter:  ",",
+    // sql
+    tableName: "myTable",
 
-	// sql
-	tableName: "myTable",
-
-	// json
-	replacer: null,
-	space: 4
+    // json
+    replacer: null,
+    space: 4
 };
 ```
+
+#### Properties
+
+`download` - test
 
 
 #### Examples
 
 ```javascript
-// Export the current page
-var currentPage = dataTable.currentPage;
-dataTable.export("csv", "my_csv_file", null, null, currentPage);
+// Export the current page as a csv file
+dataTable.export({
+    type: "csv",
+    filename: "my-csv-file"
+    selection: dataTable.currentPage
+});
 ```
 
 ```javascript
