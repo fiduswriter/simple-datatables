@@ -85,7 +85,9 @@ Destroy the instance.
 ---
 
 ### export(`options [object]`)
-Export the table to various formats. The `options` argument must be an object of options. The only required property is the `type` property which accepts either `csv`, `txt`, `json` or `sql` as it's value. The rest are optional:
+Export the table data to various formats.
+
+The `options` argument must be an object of which the only required property is the `type` property which accepts either `csv`, `txt`, `json` or `sql` as it's value. The rest are optional:
 
 ```javascript
 {
