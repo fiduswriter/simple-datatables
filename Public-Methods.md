@@ -84,27 +84,30 @@ Destroy the instance.
 
 ---
 
-### export(`type [string]`, `filename [string]`, `columnDelimiter [string]`, `lineDelimiter [string]`, `selection [mixed]`)
-Export the table to various formats.
+### export(`options [object]`)
+Export the table to various formats. The `options` argument must be an object of options. The only required property is the `type` property which accepts either `csv`, `txt`, `json` or `sql` as it's value. The rest are optional:
 
 #### Arguments:
 
-* `type` - the format to export to
-* `filename` - The name of the exported file
-* `columnDelimiter` - The column delimiter (default: `","`)
-* `lineDelimiter` - The line delimiter (default: `"\n"`)
-* `selection` - Either a page number or array of page numbers to export. Omitting will export the entire table.
-
-
-> As of v1.1.8 it is only possible to export to CSV.
-
-
 ```javascript
-var datatable = new DataTable("#myTable");
 
-// Export the table to a csv file named my_csv_file.csv
-dataTable.export("csv", "my_csv_file");
+var defaults = {
+	download: true,
+	skipColumn: [],
+
+	// csv
+	lineDelimiter:  "\n",
+	columnDelimiter:  ",",
+
+	// sql
+	tableName: "myTable",
+
+	// json
+	replacer: null,
+	space: 4
+};
 ```
+
 
 #### Examples
 
