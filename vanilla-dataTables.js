@@ -1156,7 +1156,7 @@
 	 * @return {Boolean}
 	 */
 	DataTable.prototype.export = function(options) {
-		var rows = [], p, str, link;
+		var headers = this.tHead.rows[0].cells, rows = [], arr = [], p, str, link;
 
 		var defaults = {
 			download: true,
@@ -1167,7 +1167,11 @@
 			columnDelimiter:  ",",
 
 			// sql
-			tableName: "myTable"
+			tableName: "myTable",
+
+			// json
+			replacer: null,
+			space: 4
 		};
 
 		// Check for the options object
@@ -1232,9 +1236,9 @@
 					str = "INSERT INTO `" + options.tableName + "` (";
 
 					// Convert table headings to column names
-					for ( var i = 0; i < this.tHead.rows[0].cells.length; i++ ) {
+					for ( var i = 0; i < headers.length; i++ ) {
 						if ( options.skipColumn.indexOf(i) < 0 ) {
-							str += "`" + this.tHead.rows[0].cells[i].textContent + "`,";
+							str += "`" + headers[i].textContent + "`,";
 						}
 					};
 
@@ -1269,6 +1273,23 @@
 
 					if ( options.download ) {
 						str = 'data:application/sql;charset=utf-8,' + str;
+					}
+				} else if ( options.type === "json" ) {
+
+					// Iterate rows
+					for ( var x = 0; x < rows.length; x++ ) {
+						arr[x] = arr[x] || {};
+						// Iterate columns
+						for ( var i = 0; i < headers.length; i++ ) {
+							arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
+						}
+					}
+
+					// Convert the array of objects to JSON string
+					str = JSON.stringify(arr, options.replacer, options.space);
+
+					if ( options.download ) {
+						str = 'data:application/json;charset=utf-8,' + str;
 					}
 				}
 
