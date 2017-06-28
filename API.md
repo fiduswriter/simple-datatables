@@ -144,3 +144,10 @@ dataTable.export({
     download: false // return formatted string instead of file
 });
 ```
+
+---
+
+### print()
+Display printable version.
+
+---
