@@ -164,12 +164,11 @@ The `options` argument must be an object of which the only required properties `
 ```
 
 ```javascript
-    // Import a csv string with the "|" as the column delimiter
+    // Import a csv string
     datatable.import({
         type: "csv",
-        data: "Heading 1|Heading 2|Heading 3
-               Value 1|Value 2|Value 3
-               Value 4|Value 5|Value 6".
+        data: "Heading 1|Heading 2|Heading 3,Value 1|Value 2|Value 3,Value 4|Value 5|Value 6".
+        lineDelimiter:  ",",
         columnDelimiter:  "|"
     });
 ```
