@@ -57,12 +57,12 @@ dataTable.addRows(newData);
 ---
 
 ### sortColumn(`column [int]`, `direction [string]`)
-Sort the data by column and direction. The column numbers are zero-indexed so the first column is `0`, second is `1`, etc.
+Sort the data by column and direction.
 
 
 ```javascript
 // sort the 4th column in descending order
-dataTable.sortColumn(3, 'desc');
+dataTable.sortColumn(4, 'desc');
 ```
 
 ---
