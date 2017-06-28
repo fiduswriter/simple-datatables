@@ -3,7 +3,7 @@ Vanilla DataTables comes with a bunch of public methods for you to utilise. Just
 ```javascript
 var datatable = new DataTable("#myTable");
 
-datatable.methodnName();
+datatable.methodName();
 ```
 
 >Please note that the API is not finalised and may change so check back once in while.
