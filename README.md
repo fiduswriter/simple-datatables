@@ -8,7 +8,8 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 * Searchable
 * Customisable layout
 * Customisable labels
-* Export and import common formats like `csv`, `txt` `json`, and `sql`
+* Export to common formats like `csv`, `txt` `json`, and `sql`
+* Import `csv` and `json` data
 
 
 [Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki)

@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobiuswebdesign.co.uk)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.1.10
+ * Version: 1.1.11
  *
  */
 (function(root, factory) {
@@ -109,6 +109,44 @@
 				return (x || 0) === x;
 			})(parseFloat(val));
 		},
+		isJson: function(str) {
+			var json = false;
+			try {
+					json = JSON.parse(str);
+			} catch (e) {
+					return false;
+			}
+
+			if (json !== null && (util.isArray(json) || util.isObject(json))) {
+					return json;
+			}
+
+			return false;
+		},
+		isDate: function(str) {
+			// First check for the pattern
+			if(!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str))
+					return false;
+
+			// Parse the date parts to integers
+			var parts = str.split("/");
+			var day = parseInt(parts[1], 10);
+			var month = parseInt(parts[0], 10);
+			var year = parseInt(parts[2], 10);
+
+			// Check the ranges of month and year
+			if(year < 1000 || year > 3000 || month == 0 || month > 12)
+					return false;
+
+			var monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
+
+			// Adjust for leap years
+			if(year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
+					monthLength[1] = 29;
+
+			// Check the range of the day
+			return day > 0 && day <= monthLength[month - 1];
+		},
 		getBoundingRect: function(el) {
 			var win = window;
 			var doc = document;
@@ -162,9 +200,6 @@
 		var o = this.options;
 		var template = "";
 
-		// Event listeners
-		Emitter.mixin(this);
-
 		// Convert data to HTML
 		if (o.data) {
 			dataToTable.call(this);
@@ -175,16 +210,33 @@
 		this.tHead = this.table.tHead;
 		this.tFoot = this.table.tFoot;
 
+		if ( !this.tbody ) {
+			this.tbody = util.createElement("tbody");
+
+			this.table.appendChild(this.tbody);
+		}
+
+		this.hasRows = this.tbody.rows.length > 0;
+
 		// Make a tHead if there isn't one (fixes #8)
 		if ( !this.tHead ) {
 			var h = util.createElement("thead");
 			var t = util.createElement("tr");
-			util.each(this.tbody.rows[0].cells, function(i, cell) {
-				util.append(t, util.createElement("th"));
-			});
-			util.append(h, t);
+
+			if ( this.hasRows ) {
+				util.each(this.tbody.rows[0].cells, function(i, cell) {
+					util.append(t, util.createElement("th"));
+				});
+
+				util.append(h, t);
+			}
+
 			this.tHead = h;
+
+			this.table.insertBefore(this.tHead, this.tbody);
 		}
+
+		this.hasHeadings = this.tHead.rows.length > 0;
 
 		// Header
 		if ( !o.header ) {
@@ -206,6 +258,7 @@
 				this.table.removeChild(this.table.tFoot);
 			}
 		}
+
 
 		// Build
 		this.wrapper = util.createElement('div', {
@@ -261,22 +314,24 @@
 			template = template.replace("{search}", "");
 		}
 
-		// Sortable
-		var cols = this.tHead.rows[0].cells;
+		if ( this.tHead && this.tHead.rows.length ) {
+			// Sortable
+			var cols = this.tHead.rows[0].cells;
 
-		util.each(cols, function(i, th) {
-			th.idx = i;
+			util.each(cols, function(i, th) {
+				th.idx = i;
 
-			if (o.sortable) {
-				var link = util.createElement('a', {
-					href: '#',
-					class: 'dataTable-sorter',
-					html: th.innerHTML
-				});
-				th.innerHTML = '';
-				util.append(th, link);
-			}
-		});
+				if (o.sortable) {
+					var link = util.createElement('a', {
+						href: '#',
+						class: 'dataTable-sorter',
+						html: th.innerHTML
+					});
+					th.innerHTML = '';
+					util.append(th, link);
+				}
+			});
+		}
 
 		// Add table class
 		util.addClass(this.table, 'dataTable-table');
@@ -307,10 +362,11 @@
 		this.rect = util.getBoundingRect(this.table);
 
 		// Convert rows to array for processing
-		this.rows = Array.prototype.slice.call(this.tbody.rows);
+		this.rows = [].slice.call(this.tbody.rows);
 
 		// Update
 		this.update();
+
 
 		// Fixed height
 		if (o.fixedHeight) {
@@ -319,51 +375,7 @@
 
 		// Fixed column widths
 		if (o.fixedColumns) {
-			var cells, hd = false;
-
-			// If we have a headings we need only set the widths on them
-			// otherwise we need a temp header and the widths need applying to all cells
-			if (this.table.tHead) {
-				cells = this.table.tHead.rows[0].cells;
-
-				util.each(cells, function(i, cell) {
-					var rect = util.getBoundingRect(cell);
-					var w = (rect.width / this.rect.width) * 100;
-					cell.style.width = w + '%';
-				}, this);
-			} else {
-
-				cells = [];
-
-				// Make temperary headings
-				hd = util.createElement("thead");
-				var r = util.createElement("tr");
-				var c = this.table.tBodies[0].rows[0].cells;
-				util.each(c, function(i, row) {
-					var th = util.createElement("th");
-					r.appendChild(th);
-					cells.push(th);
-				});
-
-				hd.appendChild(r);
-				this.table.insertBefore(hd, this.table.tBodies[0]);
-
-				var widths = [];
-				util.each(cells, function(i, cell) {
-					var rect = util.getBoundingRect(cell);
-					var w = (rect.width / this.rect.width) * 100;
-					widths.push(w);
-				}, this);
-
-				util.each(this.rows, function(idx, row) {
-					util.each(row.cells, function(i, cell) {
-						cell.style.width = widths[i] + "%";
-					});
-				});
-
-				// Discard the temp header
-				this.table.removeChild(hd);
-			}
+			this.fixColumns();
 		}
 
 		setClassNames.call(this);
@@ -450,9 +462,17 @@
 	// Sort the rows into pages
 	var paginate = function() {
 		var perPage = this.options.perPage,
-			rows = !!this.searching ? this.searchData : this.rows;
+			rows = !!this.searching ? this.searchData.slice() : this.rows.slice();
 
+		// Check for hidden columns
 		this.pages = rows.map(function(tr, i) {
+			var cells = [].slice(tr.cells);
+			util.each(cells, function(i, cell) {
+				if ( cell.hidden ) {
+					tr.removeChild(cell);
+				}
+			});
+
 			return i % perPage === 0 ? rows.slice(i, i + perPage) : null;
 		}).filter(function(page) {
 			return page;
@@ -461,10 +481,11 @@
 		this.totalPages = this.lastPage = this.pages.length;
 	};
 
+
 	// Render a page
 	var render = function() {
 
-		if (this.totalPages) {
+		if ( this.hasRows && this.totalPages) {
 
 			if (this.currentPage > this.totalPages) {
 				this.currentPage = 1;
@@ -709,39 +730,55 @@
 		}
 	};
 
-	// Event emitter
-	var Emitter = function() {};
-	Emitter.prototype = {
-		on: function(event, fct) {
-			this._events = this._events || {};
-			this._events[event] = this._events[event] || [];
-			this._events[event].push(fct);
-		},
-		off: function(event, fct) {
-			this._events = this._events || {};
-			if (event in this._events === false) return;
-			this._events[event].splice(this._events[event].indexOf(fct), 1);
-		},
-		emit: function(event /* , args... */ ) {
-			this._events = this._events || {};
-			if (event in this._events === false) return;
-			for (var i = 0; i < this._events[event].length; i++) {
-				this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
-			}
+
+	// Columns API
+	function Columns(instance) {
+		this.instance = instance;
+	}
+
+	Columns.prototype.select = function(columns) {
+		this.columns = [];
+		if ( util.isInt(columns) ) {
+			this.columns.push(columns);
+		} else if ( util.isArray(columns) ) {
+			this.columns = columns;
+		}
+
+		return this;
+	};
+
+	Columns.prototype.hide = function() {
+		if ( this.columns.length ) {
+			var rows = [].slice.call(this.instance.tHead.rows);
+
+			rows = rows.concat(this.instance.rows);
+
+			util.each(rows, function(i, row) {
+				util.each(this.columns, function(j, column) {
+					row.cells[column].hidden = true;
+				}, this);
+			}, this);
+
+			this.instance.update();
 		}
 	};
 
-	Emitter.mixin = function(obj) {
-		var props = ['on', 'off', 'emit'];
-		for (var i = 0; i < props.length; i++) {
-			if (typeof obj === 'function') {
-				obj.prototype[props[i]] = Emitter.prototype[props[i]];
-			} else {
-				obj[props[i]] = Emitter.prototype[props[i]];
-			}
+	Columns.prototype.show = function() {
+		if ( this.columns.length ) {
+			var rows = [].slice.call(this.instance.tHead.rows);
+
+			rows = rows.concat(this.instance.rows);
+
+			util.each(rows, function(i, row) {
+				util.each(this.columns, function(j, column) {
+					row.cells[column].hidden = false;
+				}, this);
+			}, this);
+
+			this.instance.update();
 		}
-		return obj;
 	};
+
 
 	/////////////////
 	//	DATATABLE	//
@@ -821,15 +858,6 @@
 			}
 		}
 
-		if (!table.tBodies.length) {
-			if (this.options.data) {
-				if (!this.options.data.rows) {
-					throw new Error("You seem to be using the data option, but you've not defined any rows.");
-				}
-			} else {
-				throw new Error("You don't seem to have a tbody in your table.");
-			}
-		}
 
 		if (table.tBodies.length && !table.tBodies[0].rows.length) {
 			if (this.options.data) {
@@ -843,6 +871,20 @@
 
 		this.init();
 	}
+
+	/**
+	 * Add custom property or method to extend DataTable
+	 * @param  {String} prop 	- Method name or property
+	 * @param  {Mixed} val 		- Function or property value
+	 * @return {Void}
+	 */
+	DataTable.extend = function(prop, val) {
+		if (typeof val === 'function') {
+			DataTable.prototype[prop] = val;
+		} else {
+			DataTable[prop] = val;
+		}
+	};
 
 	/**
 	 * Initialize the instance
@@ -906,13 +948,54 @@
 	};
 
 	/**
+	 * Add custom event listener
+	 * @param  {String} event
+	 * @param  {Function} callback
+	 * @return {Void}
+	 */
+	DataTable.prototype.on = function(event, callback) {
+		this._events = this._events || {};
+		this._events[event] = this._events[event] || [];
+		this._events[event].push(callback);
+	};
+
+	/**
+	 * Remove custom event listener
+	 * @param  {String} event
+	 * @param  {Function} callback
+	 * @return {Void}
+	 */
+	DataTable.prototype.off = function(event, callback) {
+		this._events = this._events || {};
+		if (event in this._events === false) return;
+		this._events[event].splice(this._events[event].indexOf(callback), 1);
+	};
+
+	/**
+	 * Fire custom event
+	 * @param  {String} event
+	 * @return {Void}
+	 */
+	DataTable.prototype.emit = function(event) {
+		this._events = this._events || {};
+		if (event in this._events === false) return;
+		for (var i = 0; i < this._events[event].length; i++) {
+			this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+		}
+	};
+
+	/**
 	 * Update the instance
-	 * @return {[type]} [description]
+	 * @return {Void}
 	 */
 	DataTable.prototype.update = function() {
 
 		paginate.call(this);
 		render.call(this);
+
+		if ( this.options.fixedColumns && !this.searching && !this.sorting ) {
+			this.fixColumns();
+		}
 
 		this.links = [];
 
@@ -922,9 +1005,68 @@
 			this.links[i] = util.button((i === 0) ? 'active' : '', num, num);
 		}
 
+		this.sorting = false;
+
 		renderPager.call(this);
 
 		this.emit('datatable.update');
+	};
+
+	/**
+	 * Fix column widths
+	 * @return {Void}
+	 */
+	DataTable.prototype.fixColumns = function() {
+		var cells, hd = false;
+
+		// If we have headings we need only set the widths on them
+		// otherwise we need a temp header and the widths need applying to all cells
+		if (this.table.tHead && this.table.tHead.rows.length) {
+			cells = this.table.tHead.rows[0].cells;
+
+			// Reset widths
+			util.each(cells, function(i, cell) {
+				cell.style.width = "";
+			}, this);
+
+			util.each(cells, function(i, cell) {
+				var rect = util.getBoundingRect(cell);
+				var w = (rect.width / this.rect.width) * 100;
+				cell.style.width = w + '%';
+			}, this);
+		} else {
+
+			cells = [];
+
+			// Make temperary headings
+			hd = util.createElement("thead");
+			var r = util.createElement("tr");
+			var c = this.table.tBodies[0].rows[0].cells;
+			util.each(c, function(i, row) {
+				var th = util.createElement("th");
+				r.appendChild(th);
+				cells.push(th);
+			});
+
+			hd.appendChild(r);
+			this.table.insertBefore(hd, this.table.tBodies[0]);
+
+			var widths = [];
+			util.each(cells, function(i, cell) {
+				var rect = util.getBoundingRect(cell);
+				var w = (rect.width / this.rect.width) * 100;
+				widths.push(w);
+			}, this);
+
+			util.each(this.rows, function(idx, row) {
+				util.each(row.cells, function(i, cell) {
+					cell.style.width = widths[i] + "%";
+				});
+			});
+
+			// Discard the temp header
+			this.table.removeChild(hd);
+		}
 	};
 
 	/**
@@ -933,6 +1075,8 @@
 	 * @return {void}
 	 */
 	DataTable.prototype.search = function(query) {
+
+		if ( !this.hasRows ) return false;
 
 		query = query.toLowerCase();
 
@@ -954,11 +1098,21 @@
 			var inArray = util.includes(this.searchData, row);
 
 			// https://github.com/Mobius1/Vanilla-DataTables/issues/12
-			var doesQueryMatch = query.split (" ").reduce (function (bool, word) {
-				return bool && util.includes(row.textContent.toLowerCase(), word);
+			var doesQueryMatch = query.split(" ").reduce(function (bool, word) {
+
+				var includes = false;
+
+				for ( var x = 0; x < row.cells.length; x++ ) {
+					if ( util.includes(row.cells[x].textContent.toLowerCase(), word) && !row.cells[x].hidden ) {
+						includes = true;
+						break;
+					}
+				}
+
+				return bool && includes;
 			}, true);
 
-			// Cheat and get the row's textContent instead of searching each cell :P
+
 			if (doesQueryMatch && !inArray) {
 				this.searchData.push(row);
 			}
@@ -1007,12 +1161,14 @@
 	 * @param  {string} direction - asc or desc
 	 * @return {void}
 	 */
-	DataTable.prototype.sortColumn = function(column, direction) {
+	DataTable.prototype.sortColumn = function(column, direction, callback) {
 
 		// Check column is present
 		if ( column < 1 || column > this.tHead.rows[0].cells.length ) {
 			return false;
 		}
+
+		this.sorting = true;
 
 		// Convert to zero-indexed
 		column = column - 1;
@@ -1028,7 +1184,12 @@
 		util.each(rows, function(i, tr) {
 			var cell = tr.cells[column];
 			var content = cell.textContent;
-			var num = content.replace(/(\$|\,|\s)/g, "");
+			var num = content.replace(/(\$|\,|\s|%)/g, "");
+
+			// Parse date strings
+			if ( util.isDate(num) ) {
+				num = Date.parse(num);
+			}
 
 			if (parseFloat(num) == num) {
 				numeric[n++] = { value: Number(num), row: tr };
@@ -1087,15 +1248,28 @@
 	 * @param {object} data
 	 */
 	DataTable.prototype.addRows = function(data) {
-		if (Object.prototype.toString.call(data) !== '[object Object]') {
-			throw new Error("Function addRows: The method requires an object.");
+		if ( !util.isObject(data) ) {
+			throw new Error("Method addRows requires an object.");
 		}
 
 		if (!data.rows) {
-			throw new Error("Function addRows: Your object is missing the 'rows' property.");
+			throw new Error("Method addRows requires the 'rows' property.");
 		}
 
-		var that = this;
+		if ( data.headings ) {
+			if ( !this.hasHeadings && !this.hasRows ) {
+				var tr = util.createElement("tr"), th;
+				util.each(data.headings, function(i, heading) {
+					th = util.createElement("th", {
+						html: heading
+					});
+
+					tr.appendChild(th);
+				});
+				this.tHead.appendChild(tr);
+			}
+		}
+
 		util.each(data.rows, function(i, row) {
 			var tr = util.createElement("tr");
 			util.each(row, function(a, val) {
@@ -1103,9 +1277,11 @@
 					html: val
 				});
 				tr.appendChild(td);
-			});
-			that.rows.push(tr);
-		});
+			}, this);
+			this.rows.push(tr);
+		}, this);
+
+		this.hasRows = true;
 
 		this.update();
 	};
@@ -1156,6 +1332,9 @@
 	 * @return {Boolean}
 	 */
 	DataTable.prototype.export = function(options) {
+
+		if ( !this.hasHeadings && !this.hasRows ) return false;
+
 		var headers = this.tHead.rows[0].cells, rows = [], arr = [], i, x, str, link;
 
 		var defaults = {
@@ -1324,6 +1503,82 @@
 	};
 
 	/**
+	 * Import data to the table
+	 * @param  {Object} options User options
+	 * @return {Boolean}
+	 */
+	DataTable.prototype.import = function(options) {
+		var obj = false;
+		var defaults = {
+			// csv
+			lineDelimiter:  "\n",
+			columnDelimiter:  ",",
+		};
+
+		// Check for the options object
+		if ( !util.isObject(options) ) {
+			return false;
+		}
+
+		options = util.extend(defaults, options);
+
+		if ( options.data.length ) {
+
+			// Import CSV
+			if ( options.type === "csv" ) {
+				obj = { rows: [] };
+
+				// Split the string into rows
+				var rows = options.data.split(options.lineDelimiter);
+
+				if ( rows.length ) {
+					util.each(rows, function(i, row) {
+						obj.rows[i] = [];
+
+						// Split the rows into values
+						var values = row.split(options.columnDelimiter);
+
+						if ( values.length ) {
+							util.each(values, function(x, value) {
+								obj.rows[i].push(value);
+							});
+						}
+					});
+				}
+			} else if ( options.type === "json" ) {
+
+				var json = util.isJson(options.data);
+
+				// Valid JSON string
+				if ( json ) {
+
+					obj = { headings: [], rows: [] };
+
+					util.each(json, function(i, data) {
+						obj.rows[i] = [];
+						util.each(data, function(column, value) {
+							if ( !util.includes(obj.headings, column) ) {
+								obj.headings.push(column);
+							}
+
+							obj.rows[i].push(value);
+						});
+					});
+				} else {
+					console.warn("That's not valid JSON!");
+				}
+			}
+
+			if ( obj ) {
+				// Add the rows
+				this.addRows(obj);
+			}
+		}
+
+		return false;
+	};
+
+	/**
 	 * Print the table
 	 * @return {void}
 	 */
@@ -1373,10 +1628,23 @@
 	 * @param {string} message
 	 */
 	DataTable.prototype.setMessage = function(message) {
-		var colspan = this.rows[0].cells.length;
+		var colspan = 1;
+
+		if ( this.hasRows ) {
+			colspan = this.rows[0].cells.length;
+		}
+
 		this.clear(util.createElement('tr', {
 			html: '<td class="dataTables-empty" colspan="' + colspan + '">' + message + '</td>'
 		}));
+	};
+
+	/**
+	 * Columns API access
+	 * @return {Object} new Columns instance
+	 */
+	DataTable.prototype.columns = function() {
+		return new Columns(this);
 	};
 
 	return DataTable;
