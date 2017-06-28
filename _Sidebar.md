@@ -33,4 +33,4 @@
 * [init](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#init)
 * [destroy](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#destroy)
 * [export](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#exportoptions-object)
-* [export](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#print)
+* [print](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#print)
