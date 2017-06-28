@@ -150,7 +150,7 @@ dataTable.export({
 ### import(`options [object]`)
 Import data into the table from `json` or `csv` strings.
 
-The `options` argument must be an object of which the only required properties `data` and `type`. The `data` property should be the `csv` or `json` string and the `type` property should indicate the type of data being imported - `csv` or `json`.
+The `options` argument must be an object of which the only required properties are `data` and `type`. The `data` property should be the `csv` or `json` string and the `type` property should indicate the type of data being imported - `csv` or `json`.
 
 ```javascript
 {
