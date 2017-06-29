@@ -29,6 +29,17 @@ columns.hide();
 
 Shows the selected column(s) (if hidden). The columns will be visible and will be included in search results and exported data.
 
+
+```javascript
+// Show the first and second columns
+datatable.columns([0,1]).show();
+
+or 
+
+var columns = datatable.columns([0,1]);
+columns.show();
+```
+
 ---
 
 ### `visible()`
