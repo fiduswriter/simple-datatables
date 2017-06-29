@@ -4,5 +4,7 @@ The allows for the selection of columns via either a single column index or `arr
 
 ```javascript
 // Select the 1st, 4th and 6th columns
-datatable.columns([0,3,5]);
+var columns = datatable.columns([0,3,5]);
 ```
+
+### `hide`
