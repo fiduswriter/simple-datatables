@@ -1,7 +1,7 @@
 #### Getting Started
 * [Install](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#install)
 * [Manual](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#browser)
-* [Initialize](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#initialize)
+* [Initialise](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#initialise)
 
 #### Options
 * [perPage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#perpage)
