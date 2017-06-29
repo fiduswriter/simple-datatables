@@ -25,6 +25,14 @@
 * [footer](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#footer)
 
 #### API
+* [table] (https://github.com/Mobius1/Vanilla-DataTables/wiki/API#table)
+* [initialized] (https://github.com/Mobius1/Vanilla-DataTables/wiki/API#initialized)
+* [rows] (https://github.com/Mobius1/Vanilla-DataTables/wiki/API#rows)
+* [pages] (https://github.com/Mobius1/Vanilla-DataTables/wiki/API#pages)
+* [currentPage] (https://github.com/Mobius1/Vanilla-DataTables/wiki/API#currentPage)
+* [totalPages] (https://github.com/Mobius1/Vanilla-DataTables/wiki/API#totalPages)
+* [onFirstPage] (https://github.com/Mobius1/Vanilla-DataTables/wiki/API#onFirstPage)
+* [onLastPage] (https://github.com/Mobius1/Vanilla-DataTables/wiki/API#onLastPage)
 * [refresh](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#refresh)
 * [page](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#pagenum-int)
 * [addRows](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#addrowsdata-object)
