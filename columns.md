@@ -48,6 +48,22 @@ columns.show();
 
 Checks to see if the selected column(s) are visible. Returns a `boolean` for single indexes or an `array` of `boolean`s for multiple indexes.
 
+```javascript
+// Select the fourth column
+var columns = datatable.columns(3);
+
+// Hide it
+columns.hide();
+
+// Check visiblilty
+columns.visible() // returns false
+
+or 
+
+datatable.columns([0,1,2,3,4]).visible() // returns  [true, true, true, false, true]
+
+```
+
 ---
 
 ### `hidden()`
