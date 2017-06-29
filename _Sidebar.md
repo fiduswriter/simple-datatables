@@ -4,7 +4,7 @@
 * [Initialise](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#initialisel)
 
 #### Options
-* [`perPage`](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#perpage)
+* # [`perPage`](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#perpage)
 * [`perPageSelect`](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#perpageselect)
 * [`nextPrev`](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#nextprev)
 * [`prevText`](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#prevtext)
