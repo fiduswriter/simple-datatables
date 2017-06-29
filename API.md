@@ -17,15 +17,42 @@ Returns true if the library is fully loaded and all HTML is rendered.
 ### rows
 #### type `Array`
 
-Collection of all `HTMLTableRowElement`s in the table.
+Returns a collection of all `HTMLTableRowElement`s in the table.
 
 ---
 
 ### pages
 #### type `Array`
 
-Collection of pages each of which contain collections of `HTMLTableRowElement`s.
+Returns a collection of pages each of which contain collections of `HTMLTableRowElement`s.
 
+---
+
+### currentPage
+#### type `Integer`
+
+Returns the current page number.
+
+---
+
+### totalPages
+#### type `Integer`
+
+Returns then number of pages.
+
+---
+
+### onFirstPage
+#### type `Boolean`
+
+Returns `true` if the current page is also the first page.
+
+---
+
+### onLastPage
+#### type `Boolean`
+
+Returns `true` if the current page is also the last page.
 ---
 
 ### refresh()
