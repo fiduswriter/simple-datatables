@@ -2,6 +2,3 @@
 A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery DataTables, but without the dependencies.
 
 Don't forget to check out the [demo](https://s.codepen.io/Mobius1/debug/rwGyJa), the [wiki](https://github.com/Mobius1/Vanilla-DataTables/wiki) and the [changelog](http://mobius.ovh/docs/vanilla-datatables/pages/changelog).
-
-<p data-height="265" data-theme-id="dark" data-slug-hash="rwGyJa" data-default-tab="result" data-user="Mobius1" data-embed-version="2" data-pen-title="Vanilla DataTables Demo" class="codepen">See the Pen <a href="https://codepen.io/Mobius1/pen/rwGyJa/">Vanilla DataTables Demo</a> by Karl Saunders (<a href="https://codepen.io/Mobius1">@Mobius1</a>) on <a href="https://codepen.io">CodePen</a>.</p>
-<script async src="https://production-assets.codepen.io/assets/embed/ei.js"></script>
