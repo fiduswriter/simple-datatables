@@ -28,6 +28,27 @@ Returns a reference to the [`HTML <tfoot> element`](https://developer.mozilla.or
 
 ---
 
+### wrapper
+#### type `Object`
+
+Returns a reference to the main `HTMLDivElement` that wraps the entire layout.
+
+---
+
+### container
+#### type `Object`
+
+Returns a reference to the main `HTMLDivElement` that contains the table.
+
+---
+
+### pagers
+#### type `Array`
+
+Returns a reference to the currently displayed pagers.
+
+---
+
 ### headings
 #### type `HTMLCollection`
 
@@ -47,6 +68,13 @@ Returns the current configuration options.
 #### type `Boolean`
 
 Returns true if the library is fully loaded and all HTML is rendered.
+
+---
+
+### isIE
+#### type `Boolean`
+
+Returns `true` if the current browser is a version of `MS Internet Exporer` or `MS Edge`.
 
 ---
 
