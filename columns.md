@@ -7,6 +7,8 @@ The allows for the selection of columns via either a single column index or `arr
 var columns = datatable.columns([0,3,5]);
 ```
 
+You can then chain the following methods.
+
 ---
 
 ### `hide()`
