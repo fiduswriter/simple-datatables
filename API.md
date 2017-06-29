@@ -1,12 +1,7 @@
-Vanilla DataTables comes with a bunch of public methods for you to utilise. Just call the method after instantiating the plugin, like so:
-
-```javascript
-var datatable = new DataTable("#myTable");
-
-datatable.methodName();
-```
-
 >Please note that the API is not finalised and may change so check back once in while.
+
+### table
+#### type `object`
 
 ---
 
