@@ -3,16 +3,45 @@
 ### table
 #### type `Object`
 
-Reference to the `HTMLTableElement`.
+Returns a reference to the [`HTMLTableElement`](https://developer.mozilla.org/en/docs/Web/API/HTMLTableElement).
 
 ---
 
 ### head
 #### type `Object`
 
-Reference to the [`HTML <thead> element`](https://developer.mozilla.org/en/docs/Web/HTML/Element/thead).
+Returns a reference to the [`HTML <thead> element`](https://developer.mozilla.org/en/docs/Web/HTML/Element/thead).
 
 ---
+
+### body
+#### type `Object`
+
+Returns a reference to the [`HTML <tbody> element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tbody).
+
+---
+
+### foot
+#### type `Object`
+
+Returns a reference to the [`HTML <tfoot> element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tfoot).
+
+---
+
+### headings
+#### type `HTMLCollection`
+
+Returns a live `HTMLCollection` of the the table headings.
+
+---
+
+### options
+#### type `Object`
+
+Returns the current configuration options.
+
+---
+
 
 ### initialized
 #### type `Boolean`
@@ -24,7 +53,7 @@ Returns true if the library is fully loaded and all HTML is rendered.
 ### rows
 #### type `Array`
 
-Returns a collection of all `HTMLTableRowElement`s in the table.
+Returns a collection of all [`HTMLTableRowElement`s](https://developer.mozilla.org/en/docs/Web/API/HTMLTableRowElement) in the table.
 
 ---
 
@@ -32,6 +61,20 @@ Returns a collection of all `HTMLTableRowElement`s in the table.
 #### type `Array`
 
 Returns a collection of pages each of which contain collections of `HTMLTableRowElement`s.
+
+---
+
+### hasRows
+#### type `Boolean`
+
+Returns `true` if the current table has rows.
+
+---
+
+### hasHeadings
+#### type `Boolean`
+
+Returns `true` if the current table has headings.
 
 ---
 
@@ -60,6 +103,20 @@ Returns `true` if the current page is also the first page.
 #### type `Boolean`
 
 Returns `true` if the current page is also the last page.
+---
+
+### searching
+#### type `Boolean`
+
+Returns `true` if a search is currently being done and search results are displayed.
+
+---
+
+### searchData
+#### type `Array`
+
+Returns a collection of `HTMLTableRowElement`s containing matching results.
+
 ---
 
 ### refresh()
