@@ -1,6 +1,6 @@
-The `columns` API allows access to the table columns for quick manipulation.
+As of `v1.2.0`, the `columns` API is implemented and allows access to the table columns for quick manipulation.
 
-The allows for the selection of columns via either a single column index or `array` of column indexes:
+The API allows for the selection of columns via either a single `integer` representing a column index or and `array` of `integer`s representing multiple column indexes:
 
 ```javascript
 // Select the first, fourth and sixth columns
