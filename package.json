@@ -1,6 +1,6 @@
 {
   "name": "vanilla-datatables",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "A lightweight, dependency-free javascript HTML table plugin.",
   "main": "vanilla-dataTables.min.js",
   "scripts": {

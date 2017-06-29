@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.2.0
+ * Version: 1.2.1
  *
  */
 (function(root, factory) {
@@ -204,60 +204,60 @@
 		}
 
 		// Store references
-		this.tbody = this.table.tBodies[0];
-		this.tHead = this.table.tHead;
-		this.tFoot = this.table.tFoot;
+		this.body = this.table.tBodies[0];
+		this.head = this.table.tHead;
+		this.foot = this.table.tFoot;
 
-		if ( !this.tbody ) {
-			this.tbody = util.createElement("tbody");
+		if ( !this.body ) {
+			this.body = util.createElement("tbody");
 
-			this.table.appendChild(this.tbody);
+			this.table.appendChild(this.body);
 		}
 
-		this.hasRows = this.tbody.rows.length > 0;
+		this.hasRows = this.body.rows.length > 0;
 
 		// Make a tHead if there isn't one (fixes #8)
-		if ( !this.tHead ) {
+		if ( !this.head ) {
 			var h = util.createElement("thead");
 			var t = util.createElement("tr");
 
 			if ( this.hasRows ) {
-				util.each(this.tbody.rows[0].cells, function(i, cell) {
+				util.each(this.body.rows[0].cells, function(i, cell) {
 					util.append(t, util.createElement("th"));
 				});
 
 				util.append(h, t);
 			}
 
-			this.tHead = h;
+			this.head = h;
 
-			this.table.insertBefore(this.tHead, this.tbody);
+			this.table.insertBefore(this.head, this.body);
 		}
 
-		this.hasHeadings = this.tHead.rows.length > 0;
+		this.hasHeadings = this.head.rows.length > 0;
 
 		if ( this.hasHeadings ) {
-			this.header = this.tHead.rows[0];
+			this.header = this.head.rows[0];
 			this.headings = [].slice.call(this.header.cells);
 		}
 
 		// Header
 		if ( !o.header ) {
-			if ( this.tHead ) {
+			if ( this.head ) {
 				this.table.removeChild(this.table.tHead);
 			}
 		}
 
 		// Footer
 		if ( o.footer ) {
-			if ( this.tHead && !this.tFoot) {
-				this.tFoot = util.createElement('tfoot', {
-					html: this.tHead.innerHTML
+			if ( this.head && !this.foot) {
+				this.foot = util.createElement('tfoot', {
+					html: this.head.innerHTML
 				});
-				this.table.appendChild(this.tFoot);
+				this.table.appendChild(this.foot);
 			}
 		} else {
-			if ( this.tFoot ) {
+			if ( this.foot ) {
 				this.table.removeChild(this.table.tFoot);
 			}
 		}
@@ -317,9 +317,9 @@
 			template = template.replace("{search}", "");
 		}
 
-		if ( this.tHead && this.tHead.rows.length ) {
+		if ( this.head && this.head.rows.length ) {
 			// Sortable
-			var cols = this.tHead.rows[0].cells;
+			var cols = this.head.rows[0].cells;
 
 			util.each(cols, function(i, th) {
 				if (o.sortable) {
@@ -351,7 +351,7 @@
 
 		this.container = this.wrapper.querySelector(".dataTable-container");
 
-		this.paginators = this.wrapper.querySelectorAll(".dataTable-pagination");
+		this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination");
 
 		this.label = this.wrapper.querySelector(".dataTable-info");
 
@@ -363,7 +363,7 @@
 		this.rect = util.getBoundingRect(this.table);
 
 		// Convert rows to array for processing
-		this.rows = [].slice.call(this.tbody.rows);
+		this.rows = [].slice.call(this.body.rows);
 
 		// Update
 		this.update();
@@ -377,7 +377,7 @@
 		if ( this.options.fixedColumns ) {
 			this.fixColumns();
 
-			this.header = this.tHead.rows[0];
+			this.header = this.head.rows[0];
 			this.headings = this.header.cells;
 		}
 
@@ -448,7 +448,7 @@
 
 		// Sort items
 		if ( o.sortable ) {
-			util.on(that.tHead, 'click', function(e) {
+			util.on(that.head, 'click', function(e) {
 				e = e || window.event;
 				var target = e.target;
 
@@ -499,8 +499,8 @@
 				}
 			}, this);
 
-			this.tHead.innerHTML = "";
-			this.tHead.appendChild(tr);
+			this.head.innerHTML = "";
+			this.head.appendChild(tr);
 
 			// Check for hidden column cells
 			util.each(this.pages[index], function(j, row) {
@@ -563,7 +563,7 @@
 	// Render the pager(s)
 	var renderPager = function() {
 
-		util.flush(this.paginators, this.isIE);
+		util.flush(this.pagers, this.isIE);
 
 		if (this.totalPages <= 1) return;
 
@@ -611,7 +611,7 @@
 		}
 
 		// We may have more than one pager
-		util.each(this.paginators, function(i,pager) {
+		util.each(this.pagers, function(i,pager) {
 			util.append(pager, frag.cloneNode(true));
 		});
 	};
@@ -1004,7 +1004,7 @@
 
 		// Remove the sorters
 		if ( o.sortable ) {
-			util.each(this.tHead.rows[0].cells, function(i, th) {
+			util.each(this.head.rows[0].cells, function(i, th) {
 				var html = th.firstElementChild.innerHTML;
 				th.innerHTML = html;
 				th.removeAttribute("style");
@@ -1098,7 +1098,7 @@
 		// If we have headings we need only set the widths on them
 		// otherwise we need a temp header and the widths need applying to all cells
 		if (this.table.tHead && this.headings.length) {
-			var headings = this.tHead.rows[0].cells;
+			var headings = this.head.rows[0].cells;
 			// Reset widths
 			util.each(headings, function(i, cell) {
 				cell.style.width = "";
@@ -1243,7 +1243,7 @@
 	DataTable.prototype.sortColumn = function(column, direction, callback) {
 
 		// Check column is present
-		if ( column < 1 || column > this.tHead.rows[0].cells.length ) {
+		if ( column < 1 || column > this.head.rows[0].cells.length ) {
 			return false;
 		}
 
@@ -1345,7 +1345,7 @@
 
 					tr.appendChild(th);
 				});
-				this.tHead.appendChild(tr);
+				this.head.appendChild(tr);
 			}
 		}
 
@@ -1387,12 +1387,12 @@
 	 * @return {void}
 	 */
 	DataTable.prototype.clear = function(html) {
-		if (this.tbody) {
-			util.flush(this.tbody, this.isIE);
+		if (this.body) {
+			util.flush(this.body, this.isIE);
 		}
 
-		var parent = this.tbody;
-		if (!this.tbody) {
+		var parent = this.body;
+		if (!this.body) {
 			parent = this.table;
 		}
 
@@ -1667,7 +1667,7 @@
 	 * @return {void}
 	 */
 	DataTable.prototype.print = function() {
-		var headings = this.tHead.rows[0].cells;
+		var headings = this.head.rows[0].cells;
 		var rows = this.rows;
 		var table = util.createElement("table");
 		var thead = util.createElement("thead");
