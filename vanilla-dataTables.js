@@ -731,55 +731,6 @@
 	};
 
 
-	// Columns API
-	function Columns(instance) {
-		this.instance = instance;
-	}
-
-	Columns.prototype.select = function(columns) {
-		this.columns = [];
-		if ( util.isInt(columns) ) {
-			this.columns.push(columns);
-		} else if ( util.isArray(columns) ) {
-			this.columns = columns;
-		}
-
-		return this;
-	};
-
-	Columns.prototype.hide = function() {
-		if ( this.columns.length ) {
-			var rows = [].slice.call(this.instance.tHead.rows);
-
-			rows = rows.concat(this.instance.rows);
-
-			util.each(rows, function(i, row) {
-				util.each(this.columns, function(j, column) {
-					row.cells[column].hidden = true;
-				}, this);
-			}, this);
-
-			this.instance.update();
-		}
-	};
-
-	Columns.prototype.show = function() {
-		if ( this.columns.length ) {
-			var rows = [].slice.call(this.instance.tHead.rows);
-
-			rows = rows.concat(this.instance.rows);
-
-			util.each(rows, function(i, row) {
-				util.each(this.columns, function(j, column) {
-					row.cells[column].hidden = false;
-				}, this);
-			}, this);
-
-			this.instance.update();
-		}
-	};
-
-
 	/////////////////
 	//	DATATABLE	//
 	////////////////
@@ -1637,14 +1588,6 @@
 		this.clear(util.createElement('tr', {
 			html: '<td class="dataTables-empty" colspan="' + colspan + '">' + message + '</td>'
 		}));
-	};
-
-	/**
-	 * Columns API access
-	 * @return {Object} new Columns instance
-	 */
-	DataTable.prototype.columns = function() {
-		return new Columns(this);
 	};
 
 	return DataTable;
