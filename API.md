@@ -103,6 +103,7 @@ Returns `true` if the current page is also the first page.
 #### type `Boolean`
 
 Returns `true` if the current page is also the last page.
+
 ---
 
 ### searching
