@@ -1,7 +1,30 @@
 >Please note that the API is not finalised and may change so check back once in while.
 
 ### table
-#### type `object`
+#### type `Object`
+
+Reference to the `HTMLTableElement`.
+
+---
+
+### initialized
+#### type `Boolean`
+
+Returns true if the library is fully loaded and all HTML is rendered.
+
+---
+
+### rows
+#### type `Array`
+
+Collection of all `HTMLTableRowElement`s in the table.
+
+---
+
+### pages
+#### type `Array`
+
+Collection of pages each of which contain collections of `HTMLTableRowElement`s.
 
 ---
 
