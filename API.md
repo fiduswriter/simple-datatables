@@ -7,6 +7,13 @@ Reference to the `HTMLTableElement`.
 
 ---
 
+### head
+#### type `Object`
+
+Reference to the [`HTML <thead> element`](https://developer.mozilla.org/en/docs/Web/HTML/Element/thead).
+
+---
+
 ### initialized
 #### type `Boolean`
 
