@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.1.11
+ * Version: 1.2.0
  *
  */
 (function(root, factory) {
@@ -93,10 +93,8 @@
 		append: function(p, e) {
 			return p && e && p.appendChild(e);
 		},
-		on: function(e, type, callback, scope) {
-			e.addEventListener(type, function(e) {
-				callback.call(scope || this, e);
-			}, false);
+		on: function(e, type, callback) {
+			e.addEventListener(type, callback, false);
 		},
 		isObject: function(a) {
 			return "[object Object]" === Object.prototype.toString.call(a);
@@ -238,6 +236,11 @@
 
 		this.hasHeadings = this.tHead.rows.length > 0;
 
+		if ( this.hasHeadings ) {
+			this.header = this.tHead.rows[0];
+			this.headings = [].slice.call(this.header.cells);
+		}
+
 		// Header
 		if ( !o.header ) {
 			if ( this.tHead ) {
@@ -319,8 +322,6 @@
 			var cols = this.tHead.rows[0].cells;
 
 			util.each(cols, function(i, th) {
-				th.idx = i;
-
 				if (o.sortable) {
 					var link = util.createElement('a', {
 						href: '#',
@@ -373,9 +374,11 @@
 			fixHeight.call(this);
 		}
 
-		// Fixed column widths
-		if (o.fixedColumns) {
+		if ( this.options.fixedColumns ) {
 			this.fixColumns();
+
+			this.header = this.tHead.rows[0];
+			this.headings = this.header.cells;
 		}
 
 		setClassNames.call(this);
@@ -452,7 +455,7 @@
 				if (target.nodeName.toLowerCase() === 'a') {
 					if (util.hasClass(target, 'dataTable-sorter')) {
 						util.preventDefault(e);
-						that.sortColumn(target.parentNode.idx + 1);
+						that.sortColumn(target.parentNode.cellIndex + 1);
 					}
 				}
 			});
@@ -462,17 +465,10 @@
 	// Sort the rows into pages
 	var paginate = function() {
 		var perPage = this.options.perPage,
-			rows = !!this.searching ? this.searchData.slice() : this.rows.slice();
+			rows = !!this.searching ? this.searchData : this.rows;
 
 		// Check for hidden columns
 		this.pages = rows.map(function(tr, i) {
-			var cells = [].slice(tr.cells);
-			util.each(cells, function(i, cell) {
-				if ( cell.hidden ) {
-					tr.removeChild(cell);
-				}
-			});
-
 			return i % perPage === 0 ? rows.slice(i, i + perPage) : null;
 		}).filter(function(page) {
 			return page;
@@ -495,9 +491,28 @@
 			var index = this.currentPage - 1,
 				frag = util.createFragment();
 
-			util.each(this.pages[index], function(i, v) {
-				util.append(frag, v);
-			});
+			// Check for hidden column headings
+			var tr = this.header.cloneNode();
+			util.each(this.headings, function(i, cell) {
+				if ( this.columns(cell.cellIndex).visible() ) {
+					tr.appendChild(cell.cloneNode(true));
+				}
+			}, this);
+
+			this.tHead.innerHTML = "";
+			this.tHead.appendChild(tr);
+
+			// Check for hidden column cells
+			util.each(this.pages[index], function(j, row) {
+				var tr = row.cloneNode();
+				util.each(row.cells, function(i, cell) {
+					if ( this.hiddenColumns.indexOf(cell.cellIndex) < 0 ) {
+						tr.appendChild(cell.cloneNode(true));
+					}
+				}, this);
+				frag.appendChild(tr);
+			}, this);
+
 
 			this.clear(frag);
 
@@ -731,9 +746,121 @@
 	};
 
 
-	/////////////////
-	//	DATATABLE	//
-	////////////////
+	/**
+	 * Columns API
+	 * @param {Object} instance DataTable instance
+	 * @param {Mixed} columns  Column index or array of column indexes
+	 */
+	function Columns(instance, columns) {
+		this.instance = instance;
+		this.columns = columns;
+
+		return this;
+	}
+
+	/**
+	 * Get the columns
+	 * @return {Mixed} columns  Column index or array of column indexes
+	 */
+	Columns.prototype.get = function() {
+		var columns = this.columns;
+		if ( !util.isArray(columns) ) {
+			columns = [];
+			columns.push(this.columns);
+		}
+		return columns;
+	};
+
+	/**
+	 * Hide columns
+	 * @return {Void}
+	 */
+	Columns.prototype.hide = function() {
+
+		var columns = this.get();
+
+		if ( columns.length ) {
+
+			util.each(columns, function(i, column) {
+				var index = this.instance.hiddenColumns.indexOf(column);
+				if ( index < 0 ) {
+					this.instance.hiddenColumns.push(column);
+				}
+			}, this);
+
+			this.instance.update();
+
+			if ( this.instance.options.fixedColumns ) {
+				this.instance.fixColumns();
+			}
+		}
+	};
+
+	/**
+	 * Show columns
+	 * @return {Void}
+	 */
+	Columns.prototype.show = function() {
+		var columns = this.get();
+
+		if ( columns.length ) {
+			util.each(columns, function(i, column) {
+				var index = this.instance.hiddenColumns.indexOf(column);
+				if ( index > -1 ) {
+					this.instance.hiddenColumns.splice(index, 1);
+				}
+			}, this);
+
+			this.instance.update();
+
+			if ( this.instance.options.fixedColumns ) {
+				this.instance.fixColumns();
+			}
+		}
+	};
+
+	/**
+	 * Check column(s) visibility
+	 * @return {Boolean}
+	 */
+	Columns.prototype.visible = function() {
+		var columns;
+
+		if ( util.isInt(this.columns) ) {
+			columns = this.instance.hiddenColumns.indexOf(this.columns) < 0;
+		} else if ( util.isArray(this.columns) ) {
+			columns = [];
+			util.each(this.columns, function(i, column) {
+				columns.push(this.instance.hiddenColumns.indexOf(column) < 0);
+			}, this);
+		}
+
+		return columns;
+	};
+
+	/**
+	 * Check column(s) visibility
+	 * @return {Boolean}
+	 */
+	Columns.prototype.hidden = function() {
+		var columns;
+
+		if ( util.isInt(this.columns) ) {
+			columns = this.instance.hiddenColumns.indexOf(this.columns) > -1;
+		} else if ( util.isArray(this.columns) ) {
+			columns = [];
+			util.each(this.columns, function(i, column) {
+				columns.push(this.instance.hiddenColumns.indexOf(column) > -1);
+			}, this);
+		}
+
+		return columns;
+	};
+
+
+	////////////////////
+	//    MAIN LIB    //
+	////////////////////
 
 	function DataTable(table, options) {
 
@@ -858,6 +985,8 @@
 		this.currentPage = 1;
 		this.onFirstPage = true;
 
+		this.hiddenColumns = [];
+
 		build.call(this);
 
 		setTimeout(function() {
@@ -944,10 +1073,6 @@
 		paginate.call(this);
 		render.call(this);
 
-		if ( this.options.fixedColumns && !this.searching && !this.sorting ) {
-			this.fixColumns();
-		}
-
 		this.links = [];
 
 		var i = this.pages.length;
@@ -972,17 +1097,16 @@
 
 		// If we have headings we need only set the widths on them
 		// otherwise we need a temp header and the widths need applying to all cells
-		if (this.table.tHead && this.table.tHead.rows.length) {
-			cells = this.table.tHead.rows[0].cells;
-
+		if (this.table.tHead && this.headings.length) {
+			var headings = this.tHead.rows[0].cells;
 			// Reset widths
-			util.each(cells, function(i, cell) {
+			util.each(headings, function(i, cell) {
 				cell.style.width = "";
 			}, this);
 
-			util.each(cells, function(i, cell) {
-				var rect = util.getBoundingRect(cell);
-				var w = (rect.width / this.rect.width) * 100;
+			util.each(headings, function(i, cell) {
+				var ow = cell.offsetWidth;
+				var w = (ow / this.rect.width) * 100;
 				cell.style.width = w + '%';
 			}, this);
 		} else {
@@ -1004,20 +1128,22 @@
 
 			var widths = [];
 			util.each(cells, function(i, cell) {
-				var rect = util.getBoundingRect(cell);
-				var w = (rect.width / this.rect.width) * 100;
+				var ow = cell.offsetWidth;
+				var w = (ow / this.rect.width) * 100;
 				widths.push(w);
 			}, this);
 
 			util.each(this.rows, function(idx, row) {
 				util.each(row.cells, function(i, cell) {
-					cell.style.width = widths[i] + "%";
-				});
-			});
+					if ( this.columns(cell.cellIndex).visible() )
+						cell.style.width = widths[i] + "%";
+				}, this);
+			}, this);
 
 			// Discard the temp header
 			this.table.removeChild(hd);
 		}
+
 	};
 
 	/**
@@ -1028,6 +1154,8 @@
 	DataTable.prototype.search = function(query) {
 
 		if ( !this.hasRows ) return false;
+
+		var that = this;
 
 		query = query.toLowerCase();
 
@@ -1054,7 +1182,7 @@
 				var includes = false;
 
 				for ( var x = 0; x < row.cells.length; x++ ) {
-					if ( util.includes(row.cells[x].textContent.toLowerCase(), word) && !row.cells[x].hidden ) {
+					if ( util.includes(row.cells[x].textContent.toLowerCase(), word) && that.columns(row.cells[x].cellIndex).visible() ) {
 						includes = true;
 						break;
 					}
@@ -1130,7 +1258,7 @@
 		var numeric = [];
 		var a = 0;
 		var n = 0;
-		var th = this.tHead.rows[0].cells[column];
+		var th = this.headings[column];
 
 		util.each(rows, function(i, tr) {
 			var cell = tr.cells[column];
@@ -1286,7 +1414,7 @@
 
 		if ( !this.hasHeadings && !this.hasRows ) return false;
 
-		var headers = this.tHead.rows[0].cells, rows = [], arr = [], i, x, str, link;
+		var headers = this.headings, rows = [], arr = [], i, x, str, link;
 
 		var defaults = {
 			download: true,
@@ -1315,7 +1443,7 @@
 
 			if ( options.type === "txt" || options.type === "csv" ) {
 				// Include headings
-				rows[0] = this.tHead.rows[0];
+				rows[0] = this.header;
 			}
 
 			// Selection or whole table
@@ -1342,8 +1470,8 @@
 
 					for ( i = 0; i < rows.length; i++ ) {
 						for ( x = 0; x < rows[i].cells.length; x++ ) {
-							// Check for column skip
-							if ( options.skipColumn.indexOf(x) < 0 ) {
+							// Check for column skip and visibility
+							if ( options.skipColumn.indexOf(x) < 0 && this.columns(rows[i].cells[x].cellIndex).visible() ) {
 								str += rows[i].cells[x].textContent + options.columnDelimiter;
 							}
 						}
@@ -1367,7 +1495,8 @@
 
 					// Convert table headings to column names
 					for ( i = 0; i < headers.length; i++ ) {
-						if ( options.skipColumn.indexOf(i) < 0 ) {
+						// Check for column skip and column visibility
+						if ( options.skipColumn.indexOf(i) < 0 && this.columns(headers[i].cellIndex).visible() ) {
 							str += "`" + headers[i].textContent + "`,";
 						}
 					}
@@ -1383,7 +1512,8 @@
 						str += "(";
 
 						for ( x = 0; x < rows[i].cells.length; x++ ) {
-							if ( options.skipColumn.indexOf(x) < 0 ) {
+							// Check for column skip and column visibility
+							if ( options.skipColumn.indexOf(x) < 0 && this.columns(rows[i].cells[x].cellIndex).visible() ) {
 								str += '"'+ rows[i].cells[x].textContent + '",';
 							}
 						}
@@ -1411,7 +1541,10 @@
 						arr[x] = arr[x] || {};
 						// Iterate columns
 						for ( i = 0; i < headers.length; i++ ) {
-							arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
+							// Check for column skip and column visibility
+							if ( options.skipColumn.indexOf(i) < 0 && this.columns(rows[x].cells[i].cellIndex).visible() ) {
+								arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
+							}
 						}
 					}
 
@@ -1588,6 +1721,14 @@
 		this.clear(util.createElement('tr', {
 			html: '<td class="dataTables-empty" colspan="' + colspan + '">' + message + '</td>'
 		}));
+	};
+
+	/**
+	 * Columns API access
+	 * @return {Object} new Columns instance
+	 */
+	DataTable.prototype.columns = function(columns) {
+		return new Columns(this, columns);
 	};
 
 	return DataTable;
