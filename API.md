@@ -121,18 +121,22 @@ Returns a collection of `HTMLTableRowElement`s containing matching results.
 ---
 
 ### refresh()
+#### type `Function`
 
 Refreshes the table. This will recount the rows, reset any search and remove any set message, but will not reset any sorting.
 
 ---
 
 ### page(`num [int]`)
+#### type `Function`
 
 Load a chosen page.
 
 ---
 
 ### addRows(`data [object]`)
+#### type `Function`
+
 Add new rows to the table. Must be an object with the `rows` propery set and the number of values for each row must match the column count of the table.
 
 ```javascript
@@ -167,6 +171,8 @@ dataTable.addRows(newData);
 ---
 
 ### sortColumn(`column [int]`, `direction [string]`)
+#### type `Function`
+
 Sort the data by column and direction.
 
 
@@ -178,6 +184,8 @@ dataTable.sortColumn(4, 'desc');
 ---
 
 ### setMessage(`message [string]`)
+#### type `Function`
+
 Display a message in the table.
 
 ```javascript
@@ -187,16 +195,22 @@ dataTable.setMessage("Hello, world!");
 ---
 
 ### init()
+#### type `Function`
+
 Re-initialise the instance after calling the `destroy()` method.
 
 ---
 
 ### destroy()
+#### type `Function`
+
 Destroy the instance.
 
 ---
 
 ### export(`options [object]`)
+#### type `Function`
+
 Export the table data to various formats.
 
 The `options` argument must be an object of which the only required property is the `type` property which accepts either `csv`, `txt`, `json` or `sql` as it's value. The rest are optional:
@@ -258,6 +272,8 @@ dataTable.export({
 ---
 
 ### import(`options [object]`)
+#### type `Function`
+
 Import data into the table from `json` or `csv` strings.
 
 The `options` argument must be an object of which the only required properties are `data` and `type`. The `data` property should be the `csv` or `json` string and the `type` property should indicate the type of data being imported - `csv` or `json`.
@@ -288,6 +304,8 @@ The `options` argument must be an object of which the only required properties a
 ---
 
 ### print()
+#### type `Function`
+
 Display printable version.
 
 ---
