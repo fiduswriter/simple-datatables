@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.2.1
+ * Version: 1.2.2
  *
  */
 (function(root, factory) {
@@ -20,7 +20,6 @@
 }(this, function(plugin) {
 	'use strict';
 
-	/* PRIVATE VARS */
 
 	var util = {
 		extend: function(src, props) {
@@ -753,7 +752,7 @@
 	 */
 	function Columns(instance, columns) {
 		this.instance = instance;
-		this.columns = columns;
+		this.columns = columns || [];
 
 		return this;
 	}
@@ -764,11 +763,63 @@
 	 */
 	Columns.prototype.get = function() {
 		var columns = this.columns;
+
 		if ( !util.isArray(columns) ) {
 			columns = [];
 			columns.push(this.columns);
 		}
 		return columns;
+	};
+
+	/**
+	 * Rearrange columns
+	 * @return {Array} columns  Array of ordered column indexes
+	 */
+	Columns.prototype.order = function(columns) {
+		var f, rows = [];
+		// Combine header and body rows
+		rows.push(this.instance.header);
+		rows = rows.concat(this.instance.rows);
+
+		// Loop over the rows and reorder the cells
+		util.each(rows, function(i, row) {
+			f = document.createDocumentFragment();
+
+			// Append to cell to the fragment in the correct order
+			util.each(columns, function(x, index) {
+				f.appendChild(row.cells[index].cloneNode(true));
+			});
+
+			// Append the fragment with the ordered cells
+			util.flush(row, this.instance.isIE);
+			row.appendChild(f);
+		}, this);
+
+		// Update
+		this.instance.update();
+	};
+
+	/**
+	 * Swap two columns
+	 * @return {Void}
+	 */
+	Columns.prototype.swap = function() {
+		if ( this.columns.length && this.columns.length === 2 ) {
+			var columns = [];
+
+			// Get the current column indexes
+			util.each(this.instance.headings, function(i, heading) {
+				columns.push(heading.cellIndex);
+			}, this);
+
+			var x = this.columns[0];
+			var y = this.columns[1];
+			var b = columns[y];
+			columns[y] = columns[x];
+			columns[x] = b;
+
+			this.order(columns);
+		}
 	};
 
 	/**
