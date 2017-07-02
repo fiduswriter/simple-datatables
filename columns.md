@@ -81,6 +81,7 @@ Order the columns based on the given order. Just pass an array of column indexes
 
 
 ```javascript
+// Reorder the columns
 datatable.columns().order([1,3,4,2,0]);
 ```
 
