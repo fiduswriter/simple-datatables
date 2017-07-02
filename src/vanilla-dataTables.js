@@ -21,6 +21,10 @@
 	'use strict';
 
 
+	/**
+	 * Helpers
+	 * @type {Object}
+	 */
 	var util = {
 		extend: function(src, props) {
 			var p;
@@ -37,14 +41,29 @@
 		},
 		each: function(a, b, c) {
 			if ("[object Object]" === Object.prototype.toString.call(a)) {
-				for (var d in a) {
-					if (Object.prototype.hasOwnProperty.call(a, d)) {
-						b.call(c, d, a[d], a);
-					}
-				}
+				for (var d in a) { if (Object.prototype.hasOwnProperty.call(a, d)) { b.call(c, d, a[d], a); } }
 			} else {
-				for (var e = 0, f = a.length; e < f; e++) {
-					b.call(c, e, a[e], a);
+				for (var e = 0, f = a.length; e < f; e++) { b.call(c, e, a[e], a); }
+			}
+		},
+		css: function(el, prop, val) {
+			var style = el && el.style,
+				isObj = "[object Object]" === Object.prototype.toString.call(prop);
+
+			if (style) {
+				if (val === void 0 && !isObj) {
+					val = window.getComputedStyle(el, '');
+					return prop === void 0 ? val : val[prop];
+				} else {
+					if (isObj) {
+						util.each(prop, function(p, v) {
+							if (!(p in style)) { p = '-webkit-' + p; }
+							style[p] = v + (typeof v === 'string' ? '' : p === "opacity" ? "" : "px");
+						});
+					} else {
+						if (!(prop in style)) { prop = '-webkit-' + prop; }
+						style[prop] = val + (typeof val === 'string' ? '' : prop === "opacity" ? "" : "px");
+					}
 				}
 			}
 		},
@@ -92,8 +111,14 @@
 		append: function(p, e) {
 			return p && e && p.appendChild(e);
 		},
+		closest: function(el, fn) {
+			return el && el !== document.body && (fn(el) ? el : util.closest(el.parentNode, fn));
+		},
 		on: function(e, type, callback) {
 			e.addEventListener(type, callback, false);
+		},
+		off: function(e, type, callback) {
+			e.removeEventListener(type, callback);
 		},
 		isObject: function(a) {
 			return "[object Object]" === Object.prototype.toString.call(a);
@@ -102,44 +127,34 @@
 			return "[object Array]" === Object.prototype.toString.call(a);
 		},
 		isInt: function(val) {
-			return !isNaN(val) && (function(x) {
-				return (x || 0) === x;
-			})(parseFloat(val));
+			return !isNaN(val);
 		},
 		isJson: function(str) {
 			var json = false;
-			try {
-					json = JSON.parse(str);
-			} catch (e) {
-					return false;
-			}
+			try { json = JSON.parse(str); } catch (e) { return false; }
 
 			if (json !== null && (util.isArray(json) || util.isObject(json))) {
-					return json;
+				return json;
 			}
 
 			return false;
 		},
 		isDate: function(str) {
 			// First check for the pattern
-			if(!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str))
-					return false;
+			if(!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) return false;
 
 			// Parse the date parts to integers
-			var parts = str.split("/");
-			var day = parseInt(parts[1], 10);
-			var month = parseInt(parts[0], 10);
-			var year = parseInt(parts[2], 10);
+			var parts = str.split("/"), day = parseInt(parts[1], 10), month = parseInt(parts[0], 10), year = parseInt(parts[2], 10);
 
 			// Check the ranges of month and year
-			if(year < 1000 || year > 3000 || month == 0 || month > 12)
-					return false;
+			if(year < 1000 || year > 3000 || month == 0 || month > 12) return false;
 
 			var monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
 
 			// Adjust for leap years
-			if(year % 400 == 0 || (year % 100 != 0 && year % 4 == 0))
-					monthLength[1] = 29;
+			if(year % 400 == 0 || (year % 100 != 0 && year % 4 == 0)) {
+				monthLength[1] = 29;
+			}
 
 			// Check the range of the day
 			return day > 0 && day <= monthLength[month - 1];
@@ -193,6 +208,10 @@
 		}
 	};
 
+	/**
+	 * Construct the layout
+	 * @return {[type]} [description]
+	 */
 	var build = function() {
 		var o = this.options;
 		var template = "";
@@ -316,11 +335,10 @@
 			template = template.replace("{search}", "");
 		}
 
-		if ( this.head && this.head.rows.length ) {
+		if ( this.hasHeadings ) {
 			// Sortable
-			var cols = this.head.rows[0].cells;
-
-			util.each(cols, function(i, th) {
+			util.each(this.headings, function(i, th) {
+				th.originalCellIndex = th.cellIndex;
 				if (o.sortable) {
 					var link = util.createElement('a', {
 						href: '#',
@@ -363,6 +381,8 @@
 
 		// Convert rows to array for processing
 		this.rows = [].slice.call(this.body.rows);
+		this.activeRows = this.rows.slice();
+		this.activeHeadings = this.headings.slice();
 
 		// Update
 		this.update();
@@ -375,15 +395,15 @@
 
 		if ( this.options.fixedColumns ) {
 			this.fixColumns();
-
-			this.header = this.head.rows[0];
-			this.headings = this.header.cells;
 		}
 
 		setClassNames.call(this);
 		addEventListeners.call(this);
 	};
 
+	/**
+	 * Set classNames required
+	 */
 	var setClassNames = function() {
 		var o = this.options;
 		if ( !o.header ) {
@@ -405,6 +425,9 @@
 			util.addClass(this.wrapper, 'fixed-columns'); }
 	};
 
+	/**
+	 * Attach the required event listeners
+	 */
 	var addEventListeners = function() {
 		var that = this, o = that.options;
 
@@ -454,7 +477,7 @@
 				if (target.nodeName.toLowerCase() === 'a') {
 					if (util.hasClass(target, 'dataTable-sorter')) {
 						util.preventDefault(e);
-						that.sortColumn(target.parentNode.cellIndex + 1);
+						that.sortColumn(that.activeHeadings.indexOf(target.parentNode) + 1);
 					}
 				}
 			});
@@ -463,8 +486,15 @@
 
 	// Sort the rows into pages
 	var paginate = function() {
-		var perPage = this.options.perPage,
-			rows = !!this.searching ? this.searchData : this.rows;
+		var perPage = this.options.perPage, rows = this.activeRows;
+
+		if ( this.searching ) {
+			rows = [];
+
+			util.each(this.searchData, function(i, index) {
+				rows.push(this.activeRows[index]);
+			}, this);
+		}
 
 		// Check for hidden columns
 		this.pages = rows.map(function(tr, i) {
@@ -475,7 +505,6 @@
 
 		this.totalPages = this.lastPage = this.pages.length;
 	};
-
 
 	// Render a page
 	var render = function() {
@@ -490,26 +519,13 @@
 			var index = this.currentPage - 1,
 				frag = util.createFragment();
 
-			// Check for hidden column headings
-			var tr = this.header.cloneNode();
-			util.each(this.headings, function(i, cell) {
-				if ( this.columns(cell.cellIndex).visible() ) {
-					tr.appendChild(cell.cloneNode(true));
-				}
+			util.flush(this.header, this.isIE);
+			util.each(this.activeHeadings, function(i, th) {
+				this.header.appendChild(th);
 			}, this);
 
-			this.head.innerHTML = "";
-			this.head.appendChild(tr);
-
-			// Check for hidden column cells
-			util.each(this.pages[index], function(j, row) {
-				var tr = row.cloneNode();
-				util.each(row.cells, function(i, cell) {
-					if ( this.hiddenColumns.indexOf(cell.cellIndex) < 0 ) {
-						tr.appendChild(cell.cloneNode(true));
-					}
-				}, this);
-				frag.appendChild(tr);
+			util.each(this.pages[index], function(i, row) {
+				frag.appendChild(row);
 			}, this);
 
 
@@ -559,63 +575,68 @@
 		}
 	};
 
-	// Render the pager(s)
+	/**
+	 * Render the pager(s)
+	 */
 	var renderPager = function() {
 
 		util.flush(this.pagers, this.isIE);
 
-		if (this.totalPages <= 1) return;
+		if (this.totalPages > 1) {
 
-		var c = 'pager',
-			frag = util.createFragment(),
-			prev = this.onFirstPage ? 1 : this.currentPage - 1,
-			next = this.onlastPage ? this.totalPages : this.currentPage + 1;
+			var c = 'pager',
+				frag = util.createFragment(),
+				prev = this.onFirstPage ? 1 : this.currentPage - 1,
+				next = this.onlastPage ? this.totalPages : this.currentPage + 1;
 
-		// first button
-		if (this.options.firstLast) {
-			util.append(frag, util.button(c, 1, this.options.firstText));
+			// first button
+			if (this.options.firstLast) {
+				util.append(frag, util.button(c, 1, this.options.firstText));
+			}
+
+			// prev button
+			if (this.options.nextPrev) {
+				util.append(frag, util.button(c, prev, this.options.prevText));
+			}
+
+			var pager = this.links;
+
+			// truncate the links
+			if (this.options.truncatePager) {
+				pager = truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
+			}
+
+			// active page link
+			util.addClass(this.links[this.currentPage - 1], 'active');
+
+			// append the links
+			util.each(pager, function(i, p) {
+				util.removeClass(p, 'active');
+				util.append(frag, p);
+			});
+
+			util.addClass(this.links[this.currentPage - 1], 'active');
+
+			// next button
+			if (this.options.nextPrev) {
+				util.append(frag, util.button(c, next, this.options.nextText));
+			}
+
+			// first button
+			if (this.options.firstLast) {
+				util.append(frag, util.button(c, this.totalPages, this.options.lastText));
+			}
+
+			// We may have more than one pager
+			util.each(this.pagers, function(i,pager) {
+				util.append(pager, frag.cloneNode(true));
+			});
 		}
-
-		// prev button
-		if (this.options.nextPrev) {
-			util.append(frag, util.button(c, prev, this.options.prevText));
-		}
-
-		var pager = this.links;
-
-		// truncate the links
-		if (this.options.truncatePager) {
-			pager = truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta);
-		}
-
-		// active page link
-		util.addClass(this.links[this.currentPage - 1], 'active');
-
-		// append the links
-		util.each(pager, function(i, p) {
-			util.removeClass(p, 'active');
-			util.append(frag, p);
-		});
-
-		util.addClass(this.links[this.currentPage - 1], 'active');
-
-		// next button
-		if (this.options.nextPrev) {
-			util.append(frag, util.button(c, next, this.options.nextText));
-		}
-
-		// first button
-		if (this.options.firstLast) {
-			util.append(frag, util.button(c, this.totalPages, this.options.lastText));
-		}
-
-		// We may have more than one pager
-		util.each(this.pagers, function(i,pager) {
-			util.append(pager, frag.cloneNode(true));
-		});
 	};
 
-	// Bubble sort algorithm
+	/**
+	 * Bubble sort algorithm
+	 */
 	var sortItems = function(a, b) {
 		var c, d;
 		if (1 === b) {
@@ -643,14 +664,18 @@
 		return a;
 	};
 
-	// Fix container heigh
+	/**
+	 * Fix container height
+	 */
 	var fixHeight = function() {
 		this.container.style.height = null;
 		this.rect = util.getBoundingRect(this.container);
 		this.container.style.height = this.rect.height + 'px';
 	};
 
-	// Pager truncation algorithm
+	/**
+	 * Pager truncation algorithm
+	 */
 	var truncate = function(a, b, c, d) {
 		d = d || 2;
 		var j, e = 2 * d,
@@ -690,7 +715,9 @@
 		return i;
 	};
 
-	// Parse data to HTML
+	/**
+	 * Parse data to HTML
+	 */
 	var dataToTable = function(data) {
 		var thead = false,
 			tbody = false;
@@ -744,15 +771,14 @@
 		}
 	};
 
-
 	/**
 	 * Columns API
 	 * @param {Object} instance DataTable instance
 	 * @param {Mixed} columns  Column index or array of column indexes
 	 */
-	function Columns(instance, columns) {
-		this.instance = instance;
-		this.columns = columns || [];
+	function Columns(dt, columns) {
+		this.dt = dt;
+		this.columns = columns;
 
 		return this;
 	}
@@ -763,40 +789,11 @@
 	 */
 	Columns.prototype.get = function() {
 		var columns = this.columns;
-
 		if ( !util.isArray(columns) ) {
 			columns = [];
 			columns.push(this.columns);
 		}
 		return columns;
-	};
-
-	/**
-	 * Rearrange columns
-	 * @return {Array} columns  Array of ordered column indexes
-	 */
-	Columns.prototype.order = function(columns) {
-		var f, rows = [];
-		// Combine header and body rows
-		rows.push(this.instance.header);
-		rows = rows.concat(this.instance.rows);
-
-		// Loop over the rows and reorder the cells
-		util.each(rows, function(i, row) {
-			f = document.createDocumentFragment();
-
-			// Append to cell to the fragment in the correct order
-			util.each(columns, function(x, index) {
-				f.appendChild(row.cells[index].cloneNode(true));
-			});
-
-			// Append the fragment with the ordered cells
-			util.flush(row, this.instance.isIE);
-			row.appendChild(f);
-		}, this);
-
-		// Update
-		this.instance.update();
 	};
 
 	/**
@@ -808,8 +805,8 @@
 			var columns = [];
 
 			// Get the current column indexes
-			util.each(this.instance.headings, function(i, heading) {
-				columns.push(heading.cellIndex);
+			util.each(this.dt.headings, function(i, heading) {
+				columns.push(i);
 			}, this);
 
 			var x = this.columns[0];
@@ -823,6 +820,62 @@
 	};
 
 	/**
+	 * Reorder the columns
+	 * @return {Array} columns  Array of ordered column indexes
+	 */
+	Columns.prototype.order = function(columns) {
+		var b, c, d;
+
+		var temp_a = [];
+		var temp_b = [];
+		var temp_c = [];
+		var temp_d = [];
+
+		// Order the headings
+		util.each(columns, function(x, column) {
+			temp_a.push(this.dt.headings[column].cloneNode(true));
+
+			if ( this.dt.hiddenColumns.indexOf(column) < 0 ) {
+				b = this.dt.headings[column].cloneNode(true);
+				b.originalCellIndex = x;
+				temp_b.push(b);
+			}
+		}, this);
+
+		// Order the row cells
+		util.each(this.dt.rows, function(i, row) {
+			c = row.cloneNode();
+			d = row.cloneNode();
+
+			if ( row.searchIndex !== null && row.searchIndex !== undefined  ) {
+				c.searchIndex = row.searchIndex;
+				d.searchIndex = row.searchIndex;
+			}
+
+			// Append to cell to the fragment in the correct order
+			util.each(columns, function(x, column) {
+					c.appendChild(row.cells[column].cloneNode(true));
+
+					if ( this.dt.hiddenColumns.indexOf(column) < 0 ) {
+						d.appendChild(row.cells[column].cloneNode(true));
+					}
+			}, this);
+
+			temp_c.push(c);
+			temp_d.push(d);
+		}, this);
+
+		this.dt.headings = temp_a;
+		this.dt.activeHeadings = temp_b;
+
+		this.dt.rows = temp_c;
+		this.dt.activeRows = temp_d;
+
+		// Update
+		this.dt.update();
+	};
+
+	/**
 	 * Hide columns
 	 * @return {Void}
 	 */
@@ -831,19 +884,13 @@
 		var columns = this.get();
 
 		if ( columns.length ) {
-
 			util.each(columns, function(i, column) {
-				var index = this.instance.hiddenColumns.indexOf(column);
-				if ( index < 0 ) {
-					this.instance.hiddenColumns.push(column);
+				if ( this.dt.hiddenColumns.indexOf(column) < 0 ) {
+					this.dt.hiddenColumns.push(column)
 				}
 			}, this);
 
-			this.instance.update();
-
-			if ( this.instance.options.fixedColumns ) {
-				this.instance.fixColumns();
-			}
+			this.rebuild();
 		}
 	};
 
@@ -855,18 +902,16 @@
 		var columns = this.get();
 
 		if ( columns.length ) {
+			var index;
+
 			util.each(columns, function(i, column) {
-				var index = this.instance.hiddenColumns.indexOf(column);
+				index = this.dt.hiddenColumns.indexOf(column);
 				if ( index > -1 ) {
-					this.instance.hiddenColumns.splice(index, 1);
+					this.dt.hiddenColumns.splice(index, 1)
 				}
 			}, this);
 
-			this.instance.update();
-
-			if ( this.instance.options.fixedColumns ) {
-				this.instance.fixColumns();
-			}
+			this.rebuild();
 		}
 	};
 
@@ -878,11 +923,11 @@
 		var columns;
 
 		if ( util.isInt(this.columns) ) {
-			columns = this.instance.hiddenColumns.indexOf(this.columns) < 0;
+			columns = this.dt.hiddenColumns.indexOf(this.columns) < 0;
 		} else if ( util.isArray(this.columns) ) {
 			columns = [];
 			util.each(this.columns, function(i, column) {
-				columns.push(this.instance.hiddenColumns.indexOf(column) < 0);
+				columns.push(this.dt.hiddenColumns.indexOf(column) < 0);
 			}, this);
 		}
 
@@ -897,15 +942,63 @@
 		var columns;
 
 		if ( util.isInt(this.columns) ) {
-			columns = this.instance.hiddenColumns.indexOf(this.columns) > -1;
+			columns = this.dt.hiddenColumns.indexOf(this.columns) > -1;
 		} else if ( util.isArray(this.columns) ) {
 			columns = [];
 			util.each(this.columns, function(i, column) {
-				columns.push(this.instance.hiddenColumns.indexOf(column) > -1);
+				columns.push(this.dt.hiddenColumns.indexOf(column) > -1);
 			}, this);
 		}
 
 		return columns;
+	};
+
+	/**
+	 * Rebuild the columns
+	 * @return {Void}
+	 */
+	Columns.prototype.rebuild = function() {
+
+		var a, b;
+		var temp = [];
+
+		this.dt.activeRows = [];
+		this.dt.activeHeadings = [];
+
+		util.each(this.dt.headings, function(i, th) {
+			th.originalCellIndex = i;
+			if ( this.dt.hiddenColumns.indexOf(i) < 0 ) {
+				this.dt.activeHeadings.push(th);
+			}
+		}, this);
+
+		// Loop over the rows and reorder the cells
+		util.each(this.dt.rows, function(i, row) {
+			a = row.cloneNode();
+			b = row.cloneNode();
+
+			if ( row.searchIndex !== null && row.searchIndex !== undefined  ) {
+				a.searchIndex = row.searchIndex;
+				b.searchIndex = row.searchIndex;
+			}
+
+			// Append to cell to the fragment in the correct order
+			util.each(row.cells, function(x, cell) {
+					a.appendChild(cell.cloneNode(true));
+
+					if ( this.dt.hiddenColumns.indexOf(cell.cellIndex) < 0 ) {
+						b.appendChild(cell.cloneNode(true));
+					}
+			}, this);
+
+			// Append the fragment with the ordered cells
+			temp.push(a);
+			this.dt.activeRows.push(b);
+		}, this);
+
+		this.dt.rows = temp;
+
+		this.dt.update();
 	};
 
 
@@ -954,6 +1047,8 @@
 		};
 
 		this.initialized = false;
+
+		this.utils = util;
 
 		// user options
 		this.options = util.extend(defaults, options);
@@ -1039,6 +1134,12 @@
 		this.hiddenColumns = [];
 
 		build.call(this);
+
+		if ( this.options.plugins ) {
+			util.each(this.options.plugins, function(plugin, options)  {
+				this[plugin](options);
+			}, this);
+		}
 
 		setTimeout(function() {
 			that.emit('datatable.init');
@@ -1148,14 +1249,13 @@
 
 		// If we have headings we need only set the widths on them
 		// otherwise we need a temp header and the widths need applying to all cells
-		if (this.table.tHead && this.headings.length) {
-			var headings = this.head.rows[0].cells;
+		if (this.table.tHead && this.activeHeadings.length) {
 			// Reset widths
-			util.each(headings, function(i, cell) {
+			util.each(this.activeHeadings, function(i, cell) {
 				cell.style.width = "";
 			}, this);
 
-			util.each(headings, function(i, cell) {
+			util.each(this.activeHeadings, function(i, cell) {
 				var ow = cell.offsetWidth;
 				var w = (ow / this.rect.width) * 100;
 				cell.style.width = w + '%';
@@ -1175,7 +1275,7 @@
 			});
 
 			hd.appendChild(r);
-			this.table.insertBefore(hd, this.table.tBodies[0]);
+			this.table.insertBefore(hd, this.body);
 
 			var widths = [];
 			util.each(cells, function(i, cell) {
@@ -1244,7 +1344,10 @@
 
 
 			if (doesQueryMatch && !inArray) {
-				this.searchData.push(row);
+				row.searchIndex = idx;
+				this.searchData.push(idx);
+			} else {
+				row.searchIndex = null;
 			}
 		}, this);
 
@@ -1291,10 +1394,10 @@
 	 * @param  {string} direction - asc or desc
 	 * @return {void}
 	 */
-	DataTable.prototype.sortColumn = function(column, direction, callback) {
+	DataTable.prototype.sortColumn = function(column, direction) {
 
 		// Check column is present
-		if ( column < 1 || column > this.head.rows[0].cells.length ) {
+		if ( column < 1 || column > this.activeHeadings.length ) {
 			return false;
 		}
 
@@ -1304,12 +1407,14 @@
 		column = column - 1;
 
 		var dir;
-		var rows = !!this.searching ? this.searchData : this.rows;
+		var rows = this.rows;
 		var alpha = [];
 		var numeric = [];
 		var a = 0;
 		var n = 0;
-		var th = this.headings[column];
+		var th = this.activeHeadings[column];
+
+		column = th.originalCellIndex;
 
 		util.each(rows, function(i, tr) {
 			var cell = tr.cells[column];
@@ -1327,6 +1432,7 @@
 				alpha[a++] = { value: content, row: tr };
 			}
 		});
+
 
 		/* Sort according to direction (ascending or descending) */
 		var top, btm;
@@ -1355,21 +1461,23 @@
 		/* Reorder the table */
 		rows = top.concat(btm);
 
-		if (!!this.searching) {
-			this.searchData = [];
+		this.rows = [];
+		var indexes = [];
 
-			util.each(rows, function(i, v) {
-				this.searchData.push(v.row);
-			}, this);
-		} else {
-			this.rows = [];
+		util.each(rows, function(i, v) {
+			this.rows.push(v.row);
 
-			util.each(rows, function(i, v) {
-				this.rows.push(v.row);
-			}, this);
-		}
+			if ( v.row.searchIndex !== null && v.row.searchIndex !== undefined  ) {
+				indexes.push(i);
+			}
+		}, this);
+
+		this.searchData = indexes;
+
+		this.columns().rebuild();
 
 		this.update();
+
 		this.emit('datatable.sort', column, dir);
 	};
 
@@ -1410,6 +1518,8 @@
 			}, this);
 			this.rows.push(tr);
 		}, this);
+
+		this.columns().rebuild();
 
 		this.hasRows = true;
 
@@ -1465,7 +1575,7 @@
 
 		if ( !this.hasHeadings && !this.hasRows ) return false;
 
-		var headers = this.headings, rows = [], arr = [], i, x, str, link;
+		var headers = this.activeHeadings, rows = [], arr = [], i, x, str, link;
 
 		var defaults = {
 			download: true,
@@ -1510,7 +1620,7 @@
 					}
 				}
 			} else {
-				rows = rows.concat(this.rows);
+				rows = rows.concat(this.activeRows);
 			}
 
 			// Only proceed if we have data
@@ -1718,8 +1828,8 @@
 	 * @return {void}
 	 */
 	DataTable.prototype.print = function() {
-		var headings = this.head.rows[0].cells;
-		var rows = this.rows;
+		var headings = this.activeHeadings;
+		var rows = this.activeRows;
 		var table = util.createElement("table");
 		var thead = util.createElement("thead");
 		var tbody = util.createElement("tbody");
@@ -1754,8 +1864,6 @@
 
 		// Print
 		w.print();
-
-		this.emit("datatable.print", table);
 	};
 
 	/**
