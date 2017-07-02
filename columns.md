@@ -81,7 +81,7 @@ Checks to see if the selected column(s) are visible. Returns a `boolean` for sin
 
 ### `order(indexes [array])`
 
-Order the columns based on the given order. Just pass an array of column indexes in the order you require. Note that as this method is for setting the order on all columns, you don't need to pass the selected columns to the `columns()` constructor.
+Order the columns based on the given order. Just pass an array of column indexes in the order you require. Note that as this method is for setting the order on all columns, you don't need to pass the selected columns to the `columns()` constructor and any that are, will be ignored.
 
 ### Original order
 ![Original order](http://i.imgur.com/OK5DoGs.png)
