@@ -1,10 +1,17 @@
 As of `v1.2.0`, the `columns` API is implemented and allows access to the table columns for quick manipulation.
 
-The API allows for the selection of columns via either a single `integer` representing a column index or and `array` of `integer`s representing multiple column indexes:
+The API allows for the selection of columns by passing either a single `integer` representing a column index or and `array` of `integer`s representing multiple column indexes tot eh `columns()` constructor:
 
 ```javascript
 // Select the first, fourth and sixth columns
 var columns = datatable.columns([0,3,5]);
+```
+
+You may select all columns by leaving omitting the selection:
+
+```javascript
+// Select all columns
+var columns = datatable.columns();
 ```
 
 You can then chain the following methods.
@@ -17,11 +24,8 @@ Hides the selected column(s). The columns will not be visible and will be omitte
 
 ```javascript
 // Hide the first and second columns
-datatable.columns([0,1]).hide();
 
-or 
-
-var columns = datatable.columns([0,1]);
+//var columns = datatable.columns([0,1]);
 columns.hide();
 ```
 
