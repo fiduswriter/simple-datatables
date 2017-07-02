@@ -209,6 +209,8 @@ Sort the data by column and direction.
 dataTable.sortColumn(4, 'desc');
 ```
 
+>Note that the column numbers are related to visible columns so if you have five columns and the first and second are hidden, then you only have three visible columns and hence the column numbers are 1,2,3 - not 3,4,5.
+
 ---
 
 ### setMessage(`message [string]`)
