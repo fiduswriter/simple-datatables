@@ -71,3 +71,19 @@ datatable.columns([0,1,2,3,4]).visible() // returns  [true, true, true, false, t
 Checks to see if the selected column(s) are visible. Returns a `boolean` for single indexes or an `array` of `boolean`s for multiple indexes.
 
 ---
+
+### `order()`
+
+Order the columns based on the given order. Just pass an array of column indexes in the order you require. Note that as this method is for setting the order on all columns, you don't need to pass the selected columns to the `columns()` constructor.
+
+### Original order
+![Original order](http://i.imgur.com/OK5DoGs.png)
+
+
+```javascript
+datatable.columns().order([1,3,4,2,0]);
+```
+
+
+### Result
+![Original order](http://i.imgur.com/kNGEgpT.png)
