@@ -25,8 +25,12 @@ Hides the selected column(s). The columns will not be visible and will be omitte
 ```javascript
 // Hide the first and second columns
 
-//var columns = datatable.columns([0,1]);
+var columns = datatable.columns([0,1]);
 columns.hide();
+
+// or just
+
+datatable.columns([0,1]).hide();
 ```
 
 ---
@@ -38,12 +42,11 @@ Shows the selected column(s) (if hidden). The columns will be visible and will b
 
 ```javascript
 // Show the first and second columns
-datatable.columns([0,1]).show();
-
-or 
-
 var columns = datatable.columns([0,1]);
 columns.show();
+
+// or just
+datatable.columns([0,1]).show();
 ```
 
 ---
@@ -64,7 +67,7 @@ columns.visible() // returns false
 
 or 
 
-datatable.columns([0,1,2,3,4]).visible() // returns  [true, true, true, false, true]
+datatable.columns().visible() // returns  [true, true, true, false, true]
 
 ```
 
