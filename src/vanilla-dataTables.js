@@ -886,7 +886,7 @@
 		if ( columns.length ) {
 			util.each(columns, function(i, column) {
 				if ( this.dt.hiddenColumns.indexOf(column) < 0 ) {
-					this.dt.hiddenColumns.push(column)
+					this.dt.hiddenColumns.push(column);
 				}
 			}, this);
 
@@ -907,7 +907,7 @@
 			util.each(columns, function(i, column) {
 				index = this.dt.hiddenColumns.indexOf(column);
 				if ( index > -1 ) {
-					this.dt.hiddenColumns.splice(index, 1)
+					this.dt.hiddenColumns.splice(index, 1);
 				}
 			}, this);
 
