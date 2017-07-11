@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.2.2
+ * Version: 1.2.3
  *
  */
 (function(root, factory) {
@@ -44,27 +44,6 @@
 				for (var d in a) { if (Object.prototype.hasOwnProperty.call(a, d)) { b.call(c, d, a[d], a); } }
 			} else {
 				for (var e = 0, f = a.length; e < f; e++) { b.call(c, e, a[e], a); }
-			}
-		},
-		css: function(el, prop, val) {
-			var style = el && el.style,
-				isObj = "[object Object]" === Object.prototype.toString.call(prop);
-
-			if (style) {
-				if (val === void 0 && !isObj) {
-					val = window.getComputedStyle(el, '');
-					return prop === void 0 ? val : val[prop];
-				} else {
-					if (isObj) {
-						util.each(prop, function(p, v) {
-							if (!(p in style)) { p = '-webkit-' + p; }
-							style[p] = v + (typeof v === 'string' ? '' : p === "opacity" ? "" : "px");
-						});
-					} else {
-						if (!(prop in style)) { prop = '-webkit-' + prop; }
-						style[prop] = val + (typeof val === 'string' ? '' : prop === "opacity" ? "" : "px");
-					}
-				}
 			}
 		},
 		createElement: function(a, b) {
@@ -139,27 +118,7 @@
 
 			return false;
 		},
-		isDate: function(str) {
-			// First check for the pattern
-			if(!/^\d{1,2}\/\d{1,2}\/\d{4}$/.test(str)) return false;
-
-			// Parse the date parts to integers
-			var parts = str.split("/"), day = parseInt(parts[1], 10), month = parseInt(parts[0], 10), year = parseInt(parts[2], 10);
-
-			// Check the ranges of month and year
-			if(year < 1000 || year > 3000 || month == 0 || month > 12) return false;
-
-			var monthLength = [ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 ];
-
-			// Adjust for leap years
-			if(year % 400 == 0 || (year % 100 != 0 && year % 4 == 0)) {
-				monthLength[1] = 29;
-			}
-
-			// Check the range of the day
-			return day > 0 && day <= monthLength[month - 1];
-		},
-		getBoundingRect: function(el) {
+		rect: function(el) {
 			var win = window;
 			var doc = document;
 			var body = doc.body;
@@ -377,7 +336,7 @@
 		this.container.appendChild(this.table);
 
 		// Store the table dimensions
-		this.rect = util.getBoundingRect(this.table);
+		this.rect = util.rect(this.table);
 
 		// Convert rows to array for processing
 		this.rows = [].slice.call(this.body.rows);
@@ -669,7 +628,7 @@
 	 */
 	var fixHeight = function() {
 		this.container.style.height = null;
-		this.rect = util.getBoundingRect(this.container);
+		this.rect = util.rect(this.container);
 		this.container.style.height = this.rect.height + 'px';
 	};
 
@@ -772,6 +731,45 @@
 	};
 
 	/**
+	 * Use moment.js to parse cell contents for sorting
+	 * @param  {String} content The datetime string to parse
+	 * @param  {String} format  The format for moment to use
+	 * @return {String|Boolean}         Return the datatime string or false
+	 */
+	var parseDate = function(content, format) {
+
+		var date = false;
+
+		// moment() throws a fit if the string isn't a valid datetime string
+		// so we need to supply the format to the constructor (https://momentjs.com/docs/#/parsing/string-format/)
+
+		// Converting to YYYYMMDD ensures we can accurately sort the column numerically
+
+		if ( format ) {
+			switch( format ) {
+				case "ISO_8601":
+					date = moment(content, moment.ISO_8601).format("YYYYMMDD");
+					break;
+				case "RFC_2822":
+					date = moment(content, "ddd, MM MMM YYYY HH:mm:ss ZZ").format("YYYYMMDD");
+					break;
+				case "MYSQL":
+					date = moment(content, "YYYY-MM-DD hh:mm:ss").format("YYYYMMDD");
+					break;
+				case "UNIX":
+					date = moment(content).unix();
+					break;
+				// User defined format using the data-format attribute or columns[n].format option
+				default:
+					date = moment(content, format).format("YYYYMMDD");
+					break;
+			}
+		}
+
+		return date;
+	};
+
+	/**
 	 * Columns API
 	 * @param {Object} instance DataTable instance
 	 * @param {Mixed} columns  Column index or array of column indexes
@@ -787,7 +785,7 @@
 	 * Get the columns
 	 * @return {Mixed} columns  Column index or array of column indexes
 	 */
-	Columns.prototype.get = function() {
+	Columns.prototype.select = function() {
 		var columns = this.columns;
 		if ( !util.isArray(columns) ) {
 			columns = [];
@@ -881,7 +879,7 @@
 	 */
 	Columns.prototype.hide = function() {
 
-		var columns = this.get();
+		var columns = this.select();
 
 		if ( columns.length ) {
 			util.each(columns, function(i, column) {
@@ -899,7 +897,7 @@
 	 * @return {Void}
 	 */
 	Columns.prototype.show = function() {
-		var columns = this.get();
+		var columns = this.select();
 
 		if ( columns.length ) {
 			var index;
@@ -1134,6 +1132,31 @@
 		this.hiddenColumns = [];
 
 		build.call(this);
+
+		// Check for the columns option
+		if ( this.options.columns ) {
+			util.each(this.options.columns, function(x, data) {
+				if ( data.select ) {
+					// convert single column selection to array
+					if ( !util.isArray(data.select) ) {
+						data.select = [data.select];
+					}
+
+					// Add the data attributes to the th elements
+					util.each(data.select, function(i, column) {
+						var th = this.headings[column];
+						if ( data.type ) {
+							th.setAttribute("data-type", data.type);
+						}
+						if ( data.format ) {
+							th.setAttribute("data-format", data.format);
+						}
+					}, this);
+				}
+			}, this);
+
+			this.update();
+		}
 
 		if ( this.options.plugins ) {
 			util.each(this.options.plugins, function(plugin, options)  {
@@ -1421,10 +1444,17 @@
 			var content = cell.textContent;
 			var num = content.replace(/(\$|\,|\s|%)/g, "");
 
-			// Parse date strings
-			if ( util.isDate(num) ) {
-				num = Date.parse(num);
+			// Check for date format and moment.js
+			if ( th.getAttribute("data-type") === "date" && window.moment ) {
+				var format = false, formatted = th.hasAttribute("data-format");
+
+				if ( formatted ) {
+					format = th.getAttribute("data-format");
+				}
+
+				num = parseDate(content, format);
 			}
+
 
 			if (parseFloat(num) == num) {
 				numeric[n++] = { value: Number(num), row: tr };

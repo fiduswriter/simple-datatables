@@ -14,6 +14,7 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 * Import `csv` and `json` data
 * Control column visibility
 * Reorder or swap columns
+* moment.js integration for sorting columns with datetime strings (experimental, v1.2.3 and above)
 
 
 [Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki)
@@ -38,12 +39,12 @@ npm install vanilla-datatables --save
 Add the css and js files from the CDN:
 
 ```html
-<link href="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
+<link href="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@1.2.3/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
 
-<script src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
+<script src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@1.2.3/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
 ```
 
-If the CDN hasn't updated then replace `latest` with the current release:
+or grab the latest stable version:
 
 ```html
 <link href="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@1.2.2/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
@@ -51,7 +52,7 @@ If the CDN hasn't updated then replace `latest` with the current release:
 <script src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@1.2.2/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
 ```
 
-The JS file should be included before any scripts that call the plugin.
+The JS file should be included before any scripts that call the library.
 
 ---
 
