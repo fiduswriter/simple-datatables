@@ -58,7 +58,7 @@ As well as custom format strings, there are some pre-defined formats that you ca
 var datatable = new DataTable("#myTable", {
    columns: [
       {
-         select: 0,
+         select: 2,
          type: "date",
          format: "MYSQL"
       }
