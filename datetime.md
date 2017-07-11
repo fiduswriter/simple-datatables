@@ -1,5 +1,7 @@
 Vanilla DataTables can utilise the [MomentJS](https://momentjs.com/) library for parsing datatime strings for easier column sorting.
 
+[Demonstration](https://s.codepen.io/Mobius1/debug/afe7874e0cacb8fada48cf8fda66306b)
+
 > Note that the moment.js implementation is experimental and will be improved in upcoming releases.
 
 Make sure `moment.js` is included in your project then select one of the two ways to sort columns based on datatime strings.
