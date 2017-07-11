@@ -19,6 +19,13 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 
 [Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki)
 
+### Demos
+
+
+[Default Setup](https://s.codepen.io/Mobius1/debug/VadmKb)
+[Datetime Strings](https://s.codepen.io/Mobius1/debug/jwXPKN)
+[Programmatic Access](https://s.codepen.io/Mobius1/debug/rwGyJa)
+
 
 ### Install
 
