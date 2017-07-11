@@ -8,7 +8,7 @@ Make sure `moment.js` is included in your project then select one of the two way
 
 ## Method 1
 
-Define a `data-type` attribute on the headings and set the value to `date`. If the datatime string is in a format that can not be sorted easily by standard methods, you must set the `data-format` attribute and set it's value to the format that is expected.
+Define a `data-type` attribute on the headings and set the value to `date`. If the datatime string is in a format that can not be sorted easily by standard methods, you must define the `data-format` attribute and set it's value to the format that is expected.
 
 ```html
 <table>
