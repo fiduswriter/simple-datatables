@@ -21,7 +21,7 @@ Define a `data-type` attribute on the headings and set the value to `date`. If t
 The `date` and `format` strings can also be defined in the options using the `columns` property:
 
 ```javascript
-// Select the first column and apply the `date` type and `format` to it
+// Allow sorting of the first column with "DD/MM/YYYY" format
 var datatable = new DataTable("#myTable", {
    columns: [
       {
@@ -56,7 +56,7 @@ As well as custom format strings, there are some pre-defined formats that you ca
 * `MYSQL`
 
 ```javascript
-// Format the third column as MySQL datetime strings
+// Allow sorting of the third column by MySQL datetime strings
 var datatable = new DataTable("#myTable", {
    columns: [
       {
