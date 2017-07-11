@@ -22,9 +22,9 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 ### Demos
 
 
-[Default Setup](https://s.codepen.io/Mobius1/debug/VadmKb)
-[Datetime Strings](https://s.codepen.io/Mobius1/debug/jwXPKN)
-[Programmatic Access](https://s.codepen.io/Mobius1/debug/rwGyJa)
+* [Default Setup](https://s.codepen.io/Mobius1/debug/VadmKb)
+* [Datetime Strings](https://s.codepen.io/Mobius1/debug/jwXPKN)
+* [Programmatic Access](https://s.codepen.io/Mobius1/debug/rwGyJa)
 
 
 ### Install
