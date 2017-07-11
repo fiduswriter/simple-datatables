@@ -30,11 +30,16 @@ var datatable = new DataTable("#myTable", {
    ]
 });
 
-// Select the first, third and fourth columns and apply the `date` type and `format` to them
+// Apply formatting to the third and fourth columns as well
 var datatable = new DataTable("#myTable", {
    columns: [
       {
-         select: [0,2,3],
+         select: 0,
+         type: "date",
+         format: "DD/MM/YYYY"
+      },
+      {
+         select: [2,3],
          type: "date",
          format: "MM/DD/YY"
       }
