@@ -46,3 +46,22 @@ var datatable = new DataTable("#myTable", {
    ]
 });
 ```
+
+As well as custom format strings, there are some pre-defined formats that you can utilise:
+
+* `ISO_8601`
+* `RFC_2822`
+* `MYSQL`
+
+```javascript
+// Format the third column as MySQL datetime strings
+var datatable = new DataTable("#myTable", {
+   columns: [
+      {
+         select: 0,
+         type: "date",
+         format: "MYSQL"
+      }
+   ]
+});
+```
