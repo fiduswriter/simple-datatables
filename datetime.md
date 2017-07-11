@@ -8,9 +8,11 @@ Define a `data-type` attribute on the headings and set the value to `date`. If t
 
 ```html
 <table>
-    <th data-type="date" data-format="DD/MM/YYYY"></th>
-    <th data-type="date" data-format="MM/DD/YY"></th>
-    ...
+    <thead>
+        <th data-type="date" data-format="DD/MM/YYYY"></th>
+        <th data-type="date" data-format="MM/DD/YY"></th>
+        ...
+    </thead>
 </table>
 ```
 
