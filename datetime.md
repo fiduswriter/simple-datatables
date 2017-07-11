@@ -19,6 +19,7 @@ Define a `data-type` attribute on the headings and set the value to `date`. If t
 The `date` and `format` strings can also be defined in the options using the `columns` property:
 
 ```javascript
+// Select the first column and apply the `date` type and the `format` to `"DD/MM/YYYY"`
 var datatable = new DataTable("#myTable", {
    columns: [
       {
