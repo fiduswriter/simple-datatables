@@ -3,6 +3,9 @@
 * [Manual](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#browser)
 * [Initialise](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#initialise)
 
+#### Sorting
+* [datetime](https://github.com/Mobius1/Vanilla-DataTables/wiki/datetime)
+
 #### Options
 * [perPage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#perpage)
 * [perPageSelect](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#perpageselect)
