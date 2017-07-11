@@ -30,7 +30,7 @@ var datatable = new DataTable("#myTable", {
    ]
 });
 
-// Select the first,  third and fourth columns and apply the `date` type and `format` to them
+// Select the first, third and fourth columns and apply the `date` type and `format` to them
 var datatable = new DataTable("#myTable", {
    columns: [
       {
