@@ -164,6 +164,71 @@ var dataTable = new DataTable(myTable, {
 
 > NOTE: If the headings count and rows count do not match, the library will throw an exception.
 
+### Using key-value pairs
+
+If your data is in the form of key-value pairs, you can quickly convert it to a format that the API can use:
+
+```javascript
+
+var data = [
+    {
+        "prop1": "value1",
+        "prop2": "value2",
+        "prop3": "value3"
+    },
+    {
+        "prop1": "value4",
+        "prop2": "value5",
+        "prop3": "value6"
+    }
+];
+
+var obj = {
+    // Quickly get the headings
+    headings: Object.keys(data[0]),
+
+    // rows array
+    rows: []
+};
+
+// Loop over the objects to get the values
+for ( var i = 0; i < data.length; i++ ) {
+	
+    obj.rows[i] = [];
+	
+    for (var p in data[i]) {
+        if( data[i].hasOwnProperty(p) ) {
+            obj.rows[i].push(data[i][p]);
+        } 
+    } 
+}
+
+```
+
+which will produce:
+
+```javascript
+{
+   headings : [
+      "prop1",
+      "prop2",
+      "prop3"
+   ],
+   rows : [
+      [
+         "value1",
+         "value2",
+         "value3"
+      ],
+      [
+         "value4",
+         "value5",
+         "value6"
+      ]
+   ]
+}
+```
+
 ---
 
 ### `labels`
