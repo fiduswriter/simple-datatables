@@ -129,7 +129,7 @@ Controls various aspects of individual or groups of columns. Should be an array 
 * `sortable` - when set to `false` the column(s) cannot be sorted
 * `hidden` - when set to `true` the column(s) will not be visible and will be exlcuded from search results
 * `type` - a string reperesenting the type of data in the column(s) cells
-    * - test
+    test
 
 ```javascript
 var datatable = new DataTable("#myTable", {
