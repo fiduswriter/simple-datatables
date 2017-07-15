@@ -128,20 +128,23 @@ Controls various aspects of individual or groups of columns. Should be an array 
 * `select` - and integer or array of integers representing the the column index(es)
 * `sortable` - when set to `false` the column(s) cannot be sorted
 * `hidden` - when set to `true` the column(s) will not be visible and will be exlcuded from search results
-* `type` - a string reperesenting the type of data in the column(s) cells
-    * test
+* `type` - a string reperesenting the type of data in the column(s) cells. Choose from the following options:
+    * `number` - any `string` with currency symbols, `.` or `,` thousand seperators, `%`, etc
+    * `date` - a valid `datetime` string
+* `format` - a string represnting the `datetime` format for the `date` type.
 
+#### Example
 ```javascript
 var datatable = new DataTable("#myTable", {
     columns: [
-        {
-            select: int or array,
-            sortable: boolean
-            hidden: boolean
-            type: string,
-            format: string
-        },
-        ...
+        // set the third column as datetime string matching the format "DD/MM/YYY"
+        { select: 2, type: "date", format: "DD/MM/YYYY" },
+
+        // disable sorting on the fourth and fifth columns
+        { select: [3,4], sortable: false },
+
+        // hide the sixth column
+        { select: 5, hidden: true },
     ]
 });
 ```
