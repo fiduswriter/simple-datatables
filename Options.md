@@ -119,6 +119,29 @@ Fix the height of the table. This is useful if your last page contains less rows
 
 ---
 
+### `columns`
+#### Type: `array`
+#### Default: `undefined`
+
+Controls various aspects of individual or groups of columns. Should be an array of objects with optional properties:
+
+```javascript
+var datatable = new DataTable("#myTable", {
+    columns: [
+        {
+            select: int or array,
+            sortable: boolean
+            hidden: boolean
+            type: string,
+            format: string
+        },
+        ...
+    ]
+});
+```
+
+---
+
 ### `data`
 #### Type: `object`
 #### Default: `undefined`
