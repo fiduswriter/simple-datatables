@@ -11,7 +11,6 @@ var dataTable = new DataTable(myTable, options);
 
 ---
 
-#### Options
 * [perPage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#perpage)
 * [perPageSelect](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#perpageselect)
 * [nextPrev](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#nextprev)
