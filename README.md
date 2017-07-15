@@ -90,4 +90,12 @@ var dataTable = new DataTable("#myTable", {
 
 Don't forget to check the [wiki](https://github.com/Mobius1/Vanilla-DataTables/wiki) out for further help.
 
+---
+
+If this project helps you then you can grab me a coffee or beer to say thanks.
+
+[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donateCC_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=9B9KD4X57X8V8)
+
+---
+
 Copyright © 2017 Karl Saunders | MIT license
