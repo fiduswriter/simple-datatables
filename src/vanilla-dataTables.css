@@ -153,13 +153,13 @@
 
 .dataTable-sorter::before {
 	border-top: 4px solid #000;
-	bottom: 2px;
+	bottom: 8px;
 }
 
 .dataTable-sorter::after {
 	border-bottom: 4px solid #000;
 	border-top: 4px solid transparent;
-	top: -2px;
+	top: 8px;
 }
 
 .asc .dataTable-sorter::after,
