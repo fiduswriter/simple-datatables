@@ -149,6 +149,20 @@ var datatable = new DataTable("#myTable", {
 });
 ```
 
+> Note: You can use the same properties in your markup. Just add the property to the `th` element as a `data-{property}` attribute:
+
+```html
+<table>
+    <thead>
+        <th data-sortable="false">Heading 1</th>
+        <th data-type="date" data-format="MMM DD, YYYY">Heading 2</th>
+        <th data-hidden="true">Heading 3</th>
+        ...
+    </thead>
+    ...
+</table>
+```
+
 ---
 
 ### `data`
