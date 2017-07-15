@@ -278,19 +278,6 @@ labels: {
 }
 ```
 
-#### Type: `[object]`
-Customise the displayed labels. (v1.0.6 and above)
-
-#### Defaults
-```javascript
-labels: {
-    placeholder: "Search...",
-    perPage: "{select} entries per page",
-    noRows: "No entries to found",
-    info: "Showing {start} to {end} of {rows} entries",
-}
-```
-
 The strings wrapped in curly braces represent variables that are inserted.
 
 <table data-table="label">
