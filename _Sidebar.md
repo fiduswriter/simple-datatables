@@ -20,6 +20,7 @@
 * [truncatePager](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#truncatepager)
 * [fixedColumns](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#fixedcolumns)
 * [fixedHeight](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#fixedheight)
+* [columns](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#columns)
 * [data](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#data)
 * [labels](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#labels)
 * [layout](https://github.com/Mobius1/Vanilla-DataTables/wiki/Options#layout)
