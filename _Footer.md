@@ -1,1 +1,0 @@
-[Buy me a beer!](https://www.paypal.com/cgi-bin/webscr?hosted_button_id=9B9KD4X57X8V8&cmd=_s-xclick)
