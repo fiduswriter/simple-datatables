@@ -42,26 +42,6 @@
 	};
 
 	/**
-	 * Add event listener to target
-	 * @param  {Object} el
-	 * @param  {String} e
-	 * @param  {Function} fn
-	 */
-	var on = function(el, e, fn) {
-		el.addEventListener(e, fn, false);
-	};
-
-	/**
-	 * Remove event listener from target
-	 * @param  {Object} el
-	 * @param  {String} e
-	 * @param  {Function} fn
-	 */
-	var off = function(el, e, fn) {
-		el.removeEventListener(e, fn);
-	};
-
-	/**
 	 * Iterator helper
 	 * @param  {(Array|Object)}   arr Any object, array or array-like collection.
 	 * @param  {Function} f   The callback function
@@ -81,6 +61,16 @@
 			}
 		}
 	};
+	
+	/**
+	 * Add event listener to target
+	 * @param  {Object} el
+	 * @param  {String} e
+	 * @param  {Function} fn
+	 */
+	var on = function(el, e, fn) {
+		el.addEventListener(e, fn, false);
+	};	
 
 	/**
 	 * Create DOM element node
@@ -1204,7 +1194,7 @@
 	proto.bindEvents = function() {
 		var that = this,
 			o = that.options;
-
+		
 		// Per page selector
 		if (o.perPageSelect) {
 			var selector = that.wrapper.querySelector(".dataTable-selector");
@@ -1233,31 +1223,18 @@
 			}
 		}
 
-		// Pager(s)
+		// Pager(s) / sorting
 		on(that.wrapper, "click", function(e) {
 			var t = e.target;
-			if (t.nodeName.toLowerCase() === "a" && t.hasAttribute("data-page")) {
+			if (t.nodeName.toLowerCase() === "a" ) {
 				e.preventDefault();
-				that.page(t.getAttribute("data-page"));
+				if ( t.hasAttribute("data-page") ) {
+					that.page(t.getAttribute("data-page"));
+				} else if ( o.sortable && classList.contains(t, "dataTable-sorter") && t.parentNode.getAttribute("data-sortable") != "false" ) {
+					that.sortColumn(that.activeHeadings.indexOf(t.parentNode) + 1);
+				}
 			}
 		});
-
-		// Sort items
-		if (o.sortable) {
-			on(that.head, "click", function(e) {
-				e = e || window.event;
-				var target = e.target;
-
-				if (
-					target.nodeName.toLowerCase() === "a" &&
-					classList.contains(target, "dataTable-sorter") &&
-					target.parentNode.getAttribute("data-sortable") != "false"
-				) {
-					e.preventDefault();
-					that.sortColumn(that.activeHeadings.indexOf(target.parentNode) + 1);
-				}
-			});
-		}
 	};
 
 	/**
@@ -1307,9 +1284,9 @@
 	 * @return {Void}
 	 */
 	proto.on = function(event, callback) {
-		this._events = this._events || {};
-		this._events[event] = this._events[event] || [];
-		this._events[event].push(callback);
+		this.events = this.events || {};
+		this.events[event] = this.events[event] || [];
+		this.events[event].push(callback);
 	};
 
 	/**
@@ -1319,9 +1296,9 @@
 	 * @return {Void}
 	 */
 	proto.off = function(event, callback) {
-		this._events = this._events || {};
-		if (event in this._events === false) return;
-		this._events[event].splice(this._events[event].indexOf(callback), 1);
+		this.events = this.events || {};
+		if (event in this.events === false) return;
+		this.events[event].splice(this.events[event].indexOf(callback), 1);
 	};
 
 	/**
@@ -1330,10 +1307,10 @@
 	 * @return {Void}
 	 */
 	proto.emit = function(event) {
-		this._events = this._events || {};
-		if (event in this._events === false) return;
-		for (var i = 0; i < this._events[event].length; i++) {
-			this._events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+		this.events = this.events || {};
+		if (event in this.events === false) return;
+		for (var i = 0; i < this.events[event].length; i++) {
+			this.events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
 		}
 	};
 
@@ -1637,13 +1614,13 @@
 	 * Add new row data
 	 * @param {object} data
 	 */
-	proto.addRows = function(data) {
+	proto.insert = function(data) {
 		if (!"[object Object]" === Object.prototype.toString.call(data)) {
-			throw new Error("Method addRows requires an object.");
+			throw new Error("Method insert requires an object.");
 		}
 
 		if (!data.rows) {
-			throw new Error("Method addRows requires the 'rows' property.");
+			throw new Error("Method insert requires the 'rows' property.");
 		}
 
 		if (data.headings) {
@@ -1986,7 +1963,7 @@
 
 			if (obj) {
 				// Add the rows
-				this.addRows(obj);
+				this.insert(obj);
 			}
 		}
 
