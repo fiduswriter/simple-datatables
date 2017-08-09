@@ -22,6 +22,7 @@
 * [fixedHeight](https://github.com/Mobius1/Vanilla-DataTables/wiki/fixedHeight)
 * [columns](https://github.com/Mobius1/Vanilla-DataTables/wiki/columns)
 * [data](https://github.com/Mobius1/Vanilla-DataTables/wiki/data)
+* [ajax](https://github.com/Mobius1/Vanilla-DataTables/wiki/ajax)
 * [labels](https://github.com/Mobius1/Vanilla-DataTables/wiki/labels)
 * [layout](https://github.com/Mobius1/Vanilla-DataTables/wiki/layout)
 * [header](https://github.com/Mobius1/Vanilla-DataTables/wiki/header)
