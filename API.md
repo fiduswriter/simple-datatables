@@ -162,7 +162,7 @@ Load a chosen page.
 
 ---
 
-### addRows(`data [object]`)
+### insert(`data [object]`)
 #### type `Function`
 
 Add new rows to the table. Must be an object with the `rows` propery set and the number of values for each row must match the column count of the table.
@@ -193,7 +193,7 @@ var newData = {
 };
 
 // add the rows
-dataTable.addRows(newData);
+dataTable.insert(newData);
 ```
 
 ---
