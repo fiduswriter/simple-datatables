@@ -77,15 +77,17 @@
      */ 
     var extend = function(src, props) {
             for (var prop in props) {
+              if ( props.hasOwnProperty(prop) ) {
                     var val = props[prop];
                     if (val && Object.prototype.toString.call(val) === "[object Object]") {
                             src[prop] = src[prop] || {};
                             extend(src[prop], val);
                     }
                     else {
-                            src[prop] = val;
+                           src[prop] = val;
                     }
-            }
+                }
+                    }
             return src;
     };
 
@@ -149,11 +151,11 @@
     var isJson = function(str) {
         var t = !1;
         try {
-            t = JSON.parse(str)
-        } catch (str) {
-            return !1
+            t = JSON.parse(str);
+        } catch (e) {
+            return !1;
         }
-        return !(null === t || !Array.isArray(t) && "[object Object]" !== Object.prototype.toString.call(t)) && t
+        return !(null === t || !Array.isArray(t) && "[object Object]" !== Object.prototype.toString.call(t)) && t;
     };
     
     var flush = function(el, ie) {
@@ -192,27 +194,28 @@
      */
     var classList = {
         add: function(s, a) {
-            classList.contains(s, a) ||
-                (s.classList
-                    ? s.classList.add(a)
-                    : (s.className = s.className.trim() + " " + a));
+            if ( s.classList ) {
+                s.classList.add(a);
+            } else {
+                if ( !classList.contains(s, a) ) {
+                    s.className = s.className.trim() + " " + a;
+                }
+            }
         },
         remove: function(s, a) {
-            classList.contains(s, a) &&
-                (s.classList
-                    ? s.classList.remove(a)
-                    : (s.className = s.className.replace(
-                            new RegExp("(^|\\s)" + a.split(" ").join("|") + "(\\s|$)", "gi"),
-                            " "
-                        )));
+            if ( s.classList ) {
+                s.classList.remove(a);
+            } else {
+                if ( classList.contains(s, a) ) {
+                    s.className = s.className.replace( new RegExp("(^|\\s)" + a.split(" ").join("|") + "(\\s|$)", "gi"), " " );
+                }
+            }
         },
         contains: function(s, a) {
             if (s)
-                return s.classList
-                    ? s.classList.contains(a)
-                    : !!s.className &&
+                return s.classList ? s.classList.contains(a) : !!s.className &&
                             !!s.className.match(new RegExp("(\\s|^)" + a + "(\\s|$)"));
-        }       
+        }
     };
 
 
@@ -569,7 +572,7 @@
         this.columns = columns;
 
         return this;
-    }
+    };
     
     var clms = Columns.prototype;
 
@@ -886,7 +889,7 @@
         this.table = table;
 
         this.init();
-    }
+    };
     
     var proto = DataTable.prototype;
 
@@ -1000,7 +1003,7 @@
             
             var xhrProgress = function(e) {
                 that.emit("datatable.ajax.progress", e, xhr);
-            }
+            };
             
             var xhrComplete = function(e) {
                 if ( xhr.readyState === 4 ) {
@@ -1019,15 +1022,15 @@
                         that.emit("datatable.ajax.error", e, xhr);
                     }
                 }
-            }
+            };
             
             var xhrFailed = function(e) {
                 that.emit("datatable.ajax.error", e, xhr);
-            }
+            };
             
             var xhrCancelled = function(e) {
                 that.emit("datatable.ajax.abort", e, xhr);
-            }           
+            };           
             
             on(xhr, "progress", xhrProgress);
             on(xhr, "load", xhrComplete);
@@ -1606,7 +1609,7 @@
             var num = content.replace(/(\$|\,|\s|%)/g, "");
 
             // Check for date format and moment.js
-            if (th.getAttribute("data-type") === "date" && window.moment) {
+            if (th.getAttribute("data-type") === "date" && win.moment) {
                 var format = false,
                     formatted = th.hasAttribute("data-format");
 
@@ -1680,7 +1683,7 @@
      * @param {object} data
      */
     proto.insert = function(data) {
-        if (!"[object Object]" === Object.prototype.toString.call(data)) {
+        if ("[object Object]" !== Object.prototype.toString.call(data)) {
             throw new Error("Method insert requires an object.");
         }
 
@@ -1817,7 +1820,7 @@
         };
 
         // Check for the options object
-        if (!"[object Object]" === Object.prototype.toString.call(options)) {
+        if ("[object Object]" !== Object.prototype.toString.call(options)) {
             return false;
         }
 
@@ -1961,13 +1964,13 @@
                     link.download = options.filename;
 
                     // Append the link
-                    document.body.appendChild(link);
+                    body.appendChild(link);
 
                     // Trigger the download
                     link.click();
 
                     // Remove the link
-                    document.body.removeChild(link);
+                    body.removeChild(link);
                 }
 
                 return str;
@@ -1991,7 +1994,7 @@
         };
 
         // Check for the options object
-        if (!"[object Object]" === Object.prototype.toString.call(options)) {
+        if ("[object Object]" !== Object.prototype.toString.call(options)) {
             return false;
         }
 
@@ -2088,7 +2091,7 @@
         table.appendChild(tbody);
 
         // Open new window
-        var w = window.open();
+        var w = win.open();
 
         // Append the table to the body
         w.document.body.appendChild(table);
