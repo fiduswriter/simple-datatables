@@ -52,7 +52,7 @@
 * [searchData](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#searchdata)
 * [refresh](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#refresh)
 * [page](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#pagenum-int)
-* [addRows](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#addrowsdata-object)
+* [insert](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#insertdata-object)
 * [sortColumn](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#sortcolumncolumn-int-direction-string)
 * [setMessage](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#setmessagemessage-string)
 * [init](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#init)
