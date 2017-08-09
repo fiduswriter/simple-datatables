@@ -167,6 +167,8 @@ Load a chosen page.
 
 Add new rows to the table. Must be an object with the `rows` propery set and the number of values for each row must match the column count of the table.
 
+> NOTE: Prior to v1.3.0 this method was called `addRows`
+
 ```javascript
 var dataTable = new DataTable("#myTable");
 
