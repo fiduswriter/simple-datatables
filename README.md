@@ -24,6 +24,7 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 
 
 * [Default Setup](https://s.codepen.io/Mobius1/debug/VadmKb)
+* [Remote Data](https://s.codepen.io/Mobius1/debug/XaRepW)
 * [Datetime Strings](https://s.codepen.io/Mobius1/debug/jwXPKN)
 * [Stress Test](https://s.codepen.io/Mobius1/debug/qjLaKd)
 * [Programmatic Access](https://s.codepen.io/Mobius1/debug/rwGyJa)
