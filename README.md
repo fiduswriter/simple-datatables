@@ -10,6 +10,7 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 * Searchable
 * Customisable layout
 * Customisable labels
+* Load data via AJAX requests
 * Export to common formats like `csv`, `txt` `json`, and `sql`
 * Import `csv` and `json` data
 * Control column visibility
@@ -44,23 +45,21 @@ npm install vanilla-datatables --save
 
 ### Browser
 
-Add the css and js files from the CDN:
+Grab the files from one of the CDNs and include them in your page:
 
 ```html
-<link href="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@1.2.3/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
+<link href="https://unpkg.com/vanilla-datatables@latest/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
+<script src="https://unpkg.com/vanilla-datatables@latest/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
 
-<script src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@1.2.3/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
+//or
+
+<link href="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
 ```
 
-or grab the latest stable version:
+You can replace `latest` with the required release number.
 
-```html
-<link href="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@1.2.2/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
-
-<script src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@1.2.2/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
-```
-
-The JS file should be included before any scripts that call the library.
+CDNs courtesy of [unpkg](https://unpkg.com/#/) and [jsDelivr](http://www.jsdelivr.com/)
 
 ---
 
