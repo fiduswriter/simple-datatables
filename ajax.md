@@ -8,6 +8,6 @@ Just pass the url to the remote data and the instance will process and insert th
 
 ```javascript
 var dataTable = new DataTable(myTable, {
-    ajax: "some/url/data.json
+    ajax: "some/url/data.json"
 });
 ```
