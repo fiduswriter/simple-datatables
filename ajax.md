@@ -12,7 +12,7 @@ var dataTable = new DataTable(myTable, {
 });
 ```
 
-You can also pass an `Object` with the `url` and `load` properties:
+If you need to manually process the data then you can also pass an `Object` with the `url` and `load` properties:
 
 ```javascript
 var dataTable = new DataTable(myTable, {
