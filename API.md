@@ -198,7 +198,7 @@ var newData = {
 dataTable.insert(newData);
 ```
 
-You may also pass the `headings` property to insert headings if your table is empty or has no headings:
+You may also pass the `headings` property to insert headings if your table is empty or has no headings. If you attempt to pass new headings to a table that has headings, they'll be ignored.
 
 ```javascript
 var newData = {
