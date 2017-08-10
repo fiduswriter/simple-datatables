@@ -26,3 +26,5 @@ var dataTable = new DataTable(myTable, {
 ```
 
 The load property should return the formatted response data that the instance can recognise (`Object` or `JSON`). It takes a single argument which is an instance of the `XMLHttpRequest` object.
+
+### Example
