@@ -198,6 +198,40 @@ var newData = {
 dataTable.insert(newData);
 ```
 
+You may also pass the `headings` property to insert headings if your table is empty or has no headings:
+
+```javascript
+var newData = {
+        headings: [
+            "Name",
+            "Position",
+            "Town",
+            "Ext.",
+            "Start Date",
+            "Salary"
+        ],
+	rows: [
+		[
+            "Cedric Kelly",
+            "Senior Javascript Developer",
+            "Edinburgh",
+            "6224",
+            "2012/03/29",
+            "$433,060"
+        ],
+        [
+            "Airi Satou",
+            "Accountant",
+            "Tokyo",
+            "5407",
+            "2008/11/28",
+            "$162,700"
+        ],
+        ...
+      ]
+};
+```
+
 ---
 
 ### sortColumn(`column [int]`, `direction [string]`)
