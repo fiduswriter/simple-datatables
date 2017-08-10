@@ -29,8 +29,8 @@ The load property should return the formatted response data that the instance ca
 
 ### Example
 
-JSON returned by `xhr.responseText`
-```json
+`JSON` string returned by `xhr.responseText`:
+```javascript
 [
     {
         "Name": "Unity Pugh",
