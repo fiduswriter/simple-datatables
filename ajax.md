@@ -25,7 +25,7 @@ var dataTable = new DataTable(myTable, {
 });
 ```
 
-The load property should return the formatted response data that the instance can recognise (`Object` or `JSON`). It takes a single argument which is an instance of the `XMLHttpRequest` object.
+The load property should return the formatted response data that the instance can recognise (`Object`, `JSON` or `CSV`). It takes a single argument which is an instance of the `XMLHttpRequest` object.
 
 If your function returns an `Object` it should formatted so that the [`insert()`](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#insertdata-object) method can use it.
 
