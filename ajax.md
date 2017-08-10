@@ -29,7 +29,7 @@ The load property should return the formatted response data that the instance ca
 
 ### Example
 
-#### JSON returned by `xhr.responseText`
+JSON returned by `xhr.responseText`
 ```json
 [
     {
