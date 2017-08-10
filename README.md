@@ -20,8 +20,9 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 
 [Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki)
 
-### Demos
+---
 
+### Demos
 
 * [Default Setup](https://s.codepen.io/Mobius1/debug/VadmKb)
 * [Remote Data](https://s.codepen.io/Mobius1/debug/XaRepW)
@@ -29,6 +30,7 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 * [Stress Test](https://s.codepen.io/Mobius1/debug/qjLaKd)
 * [Programmatic Access](https://s.codepen.io/Mobius1/debug/rwGyJa)
 
+---
 
 ### Install
 
