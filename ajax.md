@@ -31,6 +31,8 @@ If your function returns an `Object` it should formatted so that the [`insert()`
 
 ### Example
 
+[See it in action.](https://codepen.io/Mobius1/pen/WEOxxq/?editors=0010)
+
 `JSON` string returned by `xhr.responseText`:
 ```javascript
 [
