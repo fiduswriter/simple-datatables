@@ -28,3 +28,26 @@ var dataTable = new DataTable(myTable, {
 The load property should return the formatted response data that the instance can recognise (`Object` or `JSON`). It takes a single argument which is an instance of the `XMLHttpRequest` object.
 
 ### Example
+```javascript
+
+var highlightNumbers = function(xhr) {
+    var data = JSON.parse(xhr.responseText);
+
+    for ( var i = 0; i < data.length; i++ ) {
+        for (var p in data[i]) {
+            if ( !isNaN(data[i][p]) ) {
+                data[i][p] = "<u style='color:red;'>" + data[i][p] + "</u>"
+            }
+        } 
+    }		
+			
+    return JSON.stringify(data);
+}
+
+var dataTable = new DataTable(myTable, {
+    ajax: {
+        url: "some/url/data.json",
+        load: highlightNumbers
+    }
+});
+```
