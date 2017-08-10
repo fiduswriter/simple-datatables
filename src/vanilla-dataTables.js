@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.3.1
+ * Version: 1.3.2
  *
  */
 (function(root, factory) {
@@ -869,7 +869,7 @@
                     that.emit("datatable.ajax.loaded", e, xhr);
 
                     if (xhr.status === 200) {
-                        var data = ajax.load.call(that, xhr) || xhr.responseText;
+                        var data = ajax.load ? ajax.load.call(that, xhr) : xhr.responseText;
                         var type = isJson(data) ? "json" : false;
 
                         that.import({
