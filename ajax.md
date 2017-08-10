@@ -30,6 +30,24 @@ The load property should return the formatted response data that the instance ca
 ### Example
 ```javascript
 
+[
+    {
+        "Name": "Unity Pugh",
+        "Ext.": "9958",
+        "City": "Curicó",
+        "Start Date": "2005/02/11",
+        "Completion": "37%"
+    },
+    {
+        "Name": "Theodore Duran",
+        "Ext.": "8971",
+        "City": "Dhanbad",
+        "Start Date": "1999/04/07",
+        "Completion": "97%"
+    },
+    ...
+]
+
 var highlightNumbers = function(xhr) {
     var data = JSON.parse(xhr.responseText);
 
