@@ -19,7 +19,7 @@ var dataTable = new DataTable(myTable, {
     ajax: {
         url: "some/url/data.json",
         load: function(xhr) {
-            // process and/or the response data
+            // process and return the response data
         }
     }
 });
