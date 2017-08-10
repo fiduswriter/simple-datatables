@@ -52,8 +52,10 @@ The load property should return the formatted response data that the instance ca
 
 ```javascript
 var highlightNumbers = function(xhr) {
+    // Parse the JSON string
     var data = JSON.parse(xhr.responseText);
 
+    // Loop over the data and style the number column
     for ( var i = 0; i < data.length; i++ ) {
         for (var p in data[i]) {
             if ( !isNaN(data[i][p]) ) {
@@ -61,7 +63,8 @@ var highlightNumbers = function(xhr) {
             }
         } 
     }		
-			
+		
+    // Return the formatted data	
     return JSON.stringify(data);
 }
 
