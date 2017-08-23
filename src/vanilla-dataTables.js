@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.3.3
+ * Version: 1.3.4
  *
  */
 (function(root, factory) {
@@ -1904,8 +1904,8 @@
                         for (x = 0; x < rows[i].cells.length; x++) {
                             // Check for column skip and visibility
                             if (
-                                options.skipColumn.indexOf(x) < 0 &&
-                                this.columns(rows[i].cells[x].cellIndex).visible()
+                                options.skipColumn.indexOf(headers[x].originalCellIndex) < 0 &&
+                                this.columns(headers[x].originalCellIndex).visible()
                             ) {
                                 str += rows[i].cells[x].textContent + options.columnDelimiter;
                             }
@@ -1931,8 +1931,8 @@
                     for (i = 0; i < headers.length; i++) {
                         // Check for column skip and column visibility
                         if (
-                            options.skipColumn.indexOf(i) < 0 &&
-                            this.columns(headers[i].cellIndex).visible()
+                            options.skipColumn.indexOf(headers[i].originalCellIndex) < 0 &&
+                            this.columns(headers[i].originalCellIndex).visible()
                         ) {
                             str += "`" + headers[i].textContent + "`,";
                         }
@@ -1951,8 +1951,8 @@
                         for (x = 0; x < rows[i].cells.length; x++) {
                             // Check for column skip and column visibility
                             if (
-                                options.skipColumn.indexOf(x) < 0 &&
-                                this.columns(rows[i].cells[x].cellIndex).visible()
+                                options.skipColumn.indexOf(headers[x].originalCellIndex) < 0 &&
+                                this.columns(headers[x].originalCellIndex).visible()
                             ) {
                                 str += '"' + rows[i].cells[x].textContent + '",';
                             }
@@ -1982,8 +1982,8 @@
                         for (i = 0; i < headers.length; i++) {
                             // Check for column skip and column visibility
                             if (
-                                options.skipColumn.indexOf(i) < 0 &&
-                                this.columns(rows[x].cells[i].cellIndex).visible()
+                                options.skipColumn.indexOf(headers[i].originalCellIndex) < 0 &&
+                                this.columns(headers[i].originalCellIndex).visible()
                             ) {
                                 arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
                             }
