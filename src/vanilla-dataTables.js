@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.3.4
+ * Version: 1.3.5
  *
  */
 (function(root, factory) {
@@ -697,6 +697,8 @@
         if (table.tagName.toLowerCase() !== "table") {
             throw new Error("The selected element is not a table.");
         }
+            
+                this.initialLayout = table.innerHTML;
 
         this.initialSortable = this.options.sortable;
 
@@ -1310,29 +1312,7 @@
     proto.destroy = function() {
         var o = this.options;
 
-        // Remove the sorters
-        if (o.sortable) {
-            each(
-                this.head.rows[0].cells,
-                function(i, th) {
-                    var html = th.firstElementChild.innerHTML;
-                    th.innerHTML = html;
-                    th.removeAttribute("style");
-                },
-                this
-            );
-        }
-
-        // Populate the table
-        var f = doc.createDocumentFragment();
-        each(
-            this.rows,
-            function(i, tr) {
-                f.appendChild(tr);
-            },
-            this
-        );
-        this.clear(f);
+        this.table.innerHTML = this.initialLayout;
 
         // Remove the className
         classList.remove(this.table, "dataTable-table");
