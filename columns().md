@@ -108,17 +108,22 @@ datatable.columns().show([0,1]);
 
 Checks to see if the selected column(s) are visible. Returns a `boolean` for single indexes or an `array` of `boolean`s for multiple indexes.
 
+If you omit the `select` parameter, an `array` of `booleans` will be returned representing all available columns.
+
 ```javascript
-// Select the fourth column
 var columns = datatable.columns();
 
-// Hide it
+// Hide the 4th column
 columns.hide(3);
 
 // Check visiblilty
 columns.visible(3) // returns false
 
 or 
+
+datatable.columns().visible([0,1,2,3]) // returns  [true, true, true, false]
+
+or
 
 datatable.columns().visible() // returns  [true, true, true, false, true]
 
@@ -129,6 +134,22 @@ datatable.columns().visible() // returns  [true, true, true, false, true]
 ### `hidden(select [integer|array])`
 
 Checks to see if the selected column(s) are visible. Returns a `boolean` for single indexes or an `array` of `boolean`s for multiple indexes.
+
+Usage is the same as the `visible` method.
+
+---
+
+### `swap(indexes [array])`
+
+Swap th position of two columns. Just pass an array of 2 integers representing the column indexes you require swapping.
+
+```javascript
+var columns = datatable.columns();
+
+// Swap the 1st and 6th columns
+columns.swap([0,5]);
+
+```
 
 ---
 
