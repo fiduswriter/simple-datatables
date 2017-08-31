@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.3
+ * Version: 1.4.4
  *
  */
 (function(root, factory) {
@@ -408,50 +408,31 @@
      * @param {Object} instance DataTable instance
      * @param {Mixed} columns  Column index or array of column indexes
      */
-    var Columns = function(dt, columns) {
+    var Columns = function(dt) {
         this.dt = dt;
-        this.columns = columns;
-
         return this;
-    };
-
-    /**
-     * Get the columns
-     * @return {Mixed} columns  Column index or array of column indexes
-     */
-    Columns.prototype.select = function() {
-        var columns = this.columns;
-        if (!isArray(columns)) {
-            columns = [];
-            columns.push(this.columns);
-        }
-        return columns;
     };
 
     /**
      * Swap two columns
      * @return {Void}
      */
-    Columns.prototype.swap = function() {
-        if (this.columns.length && this.columns.length === 2) {
-            var columns = [];
+    Columns.prototype.swap = function(columns) {
+        if (columns.length && columns.length === 2) {
+            var cols = [];
 
             // Get the current column indexes
-            each(
-                this.dt.headings,
-                function(i, heading) {
-                    columns.push(i);
-                },
-                this
-            );
+            each(this.dt.headings, function(i, heading) {
+                cols.push(i);
+            }, this);
 
-            var x = this.columns[0];
-            var y = this.columns[1];
-            var b = columns[y];
-            columns[y] = columns[x];
-            columns[x] = b;
+            var x = columns[0];
+            var y = columns[1];
+            var b = cols[y];
+            cols[y] = cols[x];
+            cols[x] = b;
 
-            this.order(columns);
+            this.order(cols);
         }
     };
 
@@ -530,9 +511,7 @@
      * Hide columns
      * @return {Void}
      */
-    Columns.prototype.hide = function() {
-        var columns = this.select();
-
+    Columns.prototype.hide = function(columns) {
         if (columns.length) {
             each(columns, function(i, column) {
                 if (this.dt.hiddenColumns.indexOf(column) < 0) {
@@ -548,9 +527,7 @@
      * Show columns
      * @return {Void}
      */
-    Columns.prototype.show = function() {
-        var columns = this.select();
-
+    Columns.prototype.show = function(columns) {
         if (columns.length) {
             var index;
 
@@ -569,38 +546,46 @@
      * Check column(s) visibility
      * @return {Boolean}
      */
-    Columns.prototype.visible = function() {
-        var columns;
+    Columns.prototype.visible = function(columns) {
+        var cols;
 
-        if (!isNaN(this.columns)) {
-            columns = this.dt.hiddenColumns.indexOf(this.columns) < 0;
-        } else if (isArray(this.columns)) {
-            columns = [];
-            each(this.columns, function(i, column) {
-                columns.push(this.dt.hiddenColumns.indexOf(column) < 0);
+        columns = columns || this.dt.headings.map(function(th) {
+            return th.originalCellIndex;
+        });
+
+        if (!isNaN(columns)) {
+            cols = this.dt.hiddenColumns.indexOf(columns) < 0;
+        } else if (isArray(columns)) {
+            cols = [];
+            each(columns, function(i, column) {
+                cols.push(this.dt.hiddenColumns.indexOf(column) < 0);
             }, this);
         }
 
-        return columns;
+        return cols;
     };
 
     /**
      * Check column(s) visibility
      * @return {Boolean}
      */
-    Columns.prototype.hidden = function() {
-        var columns;
+    Columns.prototype.hidden = function(columns) {
+        var cols;
 
-        if (!isNaN(this.columns)) {
-            columns = this.dt.hiddenColumns.indexOf(this.columns) > -1;
-        } else if (isArray(this.columns)) {
-            columns = [];
-            each(this.columns, function(i, column) {
-                columns.push(this.dt.hiddenColumns.indexOf(column) > -1);
+        columns = columns || this.dt.headings.map(function(th) {
+            return th.originalCellIndex;
+        });
+
+        if (!isNaN(columns)) {
+            cols = this.dt.hiddenColumns.indexOf(this.columns) > -1;
+        } else if (isArray(columns)) {
+            cols = [];
+            each(columns, function(i, column) {
+                cols.push(this.dt.hiddenColumns.indexOf(column) > -1);
             }, this);
         }
 
-        return columns;
+        return cols;
     };
 
     /**
