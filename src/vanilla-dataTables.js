@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.2
+ * Version: 1.4.3
  *
  */
 (function(root, factory) {
@@ -619,13 +619,13 @@
         this.dt.headings.push(th);
 
         each(this.dt.data, function(i, row) {
-            if (data.rows[i]) {
+            if (data.data[i]) {
                 td = document.createElement("td");
 
-                if (data.rows[i].nodeName) {
-                    td.appendChild(data.rows[i]);
+                if (data.data[i].nodeName) {
+                    td.appendChild(data.data[i]);
                 } else {
-                    td.innerHTML = data.rows[i];
+                    td.innerHTML = data.data[i];
                 }
 
                 row.appendChild(td);
