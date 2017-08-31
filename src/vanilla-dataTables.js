@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.0
+ * Version: 1.4.1
  *
  */
 (function(root, factory) {
@@ -963,8 +963,6 @@
                             data: data
                         });
 
-                        that.setColumns();
-
                         that.emit("datatable.ajax.success", e, xhr);
                     } else {
                         that.emit("datatable.ajax.error", e, xhr);
@@ -989,8 +987,6 @@
 
             xhr.open('GET', typeof ajax === "string" ? o.ajax : o.ajax.url);
             xhr.send();
-        } else {
-            this.setColumns();
         }
 
         // Store references
@@ -1052,6 +1048,8 @@
                 that.table.removeChild(that.table.tFoot);
             }
         }
+
+                that.setColumns();
 
         // Build
         that.wrapper = createElement("div", {
@@ -1321,24 +1319,28 @@
      */
     proto.renderHeader = function() {
         var that = this;
-        each(that.headings, function(i, th) {
-            if (classList.contains(th.firstElementChild, "dataTable-sorter")) {
-                th.innerHTML = th.firstElementChild.innerHTML;
-            }
+                if ( that.headings && that.headings.length ) {
+                    each(that.headings, function(i, th) {
+                            if (classList.contains(th.firstElementChild, "dataTable-sorter")) {
+                                    th.innerHTML = th.firstElementChild.innerHTML;
+                            }
 
-            th.originalCellIndex = i;
-            if (that.options.sortable && th.sortable) {
-                var link = createElement("a", {
-                    href: "#",
-                    class: "dataTable-sorter",
-                    html: th.innerHTML
-                });
+                          th.sortable = th.getAttribute("data-sortable") !== "false";
 
-                th.innerHTML = "";
-                th.setAttribute("data-sortable", "");
-                th.appendChild(link);
+                            th.originalCellIndex = i;
+                            if (that.options.sortable && th.sortable) {
+                                    var link = createElement("a", {
+                                            href: "#",
+                                            class: "dataTable-sorter",
+                                            html: th.innerHTML
+                                    });
+
+                                    th.innerHTML = "";
+                                    th.setAttribute("data-sortable", "");
+                                    th.appendChild(link);
+                            }
+                    });
             }
-        });
     };
 
     /**
@@ -1428,10 +1430,6 @@
                 }
             }, this);
         }
-
-        each(this.headings, function(i, th) {
-            th.sortable = th.getAttribute("data-sortable") !== "false";
-        });
 
         this.render("header");
     };
