@@ -63,7 +63,7 @@ You can quickly access the correct index for the rendered row by grabbing it's `
 
 ```javascript
 // Get the first rendered row
-var row = datatable.table.querySelector("tr");
+var tr = datatable.table.querySelector("tr");
 
 // Remove it
 datatable.rows().remove(tr.dataIndex);
