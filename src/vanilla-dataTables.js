@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.1
+ * Version: 1.4.2
  *
  */
 (function(root, factory) {
@@ -31,7 +31,7 @@
      */
     var defaultConfig = {
         perPage: 10,
-        perPageSelect: [5,10,15,20,25],
+        perPageSelect: [5, 10, 15, 20, 25],
 
         sortable: true,
         searchable: true,
@@ -295,7 +295,7 @@
                 else if (d - e != 1) {
                     var f = createElement("li", {
                         class: "ellipsis",
-                        html: '<a href="#">'+ellipsis+'</a>'
+                        html: '<a href="#">' + ellipsis + '</a>'
                     });
                     i.push(f);
                 }
@@ -619,7 +619,7 @@
         this.dt.headings.push(th);
 
         each(this.dt.data, function(i, row) {
-            if ( data.rows[i] ) {
+            if (data.rows[i]) {
                 td = document.createElement("td");
 
                 if (data.rows[i].nodeName) {
@@ -654,10 +654,12 @@
      */
     Columns.prototype.remove = function(select) {
 
-        if ( isArray(select) ) {
+        if (isArray(select)) {
 
             // Remove in reverse otherwise the indexes will be incorrect
-            select.sort(function(a, b) { return b - a; });
+            select.sort(function(a, b) {
+                return b - a;
+            });
 
             each(select, function(i, column) {
                 this.remove(column);
@@ -778,7 +780,9 @@
 
         if (isArray(select)) {
             // Remove in reverse otherwise the indexes will be incorrect
-            select.sort(function(a, b) { return b - a; });
+            select.sort(function(a, b) {
+                return b - a;
+            });
 
             each(select, function(i, row) {
                 this.dt.data.splice(row, 1);
@@ -963,6 +967,8 @@
                             data: data
                         });
 
+                        that.setColumns();
+
                         that.emit("datatable.ajax.success", e, xhr);
                     } else {
                         that.emit("datatable.ajax.error", e, xhr);
@@ -1049,7 +1055,9 @@
             }
         }
 
-                that.setColumns();
+        if (!o.ajax) {
+            that.setColumns();
+        }
 
         // Build
         that.wrapper = createElement("div", {
@@ -1319,28 +1327,28 @@
      */
     proto.renderHeader = function() {
         var that = this;
-                if ( that.headings && that.headings.length ) {
-                    each(that.headings, function(i, th) {
-                            if (classList.contains(th.firstElementChild, "dataTable-sorter")) {
-                                    th.innerHTML = th.firstElementChild.innerHTML;
-                            }
+        if (that.headings && that.headings.length) {
+            each(that.headings, function(i, th) {
+                if (classList.contains(th.firstElementChild, "dataTable-sorter")) {
+                    th.innerHTML = th.firstElementChild.innerHTML;
+                }
 
-                          th.sortable = th.getAttribute("data-sortable") !== "false";
+                th.sortable = th.getAttribute("data-sortable") !== "false";
 
-                            th.originalCellIndex = i;
-                            if (that.options.sortable && th.sortable) {
-                                    var link = createElement("a", {
-                                            href: "#",
-                                            class: "dataTable-sorter",
-                                            html: th.innerHTML
-                                    });
-
-                                    th.innerHTML = "";
-                                    th.setAttribute("data-sortable", "");
-                                    th.appendChild(link);
-                            }
+                th.originalCellIndex = i;
+                if (that.options.sortable && th.sortable) {
+                    var link = createElement("a", {
+                        href: "#",
+                        class: "dataTable-sorter",
+                        html: th.innerHTML
                     });
-            }
+
+                    th.innerHTML = "";
+                    th.setAttribute("data-sortable", "");
+                    th.appendChild(link);
+                }
+            });
+        }
     };
 
     /**
@@ -1585,11 +1593,11 @@
 
             var widths = [];
             each(cells, function(i, cell) {
-                    var ow = cell.offsetWidth;
-                    var w = ow / this.rect.width * 100;
-                    widths.push(w);
-                    this.columnWidths[i] = ow;
-                }, this);
+                var ow = cell.offsetWidth;
+                var w = ow / this.rect.width * 100;
+                widths.push(w);
+                this.columnWidths[i] = ow;
+            }, this);
 
             each(this.data, function(idx, row) {
                 each(row.cells, function(i, cell) {
