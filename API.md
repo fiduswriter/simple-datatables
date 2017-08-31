@@ -78,7 +78,7 @@ Returns `true` if the current browser is a version of `MS Internet Exporer` or `
 
 ---
 
-### rows
+### data
 #### type `Array`
 
 Returns a collection of all [`HTMLTableRowElement`s](https://developer.mozilla.org/en/docs/Web/API/HTMLTableRowElement) in the table.
