@@ -39,7 +39,7 @@ The `sortable` property defaults to `true`, unless sorting is disabled globally.
 var newData = {
     type: "date",
     format: "YYYY/MM/DD"
-    heading: "Start Data",
+    heading: "Start Date",
     data: [
         "1999/10/25",
         "2000/05/12",
