@@ -41,9 +41,10 @@ columns.add(newData);
 
 You can also pass the `sortable`, `type` and `format` properties to further customise the new column.
 
+The `sortable` property defaults to `true`, unless sorting is disabled globally.
+
 ```javascript
 var newData = {
-    sortable: false,
     type: "date",
     format: "YYYY/MM/DD"
     heading: "Start Data",
