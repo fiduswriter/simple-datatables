@@ -41,6 +41,7 @@ columns.add(newData);
 
 You can also pass the `sortable`, `type` and `format` properties to further customise the new column.
 
+```javascript
 var newData = {
     sortable: false,
     type: "date",
@@ -53,7 +54,7 @@ var newData = {
         ...
     ]
 };
-
+```
 
 ---
 
