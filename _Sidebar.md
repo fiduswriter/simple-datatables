@@ -28,8 +28,7 @@
 * [header](https://github.com/Mobius1/Vanilla-DataTables/wiki/header)
 * [footer](https://github.com/Mobius1/Vanilla-DataTables/wiki/footer)
 
-#### API
-##### Properties
+#### Properties
 * [table](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#table)
 * [head](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#header)
 * [body](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#body)
@@ -52,7 +51,7 @@
 * [searching](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#searching)
 * [searchData](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#searchdata)
 
-##### Methods
+#### Methods
 * [rows()](https://github.com/Mobius1/Vanilla-DataTables/wiki/rows())
 * [columns()](https://github.com/Mobius1/Vanilla-DataTables/wiki/columns())
 * [refresh()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#refresh)
