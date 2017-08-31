@@ -40,7 +40,7 @@
 * [options](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#options)
 * [initialized](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#initialized)
 * [isIE](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#isie)
-* [rows](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#data)
+* [data](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#data)
 * [pages](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#pages)
 * [hasRows](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#hasrows)
 * [hasHeadings](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#hasheadings)
