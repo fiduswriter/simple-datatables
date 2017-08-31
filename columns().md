@@ -39,6 +39,22 @@ var newData = {
 columns.add(newData);
 ```
 
+You can also pass the `sortable`, `type` and `format` properties to further customise the new column.
+
+var newData = {
+    sortable: false,
+    type: "date",
+    format: "YYYY/MM/DD"
+    heading: "Start Data",
+    data: [
+        "1999/10/25",
+        "2000/05/12",
+        "2003/08/01",
+        ...
+    ]
+};
+
+
 ---
 
 ### `remove(select [integer|array])`
