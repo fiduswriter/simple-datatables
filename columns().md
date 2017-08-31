@@ -20,7 +20,7 @@ You can then chain the following methods.
 
 ### `add(data [object])`
 
-Add a new column to the current instance. The `data` parameter should be an object with the required `heading` and `data` properties set. The heading can be a `string`, `ELEMENT_NODE` or `TEXT_NODE`. The `data` property should be an array of `strings`, `ELEMENT_NODE`s or `TEXT_NODE`s
+Add a new column to the current instance. The `data` parameter should be an object with the required `heading` and `data` properties set. The `heading` property should be a `string` representing the new column's heading. The `data` property should be an array of `strings` representing the cell content of the new column.
 
 ```javascript
 var columns = datatable.columns();
@@ -35,9 +35,28 @@ var newData = {
     ]
 };
 
-// or just
+// Add the new column
+columns.add(newData);
+```
 
-datatable.columns().add(newData);
+---
+
+### `remove(select [integer|array])`
+
+Remove a column or columns from the current instance. The `select` parameter should be either an `integer` or an array of `integers` representing the column indexes to be removed.
+
+```javascript
+var columns = datatable.columns();
+
+// Remove the 4th column
+columns.remove(3);
+
+// Remove the 1st and 2nd column
+columns.remove([0,1]);
+
+// Remove the last column
+columns.remove(datatable.headings.length - 1);
+
 ```
 
 ---
