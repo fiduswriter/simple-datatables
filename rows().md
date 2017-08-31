@@ -24,3 +24,22 @@ rows.add(newRowData);
 ```
 
 ---
+
+### `remove(select [array|number])`
+
+Remove existing rows from the current instance. The `select` parameter can either be an `integer` or `array` of `integers` representing the row indexes.
+
+```javascript
+var rows = datatable.rows();
+
+// remove the 6th row
+rows.remove(5);
+
+// remove the first 5 rows
+rows.remove([0,1,2,3,4]);
+
+```
+
+Note that the indexes passed to the this method should represent the actual index of the row in the `data` array. The native [`rowIndex`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableRowElement/rowIndex) property represents the position of a row in the rendered page and may be different to the index you need to pass to the `remove()` method.
+
+---
