@@ -40,6 +40,6 @@ rows.remove([0,1,2,3,4]);
 
 ```
 
-Note that the indexes passed to the this method should represent the actual index of the row in the `data` array. The native [`rowIndex`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableRowElement/rowIndex) property represents the position of a row in the rendered page and may be different to the index you need to pass to the `remove()` method.
+Note that the indexes passed to the this method should represent the actual index of the row in the [`data`](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#data) array. The native [`rowIndex`](https://developer.mozilla.org/en-US/docs/Web/API/HTMLTableRowElement/rowIndex) property represents the position of a row in the rendered page and may be different to the index you need to pass to the `remove()` method. If you're on page 5 and you have `perPage` set to `5` the currently rendered rows will have `rowIndexes` of [0, 1, 2, 3, 4], but to remove them you would need to call `rows.remove([20, 21, 22, 23, 24])`.
 
 ---
