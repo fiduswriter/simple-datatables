@@ -18,6 +18,30 @@ You can then chain the following methods.
 
 ---
 
+### `add(data [object])`
+
+Add a new column to the current instance. The `data` parameter should be an object with the required `heading` and `data` properties set. The heading can be a `string`, `ELEMENT_NODE` or `TEXT_NODE`. The `data` property should be an array of `strings`, `ELEMENT_NODE`s or `TEXT_NODE`s
+
+```javascript
+var columns = datatable.columns();
+
+var newData = {
+    heading: "Column Heading",
+    data: [
+        "Value 1",
+        "Value 2",
+        "Value 3",
+        ...
+    ]
+};
+
+// or just
+
+datatable.columns().add(newData);
+```
+
+---
+
 ### `hide()`
 
 Hides the selected column(s). The columns will not be visible and will be omitted from search results and exported data.
