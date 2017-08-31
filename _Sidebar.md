@@ -29,6 +29,7 @@
 * [footer](https://github.com/Mobius1/Vanilla-DataTables/wiki/footer)
 
 #### API
+##### Properties
 * [table](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#table)
 * [head](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#header)
 * [body](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#body)
@@ -50,6 +51,10 @@
 * [onLastPage](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#onlastpage)
 * [searching](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#searching)
 * [searchData](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#searchdata)
+
+##### Methods
+* [rows()](https://github.com/Mobius1/Vanilla-DataTables/wiki/rows())
+* [columns()](https://github.com/Mobius1/Vanilla-DataTables/wiki/columns())
 * [refresh()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#refresh)
 * [page()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#pagenum-int)
 * [insert()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#insertdata-object)
@@ -60,5 +65,3 @@
 * [export()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#exportoptions-object)
 * [import()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#importoptions-object)
 * [print()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#print)
-* [rows()](https://github.com/Mobius1/Vanilla-DataTables/wiki/rows())
-* [columns()](https://github.com/Mobius1/Vanilla-DataTables/wiki/columns())
