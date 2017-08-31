@@ -47,7 +47,6 @@ For example, if you're trying to remove a row that's unrendered, the `rowIndex` 
 Another example would be if you're currently on page 5 and you have `perPage` set to `5` the currently rendered rows have a `rowIndex` of `0`, `1`, `2`, `3` and `4`, but to remove them you would need to use the indexes `20`, `21`, `22`, `23` and `24`.
 
 ```javascript
-
 var rows = datatable.rows();
 
 // Switch to page 5
@@ -58,9 +57,17 @@ rows.remove([0, 1, 2, 3, 4]);
 
 // CORRECT: removes the 5 currently rendered rows on page 5
 rows.remove([20, 21, 22, 23, 24]);
-
 ```
 
 You can quickly access the correct index for the rendered row by grabbing it's `dataIndex` property as opposed to the `rowIndex` property.
+
+```javascript
+// Get the first rendered row
+var row = datatable.table.querySelector("tr");
+
+// Remove it
+datatable.rows().remove(tr.dataIndex);
+
+```
 
 ---
