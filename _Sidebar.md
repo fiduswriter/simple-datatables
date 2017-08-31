@@ -60,4 +60,5 @@
 * [export()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#exportoptions-object)
 * [import()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#importoptions-object)
 * [print()](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#print)
+* [rows()](https://github.com/Mobius1/Vanilla-DataTables/wiki/rows())
 * [columns()](https://github.com/Mobius1/Vanilla-DataTables/wiki/columns())
