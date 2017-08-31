@@ -1,16 +1,8 @@
 As of `v1.2.0`, the `columns` API is implemented and allows access to the table columns for quick manipulation.
 
-The API allows for the selection of columns by passing either a single `integer` representing a column index or and `array` of `integer`s representing multiple column indexes tot eh `columns()` constructor:
+To use the `columns` API just call the `columns()` method on the current instance:
 
 ```javascript
-// Select the first, fourth and sixth columns
-var columns = datatable.columns([0,3,5]);
-```
-
-You may select all columns by leaving omitting the selection:
-
-```javascript
-// Select all columns
 var columns = datatable.columns();
 ```
 
@@ -79,52 +71,52 @@ columns.remove(datatable.headings.length - 1);
 
 ---
 
-### `hide()`
+### `hide(select [integer|array])`
 
 Hides the selected column(s). The columns will not be visible and will be omitted from search results and exported data.
 
 ```javascript
 // Hide the first and second columns
 
-var columns = datatable.columns([0,1]);
-columns.hide();
+var columns = datatable.columns();
+columns.hide([0,1]);
 
 // or just
 
-datatable.columns([0,1]).hide();
+datatable.columns().hide([0,1]);
 ```
 
 ---
 
-### `show()`
+### `show(select [integer|array])`
 
 Shows the selected column(s) (if hidden). The columns will be visible and will be included in search results and exported data.
 
 
 ```javascript
 // Show the first and second columns
-var columns = datatable.columns([0,1]);
-columns.show();
+var columns = datatable.columns();
+columns.show([0,1]);
 
 // or just
-datatable.columns([0,1]).show();
+datatable.columns().show([0,1]);
 ```
 
 ---
 
-### `visible()`
+### `visible(select [integer|array])`
 
 Checks to see if the selected column(s) are visible. Returns a `boolean` for single indexes or an `array` of `boolean`s for multiple indexes.
 
 ```javascript
 // Select the fourth column
-var columns = datatable.columns(3);
+var columns = datatable.columns();
 
 // Hide it
-columns.hide();
+columns.hide(3);
 
 // Check visiblilty
-columns.visible() // returns false
+columns.visible(3) // returns false
 
 or 
 
@@ -134,13 +126,13 @@ datatable.columns().visible() // returns  [true, true, true, false, true]
 
 ---
 
-### `hidden()`
+### `hidden(select [integer|array])`
 
 Checks to see if the selected column(s) are visible. Returns a `boolean` for single indexes or an `array` of `boolean`s for multiple indexes.
 
 ---
 
-### `order(indexes [array])` DEPRECATED
+### `order(indexes [array])`
 
 Order the columns based on the given order. Just pass an array of column indexes in the order you require. Note that as this method is for setting the order on all columns, you don't need to pass the selected columns to the `columns()` constructor and any that are, will be ignored.
 
