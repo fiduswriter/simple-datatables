@@ -44,7 +44,7 @@ Note that the indexes passed to this method should represent the actual index of
 
 For example, if you're trying to remove a row that's unrendered, the `rowIndex` property will return `-1`.
 
-Another example would be if you're currently on page 5 and you have `perPage` set to `5` the currently rendered rows have a `rowIndex` of `0`, `1`, `2`, `3` and `4`, but to remove them you would need to use the indexes `20`, `21`, `22`, `23` and `24`.
+Another example would be if you're currently on page 5 and you have `perPage` set to `5` the currently rendered rows have a `rowIndex` of `0`, `1`, `2`, `3` and `4`, respectively, but to remove them you would need to use the indexes `20`, `21`, `22`, `23` and `24`, respectively.
 
 ```javascript
 var rows = datatable.rows();
