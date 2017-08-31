@@ -51,12 +51,14 @@ var rows = datatable.rows();
 // Switch to page 5
 datatable.page(5);
 
-// WRONG: removes the first 5 rows of the entire data
+// WRONG: removes the first 5 rows on page 1
 rows.remove([0, 1, 2, 3, 4]);
 
-// CORRECT: removes the 5 currently rendered rows
+// CORRECT: removes the 5 currently rendered rows on page 5
 rows.remove([20, 21, 22, 23, 24]);
 
 ```
+
+You can quickly access the correct index for the rendered row by grabbing it's `dataIndex` property as opposed to the `rowIndex` property.
 
 ---
