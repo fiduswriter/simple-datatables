@@ -20,7 +20,7 @@ var newRows = [
     ...
 ];
 
-datatable.rows().add(row);
+datatable.rows().add(newRows);
 ```
 
 ---
