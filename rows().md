@@ -21,7 +21,7 @@ datatable.rows()rows.add(newRow);
 
 ```
 
-As of `v1.4.5`, you can pass a nested `array` of data for adding multiple rows at once:
+As of `v1.4.5`, you can also pass a nested `array` of data for adding multiple rows at once:
 
 ```javascript
 var newRows = [
