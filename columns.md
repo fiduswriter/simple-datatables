@@ -5,6 +5,7 @@
 Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
 
 * `select` - and integer or array of integers representing the the column index(es)
+* `sort` - set to either "asc" or "desc" to sort the selected column (won't work if multiple columns are selected)
 * `sortable` - when set to `false` the column(s) cannot be sorted
 * `hidden` - when set to `true` the column(s) will not be visible and will be exlcuded from search results
 * `type` - a string reperesenting the type of data in the column(s) cells. Choose from the following options:
