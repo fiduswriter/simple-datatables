@@ -10,8 +10,7 @@ var newRow = ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...];
 datatable.rows().add(newRow);
 ```
 
-If you have multiple rows to add, you can either iterate over them and add them with the `rows()` API, or bulk add them with the `insert()` method:
-
+The `add()` method also accepts a nested array for adding multiple rows:
 ```javascript
 var newRows = [
     ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
@@ -21,15 +20,7 @@ var newRows = [
     ...
 ];
 
-newRows.forEach(function() {
-    datatable.rows().add(row);
-});
-
-// or
-
-datatable.insert({
-    data: newRows
-});
+datatable.rows().add(row);
 ```
 
 ---
