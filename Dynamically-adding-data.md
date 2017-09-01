@@ -14,7 +14,5 @@ Let's say you have the following formatted `JSON` string to import:
     'Heading 2': 'Value 5',
     'Heading 3': 'Value 6',
     ...
-},
-...
-]"
+}]"
 ```
