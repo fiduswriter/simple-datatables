@@ -162,12 +162,32 @@ Load a chosen page.
 
 ---
 
-### insert(`data [object]`)
+### insert(`data [object|array]`)
 #### type `Function`
 
-Add new rows to the table. Must be an object with the `rows` propery set and the number of values for each row must match the column count of the table.
+Insert new data in to the table. The `insert()` method can accept both an `object` or and array of `key-value objects` depending on your setup.
 
-> NOTE: Prior to v1.3.0 this method was called `addRows`
+##### Pass an `array` of `key-value` pairs (objects):
+```javascript
+var newData = [
+    {
+        "Heading 1": "Cell 1",
+        "Heading 2": "Cell 2",
+        "Heading 3": "Cell 3",
+        "Heading 4": "Cell 4",
+    },
+    {
+        "Heading 1": "Cell 5",
+        "Heading 2": "Cell 6",
+        "Heading 3": "Cell 7",
+        "Heading 4": "Cell 8",
+    }
+];
+
+datatable.insert(newData);
+```
+
+##### Pass an `object` with the `data` property:
 
 ```javascript
 var dataTable = new DataTable("#myTable");
@@ -231,6 +251,7 @@ var newData = {
       ]
 };
 ```
+
 
 ---
 
