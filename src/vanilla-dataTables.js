@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.5
+ * Version: 1.4.6
  *
  */
 (function(root, factory) {
@@ -18,9 +18,7 @@
         root[plugin] = factory(plugin);
     }
 })(this, function(plugin) {
-
     "use strict";
-
     var win = window,
         doc = document,
         body = doc.body;
@@ -98,7 +96,7 @@
         } catch (e) {
             return !1;
         }
-        return !(null === t || !isArray(t) && !isObject(t)) && t;
+        return !(null === t || (!isArray(t) && !isObject(t))) && t;
     };
 
     /**
@@ -223,13 +221,18 @@
                 s.classList.remove(a);
             } else {
                 if (classList.contains(s, a)) {
-                    s.className = s.className.replace(new RegExp("(^|\\s)" + a.split(" ").join("|") + "(\\s|$)", "gi"), " ");
+                    s.className = s.className.replace(
+                        new RegExp("(^|\\s)" + a.split(" ").join("|") + "(\\s|$)", "gi"),
+                        " "
+                    );
                 }
             }
         },
         contains: function(s, a) {
             if (s)
-                return s.classList ? s.classList.contains(a) : !!s.className &&
+                return s.classList ?
+                    s.classList.contains(a) :
+                    !!s.className &&
                     !!s.className.match(new RegExp("(\\s|^)" + a + "(\\s|$)"));
         }
     };
@@ -295,7 +298,7 @@
                 else if (d - e != 1) {
                     var f = createElement("li", {
                         class: "ellipsis",
-                        html: '<a href="#">' + ellipsis + '</a>'
+                        html: '<a href="#">' + ellipsis + "</a>"
                     });
                     i.push(f);
                 }
@@ -422,9 +425,13 @@
             var cols = [];
 
             // Get the current column indexes
-            each(this.dt.headings, function(i, heading) {
-                cols.push(i);
-            }, this);
+            each(
+                this.dt.headings,
+                function(i, heading) {
+                    cols.push(i);
+                },
+                this
+            );
 
             var x = columns[0];
             var y = columns[1];
@@ -449,23 +456,27 @@
         var temp_d = [];
 
         // Order the headings
-        each(columns, function(x, column) {
-            h = this.dt.headings[column];
-            s = h.getAttribute("data-sortable") !== "false";
-            a = h.cloneNode(true);
-            a.originalCellIndex = x;
-            a.sortable = s;
+        each(
+            columns,
+            function(x, column) {
+                h = this.dt.headings[column];
+                s = h.getAttribute("data-sortable") !== "false";
+                a = h.cloneNode(true);
+                a.originalCellIndex = x;
+                a.sortable = s;
 
-            temp_a.push(a);
+                temp_a.push(a);
 
-            if (this.dt.hiddenColumns.indexOf(column) < 0) {
-                b = h.cloneNode(true);
-                b.originalCellIndex = x;
-                b.sortable = s;
+                if (this.dt.hiddenColumns.indexOf(column) < 0) {
+                    b = h.cloneNode(true);
+                    b.originalCellIndex = x;
+                    b.sortable = s;
 
-                temp_b.push(b);
-            }
-        }, this);
+                    temp_b.push(b);
+                }
+            },
+            this
+        );
 
         // Order the row cells
         each(
@@ -483,13 +494,17 @@
                 }
 
                 // Append to cell to the fragment in the correct order
-                each(columns, function(x, column) {
-                    c.appendChild(row.cells[column].cloneNode(true));
+                each(
+                    columns,
+                    function(x, column) {
+                        c.appendChild(row.cells[column].cloneNode(true));
 
-                    if (this.dt.hiddenColumns.indexOf(column) < 0) {
-                        d.appendChild(row.cells[column].cloneNode(true));
-                    }
-                }, this);
+                        if (this.dt.hiddenColumns.indexOf(column) < 0) {
+                            d.appendChild(row.cells[column].cloneNode(true));
+                        }
+                    },
+                    this
+                );
 
                 temp_c.push(c);
                 temp_d.push(d);
@@ -513,11 +528,15 @@
      */
     Columns.prototype.hide = function(columns) {
         if (columns.length) {
-            each(columns, function(i, column) {
-                if (this.dt.hiddenColumns.indexOf(column) < 0) {
-                    this.dt.hiddenColumns.push(column);
-                }
-            }, this);
+            each(
+                columns,
+                function(i, column) {
+                    if (this.dt.hiddenColumns.indexOf(column) < 0) {
+                        this.dt.hiddenColumns.push(column);
+                    }
+                },
+                this
+            );
 
             this.rebuild();
         }
@@ -531,12 +550,16 @@
         if (columns.length) {
             var index;
 
-            each(columns, function(i, column) {
-                index = this.dt.hiddenColumns.indexOf(column);
-                if (index > -1) {
-                    this.dt.hiddenColumns.splice(index, 1);
-                }
-            }, this);
+            each(
+                columns,
+                function(i, column) {
+                    index = this.dt.hiddenColumns.indexOf(column);
+                    if (index > -1) {
+                        this.dt.hiddenColumns.splice(index, 1);
+                    }
+                },
+                this
+            );
 
             this.rebuild();
         }
@@ -549,17 +572,23 @@
     Columns.prototype.visible = function(columns) {
         var cols;
 
-        columns = columns || this.dt.headings.map(function(th) {
-            return th.originalCellIndex;
-        });
+        columns =
+            columns ||
+            this.dt.headings.map(function(th) {
+                return th.originalCellIndex;
+            });
 
         if (!isNaN(columns)) {
             cols = this.dt.hiddenColumns.indexOf(columns) < 0;
         } else if (isArray(columns)) {
             cols = [];
-            each(columns, function(i, column) {
-                cols.push(this.dt.hiddenColumns.indexOf(column) < 0);
-            }, this);
+            each(
+                columns,
+                function(i, column) {
+                    cols.push(this.dt.hiddenColumns.indexOf(column) < 0);
+                },
+                this
+            );
         }
 
         return cols;
@@ -572,17 +601,23 @@
     Columns.prototype.hidden = function(columns) {
         var cols;
 
-        columns = columns || this.dt.headings.map(function(th) {
-            return th.originalCellIndex;
-        });
+        columns =
+            columns ||
+            this.dt.headings.map(function(th) {
+                return th.originalCellIndex;
+            });
 
         if (!isNaN(columns)) {
             cols = this.dt.hiddenColumns.indexOf(this.columns) > -1;
         } else if (isArray(columns)) {
             cols = [];
-            each(columns, function(i, column) {
-                cols.push(this.dt.hiddenColumns.indexOf(column) > -1);
-            }, this);
+            each(
+                columns,
+                function(i, column) {
+                    cols.push(this.dt.hiddenColumns.indexOf(column) > -1);
+                },
+                this
+            );
         }
 
         return cols;
@@ -593,7 +628,19 @@
      * @param {Object} data
      */
     Columns.prototype.add = function(data) {
-        var td, th = document.createElement("th");
+        var td,
+            th = document.createElement("th");
+
+        if (!this.dt.headings.length) {
+            this.dt.insert({
+                headings: [data.heading],
+                data: data.data.map(function(i) {
+                    return [i];
+                })
+            });
+            this.rebuild();
+            return;
+        }
 
         if (data.heading.nodeName) {
             th.appendChild(data.heading);
@@ -638,17 +685,19 @@
      * @return {Void}
      */
     Columns.prototype.remove = function(select) {
-
         if (isArray(select)) {
-
             // Remove in reverse otherwise the indexes will be incorrect
             select.sort(function(a, b) {
                 return b - a;
             });
 
-            each(select, function(i, column) {
-                this.remove(column);
-            }, this);
+            each(
+                select,
+                function(i, column) {
+                    this.remove(column);
+                },
+                this
+            );
         } else {
             this.dt.headings.splice(select, 1);
 
@@ -671,40 +720,52 @@
         this.dt.activeRows = [];
         this.dt.activeHeadings = [];
 
-        each(this.dt.headings, function(i, th) {
-            th.originalCellIndex = i;
-            th.sortable = th.getAttribute("data-sortable") !== "false";
-            if (this.dt.hiddenColumns.indexOf(i) < 0) {
-                this.dt.activeHeadings.push(th);
-            }
-        }, this);
+        each(
+            this.dt.headings,
+            function(i, th) {
+                th.originalCellIndex = i;
+                th.sortable = th.getAttribute("data-sortable") !== "false";
+                if (this.dt.hiddenColumns.indexOf(i) < 0) {
+                    this.dt.activeHeadings.push(th);
+                }
+            },
+            this
+        );
 
         // Loop over the rows and reorder the cells
-        each(this.dt.data, function(i, row) {
-            a = row.cloneNode();
-            b = row.cloneNode();
+        each(
+            this.dt.data,
+            function(i, row) {
+                a = row.cloneNode();
+                b = row.cloneNode();
 
-            a.dataIndex = i;
-            b.dataIndex = i;
+                a.dataIndex = i;
+                b.dataIndex = i;
 
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                a.searchIndex = row.searchIndex;
-                b.searchIndex = row.searchIndex;
-            }
-
-            // Append to cell to the fragment in the correct order
-            each(row.cells, function(x, cell) {
-                a.appendChild(cell.cloneNode(true));
-
-                if (this.dt.hiddenColumns.indexOf(cell.cellIndex) < 0) {
-                    b.appendChild(cell.cloneNode(true));
+                if (row.searchIndex !== null && row.searchIndex !== undefined) {
+                    a.searchIndex = row.searchIndex;
+                    b.searchIndex = row.searchIndex;
                 }
-            }, this);
 
-            // Append the fragment with the ordered cells
-            temp.push(a);
-            this.dt.activeRows.push(b);
-        }, this);
+                // Append to cell to the fragment in the correct order
+                each(
+                    row.cells,
+                    function(x, cell) {
+                        a.appendChild(cell.cloneNode(true));
+
+                        if (this.dt.hiddenColumns.indexOf(cell.cellIndex) < 0) {
+                            b.appendChild(cell.cloneNode(true));
+                        }
+                    },
+                    this
+                );
+
+                // Append the fragment with the ordered cells
+                temp.push(a);
+                this.dt.activeRows.push(b);
+            },
+            this
+        );
 
         this.dt.data = temp;
 
@@ -731,14 +792,21 @@
      * @return {HTMLElement}
      */
     Rows.prototype.build = function(row) {
+        var td,
+            tr = createElement("tr");
+        each(
+            this.dt.headings,
+            function(i, h) {
+                td = createElement("td");
 
-        var td, tr = createElement("tr");
-        each(this.dt.headings, function(i, heading) {
-            td = createElement("td", {
-                html: row[i]
-            });
-            tr.appendChild(td);
-        }, this);
+                if (row[i] && row[i].length) {
+                    td.innerHTML = row[i];
+                }
+
+                tr.appendChild(td);
+            },
+            this
+        );
 
         return tr;
     };
@@ -747,9 +815,20 @@
      * Add new row
      * @param {Array} select
      */
-    Rows.prototype.add = function(select) {
-        if (isArray(select)) {
-            this.dt.data.push(this.build(select));
+    Rows.prototype.add = function(data) {
+        if (isArray(data)) {
+            // Check for multiple rows
+            if (isArray(data[0])) {
+                each(
+                    data,
+                    function(i, row) {
+                        this.dt.data.push(this.build(row));
+                    },
+                    this
+                );
+            } else {
+                this.dt.data.push(this.build(data));
+            }
         }
 
         this.update();
@@ -762,17 +841,19 @@
      * @return {Void}
      */
     Rows.prototype.remove = function(select) {
-
         if (isArray(select)) {
             // Remove in reverse otherwise the indexes will be incorrect
             select.sort(function(a, b) {
                 return b - a;
             });
 
-            each(select, function(i, row) {
-                this.dt.data.splice(row, 1);
-            }, this);
-
+            each(
+                select,
+                function(i, row) {
+                    this.dt.data.splice(row, 1);
+                },
+                this
+            );
         } else {
             this.dt.data.splice(select, 1);
         }
@@ -796,7 +877,6 @@
     ////////////////////
 
     var DataTable = function(table, options) {
-
         this.initialized = false;
 
         // user options
@@ -887,11 +967,14 @@
         this.render();
 
         if (this.options.plugins) {
-            each(this.options.plugins, function(plugin, options) {
-                this[plugin](options);
-            }, this);
+            each(
+                this.options.plugins,
+                function(plugin, options) {
+                    this[plugin](options);
+                },
+                this
+            );
         }
-
 
         setTimeout(function() {
             that.emit("datatable.init");
@@ -905,7 +988,6 @@
      * @return {Void}
      */
     proto.render = function(type) {
-
         if (type) {
             switch (type) {
                 case "page":
@@ -976,7 +1058,7 @@
 
             that.emit("datatable.ajax.loading", xhr);
 
-            xhr.open('GET', typeof ajax === "string" ? o.ajax : o.ajax.url);
+            xhr.open("GET", typeof ajax === "string" ? o.ajax : o.ajax.url);
             xhr.send();
         }
 
@@ -1138,7 +1220,6 @@
         // Update
         that.update();
 
-        // Setup columns
         if (!o.ajax) {
             that.setColumns();
         }
@@ -1196,13 +1277,21 @@
 
             flush(this.header, this.isIE);
 
-            each(this.activeHeadings, function(i, th) {
-                this.header.appendChild(th);
-            }, this);
+            each(
+                this.activeHeadings,
+                function(i, th) {
+                    this.header.appendChild(th);
+                },
+                this
+            );
 
-            each(this.pages[index], function(i, row) {
-                frag.appendChild(row);
-            }, this);
+            each(
+                this.pages[index],
+                function(i, row) {
+                    frag.appendChild(row);
+                },
+                this
+            );
 
             this.clear(frag);
 
@@ -1313,8 +1402,14 @@
      */
     proto.renderHeader = function() {
         var that = this;
+
+        that.labels = [];
+
         if (that.headings && that.headings.length) {
             each(that.headings, function(i, th) {
+
+                that.labels[i] = th.textContent;
+
                 if (classList.contains(th.firstElementChild, "dataTable-sorter")) {
                     th.innerHTML = th.firstElementChild.innerHTML;
                 }
@@ -1334,6 +1429,10 @@
                     th.appendChild(link);
                 }
             });
+        }
+
+        if (that.options.fixedColumns && that.activeHeadings.length) {
+            that.fixColumns();
         }
     };
 
@@ -1380,7 +1479,11 @@
                 if (t.hasAttribute("data-page")) {
                     that.page(t.getAttribute("data-page"));
                     e.preventDefault();
-                } else if (o.sortable && classList.contains(t, "dataTable-sorter") && t.parentNode.getAttribute("data-sortable") != "false") {
+                } else if (
+                    o.sortable &&
+                    classList.contains(t, "dataTable-sorter") &&
+                    t.parentNode.getAttribute("data-sortable") != "false"
+                ) {
                     that.sortColumn(that.activeHeadings.indexOf(t.parentNode) + 1);
                     e.preventDefault();
                 }
@@ -1394,37 +1497,47 @@
      */
     proto.setColumns = function() {
         // Check for the columns option
-        if (this.options.columns) {
-            each(this.options.columns, function(x, data) {
-                if (data.select) {
-                    // convert single column selection to array
-                    if (!isArray(data.select)) {
-                        data.select = [data.select];
+        if (this.options.columns && this.headings.length) {
+            each(
+                this.options.columns,
+                function(x, data) {
+                    if (data.select) {
+                        // convert single column selection to array
+                        if (!isArray(data.select)) {
+                            data.select = [data.select];
+                        }
+
+                        // Add the data attributes to the th elements
+                        each(
+                            data.select,
+                            function(i, column) {
+                                var th = this.headings[column];
+                                if (data.type) {
+                                    th.setAttribute("data-type", data.type);
+                                }
+                                if (data.format) {
+                                    th.setAttribute("data-format", data.format);
+                                }
+                                if (data.hasOwnProperty("sortable")) {
+                                    th.setAttribute("data-sortable", data.sortable);
+                                }
+
+                                if (data.hasOwnProperty("hidden")) {
+                                    if (data.hidden !== false) {
+                                        this.columns(column).hide();
+                                    }
+                                }
+
+                                if (data.hasOwnProperty("sort") && data.select.length === 1) {
+                                    this.sortColumn(data.select[0] + 1, data.sort);
+                                }
+                            },
+                            this
+                        );
                     }
-
-                    // Add the data attributes to the th elements
-                    each(data.select, function(i, column) {
-                        var th = this.headings[column];
-                        if (data.type) {
-                            th.setAttribute("data-type", data.type);
-                        }
-                        if (data.format) {
-                            th.setAttribute("data-format", data.format);
-                        }
-                        if (data.hasOwnProperty("sortable")) {
-                            th.setAttribute("data-sortable", data.sortable);
-                        }
-
-                        if (data.hasOwnProperty("hidden")&& data.hidden !== false) {
-                            this.columns(column).hide();
-                        }
-
-                        if (data.hasOwnProperty("sort") && data.select.length === 1) {
-                            this.sortColumn(data.select[0] + 1, data.sort);
-                        }
-                    }, this);
-                }
-            }, this);
+                },
+                this
+            );
         }
 
         this.render("header");
@@ -1435,7 +1548,6 @@
      * @return {void}
      */
     proto.destroy = function() {
-
         this.table.innerHTML = this.initialLayout;
 
         // Remove the className
@@ -1445,43 +1557,6 @@
         this.wrapper.parentNode.replaceChild(this.table, this.wrapper);
 
         this.initialized = false;
-    };
-
-    /**
-     * Add custom event listener
-     * @param  {String} event
-     * @param  {Function} callback
-     * @return {Void}
-     */
-    proto.on = function(event, callback) {
-        this.events = this.events || {};
-        this.events[event] = this.events[event] || [];
-        this.events[event].push(callback);
-    };
-
-    /**
-     * Remove custom event listener
-     * @param  {String} event
-     * @param  {Function} callback
-     * @return {Void}
-     */
-    proto.off = function(event, callback) {
-        this.events = this.events || {};
-        if (event in this.events === false) return;
-        this.events[event].splice(this.events[event].indexOf(callback), 1);
-    };
-
-    /**
-     * Fire custom event
-     * @param  {String} event
-     * @return {Void}
-     */
-    proto.emit = function(event) {
-        this.events = this.events || {};
-        if (event in this.events === false) return;
-        for (var i = 0; i < this.events[event].length; i++) {
-            this.events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
-        }
     };
 
     /**
@@ -1520,9 +1595,13 @@
         if (this.searching) {
             rows = [];
 
-            each(this.searchData, function(i, index) {
-                rows.push(this.activeRows[index]);
-            }, this);
+            each(
+                this.searchData,
+                function(i, index) {
+                    rows.push(this.activeRows[index]);
+                },
+                this
+            );
         }
 
         // Check for hidden columns
@@ -1553,16 +1632,24 @@
         // otherwise we need a temp header and the widths need applying to all cells
         if (this.table.tHead && this.activeHeadings.length) {
             // Reset widths
-            each(this.activeHeadings, function(i, cell) {
-                cell.style.width = "";
-            }, this);
+            each(
+                this.activeHeadings,
+                function(i, cell) {
+                    cell.style.width = "";
+                },
+                this
+            );
 
-            each(this.activeHeadings, function(i, cell) {
-                var ow = cell.offsetWidth;
-                var w = ow / this.rect.width * 100;
-                cell.style.width = w + "%";
-                this.columnWidths[i] = ow;
-            }, this);
+            each(
+                this.activeHeadings,
+                function(i, cell) {
+                    var ow = cell.offsetWidth;
+                    var w = ow / this.rect.width * 100;
+                    cell.style.width = w + "%";
+                    this.columnWidths[i] = ow;
+                },
+                this
+            );
         } else {
             cells = [];
 
@@ -1580,19 +1667,31 @@
             this.table.insertBefore(hd, this.body);
 
             var widths = [];
-            each(cells, function(i, cell) {
-                var ow = cell.offsetWidth;
-                var w = ow / this.rect.width * 100;
-                widths.push(w);
-                this.columnWidths[i] = ow;
-            }, this);
+            each(
+                cells,
+                function(i, cell) {
+                    var ow = cell.offsetWidth;
+                    var w = ow / this.rect.width * 100;
+                    widths.push(w);
+                    this.columnWidths[i] = ow;
+                },
+                this
+            );
 
-            each(this.data, function(idx, row) {
-                each(row.cells, function(i, cell) {
-                    if (this.columns(cell.cellIndex).visible())
-                        cell.style.width = widths[i] + "%";
-                }, this);
-            }, this);
+            each(
+                this.data,
+                function(idx, row) {
+                    each(
+                        row.cells,
+                        function(i, cell) {
+                            if (this.columns(cell.cellIndex).visible())
+                                cell.style.width = widths[i] + "%";
+                        },
+                        this
+                    );
+                },
+                this
+            );
 
             // Discard the temp header
             this.table.removeChild(hd);
@@ -1817,50 +1916,63 @@
      * @param {object} data
      */
     proto.insert = function(data) {
-        if (!isObject(data)) {
-            throw new Error("Method insert requires an object.");
-        }
+        var that = this,
+            rows = [];
+        if (isObject(data)) {
+            if (data.headings) {
+                if (!that.hasHeadings && !that.hasRows) {
+                    var tr = createElement("tr"),
+                        th;
+                    each(data.headings, function(i, heading) {
+                        th = createElement("th", {
+                            html: heading
+                        });
 
-        if (!data.rows) {
-            throw new Error("Method insert requires the 'rows' property.");
-        }
-
-        if (data.headings) {
-            if (!this.hasHeadings && !this.hasRows) {
-                var tr = createElement("tr"),
-                    th;
-                each(data.headings, function(i, heading) {
-                    th = createElement("th", {
-                        html: heading
+                        tr.appendChild(th);
                     });
+                    that.head.appendChild(tr);
 
-                    tr.appendChild(th);
-                });
-                this.head.appendChild(tr);
+                    that.header = tr;
+                    that.headings = [].slice.call(tr.cells);
+                    that.hasHeadings = true;
 
-                this.header = tr;
-                this.headings = [].slice.call(tr.cells);
-                this.hasHeadings = true;
+                    // Re-enable sorting if it was disabled due
+                    // to missing header
+                    that.options.sortable = that.initialSortable;
 
-                // Re-enable sorting if it was disabled due
-                // to missing header
-                this.options.sortable = this.initialSortable;
-
-                // Allow sorting on new header
-                this.render("header");
+                    // Allow sorting on new header
+                    that.render("header");
+                }
             }
+
+            if (data.data && isArray(data.data)) {
+                rows = data.data;
+            }
+        } else if (isArray(data)) {
+            each(data, function(i, row) {
+                var r = [];
+                each(row, function(heading, cell) {
+
+                    var index = that.labels.indexOf(heading);
+
+                    if (index > -1) {
+                        r[index] = cell;
+                    }
+                });
+                rows.push(r);
+            });
         }
 
-        each(data.rows, function(i, row) {
-            this.rows().add(row);
-        }, this);
+        if (rows.length) {
+            that.rows().add(rows);
 
-        this.hasRows = true;
+            that.hasRows = true;
+        }
 
-        this.update();
+        that.update();
 
-        if (this.options.fixedColumns) {
-            this.fixColumns();
+        if (that.options.fixedColumns) {
+            that.fixColumns();
         }
     };
 
@@ -2118,26 +2230,25 @@
         options = extend(defaults, options);
 
         if (options.data.length || isObject(options.data)) {
-
             // Import CSV
             if (options.type === "csv") {
                 obj = {
-                    rows: []
+                    data: []
                 };
 
                 // Split the string into rows
                 var rows = options.data.split(options.lineDelimiter);
 
                 if (rows.length) {
-                    each(rows, function(i, row) {
-                        obj.rows[i] = [];
+                    each(this.headings, function(i, h) {
+                        obj.data[i] = [];
 
                         // Split the rows into values
-                        var values = row.split(options.columnDelimiter);
+                        var values = rows[i].split(options.columnDelimiter);
 
                         if (values.length) {
                             each(values, function(x, value) {
-                                obj.rows[i].push(value);
+                                obj.data[i].push(value);
                             });
                         }
                     });
@@ -2149,17 +2260,17 @@
                 if (json) {
                     obj = {
                         headings: [],
-                        rows: []
+                        data: []
                     };
 
                     each(json, function(i, data) {
-                        obj.rows[i] = [];
+                        obj.data[i] = [];
                         each(data, function(column, value) {
                             if (obj.headings.indexOf(column) < 0) {
                                 obj.headings.push(column);
                             }
 
-                            obj.rows[i].push(value);
+                            obj.data[i].push(value);
                         });
                     });
                 } else {
@@ -2239,7 +2350,11 @@
 
         this.clear(
             createElement("tr", {
-                html: '<td class="dataTables-empty" colspan="' + colspan + '">' + message + "</td>"
+                html: '<td class="dataTables-empty" colspan="' +
+                    colspan +
+                    '">' +
+                    message +
+                    "</td>"
             })
         );
     };
@@ -2258,6 +2373,43 @@
      */
     proto.rows = function(rows) {
         return new Rows(this, rows);
+    };
+
+    /**
+     * Add custom event listener
+     * @param  {String} event
+     * @param  {Function} callback
+     * @return {Void}
+     */
+    proto.on = function(event, callback) {
+        this.events = this.events || {};
+        this.events[event] = this.events[event] || [];
+        this.events[event].push(callback);
+    };
+
+    /**
+     * Remove custom event listener
+     * @param  {String} event
+     * @param  {Function} callback
+     * @return {Void}
+     */
+    proto.off = function(event, callback) {
+        this.events = this.events || {};
+        if (event in this.events === false) return;
+        this.events[event].splice(this.events[event].indexOf(callback), 1);
+    };
+
+    /**
+     * Fire custom event
+     * @param  {String} event
+     * @return {Void}
+     */
+    proto.emit = function(event) {
+        this.events = this.events || {};
+        if (event in this.events === false) return;
+        for (var i = 0; i < this.events[event].length; i++) {
+            this.events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+        }
     };
 
     return DataTable;
