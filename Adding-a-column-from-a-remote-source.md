@@ -16,7 +16,7 @@ Let's say you've selected a column from your MySQL table and you want to include
 
 
 ```javascript
-var getData = function() {
+var addNewColumn = function() {
 	
     var columnData = "remote/data/url";
 
