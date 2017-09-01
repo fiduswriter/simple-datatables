@@ -62,7 +62,7 @@ datatable.insert(newData);
 
 ---
 
-Nested `JSON` strings can easily be imported:
+`JSON` strings can easily be imported also:
 
 ```json
 "[{
