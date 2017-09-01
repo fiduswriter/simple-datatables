@@ -194,7 +194,7 @@ var dataTable = new DataTable("#myTable");
 
 // New data to add
 var newData = {
-	rows: [
+	data: [
 		[
             "Cedric Kelly",
             "Senior Javascript Developer",
@@ -230,7 +230,7 @@ var newData = {
             "Start Date",
             "Salary"
         ],
-	rows: [
+	data: [
 		[
             "Cedric Kelly",
             "Senior Javascript Developer",
