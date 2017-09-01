@@ -3,8 +3,9 @@
 * [Manual](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#browser)
 * [Initialise](https://github.com/Mobius1/Vanilla-DataTables/wiki/Getting-Started#initialise)
 
-#### Sorting
-* [datetime](https://github.com/Mobius1/Vanilla-DataTables/wiki/datetime)
+#### Tips
+* [Sorting Datetimes](https://github.com/Mobius1/Vanilla-DataTables/wiki/datetime)
+* [Dynamically add columns from remote data]()
 
 #### Options
 * [perPage](https://github.com/Mobius1/Vanilla-DataTables/wiki/perPage)
