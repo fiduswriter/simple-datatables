@@ -36,5 +36,5 @@ var addNewColumn = function() {
 
         xhr.open('GET', columnData);
         xhr.send();
-}
+};
 ```
