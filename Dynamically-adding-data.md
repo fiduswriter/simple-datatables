@@ -60,6 +60,8 @@ datatable.insert(newData);
 
 ```
 
+Note that while the `key-value` method doesn't require you to order the data correctly to match the table layout, the instance will still check that the given `key` (heading) is present and will skip the insertion if it isn't, so make sure the `keys` match the column labels.
+
 ---
 
 `JSON` strings can easily be imported also:
