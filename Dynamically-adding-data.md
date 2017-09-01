@@ -24,6 +24,44 @@ datatable.rows().add(newRows);
 ```
 ---
 
+The `insert()` method can accept both an `object` or and array of `key-value objects` depending on your setup:
+
+```javascript
+
+var newData = {
+    headings: ["Heading 1", "Heading 2", "Heading 3", "Heading 4", ...],
+    data: [
+        ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
+        ["Cell 5", "Cell 6", "Cell 7", "Cell 8", ...],
+        ["Cell 9", "Cell 10", "Cell 11", "Cell 12", ...],
+        ...
+    ]
+};
+
+// or 
+
+var newData = [
+    {
+        "Heading 1": "Cell 1",
+        "Heading 2": "Cell 2",
+        "Heading 3": "Cell 3",
+        "Heading 4": "Cell 4",
+    },
+    {
+        "Heading 1": "Cell 5",
+        "Heading 2": "Cell 6",
+        "Heading 3": "Cell 7",
+        "Heading 4": "Cell 8",
+    }
+];
+
+// Insert the data
+datatable.insert(newData);
+
+```
+
+---
+
 Nested `JSON` strings can easily be imported:
 
 ```json
