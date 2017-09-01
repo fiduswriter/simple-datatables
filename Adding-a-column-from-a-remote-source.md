@@ -1,6 +1,6 @@
 Adding a column from a remote source (AJAX) is simple with the `columns()` API.
 
-Let's say you've selected a column from your MySQL table and encoded it as a JSON string:
+Let's say you've selected a column from your MySQL table and you want to include it in your `datatable` instance:
 ```javascript
 {
     heading: "Progress"
