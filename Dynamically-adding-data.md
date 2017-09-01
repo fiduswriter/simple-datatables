@@ -1,6 +1,14 @@
-New data can be added at any time with the `insert()` and `import()` methods as well as the `rows()` and `columns()` API.
+New data of many formats can be added at any time with the `insert()` and `import()` methods as well as the `rows()` and `columns()` API.
 
-Let's say you have the following formatted `JSON` string to import:
+You can quickly add a new row with an array of cell data:
+
+```javascript
+var newRow = ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...];
+
+datatable.rows().add(newRow);
+```
+
+`JSON` strings can easily be imported:
 
 ```json
 "[{
