@@ -9,6 +9,7 @@ var JSONstring = '[{
     "Heading 3": "Value 3",
     ...
 },
+{
     "Heading 1": "Value 4",
     "Heading 2": "Value 5",
     "Heading 3": "Value 6",
