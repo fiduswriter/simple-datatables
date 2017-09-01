@@ -1431,7 +1431,7 @@
             });
         }
 
-        if (that.options.fixedColumns && that.activeHeadings.length) {
+        if (that.options.fixedColumns && that.activeHeadings && that.activeHeadings.length) {
             that.fixColumns();
         }
     };
