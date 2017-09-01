@@ -16,3 +16,10 @@ Let's say you have the following formatted `JSON` string to import:
     ...
 }]"
 ```
+
+```javascript
+datatable.import({
+    type: "json",
+    data: // the above JSON string
+});
+```
