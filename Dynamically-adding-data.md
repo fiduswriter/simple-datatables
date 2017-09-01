@@ -4,9 +4,9 @@ Let's say you have the following formatted `JSON` string to import:
 
 ```javascript
 var JSONstring = "[{
-    "Heading 1": "Value 1",
-    "Heading 2": "Value 2",
-    "Heading 3": "Value 3",
+    \"Heading 1\": \"Value 1\",
+    \"Heading 2\": \"Value 2\",
+    \"Heading 3\": \"Value 3\",
     ...
 },
 {
