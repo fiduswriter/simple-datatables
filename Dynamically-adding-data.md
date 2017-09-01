@@ -22,26 +22,6 @@ var newRows = [
 
 datatable.rows().add(newRows);
 ```
-
----
-
-The `insert()` method can also be used to populate an empty table:
-
-```javascript
-var data = {
-    headings: ["Heading 1", "Heading 2", "Heading 3", "Heading 4", ...],
-    data: [
-        ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
-        ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
-        ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
-        ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
-        ...
-    ]
-};
-
-datatable.insert(data);
-```
-
 ---
 
 Nested `JSON` strings can easily be imported:
