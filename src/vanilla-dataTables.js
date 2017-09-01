@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.4
+ * Version: 1.4.5
  *
  */
 (function(root, factory) {
@@ -1040,10 +1040,6 @@
             }
         }
 
-        if (!o.ajax) {
-            that.setColumns();
-        }
-
         // Build
         that.wrapper = createElement("div", {
             class: "dataTable-wrapper dataTable-loading"
@@ -1141,6 +1137,11 @@
 
         // Update
         that.update();
+
+        // Setup columns
+        if (!o.ajax) {
+            that.setColumns();
+        }
 
         // Fixed height
         if (o.fixedHeight) {
@@ -1414,10 +1415,12 @@
                             th.setAttribute("data-sortable", data.sortable);
                         }
 
-                        if (data.hasOwnProperty("hidden")) {
-                            if (data.hidden !== false) {
-                                this.columns(column).hide();
-                            }
+                        if (data.hasOwnProperty("hidden")&& data.hidden !== false) {
+                            this.columns(column).hide();
+                        }
+
+                        if (data.hasOwnProperty("sort") && data.select.length === 1) {
+                            this.sortColumn(data.select[0] + 1, data.sort);
                         }
                     }, this);
                 }
