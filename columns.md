@@ -28,7 +28,7 @@ var datatable = new DataTable("#myTable", {
 });
 ```
 
-> Note: You can use the same properties in your markup. Just add the property to the `th` element as a `data-{property}` attribute:
+You can use the same properties in your markup. Just add the property to the `th` element as a `data-{property}` attribute:
 
 ```html
 <table>
