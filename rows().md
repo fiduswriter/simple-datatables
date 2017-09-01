@@ -15,11 +15,24 @@ You can then chain the following methods.
 Add new row data to the current instance. The `data` parameter must be an `array` of `strings` to be inserted into each of the new row's cells.
 
 ```javascript
-var rows = datatable.rows();
+var newRow = ["column1", "column2", "column3", "column4", ...];
 
-var newRowData = ["column1", "column2", "column3", "column4", ...];
+datatable.rows()rows.add(newRow);
 
-rows.add(newRowData);
+```
+
+As of `v1.4.5`, you can pass a nested `array` of data for adding multiple rows at once:
+
+```javascript
+var newRows = [
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ...
+];
+
+datatable.rows().add(newRows);
 
 ```
 
