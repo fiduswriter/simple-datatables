@@ -2,7 +2,7 @@ New data of many formats can be added at any time with the `insert()` and `impor
 
 ---
 
-You can quickly add a new row with an array of cell data:
+You can quickly add a new row with an `array` of cell data:
 
 ```javascript
 var newRow = ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...];
@@ -10,7 +10,7 @@ var newRow = ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...];
 datatable.rows().add(newRow);
 ```
 
-The `add()` method also accepts a nested array for adding multiple rows:
+The `add()` method also accepts a nested `array` for adding multiple rows:
 ```javascript
 var newRows = [
     ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
