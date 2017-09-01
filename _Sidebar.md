@@ -5,6 +5,7 @@
 
 #### Tips
 * [Sorting Datetimes](https://github.com/Mobius1/Vanilla-DataTables/wiki/datetime)
+* [Dynamically Adding Data](https://github.com/Mobius1/Vanilla-DataTables/wiki/Dynamically-adding-data)
 * [Add columns from remote source](https://github.com/Mobius1/Vanilla-DataTables/wiki/Adding-a-column-from-a-remote-source)
 
 #### Options
