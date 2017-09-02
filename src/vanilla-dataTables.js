@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.6
+ * Version: 1.4.7
  *
  */
 (function(root, factory) {
@@ -1229,9 +1229,7 @@
             this.fixHeight();
         }
 
-        if (o.fixedColumns && that.activeHeadings.length) {
-            that.fixColumns();
-        }
+        that.fixColumns();
 
         // Class names
         if (!o.header) {
@@ -1431,9 +1429,7 @@
             });
         }
 
-        if (that.options.fixedColumns && that.activeHeadings && that.activeHeadings.length) {
-            that.fixColumns();
-        }
+        that.fixColumns();
     };
 
     /**
@@ -1623,78 +1619,61 @@
      * @return {Void}
      */
     proto.fixColumns = function() {
-        var cells,
-            hd = false;
 
-        this.columnWidths = [];
+        if (this.options.fixedColumns && this.activeHeadings && this.activeHeadings.length) {
+            var cells,
+                hd = false;
 
-        // If we have headings we need only set the widths on them
-        // otherwise we need a temp header and the widths need applying to all cells
-        if (this.table.tHead && this.activeHeadings.length) {
-            // Reset widths
-            each(
-                this.activeHeadings,
-                function(i, cell) {
+            this.columnWidths = [];
+
+            // If we have headings we need only set the widths on them
+            // otherwise we need a temp header and the widths need applying to all cells
+            if (this.table.tHead) {
+                // Reset widths
+                each(this.activeHeadings, function(i, cell) {
                     cell.style.width = "";
-                },
-                this
-            );
+                }, this);
 
-            each(
-                this.activeHeadings,
-                function(i, cell) {
+                each(this.activeHeadings, function(i, cell) {
                     var ow = cell.offsetWidth;
                     var w = ow / this.rect.width * 100;
                     cell.style.width = w + "%";
                     this.columnWidths[i] = ow;
-                },
-                this
-            );
-        } else {
-            cells = [];
+                }, this);
+            } else {
+                cells = [];
 
-            // Make temperary headings
-            hd = createElement("thead");
-            var r = createElement("tr");
-            var c = this.table.tBodies[0].rows[0].cells;
-            each(c, function(i, row) {
-                var th = createElement("th");
-                r.appendChild(th);
-                cells.push(th);
-            });
+                // Make temperary headings
+                hd = createElement("thead");
+                var r = createElement("tr");
+                var c = this.table.tBodies[0].rows[0].cells;
+                each(c, function(i, row) {
+                    var th = createElement("th");
+                    r.appendChild(th);
+                    cells.push(th);
+                });
 
-            hd.appendChild(r);
-            this.table.insertBefore(hd, this.body);
+                hd.appendChild(r);
+                this.table.insertBefore(hd, this.body);
 
-            var widths = [];
-            each(
-                cells,
-                function(i, cell) {
+                var widths = [];
+                each(cells, function(i, cell) {
                     var ow = cell.offsetWidth;
                     var w = ow / this.rect.width * 100;
                     widths.push(w);
                     this.columnWidths[i] = ow;
-                },
-                this
-            );
+                }, this);
 
-            each(
-                this.data,
-                function(idx, row) {
-                    each(
-                        row.cells,
-                        function(i, cell) {
-                            if (this.columns(cell.cellIndex).visible())
-                                cell.style.width = widths[i] + "%";
-                        },
-                        this
-                    );
-                },
-                this
-            );
+                each(this.data, function(idx, row) {
+                    each(row.cells, function(i, cell) {
+                        if (this.columns(cell.cellIndex).visible())
+                            cell.style.width = widths[i] + "%";
+                    }, this);
+                }, this);
 
-            // Discard the temp header
-            this.table.removeChild(hd);
+                // Discard the temp header
+                this.table.removeChild(hd);
+            }
         }
     };
 
@@ -1971,9 +1950,7 @@
 
         that.update();
 
-        if (that.options.fixedColumns) {
-            that.fixColumns();
-        }
+        that.fixColumns();
     };
 
     /**
