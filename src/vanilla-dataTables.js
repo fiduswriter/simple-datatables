@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.7
+ * Version: 1.4.8
  *
  */
 (function(root, factory) {
@@ -332,9 +332,9 @@
             thead.appendChild(tr);
         }
 
-        if (data.rows) {
+        if (data.data) {
             tbody = createElement("tbody");
-            each(data.rows, function(i, rows) {
+            each(data.data, function(i, rows) {
                 if (data.headings) {
                     if (data.headings.length !== rows.length) {
                         throw new Error(
@@ -913,7 +913,7 @@
 
         if (table.tBodies.length && !table.tBodies[0].rows.length) {
             if (this.options.data) {
-                if (!this.options.data.rows) {
+                if (!this.options.data.data) {
                     throw new Error(
                         "You seem to be using the data option, but you've not defined any rows."
                     );
