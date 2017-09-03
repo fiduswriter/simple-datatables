@@ -2211,7 +2211,7 @@
                 var rows = options.data.split(options.lineDelimiter);
 
                 if (rows.length) {
-                    each(this.headings, function (h, i) {
+                    each(rows, function (h, i) {
                         obj.data[i] = [];
 
                         // Split the rows into values
