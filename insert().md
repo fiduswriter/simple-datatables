@@ -13,6 +13,8 @@ datatable.insert(data);
 
 ---
 
+#### Examples
+
 ##### Pass an `array` of `key-value` pairs (objects):
 ```javascript
 var newData = [
