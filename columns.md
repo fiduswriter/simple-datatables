@@ -23,13 +23,32 @@ When set to `true` the column(s) will not be visible and will be exlcuded from s
 
 A `string` reperesenting the type of data in the column(s) cells. Choose from the following options:
 
-* `string` - lexical ordering
+* `string` - lexical ordering (default)
 * `number` - any `string` with currency symbols, `.` or `,` thousand seperators, `%`, etc
 * `date` - a valid `datetime` string
 
 #### `format`
 
-A string representing the `datetime` format for the `date` type.
+A string representing the `datetime` format when using the `date` type.
+
+
+#### `render`
+
+A callback to customise the rendering of the column(s) cell content. The function takes 3 parameters and should return the formatted cell content.
+
+```javascript
+
+/**
+ * @param {String} data The cell's innerHTML
+ * @param {Object} cell The HTMLTableCellElement
+ * @param {Object} row The cell's parent HTMLTableRowElement 
+ * @return {Boolean}
+ */
+render: function(data, cell, row) {
+
+}			
+
+```
 
 ---
 
