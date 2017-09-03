@@ -1,6 +1,7 @@
 ### page(`num [int]`)
 #### type `Function`
-#### Effect: Load a chosen page.
+
+Loads a given page. Page number must be an `integer`.
 
 #### Usage
 
