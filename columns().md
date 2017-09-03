@@ -10,6 +10,14 @@ You can then chain the following methods.
 
 ---
 
+### `sort(column [integer], direction [string])`
+
+Sort the selected column. The `column` parameter should be a non-zero-based integer. The `direction` parameter is optional.
+
+Replaces the deprecated [`sortColumn`](https://github.com/Mobius1/Vanilla-DataTables/wiki/sortcolumn()) method.
+
+---
+
 ### `add(data [object])`
 
 Add a new column to the current instance. The `data` parameter should be an object with the required `heading` and `data` properties set. The `heading` property should be a `string` representing the new column's heading. The `data` property should be an array of `strings` representing the cell content of the new column.
