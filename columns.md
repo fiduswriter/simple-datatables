@@ -1,8 +1,9 @@
-### `columns`
 #### Type: `array`
 #### Default: `undefined`
 
 Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
+
+#### `select`
 
 * `select` - and integer or array of integers representing the the column index(es) (zero-based)
 * `sort` - set to either "asc" or "desc" to sort the selected column (won't work if multiple columns are selected)
