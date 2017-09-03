@@ -66,6 +66,14 @@ var datatable = new DataTable("#myTable", {
 
         // hide the sixth column
         { select: 5, hidden: true },
+
+        // Add a button to the seventh column
+        {
+            select: 6,
+            render: function(data, cell, row) {
+                return data + "<button type='button' data-row='"  + row.dataIndex + "'>Select</button>";
+            }
+        }
     ]
 });
 ```
