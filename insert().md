@@ -37,8 +37,6 @@ datatable.insert(newData);
 ##### Pass an `object` with the `headings` and/or `data` property:
 
 ```javascript
-var dataTable = new DataTable("#myTable");
-```javascript
 var newData = {
         headings: [
             "Name",
