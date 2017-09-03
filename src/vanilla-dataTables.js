@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.13
+ * Version: 1.4.14
  *
  */
 (function (root, factory) {
@@ -873,7 +873,15 @@
     Rows.prototype.build = function (row) {
         var td, tr = createElement("tr");
 
-        each(this.dt.headings, function (h, i) {
+        var headings = this.dt.headings;
+
+        if (!headings.length) {
+            headings = row.map(function () {
+                return "";
+            });
+        }
+
+        each(headings, function (h, i) {
             td = createElement("td");
 
             if (row[i] && row[i].length) {
@@ -897,6 +905,7 @@
      * @param {Array} select
      */
     Rows.prototype.add = function (data) {
+
         if (isArray(data)) {
             var dt = this.dt;
             // Check for multiple rows
@@ -1906,6 +1915,7 @@
      * @param {object} data
      */
     proto.insert = function (data) {
+
         var that = this,
             rows = [];
         if (isObject(data)) {
@@ -2230,17 +2240,17 @@
 
                 if (rows.length) {
 
-                    if (options.headings && !this.headings.length) {
+                    if (options.headings) {
                         obj.headings = rows[0].split(options.columnDelimiter);
 
                         rows.shift();
                     }
 
-                    each(rows, function (h, i) {
+                    each(rows, function (row, i) {
                         obj.data[i] = [];
 
                         // Split the rows into values
-                        var values = rows[i].split(options.columnDelimiter);
+                        var values = row.split(options.columnDelimiter);
 
                         if (values.length) {
                             each(values, function (value) {
