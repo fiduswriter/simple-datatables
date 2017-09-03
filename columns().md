@@ -111,7 +111,7 @@ If you omit the `select` parameter, an `array` of `booleans` will be returned re
 ```javascript
 var columns = datatable.columns();
 
-// Hide the 4th column
+// Hide the 4th or 5 columns
 columns.hide(3);
 
 // Check visiblilty
