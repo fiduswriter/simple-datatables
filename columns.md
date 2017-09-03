@@ -58,16 +58,16 @@ var datatable = new DataTable("#myTable", {
         // Sort the second column in ascending order
         { select: 1, sort: "asc" ),
 
-        // set the third column as datetime string matching the format "DD/MM/YYY"
+        // Set the third column as datetime string matching the format "DD/MM/YYY"
         { select: 2, type: "date", format: "DD/MM/YYYY" },
 
-        // disable sorting on the fourth and fifth columns
+        // Disable sorting on the fourth and fifth columns
         { select: [3,4], sortable: false },
 
-        // hide the sixth column
+        // Hide the sixth column
         { select: 5, hidden: true },
 
-        // Add a button to the seventh column
+        // Append a button to the seventh column
         {
             select: 6,
             render: function(data, cell, row) {
