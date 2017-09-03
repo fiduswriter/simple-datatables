@@ -5,17 +5,35 @@ Controls various aspects of individual or groups of columns. Should be an array 
 
 #### `select`
 
-* `select` - and integer or array of integers representing the the column index(es) (zero-based)
-* `sort` - set to either "asc" or "desc" to sort the selected column (won't work if multiple columns are selected)
-* `sortable` - when set to `false` the column(s) cannot be sorted
-* `hidden` - when set to `true` the column(s) will not be visible and will be exlcuded from search results
-* `type` - a string reperesenting the type of data in the column(s) cells. Choose from the following options:
-    * `string` - lexical ordering
-    * `number` - any `string` with currency symbols, `.` or `,` thousand seperators, `%`, etc
-    * `date` - a valid `datetime` string
-* `format` - a string representing the `datetime` format for the `date` type.
+An integer or array of integers representing the columns to be manipulated.
 
-#### Example
+#### `sort`
+
+Automatically sort the selected column. Can't be applied if multple columns are selected.
+
+#### `sortable`
+
+When set to `false` the column(s) cannot be sorted.
+
+#### `hidden`
+
+When set to `true` the column(s) will not be visible and will be exlcuded from search results.
+
+#### `type`
+
+A `string` reperesenting the type of data in the column(s) cells. Choose from the following options:
+
+* `string` - lexical ordering
+* `number` - any `string` with currency symbols, `.` or `,` thousand seperators, `%`, etc
+* `date` - a valid `datetime` string
+
+#### `format`
+
+A string representing the `datetime` format for the `date` type.
+
+---
+
+#### Examples
 ```javascript
 var datatable = new DataTable("#myTable", {
     columns: [
