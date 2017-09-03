@@ -26,7 +26,7 @@ The `options` argument must be an object of which the only required properties a
 };
 ```
 
-Note that if the table already has headings, the first line will be treated as tbody cell data regardless of whether the `headings` property is set to `true`.
+Note that if the table already has headings, the first line will be treated as tbody cell data regardless of whether the `headings` property is set to `true` or not.
 
 #### Examples
 
