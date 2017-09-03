@@ -18,13 +18,37 @@ If you need to manually process the data or you're importing anything other than
 var dataTable = new DataTable(myTable, {
     ajax: {
         url: "some/url/data.txt", // url to remote data
-        content: "csv", // specify the content
+        content: {
+            type: "csv", // specify the content
+        },
         load: function(xhr) {
             // process and return the response data
         }
     }
 });
 ```
+
+---
+
+Under the hood, the `ajax` option uses the `import()` method to insert the new data. Thus, the same optional properties that that method takes can also be passed to the `content` property:
+
+```javascript
+var dataTable = new DataTable(myTable, {
+    ajax: {
+        url: "some/url/data.txt", // url to remote data
+        content: {
+            type: "csv", // specify the content,
+            headings: true,
+            lineDelimiter: "\n",
+            columnDelimiter: ","
+        },
+        load: function(xhr) {
+            // process and return the response data
+        }
+    }
+});
+
+---
 
 The load property should return the formatted response data that the instance can recognise (`Object`, `JSON` or `CSV`). It takes a single argument which is an instance of the `XMLHttpRequest` object.
 
