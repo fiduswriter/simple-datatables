@@ -30,7 +30,7 @@ var dataTable = new DataTable(myTable, {
 
 ---
 
-Under the hood, the `ajax` option uses the `import()` method to insert the new data. Thus, the same optional properties that that method takes can also be passed to the `content` property:
+Under the hood, the `ajax` option uses the [`import()`](https://github.com/Mobius1/Vanilla-DataTables/wiki/import()) method to insert the new data. Thus, the same optional properties that that method takes can also be passed to the `content` property:
 
 ```javascript
 var dataTable = new DataTable(myTable, {
