@@ -91,7 +91,7 @@ datatable.import({
 or `csv` strings:
 
 ```text
-"Name,Ext.,City,Start Date
+Name,Ext.,City,Start Date
 Hammett Gordon,8101,Wah,1998/06/09
 Kyra Moses,3796,Quenast,1998/07/07
 Kelly Cameron,4836,Fontaine-Valmont,1999/02/07
