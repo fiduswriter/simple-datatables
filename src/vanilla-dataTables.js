@@ -136,7 +136,7 @@
                 }
             }
         } else {
-            for (n = 0, l = arr.length; n < l; n++) {
+            for (n = 0; n < arr.length; n++) {
                 fn.call(scope, arr[n], n);
             }
         }
