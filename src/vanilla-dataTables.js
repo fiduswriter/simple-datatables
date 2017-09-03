@@ -128,14 +128,15 @@
      * @return {Void}
      */
     var each = function(arr, fn, scope) {
+        var n;
         if (isObject(arr)) {
-            for (var n in arr) {
+            for (n in arr) {
                 if (Object.prototype.hasOwnProperty.call(arr, n)) {
                     fn.call(scope, arr[n], n);
                 }
             }
         } else {
-            for (var n = 0, l = arr.length; n < l; n++) {
+            for (n = 0, l = arr.length; n < l; n++) {
                 fn.call(scope, arr[n], n);
             }
         }
@@ -893,10 +894,11 @@
             } else {
                 dt.data.push(this.build(data));
             }
-        }
 
-        this.update();
-        dt.columns().rebuild();
+            this.update();
+
+            dt.columns().rebuild();
+        }
     };
 
     /**
@@ -905,8 +907,10 @@
      * @return {Void}
      */
     Rows.prototype.remove = function(select) {
+
+        var dt = this.dt;
+
         if (isArray(select)) {
-            var dt = this.dt;
             // Remove in reverse otherwise the indexes will be incorrect
             select.sort(function(a, b) {
                 return b - a;
