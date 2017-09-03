@@ -4,7 +4,7 @@
 
 Load remote data.
 
-The easiest method is to just pass the url to the remote data and the instance will process and insert the data.
+The easiest method is to just pass the url to the remote data (JSON) and the instance will process and insert the data.
 
 ```javascript
 var dataTable = new DataTable(myTable, {
@@ -12,12 +12,13 @@ var dataTable = new DataTable(myTable, {
 });
 ```
 
-If you need to manually process the data then you can also pass an `Object` with the `url` and `load` properties:
+If you need to manually process the data or you're importing anything other than `json` then you can also pass an `Object` with the `url`, `content` and `load` properties:
 
 ```javascript
 var dataTable = new DataTable(myTable, {
     ajax: {
-        url: "some/url/data.json",
+        url: "some/url/data.txt", // url to remote data
+        content: "csv", // specify the content
         load: function(xhr) {
             // process and return the response data
         }
