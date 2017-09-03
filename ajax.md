@@ -41,9 +41,6 @@ var dataTable = new DataTable(myTable, {
             headings: true,
             lineDelimiter: "\n",
             columnDelimiter: ","
-        },
-        load: function(xhr) {
-            // process and return the response data
         }
     }
 });
