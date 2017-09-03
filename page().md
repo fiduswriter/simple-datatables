@@ -6,9 +6,8 @@ Loads a given page. Page number must be an `integer`.
 
 ```javascript
 /**
- * Change page
- * @param  {int} page
+ * @param  {int} num Page Number
  * @return {void}
-  */
-datatable.page(page);
+ */
+datatable.page(num);
 ```
