@@ -1,7 +1,6 @@
 #### type `Function`
 
-Insert new data in to the table. The `insert()` method can accept both an `object` or and array of `key-value objects` depending on your setup.
-
+Insert new data in to the table. 
 #### Usage
 ```javascript
 /**
@@ -35,39 +34,10 @@ var newData = [
 datatable.insert(newData);
 ```
 
-##### Pass an `object` with the `data` property:
+##### Pass an `object` with the `headings` and/or `data` property:
 
 ```javascript
 var dataTable = new DataTable("#myTable");
-
-// New data to add
-var newData = {
-	data: [
-		[
-            "Cedric Kelly",
-            "Senior Javascript Developer",
-            "Edinburgh",
-            "6224",
-            "2012/03/29",
-            "$433,060"
-        ],
-        [
-            "Airi Satou",
-            "Accountant",
-            "Tokyo",
-            "5407",
-            "2008/11/28",
-            "$162,700"
-        ]
-      ]
-};
-
-// add the rows
-dataTable.insert(newData);
-```
-
-You may also pass the `headings` property to insert headings if your table is empty or has no headings. If you attempt to pass new headings to a table that has headings, they'll be ignored.
-
 ```javascript
 var newData = {
         headings: [
@@ -98,4 +68,9 @@ var newData = {
         ...
       ]
 };
+
+// add the rows
+dataTable.insert(newData);
 ```
+
+If you attempt to pass new headings to a table that has headings, they'll be ignored.
