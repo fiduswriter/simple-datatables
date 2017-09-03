@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.10
+ * Version: 1.4.11
  *
  */
 (function(root, factory) {
@@ -1826,12 +1826,13 @@
 
         classList.add(this.wrapper, "search-results");
 
-        if (!this.searchData.length) {
-            classList.remove(this.wrapper, "search-results");
-            this.setMessage(this.options.labels.noRows);
-        }
+        if (!that.searchData.length) {
+            classList.remove(that.wrapper, "search-results");
 
-        this.update();
+            that.setMessage(that.options.labels.noRows);
+        } else {
+            that.update();
+        }
 
         this.emit("datatable.search", query, this.searchData);
     };
@@ -1968,10 +1969,11 @@
 
         if (html) {
             if (typeof html === "string") {
-                parent.innerHTML = html;
-            } else {
-                parent.appendChild(html);
+                var frag = doc.createDocumentFragment();
+                frag.innerHTML = html;
             }
+
+            parent.appendChild(html);
         }
     };
 
