@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.12
+ * Version: 1.4.13
  *
  */
 (function (root, factory) {
@@ -615,10 +615,14 @@
             return;
         }
 
-        if (data.heading.nodeName) {
-            th.appendChild(data.heading);
+        if (!this.dt.hiddenHeader) {
+            if (data.heading.nodeName) {
+                th.appendChild(data.heading);
+            } else {
+                th.innerHTML = data.heading;
+            }
         } else {
-            th.innerHTML = data.heading;
+            th.innerHTML = "";
         }
 
         this.dt.headings.push(th);
@@ -697,7 +701,7 @@
         var dt = this.dt;
 
         // Check column is present
-        if (column < 1 || column > dt.activeHeadings.length) {
+        if (dt.hasHeadings && (column < 1 || column > dt.activeHeadings.length)) {
             return false;
         }
 
@@ -714,10 +718,7 @@
             n = 0,
             th = dt.activeHeadings[column];
 
-        column = th.originalCellIndex;
-
         each(rows, function (tr) {
-
             var cell = tr.cells[column];
             var content = cell.data;
             var num = content.replace(/(\$|\,|\s|%)/g, "");
@@ -1101,15 +1102,20 @@
                     that.emit("datatable.ajax.loaded", e, xhr);
 
                     if (xhr.status === 200) {
-                        var data = ajax.load ? ajax.load.call(that, xhr) : xhr.responseText;
-                        var type = isJson(data) ? "json" : false;
+                        var obj = {};
+                        obj.data = ajax.load ? ajax.load.call(that, xhr) : xhr.responseText;
 
-                        that.import({
-                            type: type,
-                            data: data
-                        });
+                        obj.type = "json";
 
-                        that.setColumns();
+                        if (ajax.content && ajax.content.type) {
+                            obj.type = ajax.content.type;
+
+                            obj = extend(obj, ajax.content);
+                        }
+
+                        that.import(obj);
+
+                        that.setColumns(true);
 
                         that.emit("datatable.ajax.success", e, xhr);
                     } else {
@@ -1166,6 +1172,8 @@
             that.head = h;
 
             that.table.insertBefore(that.head, that.body);
+
+            that.hiddenHeader = !o.ajax;
         }
 
         that.headings = [];
@@ -1348,11 +1356,13 @@
             var index = this.currentPage - 1,
                 frag = doc.createDocumentFragment();
 
-            flush(this.header, this.isIE);
+            if (this.hasHeadings) {
+                flush(this.header, this.isIE);
 
-            each(this.activeHeadings, function (th) {
-                this.header.appendChild(th);
-            }, this);
+                each(this.activeHeadings, function (th) {
+                    this.header.appendChild(th);
+                }, this);
+            }
 
             each(this.pages[index], function (row) {
                 frag.appendChild(this.rows().render(row));
@@ -1558,9 +1568,17 @@
      * Set up columns
      * @return {[type]} [description]
      */
-    proto.setColumns = function () {
+    proto.setColumns = function (ajax) {
 
         var that = this;
+
+        if (!ajax) {
+            each(that.data, function (row) {
+                each(row.cells, function (cell) {
+                    cell.data = cell.innerHTML;
+                });
+            });
+        }
 
         // Check for the columns option
         if (that.options.columns && that.headings.length) {
@@ -2211,6 +2229,13 @@
                 var rows = options.data.split(options.lineDelimiter);
 
                 if (rows.length) {
+
+                    if (options.headings && !this.headings.length) {
+                        obj.headings = rows[0].split(options.columnDelimiter);
+
+                        rows.shift();
+                    }
+
                     each(rows, function (h, i) {
                         obj.data[i] = [];
 
