@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.14
+ * Version: 1.4.15
  *
  */
 (function (root, factory) {
@@ -717,6 +717,8 @@
             a = 0,
             n = 0,
             th = dt.activeHeadings[column];
+
+        column = th.originalCellIndex;
 
         each(rows, function (tr) {
             var cell = tr.cells[column];
