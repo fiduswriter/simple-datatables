@@ -3,13 +3,15 @@
 Insert new data in to the table. The `insert()` method can accept both an `object` or and array of `key-value objects` depending on your setup.
 
 #### Usage
-````javascript
+```javascript
 /**
  * @param {object} data New data to insert
  * @return {void}
  */
 datatable.insert(data);
 ```
+
+---
 
 ##### Pass an `array` of `key-value` pairs (objects):
 ```javascript
