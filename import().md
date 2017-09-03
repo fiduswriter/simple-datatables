@@ -19,11 +19,14 @@ The `options` argument must be an object of which the only required properties a
     type: "csv" // or "json"
     data: // the csv or json string
 
-    // csv
+    // csv only
+    headings: false, // specifies whether the first line contains the headings
     lineDelimiter:  "\n", // line delimiter for csv type
     columnDelimiter:  ",", // column delimiter for csv type
 };
 ```
+
+Note that if the table already has headings, the first line will be treated as tbody cell data regardless of whether the `headings` property is set to `true`.
 
 #### Examples
 
@@ -31,9 +34,10 @@ The `options` argument must be an object of which the only required properties a
     // Import a csv string
     datatable.import({
         type: "csv",
-        data: "Heading 1|Heading 2|Heading 3,Value 1|Value 2|Value 3,Value 4|Value 5|Value 6".
-        lineDelimiter:  ",",
-        columnDelimiter:  "|"
+        data: "Heading 1,Heading 2,Heading 3|Value 1,Value 2,Value 3|Value 4,Value 5,Value 6".
+        headings: true,
+        lineDelimiter:  "|",
+        columnDelimiter:  ","
     });
 ```
 
