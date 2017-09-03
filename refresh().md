@@ -5,8 +5,5 @@ Refreshes the table. This will recount the rows, reset any search and remove any
 #### Usage
 
 ```javascript
-/**
- * @return {void}
- */
 datatable.refresh();
 ```
