@@ -39,13 +39,13 @@ A callback to customise the rendering of the column(s) cell content. The functio
 ```javascript
 
 /**
- * @param {String} data The cell's innerHTML
+ * @param {String} data The cell's content (innerHTML)
  * @param {Object} cell The HTMLTableCellElement
  * @param {Object} row The cell's parent HTMLTableRowElement 
  */
 render: function(data, cell, row) {
 
-}			
+}		
 
 ```
 
