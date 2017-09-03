@@ -10,6 +10,7 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 * Searchable
 * Customisable layout
 * Customisable labels
+* Customise column rendering
 * Load data via AJAX requests
 * Export to common formats like `csv`, `txt` `json`, and `sql`
 * Import `csv` and `json` data
@@ -18,7 +19,7 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 * moment.js integration for sorting columns with datetime strings (experimental, v1.2.3 and above)
 
 
-[Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki) | [Latest Version](https://github.com/Mobius1/Vanilla-DataTables/releases/tag/1.4.8)
+[Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki) | [Latest Version](https://github.com/Mobius1/Vanilla-DataTables/releases/tag/1.4.9)
 
 ---
 

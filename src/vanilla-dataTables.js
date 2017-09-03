@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.8
+ * Version: 1.4.9
  *
  */
 (function(root, factory) {
@@ -123,20 +123,20 @@
     /**
      * Iterator helper
      * @param  {(Array|Object)}   arr     Any object, array or array-like collection.
-     * @param  {Function}         fn      The callback function
-     * @param  {Object}           s       Change the value of this
+     * @param  {Function}         fn      Callback
+     * @param  {Object}           scope   Change the value of this
      * @return {Void}
      */
-    var each = function(arr, fn, s) {
+    var each = function(arr, fn, scope) {
         if (isObject(arr)) {
-            for (var d in arr) {
-                if (Object.prototype.hasOwnProperty.call(arr, d)) {
-                    fn.call(s, d, arr[d]);
+            for (var n in arr) {
+                if (Object.prototype.hasOwnProperty.call(arr, n)) {
+                    fn.call(scope, arr[n], n);
                 }
             }
         } else {
-            for (var e = 0, f = arr.length; e < f; e++) {
-                fn.call(s, e, arr[e]);
+            for (var n = 0, l = arr.length; n < l; n++) {
+                fn.call(scope, arr[n], n);
             }
         }
     };
@@ -174,7 +174,7 @@
 
     var flush = function(el, ie) {
         if (el instanceof NodeList) {
-            each(el, function(i, e) {
+            each(el, function(e) {
                 flush(e, ie);
             });
         } else {
@@ -290,7 +290,7 @@
                 h.push(l);
             }
         }
-        each(h, function(b, c) {
+        each(h, function(c) {
             var d = c.children[0].getAttribute("data-page");
             if (j) {
                 var e = j.children[0].getAttribute("data-page");
@@ -322,7 +322,7 @@
         if (data.headings) {
             thead = createElement("thead");
             var tr = createElement("tr");
-            each(data.headings, function(i, col) {
+            each(data.headings, function(col) {
                 var td = createElement("th", {
                     html: col
                 });
@@ -334,7 +334,7 @@
 
         if (data.data) {
             tbody = createElement("tbody");
-            each(data.data, function(i, rows) {
+            each(data.data, function(rows) {
                 if (data.headings) {
                     if (data.headings.length !== rows.length) {
                         throw new Error(
@@ -343,7 +343,7 @@
                     }
                 }
                 var tr = createElement("tr");
-                each(rows, function(k, value) {
+                each(rows, function(value) {
                     var td = createElement("td", {
                         html: value
                     });
@@ -425,13 +425,9 @@
             var cols = [];
 
             // Get the current column indexes
-            each(
-                this.dt.headings,
-                function(i, heading) {
-                    cols.push(i);
-                },
-                this
-            );
+            each(this.dt.headings, function(h, i) {
+                cols.push(i);
+            });
 
             var x = columns[0];
             var y = columns[1];
@@ -455,71 +451,65 @@
         var temp_c = [];
         var temp_d = [];
 
+        var dt = this.dt;
+
         // Order the headings
-        each(
-            columns,
-            function(x, column) {
-                h = this.dt.headings[column];
-                s = h.getAttribute("data-sortable") !== "false";
-                a = h.cloneNode(true);
-                a.originalCellIndex = x;
-                a.sortable = s;
+        each(columns, function(column, x) {
+            h = dt.headings[column];
+            s = h.getAttribute("data-sortable") !== "false";
+            a = h.cloneNode(true);
+            a.originalCellIndex = x;
+            a.sortable = s;
 
-                temp_a.push(a);
+            temp_a.push(a);
 
-                if (this.dt.hiddenColumns.indexOf(column) < 0) {
-                    b = h.cloneNode(true);
-                    b.originalCellIndex = x;
-                    b.sortable = s;
+            if (dt.hiddenColumns.indexOf(column) < 0) {
+                b = h.cloneNode(true);
+                b.originalCellIndex = x;
+                b.sortable = s;
 
-                    temp_b.push(b);
-                }
-            },
-            this
-        );
+                temp_b.push(b);
+            }
+        });
 
         // Order the row cells
-        each(
-            this.dt.data,
-            function(i, row) {
-                c = row.cloneNode();
-                d = row.cloneNode();
+        each(dt.data, function(row, i) {
+            c = row.cloneNode();
+            d = row.cloneNode();
 
-                c.dataIndex = i;
-                d.dataIndex = i;
+            c.dataIndex = i;
+            d.dataIndex = i;
 
-                if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                    c.searchIndex = row.searchIndex;
-                    d.searchIndex = row.searchIndex;
-                }
+            if (row.searchIndex !== null && row.searchIndex !== undefined) {
+                c.searchIndex = row.searchIndex;
+                d.searchIndex = row.searchIndex;
+            }
 
-                // Append to cell to the fragment in the correct order
-                each(
-                    columns,
-                    function(x, column) {
-                        c.appendChild(row.cells[column].cloneNode(true));
+            // Append to cell to the fragment in the correct order
+            each(
+                columns,
+                function(x, column) {
+                    c.appendChild(row.cells[column].cloneNode(true));
 
-                        if (this.dt.hiddenColumns.indexOf(column) < 0) {
-                            d.appendChild(row.cells[column].cloneNode(true));
-                        }
-                    },
-                    this
-                );
+                    if (dt.hiddenColumns.indexOf(column) < 0) {
+                        d.appendChild(row.cells[column].cloneNode(true));
+                    }
+                },
+                this
+            );
 
-                temp_c.push(c);
-                temp_d.push(d);
-            },
-            this
-        );
+            temp_c.push(c);
+            temp_d.push(d);
+        });
 
-        this.dt.headings = temp_a;
-        this.dt.activeHeadings = temp_b;
+        dt.headings = temp_a;
+        dt.activeHeadings = temp_b;
 
-        this.dt.data = temp_c;
-        this.dt.activeRows = temp_d;
+        dt.data = temp_c;
+        dt.activeRows = temp_d;
 
         // Update
-        this.dt.update();
+        dt.update();
     };
 
     /**
@@ -528,15 +518,13 @@
      */
     Columns.prototype.hide = function(columns) {
         if (columns.length) {
-            each(
-                columns,
-                function(i, column) {
-                    if (this.dt.hiddenColumns.indexOf(column) < 0) {
-                        this.dt.hiddenColumns.push(column);
-                    }
-                },
-                this
-            );
+            var dt = this.dt;
+
+            each(columns, function(column) {
+                if (dt.hiddenColumns.indexOf(column) < 0) {
+                    dt.hiddenColumns.push(column);
+                }
+            });
 
             this.rebuild();
         }
@@ -548,18 +536,14 @@
      */
     Columns.prototype.show = function(columns) {
         if (columns.length) {
-            var index;
+            var index, dt = this.dt;
 
-            each(
-                columns,
-                function(i, column) {
-                    index = this.dt.hiddenColumns.indexOf(column);
-                    if (index > -1) {
-                        this.dt.hiddenColumns.splice(index, 1);
-                    }
-                },
-                this
-            );
+            each(columns, function(column) {
+                index = dt.hiddenColumns.indexOf(column);
+                if (index > -1) {
+                    dt.hiddenColumns.splice(index, 1);
+                }
+            });
 
             this.rebuild();
         }
@@ -570,25 +554,19 @@
      * @return {Boolean}
      */
     Columns.prototype.visible = function(columns) {
-        var cols;
+        var cols, dt = this.dt;
 
-        columns =
-            columns ||
-            this.dt.headings.map(function(th) {
-                return th.originalCellIndex;
-            });
+        columns = columns || dt.headings.map(function(th) {
+            return th.originalCellIndex;
+        });
 
         if (!isNaN(columns)) {
-            cols = this.dt.hiddenColumns.indexOf(columns) < 0;
+            cols = dt.hiddenColumns.indexOf(columns) < 0;
         } else if (isArray(columns)) {
             cols = [];
-            each(
-                columns,
-                function(i, column) {
-                    cols.push(this.dt.hiddenColumns.indexOf(column) < 0);
-                },
-                this
-            );
+            each(columns, function(column) {
+                cols.push(dt.hiddenColumns.indexOf(column) < 0);
+            });
         }
 
         return cols;
@@ -599,25 +577,19 @@
      * @return {Boolean}
      */
     Columns.prototype.hidden = function(columns) {
-        var cols;
+        var cols, dt = this.dt;
 
-        columns =
-            columns ||
-            this.dt.headings.map(function(th) {
-                return th.originalCellIndex;
-            });
+        columns = columns || this.dt.headings.map(function(th) {
+            return th.originalCellIndex;
+        });
 
         if (!isNaN(columns)) {
-            cols = this.dt.hiddenColumns.indexOf(this.columns) > -1;
+            cols = dt.hiddenColumns.indexOf(this.columns) > -1;
         } else if (isArray(columns)) {
             cols = [];
-            each(
-                columns,
-                function(i, column) {
-                    cols.push(this.dt.hiddenColumns.indexOf(column) > -1);
-                },
-                this
-            );
+            each(columns, function(column) {
+                cols.push(dt.hiddenColumns.indexOf(column) > -1);
+            });
         }
 
         return cols;
@@ -628,8 +600,7 @@
      * @param {Object} data
      */
     Columns.prototype.add = function(data) {
-        var td,
-            th = document.createElement("th");
+        var td, th = document.createElement("th");
 
         if (!this.dt.headings.length) {
             this.dt.insert({
@@ -650,7 +621,7 @@
 
         this.dt.headings.push(th);
 
-        each(this.dt.data, function(i, row) {
+        each(this.dt.data, function(row, i) {
             if (data.data[i]) {
                 td = document.createElement("td");
 
@@ -677,6 +648,8 @@
         }
 
         this.rebuild();
+
+        this.dt.renderHeader();
     };
 
     /**
@@ -691,17 +664,13 @@
                 return b - a;
             });
 
-            each(
-                select,
-                function(i, column) {
-                    this.remove(column);
-                },
-                this
-            );
+            each(select, function(column) {
+                this.remove(column);
+            }, this);
         } else {
             this.dt.headings.splice(select, 1);
 
-            each(this.dt.data, function(i, row) {
+            each(this.dt.data, function(row) {
                 row.removeChild(row.cells[select]);
             });
         }
@@ -739,7 +708,7 @@
 
         column = th.originalCellIndex;
 
-        each(rows, function(i, tr) {
+        each(rows, function(tr) {
             var cell = tr.cells[column];
             var content = cell.textContent;
             var num = content.replace(/(\$|\,|\s|%)/g, "");
@@ -799,7 +768,7 @@
         dt.data = [];
         var indexes = [];
 
-        each(rows, function(i, v) {
+        each(rows, function(v, i) {
             dt.data.push(v.row);
 
             if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
@@ -821,64 +790,55 @@
      * @return {Void}
      */
     Columns.prototype.rebuild = function() {
-        var a, b;
-        var temp = [];
+        var a, b, c, d;
+        var dt = this.dt,
+            temp = [];
 
-        this.dt.activeRows = [];
-        this.dt.activeHeadings = [];
+        dt.activeRows = [];
+        dt.activeHeadings = [];
 
-        each(
-            this.dt.headings,
-            function(i, th) {
-                th.originalCellIndex = i;
-                th.sortable = th.getAttribute("data-sortable") !== "false";
-                if (this.dt.hiddenColumns.indexOf(i) < 0) {
-                    this.dt.activeHeadings.push(th);
-                }
-            },
-            this
-        );
+        each(dt.headings, function(th, i) {
+            th.originalCellIndex = i;
+            th.sortable = th.getAttribute("data-sortable") !== "false";
+            if (dt.hiddenColumns.indexOf(i) < 0) {
+                dt.activeHeadings.push(th);
+            }
+        }, this);
 
         // Loop over the rows and reorder the cells
-        each(
-            this.dt.data,
-            function(i, row) {
-                a = row.cloneNode();
-                b = row.cloneNode();
+        each(dt.data, function(row, i) {
+            a = row.cloneNode();
+            b = row.cloneNode();
 
-                a.dataIndex = i;
-                b.dataIndex = i;
+            a.dataIndex = i;
+            b.dataIndex = i;
 
-                if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                    a.searchIndex = row.searchIndex;
-                    b.searchIndex = row.searchIndex;
+            if (row.searchIndex !== null && row.searchIndex !== undefined) {
+                a.searchIndex = row.searchIndex;
+                b.searchIndex = row.searchIndex;
+            }
+
+            // Append to cell to the fragment in the correct order
+            each(row.cells, function(cell) {
+                c = cell.cloneNode(true);
+                c.data = cell.data;
+                a.appendChild(c);
+
+                if (dt.hiddenColumns.indexOf(cell.cellIndex) < 0) {
+                    d = cell.cloneNode(true);
+                    d.data = cell.data;
+                    b.appendChild(d);
                 }
+            });
 
-                // Append to cell to the fragment in the correct order
-                each(
-                    row.cells,
-                    function(x, cell) {
-                        a.appendChild(cell.cloneNode(true));
+            // Append the fragment with the ordered cells
+            temp.push(a);
+            dt.activeRows.push(b);
+        });
 
-                        if (this.dt.hiddenColumns.indexOf(cell.cellIndex) < 0) {
-                            b.appendChild(cell.cloneNode(true));
-                        }
-                    },
-                    this
-                );
+        dt.data = temp;
 
-                // Append the fragment with the ordered cells
-                temp.push(a);
-                this.dt.activeRows.push(b);
-            },
-            this
-        );
-
-        this.dt.data = temp;
-
-        this.dt.renderHeader();
-
-        this.dt.update();
+        dt.update();
     };
 
     /**
@@ -899,23 +859,23 @@
      * @return {HTMLElement}
      */
     Rows.prototype.build = function(row) {
-        var td,
-            tr = createElement("tr");
-        each(
-            this.dt.headings,
-            function(i, h) {
-                td = createElement("td");
+        var td, tr = createElement("tr");
 
-                if (row[i] && row[i].length) {
-                    td.innerHTML = row[i];
-                }
+        each(this.dt.headings, function(h, i) {
+            td = createElement("td");
 
-                tr.appendChild(td);
-            },
-            this
-        );
+            if (row[i] && row[i].length) {
+                td.innerHTML = row[i];
+            }
+
+            tr.appendChild(td);
+        });
 
         return tr;
+    };
+
+    Rows.prototype.render = function(row) {
+        return row;
     };
 
     /**
@@ -924,22 +884,19 @@
      */
     Rows.prototype.add = function(data) {
         if (isArray(data)) {
+            var dt = this.dt;
             // Check for multiple rows
             if (isArray(data[0])) {
-                each(
-                    data,
-                    function(i, row) {
-                        this.dt.data.push(this.build(row));
-                    },
-                    this
-                );
+                each(data, function(row, i) {
+                    dt.data.push(this.build(row));
+                }, this);
             } else {
-                this.dt.data.push(this.build(data));
+                dt.data.push(this.build(data));
             }
         }
 
         this.update();
-        this.dt.columns().rebuild();
+        dt.columns().rebuild();
     };
 
     /**
@@ -949,24 +906,21 @@
      */
     Rows.prototype.remove = function(select) {
         if (isArray(select)) {
+            var dt = this.dt;
             // Remove in reverse otherwise the indexes will be incorrect
             select.sort(function(a, b) {
                 return b - a;
             });
 
-            each(
-                select,
-                function(i, row) {
-                    this.dt.data.splice(row, 1);
-                },
-                this
-            );
+            each(select, function(row, i) {
+                dt.data.splice(row, 1);
+            });
         } else {
-            this.dt.data.splice(select, 1);
+            dt.data.splice(select, 1);
         }
 
         this.update();
-        this.dt.columns().rebuild();
+        dt.columns().rebuild();
     };
 
     /**
@@ -974,7 +928,7 @@
      * @return {Void}
      */
     Rows.prototype.update = function() {
-        each(this.dt.data, function(i, row) {
+        each(this.dt.data, function(row, i) {
             row.dataIndex = i;
         });
     };
@@ -1070,17 +1024,15 @@
         this.onFirstPage = true;
 
         this.hiddenColumns = [];
+        this.columnRenderers = [];
+        this.selectedColumns = [];
 
         this.render();
 
         if (this.options.plugins) {
-            each(
-                this.options.plugins,
-                function(plugin, options) {
-                    this[plugin](options);
-                },
-                this
-            );
+            each(this.options.plugins, function(options, plugin) {
+                this[plugin](options);
+            }, this);
         }
 
         setTimeout(function() {
@@ -1188,7 +1140,7 @@
             var t = createElement("tr");
 
             if (that.hasRows) {
-                each(that.body.rows[0].cells, function(i, cell) {
+                each(that.body.rows[0].cells, function() {
                     t.appendChild(createElement("th"));
                 });
 
@@ -1258,7 +1210,7 @@
             });
 
             // Create the options
-            each(o.perPageSelect, function(i, val) {
+            each(o.perPageSelect, function(val) {
                 var selected = val === o.perPage;
                 var option = new Option(val, val, selected, selected);
                 select.add(option);
@@ -1382,21 +1334,13 @@
 
             flush(this.header, this.isIE);
 
-            each(
-                this.activeHeadings,
-                function(i, th) {
-                    this.header.appendChild(th);
-                },
-                this
-            );
+            each(this.activeHeadings, function(th) {
+                this.header.appendChild(th);
+            }, this);
 
-            each(
-                this.pages[index],
-                function(i, row) {
-                    frag.appendChild(row);
-                },
-                this
-            );
+            each(this.pages[index], function(row) {
+                frag.appendChild(this.rows().render(row));
+            }, this);
 
             this.clear(frag);
 
@@ -1477,7 +1421,7 @@
             classList.add(this.links[this.currentPage - 1], "active");
 
             // append the links
-            each(pager, function(i, p) {
+            each(pager, function(p) {
                 classList.remove(p, "active");
                 frag.appendChild(p);
             });
@@ -1495,7 +1439,7 @@
             }
 
             // We may have more than one pager
-            each(this.pagers, function(i, pager) {
+            each(this.pagers, function(pager) {
                 pager.appendChild(frag.cloneNode(true));
             });
         }
@@ -1511,7 +1455,7 @@
         that.labels = [];
 
         if (that.headings && that.headings.length) {
-            each(that.headings, function(i, th) {
+            each(that.headings, function(th, i) {
 
                 that.labels[i] = th.textContent;
 
@@ -1599,51 +1543,80 @@
      * @return {[type]} [description]
      */
     proto.setColumns = function() {
+
+        var that = this;
+
         // Check for the columns option
-        if (this.options.columns && this.headings.length) {
-            each(
-                this.options.columns,
-                function(x, data) {
-                    if (data.select) {
-                        // convert single column selection to array
-                        if (!isArray(data.select)) {
-                            data.select = [data.select];
-                        }
+        if (that.options.columns && that.headings.length) {
 
-                        // Add the data attributes to the th elements
-                        each(
-                            data.select,
-                            function(i, column) {
-                                var th = this.headings[column];
-                                if (data.type) {
-                                    th.setAttribute("data-type", data.type);
-                                }
-                                if (data.format) {
-                                    th.setAttribute("data-format", data.format);
-                                }
-                                if (data.hasOwnProperty("sortable")) {
-                                    th.setAttribute("data-sortable", data.sortable);
-                                }
+            each(that.options.columns, function(data) {
 
-                                if (data.hasOwnProperty("hidden")) {
-                                    if (data.hidden !== false) {
-                                        this.columns(column).hide();
-                                    }
-                                }
+                // convert single column selection to array
+                if (!isArray(data.select)) {
+                    data.select = [data.select];
+                }
 
-                                if (data.hasOwnProperty("sort") && data.select.length === 1) {
-                                    this.columns().sort(data.select[0] + 1, data.sort);
-                                }
-                            },
-                            this
-                        );
+                if (data.hasOwnProperty("render") && typeof data.render === "function") {
+                    that.selectedColumns = that.selectedColumns.concat(data.select);
+
+                    that.columnRenderers.push({
+                        columns: data.select,
+                        renderer: data.render
+                    });
+                }
+
+                // Add the data attributes to the th elements
+                each(data.select, function(column) {
+                    var th = that.headings[column];
+                    if (data.type) {
+                        th.setAttribute("data-type", data.type);
                     }
-                },
-                this
-            );
+                    if (data.format) {
+                        th.setAttribute("data-format", data.format);
+                    }
+                    if (data.hasOwnProperty("sortable")) {
+                        th.setAttribute("data-sortable", data.sortable);
+                    }
+
+                    if (data.hasOwnProperty("hidden")) {
+                        if (data.hidden !== false) {
+                            that.columns(column).hide();
+                        }
+                    }
+
+                    if (data.hasOwnProperty("sort") && data.select.length === 1) {
+                        that.columns().sort(data.select[0] + 1, data.sort);
+                    }
+                });
+            });
         }
 
-        this.render("header");
+        if (that.hasRows) {
+            each(that.data, function(row, i) {
+                row.dataIndex = i;
+                each(row.cells, function(cell) {
+                    cell.data = cell.innerHTML;
+                });
+            });
+
+            if (that.selectedColumns.length) {
+                each(that.data, function(row) {
+                    each(row.cells, function(cell, i) {
+                        if (that.selectedColumns.indexOf(i) > -1) {
+                            each(that.columnRenderers, function(o) {
+                                if (o.columns.indexOf(i) > -1) {
+                                    cell.innerHTML = o.renderer.call(that, cell.data, cell, row);
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            that.columns().rebuild();
+        }
+
+        that.render("header");
     };
 
     /**
@@ -1698,13 +1671,9 @@
         if (this.searching) {
             rows = [];
 
-            each(
-                this.searchData,
-                function(i, index) {
-                    rows.push(this.activeRows[index]);
-                },
-                this
-            );
+            each(this.searchData, function(index) {
+                rows.push(this.activeRows[index]);
+            }, this);
         }
 
         // Check for hidden columns
@@ -1728,6 +1697,7 @@
     proto.fixColumns = function() {
 
         if (this.options.fixedColumns && this.activeHeadings && this.activeHeadings.length) {
+
             var cells,
                 hd = false;
 
@@ -1737,11 +1707,11 @@
             // otherwise we need a temp header and the widths need applying to all cells
             if (this.table.tHead) {
                 // Reset widths
-                each(this.activeHeadings, function(i, cell) {
+                each(this.activeHeadings, function(cell) {
                     cell.style.width = "";
                 }, this);
 
-                each(this.activeHeadings, function(i, cell) {
+                each(this.activeHeadings, function(cell, i) {
                     var ow = cell.offsetWidth;
                     var w = ow / this.rect.width * 100;
                     cell.style.width = w + "%";
@@ -1754,7 +1724,7 @@
                 hd = createElement("thead");
                 var r = createElement("tr");
                 var c = this.table.tBodies[0].rows[0].cells;
-                each(c, function(i, row) {
+                each(c, function() {
                     var th = createElement("th");
                     r.appendChild(th);
                     cells.push(th);
@@ -1764,15 +1734,15 @@
                 this.table.insertBefore(hd, this.body);
 
                 var widths = [];
-                each(cells, function(i, cell) {
+                each(cells, function(cell, i) {
                     var ow = cell.offsetWidth;
                     var w = ow / this.rect.width * 100;
                     widths.push(w);
                     this.columnWidths[i] = ow;
                 }, this);
 
-                each(this.data, function(idx, row) {
-                    each(row.cells, function(i, cell) {
+                each(this.data, function(row) {
+                    each(row.cells, function(cell, i) {
                         if (this.columns(cell.cellIndex).visible())
                             cell.style.width = widths[i] + "%";
                     }, this);
@@ -1820,37 +1790,33 @@
 
         this.clear();
 
-        each(
-            this.data,
-            function(idx, row) {
-                var inArray = this.searchData.indexOf(row) > -1;
+        each(this.data, function(row, idx) {
+            var inArray = this.searchData.indexOf(row) > -1;
 
-                // https://github.com/Mobius1/Vanilla-DataTables/issues/12
-                var doesQueryMatch = query.split(" ").reduce(function(bool, word) {
-                    var includes = false;
+            // https://github.com/Mobius1/Vanilla-DataTables/issues/12
+            var doesQueryMatch = query.split(" ").reduce(function(bool, word) {
+                var includes = false;
 
-                    for (var x = 0; x < row.cells.length; x++) {
-                        if (
-                            row.cells[x].textContent.toLowerCase().indexOf(word) > -1 &&
-                            that.columns(row.cells[x].cellIndex).visible()
-                        ) {
-                            includes = true;
-                            break;
-                        }
+                for (var x = 0; x < row.cells.length; x++) {
+                    if (
+                        row.cells[x].textContent.toLowerCase().indexOf(word) > -1 &&
+                        that.columns(row.cells[x].cellIndex).visible()
+                    ) {
+                        includes = true;
+                        break;
                     }
-
-                    return bool && includes;
-                }, true);
-
-                if (doesQueryMatch && !inArray) {
-                    row.searchIndex = idx;
-                    this.searchData.push(idx);
-                } else {
-                    row.searchIndex = null;
                 }
-            },
-            this
-        );
+
+                return bool && includes;
+            }, true);
+
+            if (doesQueryMatch && !inArray) {
+                row.searchIndex = idx;
+                this.searchData.push(idx);
+            } else {
+                row.searchIndex = null;
+            }
+        }, this);
 
         classList.add(this.wrapper, "search-results");
 
@@ -1896,6 +1862,7 @@
      * @return {void}
      */
     proto.sortColumn = function(column, direction) {
+        // Use columns API until sortColumn method is removed
         this.columns().sort(column, direction);
     };
 
@@ -1911,7 +1878,7 @@
                 if (!that.hasHeadings && !that.hasRows) {
                     var tr = createElement("tr"),
                         th;
-                    each(data.headings, function(i, heading) {
+                    each(data.headings, function(heading) {
                         th = createElement("th", {
                             html: heading
                         });
@@ -1937,9 +1904,9 @@
                 rows = data.data;
             }
         } else if (isArray(data)) {
-            each(data, function(i, row) {
+            each(data, function(row) {
                 var r = [];
-                each(row, function(heading, cell) {
+                each(row, function(cell, heading) {
 
                     var index = that.labels.indexOf(heading);
 
@@ -2226,14 +2193,14 @@
                 var rows = options.data.split(options.lineDelimiter);
 
                 if (rows.length) {
-                    each(this.headings, function(i, h) {
+                    each(this.headings, function(h, i) {
                         obj.data[i] = [];
 
                         // Split the rows into values
                         var values = rows[i].split(options.columnDelimiter);
 
                         if (values.length) {
-                            each(values, function(x, value) {
+                            each(values, function(value) {
                                 obj.data[i].push(value);
                             });
                         }
@@ -2249,9 +2216,9 @@
                         data: []
                     };
 
-                    each(json, function(i, data) {
+                    each(json, function(data, i) {
                         obj.data[i] = [];
-                        each(data, function(column, value) {
+                        each(data, function(value, column) {
                             if (obj.headings.indexOf(column) < 0) {
                                 obj.headings.push(column);
                             }
@@ -2288,7 +2255,7 @@
         var tbody = createElement("tbody");
 
         var tr = createElement("tr");
-        each(headings, function(i, th) {
+        each(headings, function(th) {
             tr.appendChild(
                 createElement("th", {
                     html: th.textContent
@@ -2298,9 +2265,9 @@
 
         thead.appendChild(tr);
 
-        each(rows, function(i, row) {
+        each(rows, function(row) {
             var tr = createElement("tr");
-            each(row.cells, function(k, cell) {
+            each(row.cells, function(cell) {
                 tr.appendChild(
                     createElement("td", {
                         html: cell.textContent
