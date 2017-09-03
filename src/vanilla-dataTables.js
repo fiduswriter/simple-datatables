@@ -710,6 +710,113 @@
     };
 
     /**
+     * Sort by column
+     * @param  {int} column - The column no.
+     * @param  {string} direction - asc or desc
+     * @return {void}
+     */
+    Columns.prototype.sort = function(column, direction) {
+
+        var dt = this.dt;
+
+        // Check column is present
+        if (column < 1 || column > dt.activeHeadings.length) {
+            return false;
+        }
+
+        dt.sorting = true;
+
+        // Convert to zero-indexed
+        column = column - 1;
+
+        var dir,
+            rows = dt.data,
+            alpha = [],
+            numeric = [],
+            a = 0,
+            n = 0,
+            th = dt.activeHeadings[column];
+
+        column = th.originalCellIndex;
+
+        each(rows, function(i, tr) {
+            var cell = tr.cells[column];
+            var content = cell.textContent;
+            var num = content.replace(/(\$|\,|\s|%)/g, "");
+
+            // Check for date format and moment.js
+            if (th.getAttribute("data-type") === "date" && win.moment) {
+                var format = false,
+                    formatted = th.hasAttribute("data-format");
+
+                if (formatted) {
+                    format = th.getAttribute("data-format");
+                }
+
+                num = parseDate(content, format);
+            }
+
+            if (parseFloat(num) == num) {
+                numeric[n++] = {
+                    value: Number(num),
+                    row: tr
+                };
+            } else {
+                alpha[a++] = {
+                    value: content,
+                    row: tr
+                };
+            }
+        });
+
+        /* Sort according to direction (ascending or descending) */
+        var top, btm;
+        if (classList.contains(th, "asc") || direction == "asc") {
+            top = sortItems(alpha, -1);
+            btm = sortItems(numeric, -1);
+            dir = "descending";
+            classList.remove(th, "asc");
+            classList.add(th, "desc");
+        } else {
+            top = sortItems(numeric, 1);
+            btm = sortItems(alpha, 1);
+            dir = "ascending";
+            classList.remove(th, "desc");
+            classList.add(th, "asc");
+        }
+
+        /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
+        if (dt.lastTh && th != dt.lastTh) {
+            classList.remove(dt.lastTh, "desc");
+            classList.remove(dt.lastTh, "asc");
+        }
+
+        dt.lastTh = th;
+
+        /* Reorder the table */
+        rows = top.concat(btm);
+
+        dt.data = [];
+        var indexes = [];
+
+        each(rows, function(i, v) {
+            dt.data.push(v.row);
+
+            if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
+                indexes.push(i);
+            }
+        }, dt);
+
+        dt.searchData = indexes;
+
+        this.rebuild();
+
+        dt.update();
+
+        dt.emit("datatable.sort", column, dir);
+    };
+
+    /**
      * Rebuild the columns
      * @return {Void}
      */
@@ -1480,7 +1587,7 @@
                     classList.contains(t, "dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    that.sortColumn(that.activeHeadings.indexOf(t.parentNode) + 1);
+                    that.columns().sort(that.activeHeadings.indexOf(t.parentNode) + 1);
                     e.preventDefault();
                 }
             }
@@ -1525,7 +1632,7 @@
                                 }
 
                                 if (data.hasOwnProperty("sort") && data.select.length === 1) {
-                                    this.sortColumn(data.select[0] + 1, data.sort);
+                                    this.columns().sort(data.select[0] + 1, data.sort);
                                 }
                             },
                             this
@@ -1789,105 +1896,7 @@
      * @return {void}
      */
     proto.sortColumn = function(column, direction) {
-        // Check column is present
-        if (column < 1 || column > this.activeHeadings.length) {
-            return false;
-        }
-
-        this.sorting = true;
-
-        // Convert to zero-indexed
-        column = column - 1;
-
-        var dir,
-            rows = this.data,
-            alpha = [],
-            numeric = [],
-            a = 0,
-            n = 0,
-            th = this.activeHeadings[column];
-
-        column = th.originalCellIndex;
-
-        each(rows, function(i, tr) {
-            var cell = tr.cells[column];
-            var content = cell.textContent;
-            var num = content.replace(/(\$|\,|\s|%)/g, "");
-
-            // Check for date format and moment.js
-            if (th.getAttribute("data-type") === "date" && win.moment) {
-                var format = false,
-                    formatted = th.hasAttribute("data-format");
-
-                if (formatted) {
-                    format = th.getAttribute("data-format");
-                }
-
-                num = parseDate(content, format);
-            }
-
-            if (parseFloat(num) == num) {
-                numeric[n++] = {
-                    value: Number(num),
-                    row: tr
-                };
-            } else {
-                alpha[a++] = {
-                    value: content,
-                    row: tr
-                };
-            }
-        });
-
-        /* Sort according to direction (ascending or descending) */
-        var top, btm;
-        if (classList.contains(th, "asc") || direction == "asc") {
-            top = sortItems(alpha, -1);
-            btm = sortItems(numeric, -1);
-            dir = "descending";
-            classList.remove(th, "asc");
-            classList.add(th, "desc");
-        } else {
-            top = sortItems(numeric, 1);
-            btm = sortItems(alpha, 1);
-            dir = "ascending";
-            classList.remove(th, "desc");
-            classList.add(th, "asc");
-        }
-
-        /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
-        if (this.lastTh && th != this.lastTh) {
-            classList.remove(this.lastTh, "desc");
-            classList.remove(this.lastTh, "asc");
-        }
-
-        this.lastTh = th;
-
-        /* Reorder the table */
-        rows = top.concat(btm);
-
-        this.data = [];
-        var indexes = [];
-
-        each(
-            rows,
-            function(i, v) {
-                this.data.push(v.row);
-
-                if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
-                    indexes.push(i);
-                }
-            },
-            this
-        );
-
-        this.searchData = indexes;
-
-        this.columns().rebuild();
-
-        this.update();
-
-        this.emit("datatable.sort", column, dir);
+        this.columns().sort(column, direction);
     };
 
     /**
