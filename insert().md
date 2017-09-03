@@ -1,0 +1,97 @@
+#### type `Function`
+
+Insert new data in to the table. The `insert()` method can accept both an `object` or and array of `key-value objects` depending on your setup.
+
+#### Usage
+````javascript
+/**
+ * @param {object} data New data to insert
+ * @return {void}
+ */
+datatable.insert(data);
+```
+
+##### Pass an `array` of `key-value` pairs (objects):
+```javascript
+var newData = [
+    {
+        "Heading 1": "Cell 1",
+        "Heading 2": "Cell 2",
+        "Heading 3": "Cell 3",
+        "Heading 4": "Cell 4",
+    },
+    {
+        "Heading 1": "Cell 5",
+        "Heading 2": "Cell 6",
+        "Heading 3": "Cell 7",
+        "Heading 4": "Cell 8",
+    }
+];
+
+datatable.insert(newData);
+```
+
+##### Pass an `object` with the `data` property:
+
+```javascript
+var dataTable = new DataTable("#myTable");
+
+// New data to add
+var newData = {
+	data: [
+		[
+            "Cedric Kelly",
+            "Senior Javascript Developer",
+            "Edinburgh",
+            "6224",
+            "2012/03/29",
+            "$433,060"
+        ],
+        [
+            "Airi Satou",
+            "Accountant",
+            "Tokyo",
+            "5407",
+            "2008/11/28",
+            "$162,700"
+        ]
+      ]
+};
+
+// add the rows
+dataTable.insert(newData);
+```
+
+You may also pass the `headings` property to insert headings if your table is empty or has no headings. If you attempt to pass new headings to a table that has headings, they'll be ignored.
+
+```javascript
+var newData = {
+        headings: [
+            "Name",
+            "Position",
+            "Town",
+            "Ext.",
+            "Start Date",
+            "Salary"
+        ],
+	data: [
+		[
+            "Cedric Kelly",
+            "Senior Javascript Developer",
+            "Edinburgh",
+            "6224",
+            "2012/03/29",
+            "$433,060"
+        ],
+        [
+            "Airi Satou",
+            "Accountant",
+            "Tokyo",
+            "5407",
+            "2008/11/28",
+            "$162,700"
+        ],
+        ...
+      ]
+};
+```
