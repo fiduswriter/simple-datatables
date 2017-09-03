@@ -87,3 +87,23 @@ datatable.import({
     data: // the above JSON string
 });
 ```
+
+or `csv` strings:
+
+```text
+"Name,Ext.,City,Start Date
+Hammett Gordon,8101,Wah,1998/06/09
+Kyra Moses,3796,Quenast,1998/07/07
+Kelly Cameron,4836,Fontaine-Valmont,1999/02/07
+Theodore Duran,8971,Dhanbad,1999/04/07
+...
+```
+
+```javascript
+datatable.import({
+    type: "csv",
+    data: // the above CSV string,
+    columnDelimiter: ",",
+    lineDelimiter: "\n"
+});
+```
