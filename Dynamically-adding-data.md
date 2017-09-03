@@ -103,6 +103,7 @@ Theodore Duran,8971,Dhanbad,1999/04/07
 datatable.import({
     type: "csv",
     data: // the above CSV string,
+    headings: true,
     columnDelimiter: ",",
     lineDelimiter: "\n"
 });
