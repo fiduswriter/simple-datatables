@@ -17,7 +17,7 @@ When set to `false` the column(s) cannot be sorted.
 
 #### `hidden`
 
-When set to `true` the column(s) will not be visible and will be exlcuded from search results.
+When set to `true` the column(s) will not be visible and will be excluded from search results.
 
 #### `type`
 
