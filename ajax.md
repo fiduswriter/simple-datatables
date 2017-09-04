@@ -44,6 +44,7 @@ var dataTable = new DataTable(myTable, {
         }
     }
 });
+```
 
 ---
 
