@@ -9,7 +9,7 @@ An integer or array of integers representing the columns to be manipulated.
 
 #### `sort`
 
-Automatically sort the selected column. Can't be applied if multple columns are selected.
+Automatically sort the selected column. Can only be applied if a single column is selected.
 
 #### `sortable`
 
