@@ -110,6 +110,29 @@ datatable.rows().remove(firstRow.dataIndex);
 
 ---
 
+### activeRows
+#### type `Array`
+
+The `activeRows` property is similar to the `data` property in that it contains all rows of the current instance, but it takes into account the number of hidden columns as well.
+
+##### Example
+
+Let's say you have 4 columns in your table and you've chosen to hide column 2 and you want the 4th row:
+
+<table>
+    <tr>
+        <td>Foo</td>
+    </tr>
+</table>
+
+```javascript
+datatable.data[3]
+
+datatable.activeRows[3]
+```
+
+---
+
 ### pages
 #### type `Array`
 
