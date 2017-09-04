@@ -5,7 +5,7 @@ Controls various aspects of individual or groups of columns. Should be an array 
 
 #### `select`
 
-An integer or array of integers representing the columns to be manipulated.
+An integer or array of integers representing the column(s) to be manipulated.
 
 #### `sort`
 
