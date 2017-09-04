@@ -117,18 +117,24 @@ The `activeRows` property is similar to the `data` property in that it contains 
 
 ##### Example
 
-Let's say you have 4 columns in your table and you've chosen to hide column 2 and you want the 4th row:
+Let's say you have 5 columns in your table and you've chosen to hide columns 2 and 5 and you want the 4th row:
 
 <table>
     <tr>
-        <td>Foo</td>
+        <tr><td>Unity Pugh</td><td>9958</td><td>Curicó</td><td>2005/02/11</td><td>37%</td></tr>
+        <tr><td>Theodore Duran</td><td>8971</td><td>Dhanbad</td><td>1999/04/07</td><td>97%</td></tr>
+        <tr><td>Kylie Bishop</td><td>3147</td><td>Norman</td><td>2005/09/08</td><td>63%</td></tr>
+        <tr><td>Willow Gilliam</td><td>3497</td><td>Amqui</td><td>2009/29/11</td><td>30%</td></tr>
+        <tr><td>Blossom Dickerson</td><td>5018</td><td>Kempten</td><td>2006/11/09</td><td>17%</td></tr>
     </tr>
 </table>
 
 ```javascript
-datatable.data[3]
+// returns [Willow Gilliam, 3497, Amqui, 2009/29/11, 30%]
+var row = [].slice.call(datatable.data[3].cells).map(function(cell) { return cell.textContent; });
 
-datatable.activeRows[3]
+// returns [Willow Gilliam, Amqui, 2009/29/11]
+var row = [].slice.call(datatable.activeRows[3].cells).map(function(cell) { return cell.textContent; });
 ```
 
 ---
