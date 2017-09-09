@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.15
+ * Version: 1.4.16
  *
  */
 (function (root, factory) {
@@ -886,9 +886,12 @@
         each(headings, function (h, i) {
             td = createElement("td");
 
-            if (row[i] && row[i].length) {
-                td.innerHTML = row[i];
+			// Fixes #29
+            if (!row[i] && !row[i].length) {
+                row[i] = "";
             }
+
+			td.innerHTML = row[i];
 
             td.data = row[i];
 
