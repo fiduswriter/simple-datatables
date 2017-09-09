@@ -17,7 +17,7 @@ Add new row data to the current instance. The `data` parameter must be an `array
 ```javascript
 var newRow = ["column1", "column2", "column3", "column4", ...];
 
-datatable.rows()rows.add(newRow);
+datatable.rows().add(newRow);
 
 ```
 
