@@ -58,8 +58,8 @@ Grab the files from one of the CDNs and include them in your page:
 
 //or
 
-<link href="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
-<script src="https://cdn.jsdelivr.net/gh/mobius1/vanilla-Datatables@latest/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
+<link href="https://cdn.jsdelivr.net/npm/vanilla-datatables@latest/dist/vanilla-dataTables.min.css" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/vanilla-datatables@latest/dist/vanilla-dataTables.min.js" type="text/javascript"></script>
 ```
 
 You can replace `latest` with the required release number.
