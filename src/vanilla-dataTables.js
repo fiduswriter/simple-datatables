@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.16
+ * Version: 1.4.17
  *
  */
 (function (root, factory) {
@@ -1321,11 +1321,10 @@
             that.setColumns();
         }
 
-        // Fixed height
-        if (o.fixedHeight) {
-            this.fixHeight();
-        }
+        // Fix height
+        this.fixHeight();
 
+        // Fix columns
         that.fixColumns();
 
         // Class names
@@ -1416,7 +1415,7 @@
             this.label.innerHTML = items ? string : "";
         }
 
-        if (this.options.fixedHeight && this.currentPage == 1) {
+        if (this.currentPage == 1) {
             this.fixHeight();
         }
     };
@@ -1540,11 +1539,9 @@
                     o.perPage = parseInt(this.value, 10);
                     that.update();
 
-                    if (o.fixedHeight) {
-                        this.fixHeight();
-                    }
+                    this.fixHeight();
 
-                    that.emit("datatable.perpage");
+                    that.emit("datatable.perpage", o.perPage);
                 });
             }
         }
@@ -1807,9 +1804,11 @@
      * @return {Void}
      */
     proto.fixHeight = function () {
-        this.container.style.height = null;
-        this.rect = this.container.getBoundingClientRect();
-        this.container.style.height = this.rect.height + "px";
+    	if (this.options.fixedHeight) {
+	        this.container.style.height = null;
+	        this.rect = this.container.getBoundingClientRect();
+	        this.container.style.height = this.rect.height + "px";
+	    }
     };
 
     /**
