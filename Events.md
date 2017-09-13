@@ -40,7 +40,7 @@ dataTable.on('datatable.sort', function(column, direction) {
 ```
 
 ### `datatable.perpage`
-Fires when the perPage option is changed with the dropdown. A single argument returns the items per page number:
+Fires when the perPage option is changed with the dropdown. A single argument returns the per-page value:
 
 ```javascript
 dataTable.on('datatable.perpage', function(perpage) {
