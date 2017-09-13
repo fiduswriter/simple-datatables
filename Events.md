@@ -46,6 +46,7 @@ Fires when the perPage option is changed with the dropdown. A single argument re
 dataTable.on('datatable.perpage', function(perpage) {
     //
 });
+```
 
 ### `datatable.search`
 Fires on keyup during a search.
