@@ -8,6 +8,15 @@
 * [Dynamically Adding Data](https://github.com/Mobius1/Vanilla-DataTables/wiki/Dynamically-adding-data)
 * [Add columns from remote source](https://github.com/Mobius1/Vanilla-DataTables/wiki/Adding-a-column-from-a-remote-source)
 
+#### Events
+* [datatable.init](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatableinit)
+* [datatable.refresh](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#refresh)
+* [datatable.update](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatableupdate)
+* [datatable.page](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatablepage)
+* [datatable.sort](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatablesort)
+* [datatable.perpage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatableperpage)
+* [datatable.search](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatablesearch)
+
 #### Options
 * [perPage](https://github.com/Mobius1/Vanilla-DataTables/wiki/perPage)
 * [perPageSelect](https://github.com/Mobius1/Vanilla-DataTables/wiki/perPageSelect)
