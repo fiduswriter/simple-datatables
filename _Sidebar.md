@@ -65,6 +65,7 @@
 * [searchData](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#searchdata)
 
 #### Methods
+* [on()](https://github.com/Mobius1/Vanilla-DataTables/wiki/on())
 * [rows()](https://github.com/Mobius1/Vanilla-DataTables/wiki/rows())
 * [columns()](https://github.com/Mobius1/Vanilla-DataTables/wiki/columns())
 * [refresh()](https://github.com/Mobius1/Vanilla-DataTables/wiki/refresh())
