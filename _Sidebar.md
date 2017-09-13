@@ -10,7 +10,7 @@
 
 #### Events
 * [datatable.init](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatableinit)
-* [datatable.refresh](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#refresh)
+* [datatable.refresh](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatablerefresh)
 * [datatable.update](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatableupdate)
 * [datatable.page](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatablepage)
 * [datatable.sort](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatablesort)
