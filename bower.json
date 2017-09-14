@@ -1,6 +1,6 @@
 {
     "name": "vanilla-datatables",
-    "version": "1.4.17",
+    "version": "1.4.18",
     "main": "src/vanilla-dataTables.js",
     "ignore": [
         ".gitattributes",

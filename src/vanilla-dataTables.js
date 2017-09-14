@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.17
+ * Version: 1.4.18
  *
  */
 (function (root, factory) {
@@ -1539,7 +1539,7 @@
                     o.perPage = parseInt(this.value, 10);
                     that.update();
 
-                    this.fixHeight();
+                    that.fixHeight();
 
                     that.emit("datatable.perpage", o.perPage);
                 });
