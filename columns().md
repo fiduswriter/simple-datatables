@@ -135,7 +135,7 @@ Checks to see if the selected column(s) are visible. Returns a `boolean` for sin
 
 Usage is the same as the `visible` method.
 
-****As of `1.4.18` the `hidden()` method has been deprecated and will be removed in the next minor version.
+**As of `1.4.18` the `hidden()` method has been deprecated and will be removed in the next minor version.**
 
 ---
 
