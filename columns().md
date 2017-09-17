@@ -129,7 +129,7 @@ columns().visible() // returns  [true, true, true, false, true]
 
 ---
 
-### `hidden(select [integer|array])`
+### `hidden(select [integer|array])` DEPRECATED
 
 Checks to see if the selected column(s) are visible. Returns a `boolean` for single indexes or an `array` of `boolean`s for multiple indexes.
 
