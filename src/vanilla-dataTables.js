@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.4.18
+ * Version: 1.5.0
  *
  */
 (function (root, factory) {
@@ -445,14 +445,15 @@
      * @return {Array} columns  Array of ordered column indexes
      */
     Columns.prototype.order = function (columns) {
-        var a, b, c, d, h, s;
 
-        var temp_a = [];
-        var temp_b = [];
-        var temp_c = [];
-        var temp_d = [];
-
-        var dt = this.dt;
+        var a, b, c, d, h, s, cell,
+            temp = [
+                [],
+                [],
+                [],
+                []
+            ],
+            dt = this.dt;
 
         // Order the headings
         each(columns, function (column, x) {
@@ -462,14 +463,14 @@
             a.originalCellIndex = x;
             a.sortable = s;
 
-            temp_a.push(a);
+            temp[0].push(a);
 
             if (dt.hiddenColumns.indexOf(column) < 0) {
                 b = h.cloneNode(true);
                 b.originalCellIndex = x;
                 b.sortable = s;
 
-                temp_b.push(b);
+                temp[1].push(b);
             }
         });
 
@@ -478,36 +479,34 @@
             c = row.cloneNode();
             d = row.cloneNode();
 
-            c.dataIndex = i;
-            d.dataIndex = i;
+            c.dataIndex = d.dataIndex = i;
 
             if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                c.searchIndex = row.searchIndex;
-                d.searchIndex = row.searchIndex;
+                c.searchIndex = d.searchIndex = row.searchIndex;
             }
 
-            // Append to cell to the fragment in the correct order
-            each(
-                columns,
-                function (x, column) {
-                    c.appendChild(row.cells[column].cloneNode(true));
+            // Append the cell to the fragment in the correct order
+            each(columns, function (column, x) {
+                cell = row.cells[column].cloneNode(true);
+                cell.data = row.cells[column].data;
+                c.appendChild(cell);
 
-                    if (dt.hiddenColumns.indexOf(column) < 0) {
-                        d.appendChild(row.cells[column].cloneNode(true));
-                    }
-                },
-                this
-            );
+                if (dt.hiddenColumns.indexOf(column) < 0) {
+                    cell = row.cells[column].cloneNode(true);
+                    cell.data = row.cells[column].data;
+                    d.appendChild(cell);
+                }
+            });
 
-            temp_c.push(c);
-            temp_d.push(d);
+            temp[2].push(c);
+            temp[3].push(d);
         });
 
-        dt.headings = temp_a;
-        dt.activeHeadings = temp_b;
+        dt.headings = temp[0];
+        dt.activeHeadings = temp[1];
 
-        dt.data = temp_c;
-        dt.activeRows = temp_d;
+        dt.data = temp[2];
+        dt.activeRows = temp[3];
 
         // Update
         dt.update();
@@ -567,29 +566,6 @@
             cols = [];
             each(columns, function (column) {
                 cols.push(dt.hiddenColumns.indexOf(column) < 0);
-            });
-        }
-
-        return cols;
-    };
-
-    /**
-     * Check column(s) visibility
-     * @return {Boolean}
-     */
-    Columns.prototype.hidden = function (columns) {
-        var cols, dt = this.dt;
-
-        columns = columns || this.dt.headings.map(function (th) {
-            return th.originalCellIndex;
-        });
-
-        if (!isNaN(columns)) {
-            cols = dt.hiddenColumns.indexOf(this.columns) > -1;
-        } else if (isArray(columns)) {
-            cols = [];
-            each(columns, function (column) {
-                cols.push(dt.hiddenColumns.indexOf(column) > -1);
             });
         }
 
@@ -804,8 +780,7 @@
      * @return {Void}
      */
     Columns.prototype.rebuild = function () {
-        var a, b, c, d;
-        var dt = this.dt,
+        var a, b, c, d, dt = this.dt,
             temp = [];
 
         dt.activeRows = [];
@@ -824,15 +799,13 @@
             a = row.cloneNode();
             b = row.cloneNode();
 
-            a.dataIndex = i;
-            b.dataIndex = i;
+            a.dataIndex = b.dataIndex = i;
 
             if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                a.searchIndex = row.searchIndex;
-                b.searchIndex = row.searchIndex;
+                a.searchIndex = b.searchIndex = row.searchIndex;
             }
 
-            // Append to cell to the fragment in the correct order
+            // Append the cell to the fragment in the correct order
             each(row.cells, function (cell) {
                 c = cell.cloneNode(true);
                 c.data = cell.data;
@@ -886,12 +859,12 @@
         each(headings, function (h, i) {
             td = createElement("td");
 
-			// Fixes #29
+            // Fixes #29
             if (!row[i] && !row[i].length) {
                 row[i] = "";
             }
 
-			td.innerHTML = row[i];
+            td.innerHTML = row[i];
 
             td.data = row[i];
 
@@ -1021,20 +994,6 @@
     var proto = DataTable.prototype;
 
     /**
-     * Add custom property or method to extend DataTable
-     * @param  {String} prop    - Method name or property
-     * @param  {Mixed} val      - Function or property value
-     * @return {Void}
-     */
-    DataTable.extend = function (prop, val) {
-        if (typeof val === "function") {
-            DataTable.prototype[prop] = val;
-        } else {
-            DataTable[prop] = val;
-        }
-    };
-
-    /**
      * Initialize the instance
      * @param  {Object} options
      * @return {Void}
@@ -1059,12 +1018,6 @@
         this.selectedColumns = [];
 
         this.render();
-
-        if (this.options.plugins) {
-            each(this.options.plugins, function (options, plugin) {
-                this[plugin](options);
-            }, this);
-        }
 
         setTimeout(function () {
             that.emit("datatable.init");
@@ -1804,11 +1757,11 @@
      * @return {Void}
      */
     proto.fixHeight = function () {
-    	if (this.options.fixedHeight) {
-	        this.container.style.height = null;
-	        this.rect = this.container.getBoundingClientRect();
-	        this.container.style.height = this.rect.height + "px";
-	    }
+        if (this.options.fixedHeight) {
+            this.container.style.height = null;
+            this.rect = this.container.getBoundingClientRect();
+            this.container.style.height = this.rect.height + "px";
+        }
     };
 
     /**
