@@ -129,11 +129,13 @@ columns().visible() // returns  [true, true, true, false, true]
 
 ---
 
-### `hidden(select [integer|array])` DEPRECATED
+### `hidden(select [integer|array])`
 
 Checks to see if the selected column(s) are visible. Returns a `boolean` for single indexes or an `array` of `boolean`s for multiple indexes.
 
 Usage is the same as the `visible` method.
+
+****As of `1.4.18` the `hidden()` method has been deprecated and will be removed in the next minor version.
 
 ---
 
