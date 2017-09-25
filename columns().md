@@ -155,7 +155,7 @@ columns.swap([0,5]);
 
 ### `order(indexes [array])`
 
-Order the columns based on the given order. Just pass an array of column indexes in the order you require. Note that as this method is for setting the order on all columns, you don't need to pass the selected columns to the `columns()` constructor and any that are, will be ignored.
+Order the columns based on the given order. Just pass an array of column indexes in the order you require:
 
 ### Original order
 ![Original order](http://i.imgur.com/OK5DoGs.png)
