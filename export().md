@@ -15,6 +15,8 @@ The `options` argument must be an object of which the only required property is 
 
 ```javascript
 {
+    type: "csv" // "csv", "txt", "json" or "sql"
+
     download: true, // trigger download of file or return the string
     skipColumn: [], // array of column indexes to skip
 
