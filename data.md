@@ -4,7 +4,7 @@
 
 Pass an object of data to populate the table.
 
-You can set both the headings and rows with `headings` and `rows` properties, respectively. The headings property is optional.
+You can set both the headings and rows with `headings` and `data` properties, respectively. The headings property is optional.
 
 ```javascript
 var myData = {
@@ -16,7 +16,7 @@ var myData = {
 		"Email",
 		"Phone No."
 	],
-	"rows": [
+	"data": [
 		[
 			"Hedwig F. Nguyen",
 			"Arcu Vel Foundation",
@@ -66,18 +66,18 @@ var obj = {
     // Quickly get the headings
     headings: Object.keys(data[0]),
 
-    // rows array
-    rows: []
+    // data array
+    data: []
 };
 
 // Loop over the objects to get the values
 for ( var i = 0; i < data.length; i++ ) {
 
-    obj.rows[i] = [];
+    obj.data[i] = [];
 
     for (var p in data[i]) {
         if( data[i].hasOwnProperty(p) ) {
-            obj.rows[i].push(data[i][p]);
+            obj.data[i].push(data[i][p]);
         }
     }
 }
@@ -93,7 +93,7 @@ which will produce:
       "prop2",
       "prop3"
    ],
-   rows : [
+   data : [
       [
          "value1",
          "value2",
