@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.5.0
+ * Version: 1.5.1
  *
  */
 (function (root, factory) {
@@ -333,7 +333,7 @@
             thead.appendChild(tr);
         }
 
-        if (data.data) {
+        if (data.data && data.data.length) {
             tbody = createElement("tbody");
             each(data.data, function (rows) {
                 if (data.headings) {
@@ -894,6 +894,12 @@
             } else {
                 dt.data.push(this.build(data));
             }
+
+            // We may have added data to an empty table
+            if ( dt.data.length ) {
+                dt.hasRows = true;
+            }
+
 
             this.update();
 
