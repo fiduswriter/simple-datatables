@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.5.1
+ * Version: 1.5.2
  *
  */
 (function (root, factory) {
@@ -997,6 +997,20 @@
         this.init();
     };
 
+    /**
+     * Add custom property or method to extend DataTable
+     * @param  {String} prop    - Method name or property
+     * @param  {Mixed} val      - Function or property value
+     * @return {Void}
+     */
+    DataTable.extend = function(prop, val) {
+        if (typeof val === "function") {
+            DataTable.prototype[prop] = val;
+        } else {
+            DataTable[prop] = val;
+        }
+    };
+
     var proto = DataTable.prototype;
 
     /**
@@ -1028,6 +1042,20 @@
         setTimeout(function () {
             that.emit("datatable.init");
             that.initialized = true;
+
+            if (that.options.plugins) {
+                each(this.options.plugins, function(options, plugin) {
+                    if (this[plugin] && typeof this[plugin] === "function") {
+                        this[plugin](options, {
+                            on: on,
+                            each: each,
+                            extend: extend,
+                            classList: classList,
+                            createElement: createElement
+                        });
+                    }
+                }, this);
+            }
         }, 10);
     };
 

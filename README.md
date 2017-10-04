@@ -16,10 +16,10 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 * Import `csv` and `json` data
 * Control column visibility
 * Reorder or swap columns
-* moment.js integration for sorting columns with datetime strings (experimental, v1.2.3 and above)
+* moment.js integration for sorting columns with datetime strings
 
 
-[Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki) | [Latest Version](https://github.com/Mobius1/Vanilla-DataTables/releases/tag/1.5.1)
+[Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki) | [Latest Version](https://github.com/Mobius1/Vanilla-DataTables/releases/tag/1.5.2)
 
 ---
 
