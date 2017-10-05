@@ -1,11 +1,11 @@
-/*! Editable 0.0.3
+/*! Editable 0.0.4
  * © 2016-2017 Karl Saunders
  */
 
 /**
  * @summary     Editable
  * @description Allow editing of cells and rows
- * @version     0.0.3
+ * @version     0.0.4
  * @file        datatable.editable.js
  * @author      Karl Saunders
  * @contact     mobius1@gmx.com

@@ -1,4 +1,28 @@
-/* Editable */
+/*! Editable 0.0.4
+ * © 2016-2017 Karl Saunders
+ */
+
+/**
+ * @summary     Editable
+ * @description Allow editing of cells and rows
+ * @version     0.0.4
+ * @file        datatable.editable.css
+ * @author      Karl Saunders
+ * @contact     mobius1@gmx.com
+ * @copyright   Copyright 2016-2017 Karl Saunders
+ *
+ * Double-click a cell to edit and hit enter to submit.
+ * Right click to show context menu of editor options (Edit Cell, Edit Row, Remove Row).
+ *
+ * This source file is free software, available under the following license:
+ *   MIT license - https://github.com/Mobius1/Vanilla-DataTables/blob/master/LICENSE
+ *
+ * This source file is distributed in the hope that it will be useful, but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE. See the license files for details.
+ *
+ * For details please refer to: https://github.com/Mobius1/Vanilla-DataTables
+ */
 .datatable-editor-modal {
   position: absolute;
   left: 0;
