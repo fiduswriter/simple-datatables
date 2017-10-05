@@ -20,3 +20,18 @@ DataTable.extend("myPlugin", function(options) {
     return new myPlugin();
 }
 ```
+
+Then simply enable the plugin:
+
+```javascript
+var datatable = new DataTable("table", {
+    plugins: {
+        myPlugin: {
+            option1: value1,
+            option2: value2,
+            option3: value3,
+            ...
+        }
+    }
+});
+```
