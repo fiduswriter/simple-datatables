@@ -1,6 +1,8 @@
 To create a plugin just use the `extend()` method which takes 2 arguments: the name of the plugin and the callback.
 
-Your plugin should return an instance with the required `init()` method in order for Vanilla-DataTables to use it. A `destroy()` method is preferred as well so the end-user and kill the plugin as necessary.
+Your plugin should return an instance with the required `init()` method in order for Vanilla-DataTables to use it.
+
+A `destroy()` method is preferred as well so the end-user can kill the plugin as necessary. Make sure ther method removes any event listeners or nodes that can affect the current Vanilla-DataTables instance.
 
 Example plugin:
 
