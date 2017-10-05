@@ -108,3 +108,9 @@ datatable.on("myPlugin.init", function(e) {
     // do something when "myPlugin.init" fires
 })
 ```
+
+---
+
+## Demos
+
+* [Editable plugin](https://codepen.io/Mobius1/pen/rGpMMY/)
