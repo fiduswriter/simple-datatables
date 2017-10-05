@@ -27,6 +27,10 @@ Then simply enable the plugin:
 var datatable = new DataTable("table", {
     plugins: {
         myPlugin: {
+            // Required
+            enabled: true, // or false
+
+            // Custom options
             option1: value1,
             option2: value2,
             option3: value3,
@@ -34,4 +38,20 @@ var datatable = new DataTable("table", {
         }
     }
 });
+```
+
+Or you can enable the plugin yourself at any time: 
+
+```javascript
+var datatable = new DataTable("table", {
+    plugins: {
+        myPlugin: {
+            // Prevent plugin from being initialised
+            enabled: false
+        }
+    }
+});
+
+// Enable the plugin with it's init() method
+datatable.myPlugin.init();
 ```
