@@ -19,9 +19,7 @@ Grab the files from one of the CDNs and include them in your page:
 
 ---
 
-### Quick Start
-
-Then just initialise the plugin by either passing a reference to the table or a CSS3 selector string as the first parameter:
+### Enable Plugin:
 
 ```javascript
 var datatable = new DataTable(myTable, {
@@ -32,6 +30,57 @@ var datatable = new DataTable(myTable, {
 	}
 });
 
+
+var datatable = new DataTable(myTable, {
+	plugins: {
+		editable: {
+			enabled: false
+		}
+	}
+});
+
+datatable.editable.init();
+
+```
+
+---
+
+### Public Methods
+
+#### `init()`
+ Initialise the plugin.
+
+```javascript
+datatable.editable.init();
+```
+
+#### `destroy()`
+Destroy the plugin instance.
+
+```javascript
+datatable.editable.destroy();
+```
+
+#### `editCell(cell)`
+Edit a cell. Just pass a reference to the cell you want to edit.
+
+```javascript
+// Grab the second cell of the third row
+var cell = datatable.activeRows[2].cells[1];
+
+// Edit it
+datatable.editable.editCell(cell);
+```
+
+#### `editRow(row)`
+Edit a row. Just pass a reference to the row you want to edit.
+
+```javascript
+// Grab the first row
+var row = datatable.activeRows[0];
+
+// Edit it
+datatable.editable.editRow(row);
 ```
 
 ---
