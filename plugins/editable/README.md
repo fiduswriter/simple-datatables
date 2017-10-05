@@ -29,8 +29,12 @@ var datatable = new DataTable(myTable, {
 		}
 	}
 });
+```
+
+Or you can delay initialisation:
 
 
+```javascript
 var datatable = new DataTable(myTable, {
 	plugins: {
 		editable: {
@@ -40,7 +44,6 @@ var datatable = new DataTable(myTable, {
 });
 
 datatable.editable.init();
-
 ```
 
 ---
