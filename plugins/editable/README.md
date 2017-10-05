@@ -23,11 +23,11 @@ Grab the files from one of the CDNs and include them in your page:
 
 ```javascript
 var datatable = new DataTable(myTable, {
-	plugins: {
-		editable: {
-			enabled: true
-		}
-	}
+    plugins: {
+        editable: {
+            enabled: true
+        }
+    }
 });
 ```
 
@@ -36,11 +36,11 @@ Or you can delay initialisation:
 
 ```javascript
 var datatable = new DataTable(myTable, {
-	plugins: {
-		editable: {
-			enabled: false
-		}
-	}
+    plugins: {
+        editable: {
+            enabled: false
+        }
+    }
 });
 
 datatable.editable.init();
