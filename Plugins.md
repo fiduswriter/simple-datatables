@@ -1,3 +1,7 @@
+To create a plugin just use the `extend()` method which takes 2 arguments: the name of the plugin and the callback.
+
+Your plugin should return an instance with the required `init()` method in order for Vanilla-DataTables to use it. A `destroy()` method is preferred as well so the end-user and kill the plugin as necessary.
+
 Example plugin:
 
 ```javascript
@@ -17,11 +21,18 @@ DataTable.extend("myPlugin", function(options) {
         //
     };
 
+    /**
+     * Destroy instance
+     */
+    myPlugin.prototype.destroy = function() {
+        //
+    };
+
     return new myPlugin();
 }
 ```
 
-Then simply enable the plugin:
+Then simply enable the plugin with the `plugins` option:
 
 ```javascript
 var datatable = new DataTable("table", {
@@ -54,4 +65,7 @@ var datatable = new DataTable("table", {
 
 // Enable the plugin with it's init() method
 datatable.myPlugin.init();
+
+// and if you've supplied a destroy() method
+datatable.myPlugin.destroy();
 ```
