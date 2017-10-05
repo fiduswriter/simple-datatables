@@ -9,7 +9,8 @@
 * [Add columns from remote source](https://github.com/Mobius1/Vanilla-DataTables/wiki/Adding-a-column-from-a-remote-source)
 
 #### Plugins
-* [Usage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins)
+* [Usage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins#usage)
+* [Events](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins#events)
 
 #### Events
 * [datatable.init](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatableinit)
