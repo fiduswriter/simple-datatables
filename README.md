@@ -17,6 +17,7 @@ A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery D
 * Control column visibility
 * Reorder or swap columns
 * moment.js integration for sorting columns with datetime strings
+* Extentable with custom plugins
 
 
 [Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki) | [Latest Version](https://github.com/Mobius1/Vanilla-DataTables/releases/tag/1.5.2)

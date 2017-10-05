@@ -1,15 +1,18 @@
-/*! Editable 0.0.1
+/*! Editable 0.0.2
  * © 2016-2017 Karl Saunders
  */
 
 /**
  * @summary     Editable
  * @description Allow editing of cells and rows
- * @version     0.0.1
+ * @version     0.0.2
  * @file        datatable.editable.js
  * @author      Karl Saunders
  * @contact     mobius1@gmx.com
  * @copyright   Copyright 2016-2017 Karl Saunders
+ *
+ * Double-click a cell to edit and hit enter to submit.
+ * Right click to show context menu of editor options (Edit Cell, Edit Row, Remove Row).
  *
  * This source file is free software, available under the following license:
  *   MIT license - https://github.com/Mobius1/Vanilla-DataTables/blob/master/LICENSE
@@ -20,7 +23,8 @@
  *
  * For details please refer to: https://github.com/Mobius1/Vanilla-DataTables
  */
-if (window.DataTable && typeof window.DataTable === "function") {
+if (window.DataTable && typeof window.DataTable === "function")
+{
     DataTable.extend("editable", function(options, utils) {
 
         // VDT Reference
@@ -81,7 +85,7 @@ if (window.DataTable && typeof window.DataTable === "function") {
          * @return {Object|Boolean}      Returns the matching ancestor or false in not found.
          */
         var closest = function(el, fn) {
-            return el && el !== body && (fn(el) ? el : closest(el.parentNode, fn));
+            return el && el !== document.body && (fn(el) ? el : closest(el.parentNode, fn));
         };
 
         /**
