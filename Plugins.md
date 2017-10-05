@@ -1,3 +1,5 @@
+## Usage
+
 To create a plugin just use the `extend()` method which takes 2 arguments: the name of the plugin and the callback.
 
 Your plugin should return an instance with the required `init()` method in order for Vanilla-DataTables to use it.
