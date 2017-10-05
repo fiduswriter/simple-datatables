@@ -71,3 +71,38 @@ datatable.myPlugin.init();
 // and if you've supplied a destroy() method
 datatable.myPlugin.destroy();
 ```
+
+## Events
+
+You can access Vanilla-DataTable's event emitter to fire your own custom events for the end-user to listen for:
+
+```javascript
+DataTable.extend("myPlugin", function(options) {
+
+    var instance = this;
+
+    var myPlugin = function() {};
+
+    myPlugin.prototype.init = function() {
+        // Fire the custom "myPlugin.init" event
+        instance.emit("myPlugin.init");
+    };
+
+    return new myPlugin();
+}
+```
+
+then...
+
+```javascript
+var datatable = new DataTable("table", {
+    plugins: {
+        myPlugin: { enabled: true }
+    }
+});
+
+// Listen for the custom "myPlugin.init" event
+datatable.on("myPlugin.init", function(e) {
+    // do something when "myPlugin.init" fires
+})
+```
