@@ -8,6 +8,9 @@
 * [Dynamically Adding Data](https://github.com/Mobius1/Vanilla-DataTables/wiki/Dynamically-adding-data)
 * [Add columns from remote source](https://github.com/Mobius1/Vanilla-DataTables/wiki/Adding-a-column-from-a-remote-source)
 
+#### Plugins
+* [Usage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins)
+
 #### Events
 * [datatable.init](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatableinit)
 * [datatable.refresh](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatablerefresh)
