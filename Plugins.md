@@ -74,6 +74,8 @@ datatable.myPlugin.init();
 datatable.myPlugin.destroy();
 ```
 
+---
+
 ## Events
 
 You can access Vanilla-DataTable's event emitter to fire your own custom events for the end-user to listen for:
@@ -108,6 +110,14 @@ datatable.on("myPlugin.init", function(e) {
     // do something when "myPlugin.init" fires
 })
 ```
+
+---
+
+## Submitting a plugin
+
+If you think your plugin will be useful to other users then you can submit it with a pull request and wait for it to be approved.
+
+You can find a list of approved plugins [here](https://github.com/Mobius1/Vanilla-DataTables/tree/master/plugins/).
 
 ---
 
