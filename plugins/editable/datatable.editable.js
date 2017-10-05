@@ -174,7 +174,7 @@ if (window.DataTable && typeof window.DataTable === "function") {
 
             that.update();
             that.bindEvents();
-              
+
                setTimeout(function() {
                     instance.emit("datatable.editable.init");
                 }, 10);
@@ -488,9 +488,10 @@ if (window.DataTable && typeof window.DataTable === "function") {
          */
         Editor.prototype.dismiss = function(e) {
             var valid = !this.wrapper.contains(e.target);
+               var editing = this.editing && this.editingCell;
 
-            if (valid) {
-                if (this.editing && this.editingCell) {
+            if (valid && (editing && e.target !== this.data.input)) {
+                if (editing) {
                     this.data.cell.innerHTML = this.data.content;
                     this.data = {};
                     this.editing = this.editingCell = false;
