@@ -67,6 +67,8 @@ datatable.editable.destroy();
 #### `editCell(cell)`
 Edit a cell. Just pass a reference to the cell you want to edit.
 
+This method sets the cell in edit mode and shows the input for manually entering the content of the cell.
+
 ```javascript
 // Grab the second cell of the third row
 var cell = datatable.activeRows[2].cells[1];
@@ -78,6 +80,8 @@ datatable.editable.editCell(cell);
 #### `editRow(row)`
 Edit a row. Just pass a reference to the row you want to edit.
 
+This method sets the roww in edit mode and shows the inputs for manually entering the content for each cell.
+
 ```javascript
 // Grab the first row
 var row = datatable.activeRows[0];
@@ -85,6 +89,39 @@ var row = datatable.activeRows[0];
 // Edit it
 datatable.editable.editRow(row);
 ```
+
+#### `saveCell(cell, value)`
+Set the new content of a cell. Just pass a reference to the cell as the first argument and the new content of the cell as the second.
+
+This can be used to either close and save a cell that is currently in edit mode (as above) or for quickly setting the content of the cell.
+
+```javascript
+// Grab the second cell of the third row
+var cell = datatable.activeRows[2].cells[1];
+
+// Edit it (shows the input for manual input)
+datatable.editable.editCell(cell);
+
+// Save it
+datatable.editable.saveCell(cell, "Foobar");
+```
+
+#### `saveRow(rowl, data)`
+Set the new content of a row. Just pass a reference to the row as the first argument and the new content of the cells as the second.
+
+This can be used to either close and save a row that is currently in edit mode (as above) or for quickly setting the content of the row.
+
+```javascript
+// Grab the third row
+var row = datatable.activeRows[2];
+
+// Edit it (shows the modal for manual input)
+datatable.editable.editCell(row);
+
+// Save it
+datatable.editable.saveRow(row, ["foo", "bar", "baz", "qux"]);
+```
+
 
 ---
 
