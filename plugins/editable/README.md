@@ -99,17 +99,6 @@ This can be used to either close and save a cell that is currently in edit mode 
 // Grab the second cell of the third row
 var cell = datatable.activeRows[2].cells[1];
 
-// Edit it (shows the input for manual input)
-datatable.editable.editCell(cell);
-
-// Save it
-datatable.editable.saveCell(cell, "Foobar");
-
-// or if you don't need the manual input
-
-// Grab the second cell of the third row
-var cell = datatable.activeRows[2].cells[1];
-
 // Save it
 datatable.editable.saveCell(cell, "Foobar");
 ```
@@ -120,17 +109,6 @@ Set the new content of a row. Just pass a reference to the row as the first argu
 This can be used to either close and save a row that is currently in edit mode (as above) or for quickly setting the content of the row.
 
 ```javascript
-// Grab the third row
-var row = datatable.activeRows[2];
-
-// Edit it (shows the modal for manual input)
-datatable.editable.editCell(row);
-
-// Save it
-datatable.editable.saveRow(row, ["foo", "bar", "baz", "qux"]);
-
-// or if you don't need the manual inputs
-
 // Grab the third row
 var row = datatable.activeRows[2];
 
