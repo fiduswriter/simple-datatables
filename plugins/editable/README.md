@@ -3,7 +3,7 @@
 A plugin that makes your Vanilla-DataTables instance editable.
 
 
-[Demo](https://codepen.io/Mobius1/pen/rGpMMY/).
+[Demo](https://codepen.io/Mobius1/pen/rGpMMY/) | [Main Repo](https://github.com/Mobius1/Editable)
 
 ---
 
