@@ -116,12 +116,6 @@ var row = datatable.activeRows[2];
 datatable.editable.saveRow(row, ["foo", "bar", "baz", "qux"])
 ```
 
-
 ---
-
-Don't forget to check the [wiki](https://github.com/Mobius1/Vanilla-DataTables/wiki) out for further help.
-
----
-
 
 Copyright © 2017 Karl Saunders | MIT license
