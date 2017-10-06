@@ -48,6 +48,70 @@ datatable.editable.init();
 
 ---
 
+### Options
+
+
+#### `contextMenu`
+#### type: `Boolean`
+#### default: `true`
+
+By default right-clicking the table body will open a custom context menu with a list of editor options. Set to `false` to disable.
+
+
+#### `menuItems`
+#### type: `Array`
+
+Set the menu items of th context menu. Should be an `Array` of `Objects` with the `text` and `action` properties set.
+
+The `text` property can be any string (including HTML) that represents the content of the menu item. The `action` property is the callback used when clicking the item.
+
+The `contextMenu` option should be set to `true`.
+
+#### Example
+```javascript
+var datatable = new DataTable(myTable, {
+    plugins: {
+        editable: {
+            enabled: true,
+
+            // Menu items with custom icons
+            menuItems: [{
+                    text: "<span class='mdi mdi-lead-pencil'></span> Edit Cell",
+                    action: function(e) {
+                        this.editCell();
+                    }
+                },
+                {
+                    text: "<span class='mdi mdi-lead-pencil'></span> Edit Row",
+                    action: function(e) {
+                        this.editRow();
+                    }
+                },
+                {
+                    separator: true
+                },
+                {
+                    text: "<span class='mdi mdi-delete'></span> Remove Row",
+                    action: function(e) {
+                        if (confirm("Are you sure?")) {
+                            this.removeRow();
+                        }
+                    }
+                }
+            ]
+        }
+    }
+});
+```
+
+#### `hiddenColumns`
+#### type: `Boolean`
+#### default: `false`
+
+By default any hidden columns will be ommited from the editor.
+
+---
+
 ### Public Methods
 
 #### `init()`
