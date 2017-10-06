@@ -20,7 +20,7 @@ A lightweight, extendable, dependency-free javascript HTML table plugin. Similar
 * Extentable with custom plugins [See the wiki](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins) (v1.6.0 and above)
 
 
-[Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki) | [Latest Version](https://github.com/Mobius1/Vanilla-DataTables/releases/tag/1.6.1)
+[Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki) | [Latest Version](https://github.com/Mobius1/Vanilla-DataTables/releases/tag/1.6.2)
 
 ---
 
@@ -30,6 +30,7 @@ A lightweight, extendable, dependency-free javascript HTML table plugin. Similar
 * [Remote Data](https://codepen.io/Mobius1/pen/XaRepW?editors=0010)
 * [Datetime Strings](https://codepen.io/Mobius1/pen/jwXPKN?editors=0010)
 * [Column Manipulation](https://codepen.io/Mobius1/pen/WEmGwJ?editors=0010)
+* [Editor Plugin](https://s.codepen.io/Mobius1/debug/rGpMMY)
 * [Stress Test](https://s.codepen.io/Mobius1/pen/qjLaKd)
 * [Programmatic Access](https://s.codepen.io/Mobius1/pen/rwGyJa)
 
