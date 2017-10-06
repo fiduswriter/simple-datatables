@@ -48,17 +48,28 @@ datatable.editable.init();
 
 ---
 
-### Options
+## Options
 
+```javascript
+var datatable = new DataTable(myTable, {
+    plugins: {
+        editable: {
+            enabled: true,
 
-#### `contextMenu`
+            // options go here
+        }
+    }
+});
+```
+
+### `contextMenu`
 #### type: `Boolean`
 #### default: `true`
 
 By default right-clicking the table body will open a custom context menu with a list of editor options. Set to `false` to disable.
 
 
-#### `menuItems`
+### `menuItems`
 #### type: `Array`
 
 Set the menu items of th context menu. Should be an `Array` of `Objects` with the `text` and `action` properties set.
@@ -67,7 +78,7 @@ The `text` property can be any string (including HTML) that represents the conte
 
 The `contextMenu` option should be set to `true`.
 
-#### Example
+### Example
 ```javascript
 var datatable = new DataTable(myTable, {
     plugins: {
@@ -104,7 +115,7 @@ var datatable = new DataTable(myTable, {
 });
 ```
 
-#### `hiddenColumns`
+### `hiddenColumns`
 #### type: `Boolean`
 #### default: `false`
 
@@ -112,23 +123,23 @@ By default any hidden columns will be ommited from the editor.
 
 ---
 
-### Public Methods
+## Public Methods
 
-#### `init()`
+### `init()`
  Initialise the plugin.
 
 ```javascript
 datatable.editable.init();
 ```
 
-#### `destroy()`
+### `destroy()`
 Destroy the plugin instance.
 
 ```javascript
 datatable.editable.destroy();
 ```
 
-#### `editCell(cell)`
+### `editCell(cell)`
 Edit a cell. Just pass a reference to the cell you want to edit.
 
 This method sets the cell in edit mode and shows the input for manually entering the content of the cell.
@@ -141,7 +152,7 @@ var cell = datatable.activeRows[2].cells[1];
 datatable.editable.editCell(cell);
 ```
 
-#### `editRow(row)`
+### `editRow(row)`
 Edit a row. Just pass a reference to the row you want to edit.
 
 This method sets the row in edit mode and shows the modal with inputs for manually entering the content for each cell.
@@ -154,7 +165,7 @@ var row = datatable.activeRows[0];
 datatable.editable.editRow(row);
 ```
 
-#### `saveCell(cell, value)`
+### `saveCell(cell, value)`
 Set the new content of a cell. Just pass a reference to the cell as the first argument and the new content of the cell as the second.
 
 This can be used to either close and save a cell that is currently in edit mode (as above) or for quickly setting the content of the cell.
@@ -167,7 +178,7 @@ var cell = datatable.activeRows[2].cells[1];
 datatable.editable.saveCell(cell, "Foobar");
 ```
 
-#### `saveRow(row, data)`
+### `saveRow(row, data)`
 Set the new content of a row. Just pass a reference to the row as the first argument and the new content of the cells as the second.
 
 This can be used to either close and save a row that is currently in edit mode (as above) or for quickly setting the content of the row.
