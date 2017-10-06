@@ -7,17 +7,36 @@ A plugin that makes your Vanilla-DataTables instance editable.
 
 ---
 
+### Install
+
+## Bower
+```
+bower install vanilla-datatables-editable --save
+```
+
+## npm
+```
+npm install vanilla-datatables-editable --save
+```
+
+---
 
 ### Browser
 
 Grab the files from one of the CDNs and include them in your page:
 
 ```html
-<link href="https://cdn.jsdelivr.net/npm/vanilla-datatables@latest/plugins/editable/datatable.editable.css" rel="stylesheet" type="text/css">
-<script src="https://cdn.jsdelivr.net/npm/vanilla-datatables@latest/plugins/editable/datatable.editable.js" type="text/javascript"></script>
+<link href="https://unpkg.com/vanilla-datatables-editable@latest/datatable.editable.min.css" rel="stylesheet" type="text/css">
+<script src="https://unpkg.com/vanilla-datatables-editable@latest/datatable.editable.min.js" type="text/javascript"></script>
+
+//or
+
+<link href="https://cdn.jsdelivr.net/npm/vanilla-datatables-editable@latest/datatable.editable.min.css" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/vanilla-datatables-editable@latest/datatable.editable.min.js" type="text/javascript"></script>
 ```
 
----
+You can replace `latest` with the required release number.
+
 
 ### Enable Plugin:
 
@@ -167,8 +186,8 @@ var row = datatable.activeRows[0];
 datatable.editable.editRow(row);
 ```
 
-### `saveCell(cell, value)`
-Set the new content of a cell. Just pass a reference to the cell as the first argument and the new content of the cell as the second.
+### `saveCell(value, cell)`
+Set the new content of a cell. Just pass the new cell content as the first argument and a reference to the cell as the second.
 
 This can be used to either close and save a cell that is currently in edit mode (as above) or for quickly setting the content of the cell.
 
@@ -177,11 +196,25 @@ This can be used to either close and save a cell that is currently in edit mode 
 var cell = datatable.activeRows[2].cells[1];
 
 // Save it
-datatable.editable.saveCell(cell, "Foobar");
+datatable.editable.saveCell("Foobar", cell);
 ```
 
-### `saveRow(row, data)`
-Set the new content of a row. Just pass a reference to the row as the first argument and the new content of the cells as the second.
+If you already have a cell in edit mode, then just call the `saveCell()` method omitting the the second argument:
+
+```javascript
+// Grab the second cell of the third row
+var cell = datatable.activeRows[2].cells[1];
+
+// Edit it
+datatable.editable.editCell(cell);
+
+// Save it
+datatable.editable.saveCell("Foobar");
+```
+
+
+### `saveRow(data, row)`
+Set the new content of a row. Just pass the new row data as the first argument and a reference to the row as the second
 
 This can be used to either close and save a row that is currently in edit mode (as above) or for quickly setting the content of the row.
 
@@ -190,12 +223,40 @@ This can be used to either close and save a row that is currently in edit mode (
 var row = datatable.activeRows[2];
 
 // Save it
-datatable.editable.saveRow(row, ["foo", "bar", "baz", "qux"])
+datatable.editable.saveRow(["foo", "bar", "baz", "qux"], row)
+```
+
+If you already have a row in edit mode, then just call the `saveRow()` method omitting the second argument:
+
+```javascript
+// Grab the third row
+var row = datatable.activeRows[2].rows[1];
+
+// Edit it
+datatable.editable.editRow(row);
+
+// Save it
+datatable.editable.saveRow(["foo", "bar", "baz", "qux"]);
 ```
 
 ---
 
 ## Changelog
+
+`v0.0.9`
+
+* Change event name:
+  * `datatable.editable.init` -> `editable.init`
+
+* Add events:
+  * `editable.save.cell`
+  * `editable.save.row`
+  * `editable.context.open`
+  * `editable.context.close`
+
+`v0.0.8`
+
+* Allow `saveCell()` and `saveRow()` methods to save the current cell/row
 
 `v0.0.7`
 
