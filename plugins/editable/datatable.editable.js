@@ -81,6 +81,26 @@ if (window.DataTable && typeof window.DataTable === "function") {
         };
 
         /**
+         * Add event listener to target
+         * @param  {Object} el
+         * @param  {String} e
+         * @param  {Function} fn
+         */
+        var on = function(el, e, fn) {
+            el.addEventListener(e, fn, false);
+        };
+
+        /**
+         * Remove event listener from target
+         * @param  {Object} el
+         * @param  {String} e
+         * @param  {Function} fn
+         */
+        var off = function(el, e, fn) {
+            el.removeEventListener(e, fn);
+        };
+
+        /**
          * Get the closest matching ancestor
          * @param  {Object}   el         The starting node.
          * @param  {Function} fn         Callback to find matching ancestor.
@@ -161,7 +181,7 @@ if (window.DataTable && typeof window.DataTable === "function") {
                             li.appendChild(a);
 
                             if (item.action && typeof item.action === "function") {
-                                a.addEventListener("click", function(e) {
+                                on(a, "click", function(e) {
                                     e.preventDefault();
                                     item.action.call(that, e);
                                 });
@@ -207,22 +227,22 @@ if (window.DataTable && typeof window.DataTable === "function") {
             };
 
             // listen for double-click
-            this.target.addEventListener("dblclick", this.events.double);
+            on(this.target, "dblclick", this.events.double);
 
             // listen for click anywhere but the menu
-            document.addEventListener("click", this.events.dismiss);
+            on(document, "click", this.events.dismiss);
 
             // listen for right-click
-            document.addEventListener("keydown", this.events.keydown);
+            on(document, "keydown", this.events.keydown);
 
             if (this.config.contextMenu) {
                 // listen for right-click
-                this.target.addEventListener("contextmenu", this.events.context);
+                on(this.target, "contextmenu", this.events.context);
 
                 // reset
                 this.events.reset = debounce(this.events.update, 50);
-                window.addEventListener("resize", this.events.reset);
-                window.addEventListener("scroll", this.events.reset);
+                on(window, "resize", this.events.reset);
+                on(window, "scroll", this.events.reset);
             }
         };
 
@@ -351,23 +371,23 @@ if (window.DataTable && typeof window.DataTable === "function") {
 
             var template = [
                 "<div class='" + o.classes.inner + "'>",
-                "<div class='" + o.classes.header + "'>",
-                "<h4>Editing row</h4>",
-                "<button class='" + o.classes.close + "' type='button' data-editor-close>×</button>",
-                " </div>",
-                "<div class='" + o.classes.block + "'>",
-                "<form class='" + o.classes.form + "'>",
-                "<div class='" + o.classes.row + "'>",
-                "<button class='" + o.classes.save + "' type='button' data-editor-save>Save</button>",
+                    "<div class='" + o.classes.header + "'>",
+                        "<h4>Editing row</h4>",
+                        "<button class='" + o.classes.close + "' type='button' data-editor-close>×</button>",
+                    " </div>",
+                    "<div class='" + o.classes.block + "'>",
+                        "<form class='" + o.classes.form + "'>",
+                            "<div class='" + o.classes.row + "'>",
+                                "<button class='" + o.classes.save + "' type='button' data-editor-save>Save</button>",
+                            "</div>",
+                        "</form>",
+                    "</div>",
                 "</div>",
-                "</form>",
-                "</div>",
-                "</div>",
-            ];
+            ].join("");
 
             var modal = utils.createElement("div", {
                 class: o.classes.modal,
-                html: template.join("")
+                html: template
             });
 
             var inner = modal.firstElementChild;
@@ -379,8 +399,8 @@ if (window.DataTable && typeof window.DataTable === "function") {
                     class: o.classes.row,
                     html: [
                         "<div class='datatable-editor-row'>",
-                        "<label class='" + o.classes.label + "'>" + instance.labels[o.hiddenColumns ? i : instance.activeHeadings[i].originalCellIndex] + "</label>",
-                        "<input class='" + o.classes.input + "' value='" + cell.innerHTML + "' type='text'>",
+                            "<label class='" + o.classes.label + "'>" + instance.labels[o.hiddenColumns ? i : instance.activeHeadings[i].originalCellIndex] + "</label>",
+                            "<input class='" + o.classes.input + "' value='" + cell.innerHTML + "' type='text'>",
                         "</div>"
                     ].join("")
                 }), form.lastElementChild);
@@ -396,12 +416,13 @@ if (window.DataTable && typeof window.DataTable === "function") {
             // Close / save
             modal.addEventListener("click", function(e) {
                 var node = e.target;
-                if (node.hasAttribute("data-editor-close")) {
+                if (node.hasAttribute("data-editor-close")) {  // close button
                     that.closeModal();
-                } else if (node.hasAttribute("data-editor-save")) {
+                } else if (node.hasAttribute("data-editor-save")) { // save button
                     var data = [].slice.call(form.elements).map(function(input) {
                         return input.value.trim();
                     });
+
                     that.saveRow(row, data);
                 }
             });
@@ -560,14 +581,14 @@ if (window.DataTable && typeof window.DataTable === "function") {
          * @return {Void}
          */
         Editor.prototype.destroy = function() {
-            this.target.removeEventListener("dblclick", this.events.double);
-            this.target.removeEventListener("contextmenu", this.events.context);
+            off(this.target, "dblclick", this.events.double);
+            off(this.target, "contextmenu", this.events.context);
 
-            document.removeEventListener("click", this.events.dismiss);
-            document.removeEventListener("keydown", this.events.keydown);
+            off(document, "click", this.events.dismiss);
+            off(document, "keydown", this.events.keydown);
 
-            window.removeEventListener("resize", this.events.reset);
-            window.removeEventListener("scroll", this.events.reset);
+            off(window, "resize", this.events.reset);
+            off(window, "scroll", this.events.reset);
 
             document.body.removeChild(this.container);
         };
