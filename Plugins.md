@@ -1,3 +1,5 @@
+Plugins are a way of extending the functionality of the library whilst keep it's size to a minimum.
+
 ## Usage
 
 To create a plugin just use the `extend()` method which takes 2 arguments: the name of the plugin and the callback.
@@ -118,6 +120,12 @@ datatable.on("myPlugin.init", function(e) {
 If you think your plugin will be useful to other users then you can submit it with a pull request and wait for it to be approved.
 
 You can find a list of approved plugins [here](https://github.com/Mobius1/Vanilla-DataTables/tree/master/plugins/).
+
+---
+
+## Issues
+
+If you have an issue with an approved plugin then open an issue as usual but add the name of the plugin to the title, e.g. `[pluginName] It's not working properly`.
 
 ---
 
