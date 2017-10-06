@@ -1,10 +1,10 @@
-/*! Editable 0.0.6
+/*! Editable 0.0.7
  * © 2016-2017 Karl Saunders
  */
 /**
  * @summary     Editable
  * @description Allow editing of cells and rows
- * @version     0.0.6
+ * @version     0.0.7
  * @file        datatable.editable.js
  * @author      Karl Saunders
  * @contact     mobius1@gmx.com
@@ -516,10 +516,15 @@ if (window.DataTable && typeof window.DataTable === "function") {
          * @return {Void}
          */
         Editor.prototype.dismiss = function(e) {
-            var valid = this.config.contextMenu ? !this.wrapper.contains(e.target) : true;
-            var editing = this.editing && this.editingCell;
 
-            if (valid && (editing && e.target !== this.data.input)) {
+            var valid = true,
+                editing = this.editing && this.editingCell;
+
+            if ( this.config.contextMenu ) {
+                valid = !this.wrapper.contains(e.target) && (editing && e.target !== this.data.input);
+            }
+
+            if (valid) {
                 if (editing) {
                     // Revert
                     this.saveCell(this.data.cell, this.data.content);

@@ -195,4 +195,26 @@ datatable.editable.saveRow(row, ["foo", "bar", "baz", "qux"])
 
 ---
 
+## Changelog
+
+`v0.0.7`
+
+* Fixed context menu not closing
+
+`v0.0.6`
+
+* `saveRow()` method added
+* `saveCell()` method added
+* Allow disabling of contxt menu
+
+`v0.0.5`
+
+* Fixed editing rows with hidden columns
+
+`v0.0.4`
+
+* Fixed edit mode exiting when clicking input
+
+---
+
 Copyright © 2017 Karl Saunders | MIT license
