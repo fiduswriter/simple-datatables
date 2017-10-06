@@ -76,7 +76,7 @@ Set the menu items of th context menu. Should be an `Array` of `Objects` with th
 
 The `text` property can be any string (including HTML) that represents the content of the menu item. The `action` property is the callback used when clicking the item.
 
-You can use the `seperator` property to add a seperator.
+You can use the `separator` property to add a separator.
 
 The `contextMenu` option should be set to `true`.
 
