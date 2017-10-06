@@ -37,6 +37,9 @@ Grab the files from one of the CDNs and include them in your page:
 
 You can replace `latest` with the required release number.
 
+NOTE: Make sure the above js file is included AFTER the main Vanilla-DataTables js file.
+
+---
 
 ### Enable Plugin:
 
