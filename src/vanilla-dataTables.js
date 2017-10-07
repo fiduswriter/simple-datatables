@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.6.3
+ * Version: 1.6.4
  *
  */
 (function (root, factory) {
@@ -1047,6 +1047,7 @@
                 each(that.options.plugins, function(options, plugin) {
                     if (that[plugin] && typeof that[plugin] === "function") {
                         that[plugin] = that[plugin](options, {
+                            each: each,
                             extend: extend,
                             classList: classList,
                             createElement: createElement
