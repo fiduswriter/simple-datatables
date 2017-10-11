@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.6.6
+ * Version: 1.6.7
  *
  */
 (function (root, factory) {
@@ -954,16 +954,7 @@
         this.options = extend(defaultConfig, options);
 
         if (typeof table === "string") {
-            var selector = table;
             table = document.querySelector(table);
-
-            if (!table) {
-                throw new Error("The element '" + selector + "' can not be found.");
-            }
-        }
-
-        if (table.tagName.toLowerCase() !== "table") {
-            throw new Error("The selected element is not a table.");
         }
 
         this.initialLayout = table.innerHTML;
