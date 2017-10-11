@@ -4,7 +4,7 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.6.5
+ * Version: 1.6.6
  *
  */
 
@@ -148,18 +148,18 @@
 	right: 4px;
 	border-left: 4px solid transparent;
 	border-right: 4px solid transparent;
-	opacity: 0;
+	opacity: 0.2;
 }
 
 .dataTable-sorter::before {
 	border-top: 4px solid #000;
-	bottom: 8px;
+	bottom: 10px;
 }
 
 .dataTable-sorter::after {
 	border-bottom: 4px solid #000;
 	border-top: 4px solid transparent;
-	top: 8px;
+	top: 0px;
 }
 
 .asc .dataTable-sorter::after,
