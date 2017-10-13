@@ -10,10 +10,10 @@
 (function (root, factory) {
     var plugin = "DataTable";
 
-    if (typeof define === "function" && define.amd) {
-        define([], factory(plugin));
-    } else if (typeof exports === "object") {
+    if (typeof exports === "object") {
         module.exports = factory(plugin);
+    } else if (typeof define === "function" && define.amd) {
+        define([], factory(plugin));
     } else {
         root[plugin] = factory(plugin);
     }
