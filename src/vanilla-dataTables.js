@@ -4,30 +4,20 @@
  * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
  * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.6.8
+ * Version: 1.6.9
  *
  */
-(function (root, factory) {
-    "use strict";
+(function(root, factory) {
     var plugin = "DataTable";
 
-    if ( typeof define === 'function' && define.amd ) {
-        // AMD
-        define( [], function () {
-                return factory( plugin );
-        } );
+    if (typeof exports === "object") {
+        modules.exports = factory(plugin);
+    } else if (typeof define === "function" && define.amd) {
+        define([], factory(plugin));
+    } else {
+        root[plugin] = factory(plugin);
     }
-    else if ( typeof exports === 'object' ) {
-        // CommonJS
-        module.exports = function () {
-                return factory( plugin );
-        };
-    }
-    else {
-        // Browser
-        factory( plugin );
-    }
-})(this, function (plugin) {
+})(typeof global !== 'undefined' ? global : this.window || this.global, function(plugin) {
     "use strict";
     var win = window,
         doc = document,
