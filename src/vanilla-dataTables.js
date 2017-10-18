@@ -11,7 +11,7 @@
     var plugin = "DataTable";
 
     if (typeof exports === "object") {
-        modules.exports = factory(plugin);
+        module.exports = factory(plugin);
     } else if (typeof define === "function" && define.amd) {
         define([], factory(plugin));
     } else {
