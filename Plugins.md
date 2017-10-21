@@ -115,20 +115,7 @@ datatable.on("myPlugin.init", function(e) {
 
 ---
 
-## Submitting a plugin
-
-If you think your plugin will be useful to other users then you can submit it with a pull request and wait for it to be approved.
-
-You can find a list of approved plugins [here](https://github.com/Mobius1/Vanilla-DataTables/tree/master/plugins/).
-
----
 
 ## Issues
 
 If you have an issue with an approved plugin then open an issue as usual but add the name of the plugin to the title, e.g. `[pluginName] It's not working properly`.
-
----
-
-## Demos
-
-* [Editable plugin](https://codepen.io/Mobius1/pen/rGpMMY/)
