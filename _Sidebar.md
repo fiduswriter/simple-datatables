@@ -45,18 +45,18 @@
 
 #### Properties
 * [table](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#table)
-* [head](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#header)
-* [body](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#body)
-* [foot](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#foot)
+* [head](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#header) DEPRECATED
+* [body](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#body) DEPRECATED
+* [foot](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#foot) DEPRECATED
 * [wrapper](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#wrapper)
 * [container](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#container)
 * [pagers](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#pagers)
 * [headings](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#headings)
-* [options](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#options)
+* [options](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#options) DEPRECATED
 * [initialized](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#initialized)
-* [isIE](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#isie)
+* [isIE](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#isie) DEPRECATED
 * [data](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#data)
-* [activeRows](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#activerows)
+* [activeRows](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#activerows) DEPRECATED
 * [dataIndex](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#dataindex)
 * [pages](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#pages)
 * [hasRows](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#hasrows)
