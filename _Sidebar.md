@@ -11,8 +11,6 @@
 #### Plugins
 * [Usage](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins#usage)
 * [Events](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins#events)
-* [Submitting a plugin](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins#submitting-a-plugin)
-* [Demos](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins#demos)
 
 #### Events
 * [datatable.init](https://github.com/Mobius1/Vanilla-DataTables/wiki/Events#datatableinit)
