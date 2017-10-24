@@ -3,7 +3,7 @@
 
 ---
 
-### Version 2.0 is currently in beta and requires bug testing. Check the repo out [here](https://github.com/Mobius1/Vanilla-DataTables/tree/2.0) and the play with the [demo](https://s.codepen.io/Mobius1/debug/VMQEzw).
+### Version 2.0 is currently in alpha and requires bug testing. Check the repo out [here](https://github.com/Mobius1/Vanilla-DataTables/tree/2.0) and the play with the [demo](https://s.codepen.io/Mobius1/debug/VMQEzw).
 
 ---
 
