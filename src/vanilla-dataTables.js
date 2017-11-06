@@ -1824,12 +1824,17 @@
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
             var doesQueryMatch = query.split(" ").reduce(function (bool, word) {
-                var includes = false;
+                var includes = false,
+                    cell = null,
+                    content = null;
 
                 for (var x = 0; x < row.cells.length; x++) {
+                    cell = row.cells[x];
+                    content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.textContent;
+
                     if (
-                        row.cells[x].textContent.toLowerCase().indexOf(word) > -1 &&
-                        that.columns(row.cells[x].cellIndex).visible()
+                        content.toLowerCase().indexOf(word) > -1 &&
+                        that.columns(cell.cellIndex).visible()
                     ) {
                         includes = true;
                         break;
