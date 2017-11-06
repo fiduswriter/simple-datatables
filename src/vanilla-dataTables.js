@@ -698,7 +698,7 @@
 
         each(rows, function (tr) {
             var cell = tr.cells[column];
-            var content = cell.data;
+            var content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.data;
             var num = content.replace(/(\$|\,|\s|%)/g, "");
 
             // Check for date format and moment.js
