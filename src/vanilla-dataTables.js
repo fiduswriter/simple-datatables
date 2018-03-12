@@ -2078,7 +2078,16 @@
                                 o.skipColumn.indexOf(headers[x].originalCellIndex) < 0 &&
                                 this.columns(headers[x].originalCellIndex).visible()
                             ) {
-                                str += rows[i].cells[x].textContent + o.columnDelimiter;
+                                var text = rows[i].texts[x].textContent;
+                                text = text.trim();
+                                text = text.replace(/\s{2,}/g, ' ');
+                                text = text.replace(/\n/g, '  ');
+                                text = text.replace(/"/g, '""');
+                                if (text.indexOf(",") > -1)
+                                    text = '"' + text + '"';
+
+
+                                str += text + o.columnDelimiter;
                             }
                         }
                         // Remove trailing column delimiter
