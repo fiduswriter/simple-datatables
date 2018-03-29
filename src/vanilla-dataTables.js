@@ -1561,6 +1561,11 @@
                 }
             }
         });
+
+        on(win, "resize", function(e){
+            that.rect = that.container.getBoundingClientRect();
+            that.fixColumns();
+        });
     };
 
     /**
@@ -1734,7 +1739,6 @@
     proto.fixColumns = function () {
 
         if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
-
             var cells,
                 hd = false;
 
@@ -1743,10 +1747,6 @@
             // If we have headings we need only set the widths on them
             // otherwise we need a temp header and the widths need applying to all cells
             if (this.table.tHead) {
-                // Reset widths
-                each(this.activeHeadings, function (cell) {
-                    cell.style.width = "";
-                }, this);
 
                 if (this.options.scrollY.length) {
                     hd = createElement("thead");
@@ -1755,10 +1755,16 @@
                     if (this.headerTable) {
                         // move real header back into place
                         this.table.tHead = this.headerTable.tHead;
+                        this.activeHeadings = this.table.tHead.firstElementChild.children;
                     }
                 }
 
-                each(this.table.tHead.firstElementChild.children, function (cell, i) {
+                // Reset widths
+                each(this.activeHeadings, function (cell) {
+                    cell.style.width = "";
+                }, this);
+
+                each(this.activeHeadings, function (cell, i) {
                     var ow = cell.offsetWidth;
                     var w = ow / this.rect.width * 100;
                     cell.style.width = w + "%";
@@ -1767,7 +1773,8 @@
                         var th = createElement("th");
                         hd.firstElementChild.appendChild(th);
                         th.style.width = w + "%";
-                        th.style.padding = "0";
+                        th.style.paddingTop = "0";
+                        th.style.paddingBottom = "0";
                         th.style.border = "0";
                     }
                 }, this);
@@ -1789,7 +1796,8 @@
                     this.headerTable.tHead = thd;
 
                     // Compensate for scrollbars.
-                    this.headerTable.style.width = this.table.clientWidth + "px";
+                    this.headerTable.style.paddingRight = this.headerTable.clientWidth - this.table.clientWidth + "px";
+                    
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
                         container.style.overflowY = 'scroll';
