@@ -28,6 +28,7 @@
      * @typ {Object}
      */
     var defaultConfig = {
+        paging: true,
         perPage: 10,
         perPageSelect: [5, 10, 15, 20, 25],
 
@@ -1216,10 +1217,10 @@
         template += "</div>";
 
         // Info placement
-        template = template.replace("{info}", "<div class='dataTable-info'></div>");
+        template = template.replace("{info}", o.paging ? "<div class='dataTable-info'></div>" : "");
 
         // Per Page Select
-        if (o.perPageSelect) {
+        if (o.paging && o.perPageSelect) {
             var wrap = "<div class='dataTable-dropdown'><label>";
             wrap += o.labels.perPage;
             wrap += "</label></div>";
@@ -1703,14 +1704,18 @@
             }, this);
         }
 
-        // Check for hidden columns
-        this.pages = rows
-            .map(function (tr, i) {
-                return i % perPage === 0 ? rows.slice(i, i + perPage) : null;
-            })
-            .filter(function (page) {
-                return page;
-            });
+        if (this.options.paging) {
+            // Check for hidden columns
+            this.pages = rows
+                .map(function (tr, i) {
+                    return i % perPage === 0 ? rows.slice(i, i + perPage) : null;
+                })
+                .filter(function (page) {
+                    return page;
+                });
+        } else {
+            this.pages = [rows];
+        }
 
         this.totalPages = this.lastPage = this.pages.length;
 
