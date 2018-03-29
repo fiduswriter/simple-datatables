@@ -10,7 +10,7 @@
 			"Email",
 			"Phone No."
 		],
-		"rows": [
+		"data": [
 			[
 				"Hedwig F. Nguyen",
 				"Arcu Vel Foundation",
@@ -114,21 +114,21 @@
 				"09/19/2016",
 				"condimentum@eleifend.com",
 				"056 1551 7431"
-			],
+			]
 		 ]
 	};
-	
+
 	document.body.appendChild(t);
-	
+
 	var log = [];
 	var testName;
 	var dt = new DataTable(t, { data: data });
-	
+
 	QUnit.module('General');
 	QUnit.test( "init", function( assert ) {
 	  assert.ok( Object.prototype.toString.call(dt) === '[object Object]', "Passed!" );
-	});	
-	
+	});
+
 	QUnit.done(function (test_results) {
 	  var tests = [];
 	  for(var i = 0, len = log.length; i < len; i++) {
@@ -152,5 +152,5 @@
 	      log.push(details);
 	    }
 	  });
-	});	
+	});
 })();
