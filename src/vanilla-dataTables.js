@@ -28,14 +28,13 @@
      * @typ {Object}
      */
     var defaultConfig = {
-        paging: true,
-        perPage: 10,
-        perPageSelect: [5, 10, 15, 20, 25],
-
         sortable: true,
         searchable: true,
 
         // Pagination
+        paging: true,
+        perPage: 10,
+        perPageSelect: [5, 10, 15, 20, 25],
         nextPrev: true,
         firstLast: false,
         prevText: "&lsaquo;",
@@ -47,6 +46,8 @@
         descText: "▾",
         truncatePager: true,
         pagerDelta: 2,
+
+        scrollY: "",
 
         fixedColumns: true,
         fixedHeight: false,
@@ -1211,7 +1212,11 @@
         template += "<div class='dataTable-top'>";
         template += o.layout.top;
         template += "</div>";
-        template += "<div class='dataTable-container'></div>";
+        if (o.scrollY.length) {
+            template += "<div class='dataTable-container' style='height: " + o.scrollY + "; overflow-Y: auto;'></div>";
+        } else {
+            template += "<div class='dataTable-container'></div>";
+        }
         template += "<div class='dataTable-bottom'>";
         template += o.layout.bottom;
         template += "</div>";
@@ -1728,7 +1733,7 @@
      */
     proto.fixColumns = function () {
 
-        if (this.options.fixedColumns && this.activeHeadings && this.activeHeadings.length) {
+        if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
 
             var cells,
                 hd = false;
@@ -1743,12 +1748,54 @@
                     cell.style.width = "";
                 }, this);
 
-                each(this.activeHeadings, function (cell, i) {
+                if (this.options.scrollY.length) {
+                    hd = createElement("thead");
+                    hd.appendChild(createElement("tr"));
+                    hd.style.height = '0px';
+                    if (this.headerTable) {
+                        // move real header back into place
+                        this.table.tHead = this.headerTable.tHead;
+                    }
+                }
+
+                each(this.table.tHead.firstElementChild.children, function (cell, i) {
                     var ow = cell.offsetWidth;
                     var w = ow / this.rect.width * 100;
                     cell.style.width = w + "%";
                     this.columnWidths[i] = ow;
+                    if (this.options.scrollY.length) {
+                        var th = createElement("th");
+                        hd.firstElementChild.appendChild(th);
+                        th.style.width = w + "%";
+                        th.style.padding = "0";
+                        th.style.border = "0";
+                    }
                 }, this);
+
+                if (this.options.scrollY.length) {
+                    var container = this.table.parentElement;
+                    if (!this.headerTable) {
+                        this.headerTable = createElement("table", {
+                            class: "dataTable-table"
+                        });
+                        var headercontainer = createElement("div", {
+                            class: "dataTable-headercontainer"
+                        });
+                        headercontainer.appendChild(this.headerTable);
+                        container.parentElement.insertBefore(headercontainer, container);
+                    }
+                    var thd = this.table.tHead;
+                    this.table.replaceChild(hd, thd);
+                    this.headerTable.tHead = thd;
+
+                    // Compensate for scrollbars.
+                    this.headerTable.style.width = this.table.clientWidth + "px";
+                    if (container.scrollHeight > container.clientHeight) {
+                        // scrollbars on one page means scrollbars on all pages.
+                        container.style.overflowY = 'scroll';
+                    }
+                }
+
             } else {
                 cells = [];
 
