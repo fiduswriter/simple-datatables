@@ -1754,7 +1754,6 @@
                     if (this.headerTable) {
                         // move real header back into place
                         this.table.tHead = this.headerTable.tHead;
-                        this.activeHeadings = this.table.tHead.firstElementChild.children;
                     }
                 }
 
