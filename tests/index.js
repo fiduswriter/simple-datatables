@@ -122,7 +122,7 @@
 
 	var log = [];
 	var testName;
-	var dt = new DataTable(t, { data: data });
+	window.dt = new DataTable(t, { data: data });
 
 	QUnit.module('General');
 	QUnit.test( "init", function( assert ) {

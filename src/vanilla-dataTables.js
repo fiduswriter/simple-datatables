@@ -1741,7 +1741,6 @@
         if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
             var cells,
                 hd = false;
-
             this.columnWidths = [];
 
             // If we have headings we need only set the widths on them
@@ -1797,7 +1796,7 @@
 
                     // Compensate for scrollbars.
                     this.headerTable.style.paddingRight = this.headerTable.clientWidth - this.table.clientWidth + "px";
-                    
+
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
                         container.style.overflowY = 'scroll';
@@ -1993,6 +1992,9 @@
 
                     // Allow sorting on new header
                     that.render("header");
+
+                    // Activate newly added headings
+                    that.activeHeadings = that.headings.slice();
                 }
             }
 
