@@ -1618,7 +1618,7 @@
 
                     if (data.hasOwnProperty("hidden")) {
                         if (data.hidden !== false) {
-                            that.columns().hide(column);
+                            that.columns().hide([column]);
                         }
                     }
 
