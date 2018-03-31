@@ -671,37 +671,30 @@
     /**
      * Sort by column
      * @param  {int} column - The column no.
-     * @param  {string} direction - asc or desc
+     * @param  {string} dir - asc or desc
      * @return {void}
      */
-    Columns.prototype.sort = function (column, direction, init) {
-
+    Columns.prototype.sort = function (column, dir, init) {
         var dt = this.dt;
 
         // Check column is present
-        if (dt.hasHeadings && (column < 1 || column > dt.activeHeadings.length)) {
+        if (dt.hasHeadings && (column < 0 || column > dt.headings.length)) {
             return false;
         }
 
         dt.sorting = true;
 
-        // Convert to zero-indexed
-        column = column - 1;
-
-        var dir,
-            rows = dt.data,
+        var rows = dt.data,
             alpha = [],
             numeric = [],
             a = 0,
             n = 0,
-            th = dt.activeHeadings[column];
-
-        column = th.originalCellIndex;
+            th = dt.headings[column];
 
         each(rows, function (tr) {
             var cell = tr.cells[column];
-            var content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.data;
-            var num = content.replace(/(\$|\,|\s|%)/g, "");
+            var content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText;
+            var num = typeof content==="string" ? content.replace(/(\$|\,|\s|%)/g, "") : content;
 
             // Check for date format and moment.js
             if (th.getAttribute("data-type") === "date" && win.moment) {
@@ -729,17 +722,22 @@
         });
 
         /* Sort according to direction (ascending or descending) */
+        if (!dir) {
+            if (classList.contains(th, "asc")) {
+                dir = "desc";
+            } else {
+                dir = "asc";
+            }
+        }
         var top, btm;
-        if (classList.contains(th, "asc") || direction == "asc") {
+        if (dir == "desc") {
             top = sortItems(alpha, -1);
             btm = sortItems(numeric, -1);
-            dir = "descending";
             classList.remove(th, "asc");
             classList.add(th, "desc");
         } else {
             top = sortItems(numeric, 1);
             btm = sortItems(alpha, 1);
-            dir = "ascending";
             classList.remove(th, "desc");
             classList.add(th, "asc");
         }
