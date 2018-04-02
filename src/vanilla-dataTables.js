@@ -1373,8 +1373,7 @@
             this.onFirstPage = this.currentPage === 1;
             this.onLastPage = this.currentPage === this.lastPage;
         } else {
-
-            this.clear();
+            this.setMessage(this.options.labels.noRows);
         }
 
         // Update the info
@@ -2413,6 +2412,8 @@
 
         if (this.hasRows) {
             colspan = this.data[0].cells.length;
+        } else if (this.activeHeadings.length) {
+            colspan = this.activeHeadings.length;
         }
 
         this.clear(
