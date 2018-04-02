@@ -1346,6 +1346,15 @@
      * @return {Void}
      */
     proto.renderPage = function () {
+        if (this.hasHeadings) {
+            flush(this.header, this.isIE);
+
+            each(this.activeHeadings, function (th) {
+                this.header.appendChild(th);
+            }, this);
+        }
+
+
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
                 this.currentPage = 1;
@@ -1354,14 +1363,6 @@
             // Use a fragment to limit touching the DOM
             var index = this.currentPage - 1,
                 frag = doc.createDocumentFragment();
-
-            if (this.hasHeadings) {
-                flush(this.header, this.isIE);
-
-                each(this.activeHeadings, function (th) {
-                    this.header.appendChild(th);
-                }, this);
-            }
 
             each(this.pages[index], function (row) {
                 frag.appendChild(this.rows().render(row));
@@ -1372,13 +1373,6 @@
             this.onFirstPage = this.currentPage === 1;
             this.onLastPage = this.currentPage === this.lastPage;
         } else {
-            if (this.hasHeadings) {
-                flush(this.header, this.isIE);
-
-                each(this.activeHeadings, function (th) {
-                    this.header.appendChild(th);
-                }, this);
-            }
 
             this.clear();
         }
