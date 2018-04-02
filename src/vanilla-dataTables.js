@@ -1372,6 +1372,14 @@
             this.onFirstPage = this.currentPage === 1;
             this.onLastPage = this.currentPage === this.lastPage;
         } else {
+            if (this.hasHeadings) {
+                flush(this.header, this.isIE);
+
+                each(this.activeHeadings, function (th) {
+                    this.header.appendChild(th);
+                }, this);
+            }
+
             this.clear();
         }
 
