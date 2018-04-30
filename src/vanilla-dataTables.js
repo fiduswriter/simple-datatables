@@ -476,8 +476,8 @@
 
         // Order the row cells
         each(dt.data, function (row, i) {
-            c = row.cloneNode();
-            d = row.cloneNode();
+            c = row.cloneNode(false);
+            d = row.cloneNode(false);
 
             c.dataIndex = d.dataIndex = i;
 
