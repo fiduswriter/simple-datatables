@@ -796,8 +796,8 @@
 
         // Loop over the rows and reorder the cells
         each(dt.data, function (row, i) {
-            a = row.cloneNode();
-            b = row.cloneNode();
+            a = row.cloneNode(false);
+            b = row.cloneNode(false);
 
             a.dataIndex = b.dataIndex = i;
 
@@ -811,9 +811,9 @@
                 c.data = cell.data;
                 a.appendChild(c);
 
-                if (dt.hiddenColumns.indexOf(cell.cellIndex) < 0) {
-                    d = cell.cloneNode(true);
-                    d.data = cell.data;
+                if (dt.hiddenColumns.indexOf(c.cellIndex) < 0) {
+                    d = c.cloneNode(true);
+                    d.data = c.data;
                     b.appendChild(d);
                 }
             });
@@ -846,7 +846,7 @@
      * @return {HTMLElement}
      */
     Rows.prototype.build = function (row) {
-        var td, tr = createElement("tr");
+        var tr = createElement("tr");
 
         var headings = this.dt.headings;
 
@@ -857,7 +857,7 @@
         }
 
         each(headings, function (h, i) {
-            td = createElement("td");
+            var td = createElement("td");
 
             // Fixes #29
             if (!row[i] && !row[i].length) {
