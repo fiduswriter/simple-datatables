@@ -2085,6 +2085,8 @@
                                 text = text.replace(/\s{2,}/g, ' ');
                                 text = text.replace(/\n/g, '  ');
                                 text = text.replace(/"/g, '""');
+                                //have to manually encode "#" as encodeURI leaves it as is.
+                                text = text.replace(/#/g, "%23");
                                 if (text.indexOf(",") > -1)
                                     text = '"' + text + '"';
 
