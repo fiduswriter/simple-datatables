@@ -860,7 +860,7 @@
             td = createElement("td");
 
             // Fixes #29
-            if (!row[i] && !row[i].length) {
+            if (!row[i] || !row[i].length) {
                 row[i] = "";
             }
 
