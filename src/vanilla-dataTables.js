@@ -1860,9 +1860,9 @@
             classList.remove(that.wrapper, "search-results");
 
             that.setMessage(that.options.labels.noRows);
-        } else {
-            that.update();
         }
+
+        that.update();
 
         this.emit("datatable.search", query, this.searchData);
     };
