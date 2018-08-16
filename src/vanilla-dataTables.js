@@ -1917,9 +1917,9 @@
             classList.remove(that.wrapper, "search-results");
 
             that.setMessage(that.options.labels.noRows);
-        } else {
-            that.update();
         }
+
+        that.update();
 
         this.emit("datatable.search", query, this.searchData);
     };
@@ -2254,13 +2254,13 @@
                     link.download = o.filename;
 
                     // Append the link
-                    body.appendChild(link);
+                    document.body.appendChild(link);
 
                     // Trigger the download
                     link.click();
 
                     // Remove the link
-                    body.removeChild(link);
+                    document.body.removeChild(link);
                 }
 
                 return str;
