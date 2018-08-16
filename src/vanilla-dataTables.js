@@ -1002,14 +1002,12 @@
         }
     };
 
-    var proto = DataTable.prototype;
-
     /**
      * Initialize the instance
      * @param  {Object} options
      * @return {Void}
      */
-    proto.init = function (options) {
+    DataTable.prototype.init = function (options) {
         if (this.initialized || classList.contains(this.table, "dataTable-table")) {
             return false;
         }
@@ -1059,7 +1057,7 @@
      * @param  {String} type
      * @return {Void}
      */
-    proto.render = function (type) {
+    DataTable.prototype.render = function (type) {
         if (type) {
             switch (type) {
             case "page":
@@ -1345,7 +1343,7 @@
      * Render the page
      * @return {Void}
      */
-    proto.renderPage = function () {
+    DataTable.prototype.renderPage = function () {
         if (this.hasHeadings) {
             flush(this.header, this.isIE);
 
@@ -1411,7 +1409,7 @@
      * Render the pager(s)
      * @return {Void}
      */
-    proto.renderPager = function () {
+    DataTable.prototype.renderPager = function () {
         flush(this.pagers, this.isIE);
 
         if (this.totalPages > 1) {
@@ -1475,7 +1473,7 @@
      * Render the header
      * @return {Void}
      */
-    proto.renderHeader = function () {
+    DataTable.prototype.renderHeader = function () {
         var that = this;
 
         that.labels = [];
@@ -1513,7 +1511,7 @@
      * Bind event listeners
      * @return {[type]} [description]
      */
-    proto.bindEvents = function () {
+    DataTable.prototype.bindEvents = function () {
         var that = this,
             o = that.options;
 
@@ -1571,7 +1569,7 @@
      * Set up columns
      * @return {[type]} [description]
      */
-    proto.setColumns = function (ajax) {
+    DataTable.prototype.setColumns = function (ajax) {
 
         var that = this;
 
@@ -1660,7 +1658,7 @@
      * Destroy the instance
      * @return {void}
      */
-    proto.destroy = function () {
+    DataTable.prototype.destroy = function () {
         this.table.innerHTML = this.initialLayout;
 
         // Remove the className
@@ -1676,7 +1674,7 @@
      * Update the instance
      * @return {Void}
      */
-    proto.update = function () {
+    DataTable.prototype.update = function () {
         classList.remove(this.wrapper, "dataTable-empty");
 
         this.paginate(this);
@@ -1703,7 +1701,7 @@
      * Sort rows into pages
      * @return {Number}
      */
-    proto.paginate = function () {
+    DataTable.prototype.paginate = function () {
         var perPage = this.options.perPage,
             rows = this.activeRows;
 
@@ -1737,7 +1735,7 @@
      * Fix column widths
      * @return {Void}
      */
-    proto.fixColumns = function () {
+    DataTable.prototype.fixColumns = function () {
 
         if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
             var cells,
@@ -1844,7 +1842,7 @@
      * Fix the container height;
      * @return {Void}
      */
-    proto.fixHeight = function () {
+    DataTable.prototype.fixHeight = function () {
         if (this.options.fixedHeight) {
             this.container.style.height = null;
             this.rect = this.container.getBoundingClientRect();
@@ -1857,7 +1855,7 @@
      * @param  {string} query
      * @return {void}
      */
-    proto.search = function (query) {
+    DataTable.prototype.search = function (query) {
         if (!this.hasRows) return false;
 
         var that = this;
@@ -1917,9 +1915,9 @@
             classList.remove(that.wrapper, "search-results");
 
             that.setMessage(that.options.labels.noRows);
+        } else {
+            that.update();
         }
-
-        that.update();
 
         this.emit("datatable.search", query, this.searchData);
     };
@@ -1929,7 +1927,7 @@
      * @param  {int} page
      * @return {void}
      */
-    proto.page = function (page) {
+    DataTable.prototype.page = function (page) {
         // We don't want to load the current page again.
         if (page == this.currentPage) {
             return false;
@@ -1955,7 +1953,7 @@
      * @param  {string} direction - asc or desc
      * @return {void}
      */
-    proto.sortColumn = function (column, direction) {
+    DataTable.prototype.sortColumn = function (column, direction) {
         // Use columns API until sortColumn method is removed
         this.columns().sort(column, direction);
     };
@@ -1964,7 +1962,7 @@
      * Add new row data
      * @param {object} data
      */
-    proto.insert = function (data) {
+    DataTable.prototype.insert = function (data) {
 
         var that = this,
             rows = [];
@@ -2031,7 +2029,7 @@
      * Refresh the instance
      * @return {void}
      */
-    proto.refresh = function () {
+    DataTable.prototype.refresh = function () {
         if (this.options.searchable) {
             this.input.value = "";
             this.searching = false;
@@ -2048,7 +2046,7 @@
      * @param  {mixes} html - HTML string or HTMLElement
      * @return {void}
      */
-    proto.clear = function (html) {
+    DataTable.prototype.clear = function (html) {
         if (this.body) {
             flush(this.body, this.isIE);
         }
@@ -2073,7 +2071,7 @@
      * @param  {Object} options User options
      * @return {Boolean}
      */
-    proto.export = function (options) {
+    DataTable.prototype.export = function (options) {
         if (!this.hasHeadings && !this.hasRows) return false;
 
         var headers = this.activeHeadings,
@@ -2256,13 +2254,13 @@
                     link.download = o.filename;
 
                     // Append the link
-                    document.body.appendChild(link);
+                    body.appendChild(link);
 
                     // Trigger the download
                     link.click();
 
                     // Remove the link
-                    document.body.removeChild(link);
+                    body.removeChild(link);
                 }
 
                 return str;
@@ -2277,7 +2275,7 @@
      * @param  {Object} options User options
      * @return {Boolean}
      */
-    proto.import = function (options) {
+    DataTable.prototype.import = function (options) {
         var obj = false;
         var defaults = {
             // csv
@@ -2364,7 +2362,7 @@
      * Print the table
      * @return {void}
      */
-    proto.print = function () {
+    DataTable.prototype.print = function () {
         var headings = this.activeHeadings;
         var rows = this.activeRows;
         var table = createElement("table");
@@ -2411,7 +2409,7 @@
      * Show a message in the table
      * @param {string} message
      */
-    proto.setMessage = function (message) {
+    DataTable.prototype.setMessage = function (message) {
         var colspan = 1;
 
         if (this.hasRows) {
@@ -2437,7 +2435,7 @@
      * Columns API access
      * @return {Object} new Columns instance
      */
-    proto.columns = function (columns) {
+    DataTable.prototype.columns = function (columns) {
         return new Columns(this, columns);
     };
 
@@ -2445,7 +2443,7 @@
      * Rows API access
      * @return {Object} new Rows instance
      */
-    proto.rows = function (rows) {
+    DataTable.prototype.rows = function (rows) {
         return new Rows(this, rows);
     };
 
@@ -2455,7 +2453,7 @@
      * @param  {Function} callback
      * @return {Void}
      */
-    proto.on = function (event, callback) {
+    DataTable.prototype.on = function (event, callback) {
         this.events = this.events || {};
         this.events[event] = this.events[event] || [];
         this.events[event].push(callback);
@@ -2467,7 +2465,7 @@
      * @param  {Function} callback
      * @return {Void}
      */
-    proto.off = function (event, callback) {
+    DataTable.prototype.off = function (event, callback) {
         this.events = this.events || {};
         if (event in this.events === false) return;
         this.events[event].splice(this.events[event].indexOf(callback), 1);
@@ -2478,7 +2476,7 @@
      * @param  {String} event
      * @return {Void}
      */
-    proto.emit = function (event) {
+    DataTable.prototype.emit = function (event) {
         this.events = this.events || {};
         if (event in this.events === false) return;
         for (var i = 0; i < this.events[event].length; i++) {
