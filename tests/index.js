@@ -1,9 +1,6 @@
 import {
     DataTable
 } from "../src"
-import QUnit from "qunit"
-
-console.log({Qunit})
 
 const t = document.createElement('table')
 const data = {
@@ -130,33 +127,33 @@ let testName
 window.dt = new DataTable(t, {
     data
 })
-// 
-// QUnit.module('General')
-// QUnit.test("init", assert => {
-//     assert.ok(Object.prototype.toString.call(dt) === '[object Object]', "Passed!")
-// })
-//
-// QUnit.done(test_results => {
-//     const tests = []
-//     for (let i = 0, len = log.length; i < len; i++) {
-//         const details = log[i]
-//         tests.push({
-//             name: details.name,
-//             result: details.result,
-//             expected: details.expected,
-//             actual: details.actual,
-//             source: details.source
-//         })
-//     }
-//     test_results.tests = tests
-//
-//     window.global_test_results = test_results
-// })
-// QUnit.testStart(testDetails => {
-//     QUnit.log(details => {
-//         if (!details.result) {
-//             details.name = testDetails.name
-//             log.push(details)
-//         }
-//     })
-// })
+
+QUnit.module('General')
+QUnit.test("init", assert => {
+    assert.ok(Object.prototype.toString.call(dt) === '[object Object]', "Passed!")
+})
+
+QUnit.done(test_results => {
+    const tests = []
+    for (let i = 0, len = log.length; i < len; i++) {
+        const details = log[i]
+        tests.push({
+            name: details.name,
+            result: details.result,
+            expected: details.expected,
+            actual: details.actual,
+            source: details.source
+        })
+    }
+    test_results.tests = tests
+
+    window.global_test_results = test_results
+})
+QUnit.testStart(testDetails => {
+    QUnit.log(details => {
+        if (!details.result) {
+            details.name = testDetails.name
+            log.push(details)
+        }
+    })
+})

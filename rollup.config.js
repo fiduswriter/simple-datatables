@@ -1,15 +1,21 @@
+import commonjs from 'rollup-plugin-commonjs'
+import globals from 'rollup-plugin-node-globals'
+import builtins from 'rollup-plugin-node-builtins'
+import resolve from 'rollup-plugin-node-resolve'
+import buble from 'rollup-plugin-buble'
+import uglify from 'rollup-plugin-uglify-es'
+
 export default {
     plugins: [
-        require('rollup-plugin-commonjs')(),
-        require('rollup-plugin-node-globals')(),
-        require('rollup-plugin-node-builtins')(),
-        require('rollup-plugin-node-resolve')(),
-//    require('rollup-plugin-json')(),
-        require('rollup-plugin-buble')(),
-        require('rollup-plugin-uglify-es')()
+        commonjs(),
+        globals(),
+        builtins(),
+        resolve(),
+        buble(),
+        uglify()
     ],
     output: {
-        format: 'iife',
+        format: 'cjs',
         sourcemap: 'inline'
     }
 }
