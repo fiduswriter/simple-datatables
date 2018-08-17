@@ -53,7 +53,6 @@ export class Rows {
      * @param {Array} select
      */
     add(data) {
-
         if (isArray(data)) {
             const dt = this.dt
             // Check for multiple rows
@@ -75,6 +74,7 @@ export class Rows {
 
             dt.columns().rebuild()
         }
+
     }
 
     /**
@@ -83,7 +83,6 @@ export class Rows {
      * @return {Void}
      */
     remove(select) {
-
         const dt = this.dt
 
         if (isArray(select)) {
@@ -95,6 +94,11 @@ export class Rows {
             })
         } else {
             dt.data.splice(select, 1)
+        }
+
+        // We may have emptied the table
+        if ( !dt.data.length ) {
+            dt.hasRows = false
         }
 
         this.update()
