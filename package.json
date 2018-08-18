@@ -1,11 +1,11 @@
 {
   "name": "simple-datatables",
   "version": "1.7.2",
-  "description": "A lightweight, dependency-free javascript HTML table plugin.",
+  "description": "A lightweight, dependency-free JavaScript HTML table plugin.",
   "main": "dist/index.js",
   "module": "src/index.js",
   "scripts": {
-    "test": "",
+    "test": "npm run check_js",
     "check_js": "eslint src/",
     "compile": "npm run compile_js && npm run compile_css && npm run compile_test",
     "compile_js": "rollup src/index.js --config --output.file dist/index.js",
