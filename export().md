@@ -64,7 +64,7 @@ dataTable.export({
 
 ```javascript
 // Export to json string, omitting the 1st, 3rd and 5th columns
-var json = dataTable.export({
+let json = dataTable.export({
     type: "json",
     skipColumn: [0,2,4],
     download: false // return formatted string instead of file

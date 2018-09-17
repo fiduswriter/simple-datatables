@@ -3,7 +3,7 @@ As of `v1.2.0`, the `columns` API is implemented and allows access to the table 
 To use the `columns` API just call the `columns()` method on the current instance:
 
 ```javascript
-var columns = datatable.columns();
+let columns = datatable.columns();
 ```
 
 You can then chain the following methods.
@@ -23,9 +23,9 @@ Replaces the deprecated [`sortColumn`](https://github.com/fiduswriter/Simple-Dat
 Add a new column to the current instance. The `data` parameter should be an object with the required `heading` and `data` properties set. The `heading` property should be a `string` representing the new column's heading. The `data` property should be an array of `strings` representing the cell content of the new column.
 
 ```javascript
-var columns = datatable.columns();
+let columns = datatable.columns();
 
-var newData = {
+let newData = {
     heading: "Column Heading",
     data: [
         "Value 1",
@@ -44,7 +44,7 @@ You can also pass the `sortable`, `type` and `format` properties to further cust
 The `sortable` property defaults to `true`, unless sorting is disabled globally.
 
 ```javascript
-var newData = {
+let newData = {
     type: "date",
     format: "YYYY/MM/DD"
     heading: "Start Date",
@@ -64,7 +64,7 @@ var newData = {
 Remove a column or columns from the current instance. The `select` parameter should be either an `integer` or an array of `integers` representing the column indexes to be removed.
 
 ```javascript
-var columns = datatable.columns();
+let columns = datatable.columns();
 
 // Remove the 4th column
 columns.remove(3);
@@ -109,7 +109,7 @@ Checks to see if the selected column(s) are visible. Returns a `boolean` for sin
 If you omit the `select` parameter, an `array` of `booleans` will be returned representing all available columns.
 
 ```javascript
-var columns = datatable.columns();
+let columns = datatable.columns();
 
 // Hide the 4th of 5 columns
 columns.hide(3);
@@ -144,7 +144,7 @@ Usage is the same as the `visible` method.
 Swap th position of two columns. Just pass an array of 2 integers representing the column indexes you require swapping.
 
 ```javascript
-var columns = datatable.columns();
+let columns = datatable.columns();
 
 // Swap the 1st and 6th columns
 columns.swap([0,5]);

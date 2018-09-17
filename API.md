@@ -96,7 +96,7 @@ For example if you want to remove the first row on page 5 while showing 5 rows p
 
 ```javascript
 // grab the first row on page 5
-var firstRow = document.querySelector("tr");
+let firstRow = document.querySelector("tr");
 
 // INCORRECT: Because it's the first rendered row the native firstRow.rowIndex
 // will be 1 which will remove the second row in the data array
@@ -131,10 +131,10 @@ Let's say you have 5 columns in your table and you've chosen to hide columns 2 a
 
 ```javascript
 // returns [Willow Gilliam, 3497, Amqui, 2009/29/11, 30%]
-var row = [].slice.call(datatable.data[3].cells).map(function(cell) { return cell.textContent; });
+let row = [].slice.call(datatable.data[3].cells).map(function(cell) { return cell.textContent; });
 
 // returns [Willow Gilliam, Amqui, 2009/29/11]
-var row = [].slice.call(datatable.activeRows[3].cells).map(function(cell) { return cell.textContent; });
+let row = [].slice.call(datatable.activeRows[3].cells).map(function(cell) { return cell.textContent; });
 ```
 
 ---

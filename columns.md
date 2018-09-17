@@ -53,7 +53,7 @@ render: function(data, cell, row) {
 
 #### Examples
 ```javascript
-var datatable = new DataTable("#myTable", {
+let datatable = new DataTable("#myTable", {
     columns: [
         // Sort the second column in ascending order
         { select: 1, sort: "asc" },

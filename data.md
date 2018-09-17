@@ -7,7 +7,7 @@ Pass an object of data to populate the table.
 You can set both the headings and rows with `headings` and `data` properties, respectively. The headings property is optional.
 
 ```javascript
-var myData = {
+let myData = {
 	"headings": [
 		"Name",
 		"Company",
@@ -36,7 +36,7 @@ var myData = {
         ...
 	};
 
-var dataTable = new DataTable(myTable, {
+let dataTable = new DataTable(myTable, {
 	data: myData
 });
 ```
@@ -49,7 +49,7 @@ If your data is in the form of key-value pairs, you can quickly convert it to a 
 
 ```javascript
 
-var data = [
+let data = [
     {
         "prop1": "value1",
         "prop2": "value2",
@@ -62,7 +62,7 @@ var data = [
     }
 ];
 
-var obj = {
+let obj = {
     // Quickly get the headings
     headings: Object.keys(data[0]),
 
@@ -71,11 +71,11 @@ var obj = {
 };
 
 // Loop over the objects to get the values
-for ( var i = 0; i < data.length; i++ ) {
+for ( let i = 0; i < data.length; i++ ) {
 
     obj.data[i] = [];
 
-    for (var p in data[i]) {
+    for (let p in data[i]) {
         if( data[i].hasOwnProperty(p) ) {
             obj.data[i].push(data[i][p]);
         }

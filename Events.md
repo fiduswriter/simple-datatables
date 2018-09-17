@@ -1,7 +1,7 @@
 Vanilla-DataTables fires it's own events which you can listen for by utilising the `.on()` method:
 
 ```javascript
-var dataTable = new DataTable(myTable);
+let dataTable = new DataTable(myTable);
 
 dataTable.on('datatable.XXXX', function(args) {
 	// Do something when datatable.XXXX fires

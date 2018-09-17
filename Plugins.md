@@ -16,7 +16,7 @@ DataTable.extend("myPlugin", function(options) {
     /**
      * Main lib
      */
-    var myPlugin = function() {
+    let myPlugin = function() {
         //
     };
 
@@ -41,7 +41,7 @@ DataTable.extend("myPlugin", function(options) {
 Then simply enable the plugin with the `plugins` option:
 
 ```javascript
-var datatable = new DataTable("table", {
+let datatable = new DataTable("table", {
     plugins: {
         myPlugin: {
             // Required
@@ -60,7 +60,7 @@ var datatable = new DataTable("table", {
 Or you can enable the plugin yourself at any time: 
 
 ```javascript
-var datatable = new DataTable("table", {
+let datatable = new DataTable("table", {
     plugins: {
         myPlugin: {
             // Prevent plugin from being initialised
@@ -85,9 +85,9 @@ You can access Vanilla-DataTable's event emitter to fire your own custom events 
 ```javascript
 DataTable.extend("myPlugin", function(options) {
 
-    var instance = this;
+    let instance = this;
 
-    var myPlugin = function() {};
+    let myPlugin = function() {};
 
     myPlugin.prototype.init = function() {
         // Fire the custom "myPlugin.init" event
@@ -101,7 +101,7 @@ DataTable.extend("myPlugin", function(options) {
 then...
 
 ```javascript
-var datatable = new DataTable("table", {
+let datatable = new DataTable("table", {
     plugins: {
         myPlugin: { enabled: true }
     }

@@ -7,7 +7,7 @@ Load remote data.
 The easiest method is to just pass the url to the remote data (JSON) and the instance will process and insert the data.
 
 ```javascript
-var dataTable = new DataTable(myTable, {
+let dataTable = new DataTable(myTable, {
     ajax: "some/url/data.json"
 });
 ```
@@ -15,7 +15,7 @@ var dataTable = new DataTable(myTable, {
 If you need to manually process the data or you're importing anything other than `json` then you can also pass an `Object` with the `url`, `content` and `load` properties:
 
 ```javascript
-var dataTable = new DataTable(myTable, {
+let dataTable = new DataTable(myTable, {
     ajax: {
         url: "some/url/data.txt", // url to remote data
         content: {
@@ -33,7 +33,7 @@ var dataTable = new DataTable(myTable, {
 Under the hood, the `ajax` option uses the [`import()`](https://github.com/fiduswriter/Simple-DataTables/wiki/import()) method to insert the new data. Thus, the same optional properties that that method takes can also be passed to the `content` property:
 
 ```javascript
-var dataTable = new DataTable(myTable, {
+let dataTable = new DataTable(myTable, {
     ajax: {
         url: "some/url/data.txt", // url to remote data
         content: {
@@ -78,13 +78,13 @@ If your function returns an `Object` it should formatted so that the [`insert()`
 ```
 
 ```javascript
-var highlightNumbers = function(xhr) {
+let highlightNumbers = function(xhr) {
     // Parse the JSON string
-    var data = JSON.parse(xhr.responseText);
+    let data = JSON.parse(xhr.responseText);
 
     // Loop over the data and style any columns with numbers
-    for ( var i = 0; i < data.length; i++ ) {
-        for (var p in data[i]) {
+    for ( let i = 0; i < data.length; i++ ) {
+        for (let p in data[i]) {
             if ( !isNaN(data[i][p]) ) {
                 data[i][p] = "<u style='color:red;'>" + data[i][p] + "</u>"
             }
@@ -95,7 +95,7 @@ var highlightNumbers = function(xhr) {
     return JSON.stringify(data);
 }
 
-var dataTable = new DataTable(myTable, {
+let dataTable = new DataTable(myTable, {
     ajax: {
         url: "some/url/data.json",
         load: highlightNumbers

@@ -1,12 +1,12 @@
 Vanilla-DataTables can be initialised with custom options passed as the second parameter of the constructor.
 
 ```javascript
-var options = {
+let options = {
     searchable: true,
     perPage: 10,
    ...
 };
-var dataTable = new DataTable(myTable, options);
+let dataTable = new DataTable(myTable, options);
 ```
 
 ---

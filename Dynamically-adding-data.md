@@ -5,14 +5,14 @@ New data of many formats can be added at any time with the `insert()` and `impor
 You can quickly add a new row with an `array` of cell data:
 
 ```javascript
-var newRow = ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...];
+let newRow = ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...];
 
 datatable.rows().add(newRow);
 ```
 
 The `add()` method also accepts a nested `array` for adding multiple rows:
 ```javascript
-var newRows = [
+let newRows = [
     ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
     ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
     ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
@@ -28,7 +28,7 @@ The `insert()` method can accept both an `object` or and array of `key-value obj
 
 ```javascript
 
-var newData = {
+let newData = {
     headings: ["Heading 1", "Heading 2", "Heading 3", "Heading 4", ...],
     data: [
         ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...],
@@ -40,7 +40,7 @@ var newData = {
 
 // or 
 
-var newData = [
+let newData = [
     {
         "Heading 1": "Cell 1",
         "Heading 2": "Cell 2",

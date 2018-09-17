@@ -16,7 +16,7 @@ datatable.insert(data);
 
 ##### Pass an `array` of `key-value` pairs (objects):
 ```javascript
-var newData = [
+let newData = [
     {
         "Heading 1": "Cell 1",
         "Heading 2": "Cell 2",
@@ -37,7 +37,7 @@ datatable.insert(newData);
 ##### Pass an `object` with the `headings` and/or `data` property:
 
 ```javascript
-var newData = {
+let newData = {
         headings: [
             "Name",
             "Position",
