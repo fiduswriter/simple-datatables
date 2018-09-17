@@ -1,6 +1,6 @@
 # Simple-DataTables
 
-A lightweight, extendable, dependency-free javascript HTML table plugin. Similar to jQuery DataTables, but without the jQUery dependency.
+A lightweight, extendable, dependency-free javascript HTML table plugin. Similar to jQuery DataTables, but without the jQuery dependency.
 
 Based on [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in ES2018.
 
