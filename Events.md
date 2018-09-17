@@ -1,4 +1,4 @@
-Vanilla-DataTables fires it's own events which you can listen for by utilising the `.on()` method:
+Simple-DataTables fires it's own events which you can listen for by utilising the `.on()` method:
 
 ```javascript
 let dataTable = new DataTable(myTable);

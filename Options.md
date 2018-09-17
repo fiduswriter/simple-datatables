@@ -1,4 +1,4 @@
-Vanilla-DataTables can be initialised with custom options passed as the second parameter of the constructor.
+Simple-DataTables can be initialised with custom options passed as the second parameter of the constructor.
 
 ```javascript
 let options = {

@@ -4,9 +4,9 @@ Plugins are a way of extending the functionality of the library whilst keep it's
 
 To create a plugin just use the `extend()` method which takes 2 arguments: the name of the plugin and the callback.
 
-Your plugin should return an instance with the required `init()` method in order for Vanilla-DataTables to use it.
+Your plugin should return an instance with the required `init()` method in order for Simple-DataTables to use it.
 
-A `destroy()` method is preferred as well so the end-user can kill the plugin as necessary. Make sure the method removes any event listeners or nodes that can affect the current Vanilla-DataTables instance.
+A `destroy()` method is preferred as well so the end-user can kill the plugin as necessary. Make sure the method removes any event listeners or nodes that can affect the current Simple-DataTables instance.
 
 Example plugin:
 
@@ -80,7 +80,7 @@ datatable.myPlugin.destroy();
 
 ## Events
 
-You can access Vanilla-DataTable's event emitter to fire your own custom events for the end-user to listen for:
+You can access Simple-DataTable's event emitter to fire your own custom events for the end-user to listen for:
 
 ```javascript
 DataTable.extend("myPlugin", function(options) {
