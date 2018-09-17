@@ -22,10 +22,10 @@ LGPL
 * Control column visibility
 * Reorder or swap columns
 * moment.js integration for sorting columns with datetime strings
-* Extentable with custom plugins [See the Vanilla-DataTables wiki](https://github.com/Mobius1/Vanilla-DataTables/wiki/Plugins) (v1.6.0 and above)
+* Extentable with custom plugins [See the Vanilla-DataTables wiki](https://github.com/fiduswriter/Simple-DataTables/wiki/Plugins)
 
 
-[Vanilla-DataTables Documentation](https://github.com/Mobius1/Vanilla-DataTables/wiki)
+[Simple-DataTables Documentation](https://github.com/fiduswriter/Simple-DataTables/wiki)
 
 
 ---
