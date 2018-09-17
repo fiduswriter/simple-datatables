@@ -22,6 +22,7 @@
 * [datatable.search](https://github.com/fiduswriter/Simple-DataTables/wiki/Events#datatablesearch)
 
 #### Options
+* [paging](https://github.com/fiduswriter/Simple-DataTables/wiki/paging)
 * [perPage](https://github.com/fiduswriter/Simple-DataTables/wiki/perPage)
 * [perPageSelect](https://github.com/fiduswriter/Simple-DataTables/wiki/perPageSelect)
 * [nextPrev](https://github.com/fiduswriter/Simple-DataTables/wiki/nextPrev)
