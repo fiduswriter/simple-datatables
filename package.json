@@ -19,9 +19,12 @@
     "url": "git+https://github.com/fiduswriter/Simple-DataTables.git"
   },
   "keywords": [
-    "tables",
+    "DataTable",
+    "DataTables",
+    "table",
     "html table",
-    "datatable"
+    "filter",
+    "sort"
   ],
   "author": "Johannes Wilm",
   "license": "LGPL-3.0",
