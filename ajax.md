@@ -30,7 +30,7 @@ var dataTable = new DataTable(myTable, {
 
 ---
 
-Under the hood, the `ajax` option uses the [`import()`](https://github.com/Mobius1/Vanilla-DataTables/wiki/import()) method to insert the new data. Thus, the same optional properties that that method takes can also be passed to the `content` property:
+Under the hood, the `ajax` option uses the [`import()`](https://github.com/fiduswriter/Simple-DataTables/wiki/import()) method to insert the new data. Thus, the same optional properties that that method takes can also be passed to the `content` property:
 
 ```javascript
 var dataTable = new DataTable(myTable, {
@@ -50,7 +50,7 @@ var dataTable = new DataTable(myTable, {
 
 The load property should return the formatted response data that the instance can recognise (`Object`, `JSON` or `CSV`). It takes a single argument which is an instance of the `XMLHttpRequest` object.
 
-If your function returns an `Object` it should formatted so that the [`insert()`](https://github.com/Mobius1/Vanilla-DataTables/wiki/API#insertdata-object) method can use it.
+If your function returns an `Object` it should formatted so that the [`insert()`](https://github.com/fiduswriter/Simple-DataTables/wiki/API#insertdata-object) method can use it.
 
 ### Example
 
