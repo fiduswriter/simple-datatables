@@ -1,4 +1,2 @@
 # Simple-DataTables [![Build Status](https://travis-ci.org/fiduswriter/Simple-DataTables.svg?branch=master)](https://travis-ci.org/fiduswriter/Simple-DataTables) [![npm version](https://badge.fury.io/js/simple-datatables.svg)](https://badge.fury.io/js/simple-datatables) [![license](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/fiduswriter/Simple-DataTables/blob/master/LICENSE)
 A lightweight, dependency-free javascript HTML table plugin. Similar to jQuery DataTables, but without the dependencies and written in ES2018 JS.
-
-Don't forget to check out the [demo](https://s.codepen.io/Mobius1/debug/rwGyJa) and [wiki](https://github.com/fiduswriter/Simple-DataTables/wiki)
