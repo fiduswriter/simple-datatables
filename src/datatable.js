@@ -683,7 +683,7 @@ export class DataTable {
                     }
 
                     if (data.hasOwnProperty("sort") && data.select.length === 1) {
-                        this.columns().sort(data.select[0] + 1, data.sort, true)
+                        this.columns().sort(data.select[0], data.sort, true)
                     }
                 })
             })
