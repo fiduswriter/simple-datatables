@@ -618,7 +618,7 @@ export class DataTable {
                     classList.contains(t, "dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    this.columns().sort(this.activeHeadings.indexOf(t.parentNode))
+                    this.columns().sort(this.headings.indexOf(t.parentNode))
                     e.preventDefault()
                 }
             }
