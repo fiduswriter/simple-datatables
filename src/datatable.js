@@ -1,6 +1,6 @@
 import {Rows} from "./rows"
 import {Columns} from "./columns"
-import {dataToTable} from "./parse"
+import {dataToTable} from "./table"
 import {defaultConfig} from "./config"
 import {
     isObject,

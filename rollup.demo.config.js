@@ -7,7 +7,7 @@ import {terser} from 'rollup-plugin-terser'
 
 export default [
     {
-        input: 'src/index.js',
+        input: 'demo/index.js',
         plugins: [
             resolve({browser: true}),
             commonjs(),
@@ -16,15 +16,15 @@ export default [
             buble(),
             terser()
         ],
-        output: // ES module version, for modern browsers
-        {
-            dir: "dist/module",
+        // ES module version, for modern browsers
+        output: {
+            dir: "demo/dist/module",
             format: "es",
             sourcemap: true
         }
     },
     {
-        input: 'src/index.js',
+        input: 'demo/index.js',
         plugins: [
             resolve({browser: true}),
             commonjs(),
@@ -33,27 +33,10 @@ export default [
             buble(),
             terser()
         ],
-        output: // SystemJS version, for older browsers
-        {
-            dir: "dist/nomodule",
+        // SystemJS version, for older browsers
+        output: {
+            dir: "demo/dist/nomodule",
             format: "system",
-            sourcemap: true
-        },
-    },
-    {
-        input: 'src/index.js',
-        plugins: [
-            resolve({browser: true}),
-            commonjs(),
-            builtins(),
-            globals(),
-            buble(),
-            terser()
-        ],
-        output: // CJS version
-        {
-            dir: "dist",
-            format: "cjs",
             sourcemap: true
         }
     }

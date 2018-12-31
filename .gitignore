@@ -1,4 +1,3 @@
 dist/
 node_modules/
-tests/index-dist.js
 tests/qunit.css
