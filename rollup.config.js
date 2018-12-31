@@ -15,7 +15,6 @@ export default {
         uglify()
     ],
     output: {
-        format: 'cjs',
-        sourcemap: 'inline'
+        format: 'cjs'
     }
 }
