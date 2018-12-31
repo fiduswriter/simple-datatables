@@ -296,11 +296,13 @@ export class Columns {
             if (formatted) {
                 format = th.getAttribute("data-format")
             }
-            waitFor.push(import("./date").then(({parseDate}) => parseFunction = content => parseDate(content, format)))
+            waitFor.push(import("./date").then(({parseDate}) => {
+                parseFunction = content => parseDate(content, format)
+            }))
         }
 
         Promise.all(waitFor).then(() => {
-            Array.from(rows).map(tr => {
+            Array.from(rows).forEach(tr => {
                 const cell = tr.cells[column]
                 const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
                 const num = parseFunction(typeof content==="string" ? content.replace(/(\$|,|\s|%)/g, "") : content)
