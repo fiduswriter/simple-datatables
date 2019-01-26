@@ -33,16 +33,15 @@
   },
   "homepage": "https://github.com/fiduswriter/Simple-DataTables#readme",
   "devDependencies": {
-    "eslint": "^5.3.0",
-    "qunit": "^2.6.1",
-    "rollup": "^0.64.1",
-    "rollup-plugin-babel": "^3.0.7",
-    "rollup-plugin-buble": "^0.19.2",
-    "rollup-plugin-commonjs": "^9.1.5",
+    "eslint": "^5.12.1",
+    "qunit": "^2.9.1",
+    "rollup": "^1.1.2",
+    "rollup-plugin-buble": "^0.19.6",
+    "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
-    "rollup-plugin-node-globals": "^1.2.1",
-    "rollup-plugin-node-resolve": "^3.3.0",
-    "rollup-plugin-uglify-es": "0.0.1"
+    "rollup-plugin-node-globals": "^1.4.0",
+    "rollup-plugin-node-resolve": "^4.0.0",
+    "rollup-plugin-terser-js": "^1.0.2"
   },
   "dependencies": {
     "moment": "^2.22.2"
