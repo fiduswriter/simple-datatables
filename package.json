@@ -1,6 +1,6 @@
 {
   "name": "simple-datatables",
-  "version": "1.7.6",
+  "version": "1.7.7",
   "description": "A lightweight, dependency-free JavaScript HTML table plugin.",
   "main": "dist/index.js",
   "module": "src/index.js",
