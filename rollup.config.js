@@ -3,7 +3,7 @@ import globals from 'rollup-plugin-node-globals'
 import builtins from 'rollup-plugin-node-builtins'
 import resolve from 'rollup-plugin-node-resolve'
 import buble from 'rollup-plugin-buble'
-import terser from 'rollup-plugin-terser-js'
+import { terser } from 'rollup-plugin-terser'
 
 export default {
     plugins: [

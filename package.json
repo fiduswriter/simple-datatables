@@ -41,7 +41,7 @@
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-node-resolve": "^4.0.0",
-    "rollup-plugin-terser-js": "^1.0.2"
+    "rollup-plugin-terser": "^4.0.3"
   },
   "dependencies": {
     "moment": "^2.22.2"
