@@ -9,8 +9,8 @@
     "check_js": "eslint src/",
     "compile": "npm run compile_js && npm run compile_css && npm run compile_test",
     "compile_js": "rollup src/index.js --config --output.sourcemap false --output.file dist/index.js",
-    "compile_css": "cat src/style.css > dist/style.css",
-    "compile_test": "npm run compile_test_js && cat node_modules/qunit/qunit/qunit.css > tests/qunit.css",
+    "compile_css": "cp src/style.css dist/style.css",
+    "compile_test": "npm run compile_test_js && cp node_modules/qunit/qunit/qunit.css tests/qunit.css",
     "compile_test_js": "rollup tests/index.js --config --output.file tests/index-dist.js",
     "prepare": "npm run compile"
   },
