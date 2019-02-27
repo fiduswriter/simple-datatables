@@ -7,8 +7,9 @@
   "scripts": {
     "test": "npm run check_js",
     "check_js": "eslint src/",
-    "compile": "npm run compile_js && npm run compile_css && npm run compile_test",
+    "compile": "npm run compile_js && npm run compile_js_umd && npm run compile_css && npm run compile_test",
     "compile_js": "rollup src/index.js --config --output.sourcemap false --output.file dist/index.js",
+    "compile_js_umd": "rollup src/index.js --config --format umd --output.name simpleDataTables --output.file dist/simple-datatables.min.js",
     "compile_css": "cp src/style.css dist/style.css",
     "compile_test": "npm run compile_test_js && cp node_modules/qunit/qunit/qunit.css tests/qunit.css",
     "compile_test_js": "rollup tests/index.js --config --output.file tests/index-dist.js",
