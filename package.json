@@ -1,6 +1,6 @@
 {
   "name": "simple-datatables",
-  "version": "1.7.6",
+  "version": "1.7.9",
   "description": "A lightweight, dependency-free JavaScript HTML table plugin.",
   "main": "dist/index.js",
   "module": "src/index.js",
@@ -9,8 +9,8 @@
     "check_js": "eslint src/",
     "compile": "npm run compile_js && npm run compile_css && npm run compile_demo",
     "compile_js": "rollup -c",
-    "compile_css": "cat src/style.css > dist/style.css",
-    "compile_demo": "npm run compile_demo_js && cp node_modules/systemjs/dist/s.min.js demo/dist/nomodule/ && cat src/style.css > demo/dist/style.css",
+    "compile_css": "cp src/style.css dist/style.css",
+    "compile_demo": "npm run compile_demo_js && cp node_modules/systemjs/dist/s.min.js demo/dist/nomodule/ && cp src/style.css demo/dist/style.css",
     "compile_demo_js": "rollup -c rollup.demo.config.js",
     "prepare": "npm run compile"
   },
@@ -34,15 +34,15 @@
   "homepage": "https://github.com/fiduswriter/Simple-DataTables#readme",
   "devDependencies": {
     "babel-eslint": "^10.0.1",
-    "eslint": "^5.11.1",
+    "eslint": "^5.12.1",
     "moment": "^2.23.0",
-    "rollup": "^1.0.0",
+    "rollup": "^1.1.2",
     "rollup-plugin-buble": "^0.19.6",
     "rollup-plugin-commonjs": "^9.2.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-node-resolve": "^4.0.0",
-    "rollup-plugin-terser": "^3.0.0",
+    "rollup-plugin-terser": "^4.0.3",
     "systemjs": "^2.1.1"
   }
 }
