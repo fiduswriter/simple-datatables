@@ -1,4 +1,3 @@
-import {parseDate} from "./parse"
 import {isArray, each, classList, sortItems} from "./helpers"
 
 /**
@@ -286,90 +285,95 @@ export class Columns {
         let a = 0
         let n = 0
         const th = dt.headings[column]
+        let parseFunction = content => content
+        const waitFor = []
 
-        each(rows, tr => {
-            const cell = tr.cells[column]
-            const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
-            let num = typeof content==="string" ? content.replace(/(\$|,|\s|%)/g, "") : content
+        // Check for date format
+        if (th.getAttribute("data-type") === "date") {
+            let format = false
+            const formatted = th.hasAttribute("data-format")
 
-            // Check for date format
-            if (th.getAttribute("data-type") === "date") {
-                let format = false
-                const formatted = th.hasAttribute("data-format")
+            if (formatted) {
+                format = th.getAttribute("data-format")
+            }
+            waitFor.push(import("./date").then(({parseDate}) => {
+                parseFunction = content => parseDate(content, format)
+            }))
+        }
 
-                if (formatted) {
-                    format = th.getAttribute("data-format")
+        Promise.all(waitFor).then(() => {
+            Array.from(rows).forEach(tr => {
+                const cell = tr.cells[column]
+                const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
+                const num = parseFunction(typeof content==="string" ? content.replace(/(\$|,|\s|%)/g, "") : content)
+
+                if (parseFloat(num) == num) {
+                    numeric[n++] = {
+                        value: Number(num),
+                        row: tr
+                    }
+                } else {
+                    alpha[a++] = {
+                        value: content,
+                        row: tr
+                    }
                 }
+            })
 
-                num = parseDate(content, format)
+            /* Sort according to direction (ascending or descending) */
+            if (!dir) {
+                if (classList.contains(th, "asc")) {
+                    dir = "desc"
+                } else {
+                    dir = "asc"
+                }
+            }
+            let top
+            let btm
+            if (dir == "desc") {
+                top = sortItems(alpha, -1)
+                btm = sortItems(numeric, -1)
+                classList.remove(th, "asc")
+                classList.add(th, "desc")
+            } else {
+                top = sortItems(numeric, 1)
+                btm = sortItems(alpha, 1)
+                classList.remove(th, "desc")
+                classList.add(th, "asc")
             }
 
-            if (parseFloat(num) == num) {
-                numeric[n++] = {
-                    value: Number(num),
-                    row: tr
+            /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
+            if (dt.lastTh && th != dt.lastTh) {
+                classList.remove(dt.lastTh, "desc")
+                classList.remove(dt.lastTh, "asc")
+            }
+
+            dt.lastTh = th
+
+            /* Reorder the table */
+            rows = top.concat(btm)
+
+            dt.data = []
+            const indexes = []
+
+            each(rows, (v, i) => {
+                dt.data.push(v.row)
+
+                if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
+                    indexes.push(i)
                 }
-            } else {
-                alpha[a++] = {
-                    value: content,
-                    row: tr
-                }
+            }, dt)
+
+            dt.searchData = indexes
+
+            this.rebuild()
+
+            dt.update()
+
+            if (!init) {
+                dt.emit("datatable.sort", column, dir)
             }
         })
-
-        /* Sort according to direction (ascending or descending) */
-        if (!dir) {
-            if (classList.contains(th, "asc")) {
-                dir = "desc"
-            } else {
-                dir = "asc"
-            }
-        }
-        let top
-        let btm
-        if (dir == "desc") {
-            top = sortItems(alpha, -1)
-            btm = sortItems(numeric, -1)
-            classList.remove(th, "asc")
-            classList.add(th, "desc")
-        } else {
-            top = sortItems(numeric, 1)
-            btm = sortItems(alpha, 1)
-            classList.remove(th, "desc")
-            classList.add(th, "asc")
-        }
-
-        /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
-        if (dt.lastTh && th != dt.lastTh) {
-            classList.remove(dt.lastTh, "desc")
-            classList.remove(dt.lastTh, "asc")
-        }
-
-        dt.lastTh = th
-
-        /* Reorder the table */
-        rows = top.concat(btm)
-
-        dt.data = []
-        const indexes = []
-
-        each(rows, (v, i) => {
-            dt.data.push(v.row)
-
-            if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
-                indexes.push(i)
-            }
-        }, dt)
-
-        dt.searchData = indexes
-
-        this.rebuild()
-
-        dt.update()
-
-        if (!init) {
-            dt.emit("datatable.sort", column, dir)
-        }
     }
 
     /**

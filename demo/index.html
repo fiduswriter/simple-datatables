@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Demo</title>
+  <link rel="stylesheet" href="./dist/style.css">
+</head>
+<body>
+  <script>
+  		import("./dist/module/index.js");
+  		window.supportsDynamicImport = true;
+	</script>
+	<script>
+  		if (!window.supportsDynamicImport) {
+    			const systemJsLoaderTag = document.createElement('script');
+    			systemJsLoaderTag.src = './dist/nomodule/s.min.js';
+    			systemJsLoaderTag.addEventListener('load', function () {
+      				System.import('./dist/nomodule/index.js');
+    			});
+    			document.head.appendChild(systemJsLoaderTag);
+  		}
+	</script>
+</body>
+</html>

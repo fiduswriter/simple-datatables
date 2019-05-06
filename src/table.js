@@ -1,4 +1,4 @@
-import {each, createElement} from "../helpers"
+import {each, createElement} from "./helpers"
 
 /**
  * Parse data to HTML table
