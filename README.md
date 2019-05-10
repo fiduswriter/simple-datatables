@@ -21,7 +21,7 @@ LGPL
 * Import `csv` and `json` data
 * Control column visibility
 * Reorder or swap columns
-* moment.js integration for sorting columns with datetime strings
+* dayjs integration for sorting columns with datetime strings
 * Extentable with custom plugins [See the Simple-DataTables wiki](https://github.com/fiduswriter/Simple-DataTables/wiki/Plugins)
 
 
