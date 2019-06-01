@@ -4,6 +4,10 @@ A lightweight, extendable, dependency-free javascript HTML table plugin. Similar
 
 Based on [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in ES2018.
 
+# CDN
+
+To use the CDN version of Simple-DataTables use either [https://cdn.jsdelivr.net/npm/simple-datatables](https://cdn.jsdelivr.net/npm/simple-datatables) or [https://unpkg.com/simple-datatables](https://unpkg.com/simple-datatables).
+
 ### License
 
 LGPL
