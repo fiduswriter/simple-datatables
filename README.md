@@ -6,7 +6,14 @@ Based on [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), bu
 
 # CDN
 
-To use the CDN version of Simple-DataTables use either [https://cdn.jsdelivr.net/npm/simple-datatables](https://cdn.jsdelivr.net/npm/simple-datatables) or [https://unpkg.com/simple-datatables](https://unpkg.com/simple-datatables).
+To use the CDN version of Simple-DataTables use either [https://cdn.jsdelivr.net/npm/simple-datatables@latest](https://cdn.jsdelivr.net/npm/simple-datatables@latest) or [https://unpkg.com/simple-datatables](https://unpkg.com/simple-datatables). You also need to add the CSS styling, so the elements you'll add to html head element can for example be these:
+
+```html
+<link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
+<script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
+```
+
+
 
 ### License
 
