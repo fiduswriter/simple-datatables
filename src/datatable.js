@@ -1476,6 +1476,10 @@ export class DataTable {
 
         classList.add(this.wrapper, "dataTable-empty")
 
+        this.label.innerText = ""
+        this.totalPages = 0
+        this.render("pager")
+
         this.clear(
             createElement("tr", {
                 html: `<td class="dataTables-empty" colspan="${colspan}">${message}</td>`
