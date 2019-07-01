@@ -1476,7 +1476,9 @@ export class DataTable {
 
         classList.add(this.wrapper, "dataTable-empty")
 
-        this.label.innerText = ""
+        if (this.label) {
+            this.label.innerHTML = ""
+        }
         this.totalPages = 0
         this.render("pager")
 
