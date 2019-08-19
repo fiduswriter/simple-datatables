@@ -729,8 +729,8 @@ export class DataTable {
 
         // Remove the containers
         this.wrapper.parentNode.replaceChild(this.table, this.wrapper)
-
         this.initialized = false
+        this.emit("datatable.destroy")
     }
 
     /**
