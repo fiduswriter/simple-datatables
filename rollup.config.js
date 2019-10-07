@@ -2,7 +2,7 @@ import commonjs from 'rollup-plugin-commonjs'
 import globals from 'rollup-plugin-node-globals'
 import builtins from 'rollup-plugin-node-builtins'
 import resolve from 'rollup-plugin-node-resolve'
-import buble from 'rollup-plugin-buble'
+import babel from 'rollup-plugin-babel'
 import {terser} from 'rollup-plugin-terser'
 
 export default [
@@ -13,7 +13,11 @@ export default [
             commonjs(),
             builtins(),
             globals(),
-            buble(),
+            babel({
+			           plugins: [
+				               '@babel/plugin-syntax-dynamic-import'
+			           ]
+		        }),
             terser()
         ],
         output: // ES module version, for modern browsers
@@ -30,7 +34,11 @@ export default [
             commonjs(),
             builtins(),
             globals(),
-            buble(),
+            babel({
+			           plugins: [
+				               '@babel/plugin-syntax-dynamic-import'
+			           ]
+		        }),
             terser()
         ],
         output: // SystemJS version, for older browsers
@@ -47,7 +55,11 @@ export default [
             commonjs(),
             builtins(),
             globals(),
-            buble(),
+            babel({
+			           plugins: [
+				               '@babel/plugin-syntax-dynamic-import'
+			           ]
+		        }),
             terser()
         ],
         output: // CJS version
