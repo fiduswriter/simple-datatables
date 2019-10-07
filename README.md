@@ -47,7 +47,6 @@ LGPL
 ```
 npm install simple-datatables --save
 ```
-
 ---
 
 ### Quick Start
