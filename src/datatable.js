@@ -143,16 +143,16 @@ export class DataTable {
             return false
         }
 
-        const o = this.options
+        const options = this.options
         let template = ""
 
         // Convert data to HTML
-        if (o.data) {
+        if (options.data) {
             dataToTable.call(this)
         }
 
-        if (o.ajax) {
-            const ajax = o.ajax
+        if (options.ajax) {
+            const ajax = options.ajax
             const xhr = new XMLHttpRequest()
 
             const xhrProgress = e => {
@@ -201,7 +201,7 @@ export class DataTable {
 
             this.emit("datatable.ajax.loading", xhr)
 
-            xhr.open("GET", typeof ajax === "string" ? o.ajax : o.ajax.url)
+            xhr.open("GET", typeof ajax === "string" ? options.ajax : options.ajax.url)
             xhr.send()
         }
 
@@ -235,7 +235,7 @@ export class DataTable {
 
             this.table.insertBefore(this.head, this.body)
 
-            this.hiddenHeader = !o.ajax
+            this.hiddenHeader = !options.ajax
         }
 
         this.headings = []
@@ -247,14 +247,14 @@ export class DataTable {
         }
 
         // Header
-        if (!o.header) {
+        if (!options.header) {
             if (this.head) {
                 this.table.removeChild(this.table.tHead)
             }
         }
 
         // Footer
-        if (o.footer) {
+        if (options.footer) {
             if (this.head && !this.foot) {
                 this.foot = createElement("tfoot", {
                     html: this.head.innerHTML
@@ -274,24 +274,24 @@ export class DataTable {
 
         // Template for custom layouts
         template += "<div class='dataTable-top'>"
-        template += o.layout.top
+        template += options.layout.top
         template += "</div>"
-        if (o.scrollY.length) {
-            template += `<div class='dataTable-container' style='height: ${o.scrollY}; overflow-Y: auto;'></div>`
+        if (options.scrollY.length) {
+            template += `<div class='dataTable-container' style='height: ${options.scrollY}; overflow-Y: auto;'></div>`
         } else {
             template += "<div class='dataTable-container'></div>"
         }
         template += "<div class='dataTable-bottom'>"
-        template += o.layout.bottom
+        template += options.layout.bottom
         template += "</div>"
 
         // Info placement
-        template = template.replace("{info}", o.paging ? "<div class='dataTable-info'></div>" : "")
+        template = template.replace("{info}", options.paging ? "<div class='dataTable-info'></div>" : "")
 
         // Per Page Select
-        if (o.paging && o.perPageSelect) {
+        if (options.paging && options.perPageSelect) {
             let wrap = "<div class='dataTable-dropdown'><label>"
-            wrap += o.labels.perPage
+            wrap += options.labels.perPage
             wrap += "</label></div>"
 
             // Create the select
@@ -300,8 +300,8 @@ export class DataTable {
             })
 
             // Create the options
-            each(o.perPageSelect, val => {
-                const selected = val === o.perPage
+            each(options.perPageSelect, val => {
+                const selected = val === options.perPage
                 const option = new Option(val, val, selected, selected)
                 select.add(option)
             })
@@ -316,9 +316,9 @@ export class DataTable {
         }
 
         // Searchable
-        if (o.searchable) {
+        if (options.searchable) {
             const form =
-                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${o.labels.placeholder}' type='text'></div>`
+                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${options.labels.placeholder}' type='text'></div>`
 
             // Search input placement
             template = template.replace("{search}", form)
@@ -367,7 +367,7 @@ export class DataTable {
         // Update
         this.update()
 
-        if (!o.ajax) {
+        if (!options.ajax) {
             this.setColumns()
         }
 
@@ -378,27 +378,27 @@ export class DataTable {
         this.fixColumns()
 
         // Class names
-        if (!o.header) {
+        if (!options.header) {
             classList.add(this.wrapper, "no-header")
         }
 
-        if (!o.footer) {
+        if (!options.footer) {
             classList.add(this.wrapper, "no-footer")
         }
 
-        if (o.sortable) {
+        if (options.sortable) {
             classList.add(this.wrapper, "sortable")
         }
 
-        if (o.searchable) {
+        if (options.searchable) {
             classList.add(this.wrapper, "searchable")
         }
 
-        if (o.fixedHeight) {
+        if (options.fixedHeight) {
             classList.add(this.wrapper, "fixed-height")
         }
 
-        if (o.fixedColumns) {
+        if (options.fixedColumns) {
             classList.add(this.wrapper, "fixed-columns")
         }
 
@@ -578,26 +578,26 @@ export class DataTable {
      * @return {[type]} [description]
      */
     bindEvents() {
-        const o = this.options
+        const options = this.options
         const that = this
         // Per page selector
-        if (o.perPageSelect) {
+        if (options.perPageSelect) {
             const selector = this.wrapper.querySelector(".dataTable-selector")
             if (selector) {
                 // Change per page
                 on(selector, "change", function () {
-                    o.perPage = parseInt(this.value, 10)
+                    options.perPage = parseInt(this.value, 10)
                     that.update()
 
                     that.fixHeight()
 
-                    that.emit("datatable.perpage", o.perPage)
+                    that.emit("datatable.perpage", options.perPage)
                 })
             }
         }
 
         // Search input
-        if (o.searchable) {
+        if (options.searchable) {
             this.input = this.wrapper.querySelector(".dataTable-input")
             if (this.input) {
                 on(this.input, "keyup", function () {
@@ -614,7 +614,7 @@ export class DataTable {
                     this.page(t.getAttribute("data-page"))
                     e.preventDefault()
                 } else if (
-                    o.sortable &&
+                    options.sortable &&
                     classList.contains(t, "dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
@@ -702,8 +702,8 @@ export class DataTable {
                     each(row.cells, (cell, i) => {
                         if (this.selectedColumns.includes(i)) {
                             each(this.columnRenderers, o => {
-                                if (o.columns.includes(i)) {
-                                    cell.innerHTML = o.renderer.call(this, cell.data, cell, row)
+                                if (options.columns.includes(i)) {
+                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
                                 }
                             })
                         }
@@ -1123,10 +1123,10 @@ export class DataTable {
 
     /**
      * Export table to various formats (csv, txt or sql)
-     * @param  {Object} options User options
+     * @param  {Object} userOptions User options
      * @return {Boolean}
      */
-    export(options) {
+    export(userOptions) {
         if (!this.hasHeadings && !this.hasRows) return false
 
         const headers = this.activeHeadings
@@ -1154,27 +1154,27 @@ export class DataTable {
         }
 
         // Check for the options object
-        if (!isObject(options)) {
+        if (!isObject(userOptions)) {
             return false
         }
 
-        const o = extend(defaults, options)
+        const options = extend(defaults, userOptions)
 
-        if (o.type) {
-            if (o.type === "txt" || o.type === "csv") {
+        if (options.type) {
+            if (options.type === "txt" || options.type === "csv") {
                 // Include headings
                 rows[0] = this.header
             }
 
             // Selection or whole table
-            if (o.selection) {
+            if (options.selection) {
                 // Page number
-                if (!isNaN(o.selection)) {
-                    rows = rows.concat(this.pages[o.selection - 1])
-                } else if (isArray(o.selection)) {
+                if (!isNaN(options.selection)) {
+                    rows = rows.concat(this.pages[options.selection - 1])
+                } else if (isArray(options.selection)) {
                     // Array of page numbers
-                    for (i = 0; i < o.selection.length; i++) {
-                        rows = rows.concat(this.pages[o.selection[i] - 1])
+                    for (i = 0; i < options.selection.length; i++) {
+                        rows = rows.concat(this.pages[options.selection[i] - 1])
                     }
                 }
             } else {
@@ -1183,14 +1183,14 @@ export class DataTable {
 
             // Only proceed if we have data
             if (rows.length) {
-                if (o.type === "txt" || o.type === "csv") {
+                if (options.type === "txt" || options.type === "csv") {
                     str = ""
 
                     for (i = 0; i < rows.length; i++) {
                         for (x = 0; x < rows[i].cells.length; x++) {
                             // Check for column skip and visibility
                             if (
-                                !o.skipColumn.includes(headers[x].originalCellIndex) &&
+                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
                                 this.columns(headers[x].originalCellIndex).visible()
                             ) {
                                 let text = rows[i].cells[x].textContent
@@ -1204,31 +1204,31 @@ export class DataTable {
                                     text = `"${text}"`
 
 
-                                str += text + o.columnDelimiter
+                                str += text + options.columnDelimiter
                             }
                         }
                         // Remove trailing column delimiter
                         str = str.trim().substring(0, str.length - 1)
 
                         // Apply line delimiter
-                        str += o.lineDelimiter
+                        str += options.lineDelimiter
                     }
 
                     // Remove trailing line delimiter
                     str = str.trim().substring(0, str.length - 1)
 
-                    if (o.download) {
+                    if (options.download) {
                         str = `data:text/csv;charset=utf-8,${str}`
                     }
-                } else if (o.type === "sql") {
+                } else if (options.type === "sql") {
                     // Begin INSERT statement
-                    str = `INSERT INTO \`${o.tableName}\` (`
+                    str = `INSERT INTO \`${options.tableName}\` (`
 
                     // Convert table headings to column names
                     for (i = 0; i < headers.length; i++) {
                         // Check for column skip and column visibility
                         if (
-                            !o.skipColumn.includes(headers[i].originalCellIndex) &&
+                            !options.skipColumn.includes(headers[i].originalCellIndex) &&
                             this.columns(headers[i].originalCellIndex).visible()
                         ) {
                             str += `\`${headers[i].textContent}\`,`
@@ -1248,7 +1248,7 @@ export class DataTable {
                         for (x = 0; x < rows[i].cells.length; x++) {
                             // Check for column skip and column visibility
                             if (
-                                !o.skipColumn.includes(headers[x].originalCellIndex) &&
+                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
                                 this.columns(headers[x].originalCellIndex).visible()
                             ) {
                                 str += `"${rows[i].cells[x].textContent}",`
@@ -1268,10 +1268,10 @@ export class DataTable {
                     // Add trailing colon
                     str += ";"
 
-                    if (o.download) {
+                    if (options.download) {
                         str = `data:application/sql;charset=utf-8,${str}`
                     }
-                } else if (o.type === "json") {
+                } else if (options.type === "json") {
                     // Iterate rows
                     for (x = 0; x < rows.length; x++) {
                         arr[x] = arr[x] || {}
@@ -1279,7 +1279,7 @@ export class DataTable {
                         for (i = 0; i < headers.length; i++) {
                             // Check for column skip and column visibility
                             if (
-                                !o.skipColumn.includes(headers[i].originalCellIndex) &&
+                                !options.skipColumn.includes(headers[i].originalCellIndex) &&
                                 this.columns(headers[i].originalCellIndex).visible()
                             ) {
                                 arr[x][headers[i].textContent] = rows[x].cells[i].textContent
@@ -1288,25 +1288,25 @@ export class DataTable {
                     }
 
                     // Convert the array of objects to JSON string
-                    str = JSON.stringify(arr, o.replacer, o.space)
+                    str = JSON.stringify(arr, options.replacer, options.space)
 
-                    if (o.download) {
+                    if (options.download) {
                         str = `data:application/json;charset=utf-8,${str}`
                     }
                 }
 
                 // Download
-                if (o.download) {
+                if (options.download) {
                     // Filename
-                    o.filename = o.filename || "datatable_export"
-                    o.filename += `.${o.type}`
+                    options.filename = options.filename || "datatable_export"
+                    options.filename += `.${options.type}`
 
                     str = encodeURI(str)
 
                     // Create a link to trigger the download
                     link = document.createElement("a")
                     link.href = str
-                    link.download = o.filename
+                    link.download = options.filename
 
                     // Append the link
                     document.body.appendChild(link)
