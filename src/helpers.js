@@ -5,12 +5,6 @@
 export const isObject = val => Object.prototype.toString.call(val) === "[object Object]"
 
 /**
- * Check is item is array
- * @return {Boolean}
- */
-export const isArray = val => Array.isArray(val)
-
-/**
  * Check for valid JSON string
  * @param  {String}   str
  * @return {Boolean|Array|Object}
@@ -22,146 +16,51 @@ export const isJson = str => {
     } catch (e) {
         return !1
     }
-    return !(null === t || (!isArray(t) && !isObject(t))) && t
-}
-
-/**
- * Merge objects (reccursive)
- * @param  {Object} r
- * @param  {Object} t
- * @return {Object}
- */
-export const extend = (src, props) => {
-    for (const prop in props) {
-        if (props.hasOwnProperty(prop)) {
-            const val = props[prop]
-            if (val && isObject(val)) {
-                src[prop] = src[prop] || {}
-                extend(src[prop], val)
-            } else {
-                src[prop] = val
-            }
-        }
-    }
-    return src
-}
-
-/**
- * Iterator helper
- * @param  {(Array|Object)}   arr     Any object, array or array-like collection.
- * @param  {Function}         fn      Callback
- * @param  {Object}           scope   Change the value of this
- * @return {Void}
- */
-export const each = (arr, fn, scope) => {
-    let n
-    if (isObject(arr)) {
-        for (n in arr) {
-            if (Object.prototype.hasOwnProperty.call(arr, n)) {
-                fn.call(scope, arr[n], n)
-            }
-        }
-    } else {
-        for (n = 0; n < arr.length; n++) {
-            fn.call(scope, arr[n], n)
-        }
-    }
-}
-
-/**
- * Add event listener to target
- * @param  {Object} el
- * @param  {String} e
- * @param  {Function} fn
- */
-export const on = (el, e, fn) => {
-    el.addEventListener(e, fn, false)
+    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t
 }
 
 /**
  * Create DOM element node
- * @param  {String}   a nodeName
- * @param  {Object}   b properties and attributes
+ * @param  {String}   nodeName nodeName
+ * @param  {Object}   attrs properties and attributes
  * @return {Object}
  */
-export const createElement = (a, b) => {
-    const d = document.createElement(a)
-    if (b && "object" == typeof b) {
-        let e
-        for (e in b) {
-            if ("html" === e) {
-                d.innerHTML = b[e]
+export const createElement = (nodeName, attrs) => {
+    const dom = document.createElement(nodeName)
+    if (attrs && "object" == typeof attrs) {
+        for (const attr in attrs) {
+            if ("html" === attr) {
+                dom.innerHTML = attrs[attr]
             } else {
-                d.setAttribute(e, b[e])
+                dom.setAttribute(attr, attrs[attr])
             }
         }
     }
-    return d
+    return dom
 }
 
-export const flush = (el, ie) => {
+export const flush = el => {
     if (el instanceof NodeList) {
-        each(el, e => {
-            flush(e, ie)
-        })
+        el.forEach(e => flush(e))
     } else {
-        if (ie) {
-            while (el.hasChildNodes()) {
-                el.removeChild(el.firstChild)
-            }
-        } else {
-            el.innerHTML = ""
-        }
+        el.innerHTML = ""
     }
 }
 
 /**
  * Create button helper
- * @param  {String}   c
- * @param  {Number}   p
- * @param  {String}   t
+ * @param  {String}   class
+ * @param  {Number}   page
+ * @param  {String}   text
  * @return {Object}
  */
-export const button = (c, p, t) => createElement("li", {
-    class: c,
-    html: `<a href="#" data-page="${p}">${t}</a>`
-})
-
-/**
- * classList shim
- * @type {Object}
- */
-export const classList = {
-    add(s, a) {
-        if (s.classList) {
-            s.classList.add(a)
-        } else {
-            if (!classList.contains(s, a)) {
-                s.className = `${s.className.trim()} ${a}`
-            }
-        }
-    },
-    remove(s, a) {
-        if (s.classList) {
-            s.classList.remove(a)
-        } else {
-            if (classList.contains(s, a)) {
-                s.className = s.className.replace(
-                    new RegExp(`(^|\\s)${a.split(" ").join("|")}(\\s|$)`, "gi"),
-                    " "
-                )
-            }
-        }
-    },
-    contains(s, a) {
-        if (s)
-            return s.classList ?
-                s.classList.contains(a) :
-                !!s.className &&
-                !!s.className.match(new RegExp(`(\\s|^)${a}(\\s|$)`))
+export const button = (className, page, text) => createElement(
+    "li",
+    {
+        class: className,
+        html: `<a href="#" data-page="${page}">${text}</a>`
     }
-}
-
+)
 
 /**
  * Bubble sort algorithm
@@ -213,11 +112,11 @@ export const truncate = (a, b, c, d, ellipsis) => {
     for (let k = 1; k <= c; k++) {
         if (1 == k || k == c || (k >= f && k <= g)) {
             const l = a[k - 1]
-            classList.remove(l, "active")
+            l.classList.remove("active")
             h.push(l)
         }
     }
-    each(h, c => {
+    h.forEach(c => {
         const d = c.children[0].getAttribute("data-page")
         if (j) {
             const e = j.children[0].getAttribute("data-page")

@@ -4,15 +4,10 @@ import {dataToTable} from "./table"
 import {defaultConfig} from "./config"
 import {
     isObject,
-    isArray,
     isJson,
-    extend,
-    each,
-    on,
     createElement,
     flush,
     button,
-    classList,
     truncate
 } from "./helpers"
 
@@ -22,7 +17,10 @@ export class DataTable {
         this.initialized = false
 
         // user options
-        this.options = extend(defaultConfig, options)
+        this.options = {
+            ...defaultConfig,
+            ...options
+        }
 
         if (typeof table === "string") {
             table = document.querySelector(table)
@@ -79,14 +77,11 @@ export class DataTable {
      * @return {Void}
      */
     init(options) {
-        if (this.initialized || classList.contains(this.table, "dataTable-table")) {
+        if (this.initialized || this.table.classList.contains("dataTable-table")) {
             return false
         }
 
-        this.options = extend(this.options, options || {})
-
-        // IE detection
-        this.isIE = !!/(msie|trident)/i.test(navigator.userAgent)
+        Object.assign(this.options, options || {})
 
         this.currentPage = 1
         this.onFirstPage = true
@@ -102,14 +97,9 @@ export class DataTable {
             this.initialized = true
 
             if (this.options.plugins) {
-                each(this.options.plugins, (options, plugin) => {
+                Object.entries(this.options.plugins).forEach(([plugin, options]) => {
                     if (this[plugin] && typeof this[plugin] === "function") {
-                        this[plugin] = this[plugin](options, {
-                            each,
-                            extend,
-                            classList,
-                            createElement
-                        })
+                        this[plugin] = this[plugin](options, {createElement})
 
                         // Init plugin
                         if (options.enabled && this[plugin].init && typeof this[plugin].init === "function") {
@@ -164,7 +154,7 @@ export class DataTable {
                     this.emit("datatable.ajax.loaded", e, xhr)
 
                     if (xhr.status === 200) {
-                        let obj = {}
+                        const obj = {}
                         obj.data = ajax.load ? ajax.load.call(this, xhr) : xhr.responseText
 
                         obj.type = "json"
@@ -172,7 +162,7 @@ export class DataTable {
                         if (ajax.content && ajax.content.type) {
                             obj.type = ajax.content.type
 
-                            obj = extend(obj, ajax.content)
+                            Object.assign(obj, ajax.content)
                         }
 
                         this.import(obj)
@@ -194,10 +184,10 @@ export class DataTable {
                 this.emit("datatable.ajax.abort", e, xhr)
             }
 
-            on(xhr, "progress", xhrProgress)
-            on(xhr, "load", xhrLoad)
-            on(xhr, "error", xhrFailed)
-            on(xhr, "abort", xhrCancelled)
+            xhr.addEventListener("progress", xhrProgress, false)
+            xhr.addEventListener("load", xhrLoad, false)
+            xhr.addEventListener("error", xhrFailed, false)
+            xhr.addEventListener("abort", xhrCancelled, false)
 
             this.emit("datatable.ajax.loading", xhr)
 
@@ -224,7 +214,7 @@ export class DataTable {
             const t = createElement("tr")
 
             if (this.hasRows) {
-                each(this.body.rows[0].cells, () => {
+                Array.from(this.body.rows[0].cells).forEach(() => {
                     t.appendChild(createElement("th"))
                 })
 
@@ -300,7 +290,7 @@ export class DataTable {
             })
 
             // Create the options
-            each(options.perPageSelect, val => {
+            options.perPageSelect.forEach(val => {
                 const selected = val === options.perPage
                 const option = new Option(val, val, selected, selected)
                 select.add(option)
@@ -332,7 +322,7 @@ export class DataTable {
         }
 
         // Add table class
-        classList.add(this.table, "dataTable-table")
+        this.table.classList.add("dataTable-table")
 
         // Paginator
         const w = createElement("div", {
@@ -360,7 +350,7 @@ export class DataTable {
         this.rect = this.table.getBoundingClientRect()
 
         // Convert rows to array for processing
-        this.data = [].slice.call(this.body.rows)
+        this.data = Array.from(this.body.rows)
         this.activeRows = this.data.slice()
         this.activeHeadings = this.headings.slice()
 
@@ -379,27 +369,27 @@ export class DataTable {
 
         // Class names
         if (!options.header) {
-            classList.add(this.wrapper, "no-header")
+            this.wrapper.classList.add("no-header")
         }
 
         if (!options.footer) {
-            classList.add(this.wrapper, "no-footer")
+            this.wrapper.classList.add("no-footer")
         }
 
         if (options.sortable) {
-            classList.add(this.wrapper, "sortable")
+            this.wrapper.classList.add("sortable")
         }
 
         if (options.searchable) {
-            classList.add(this.wrapper, "searchable")
+            this.wrapper.classList.add("searchable")
         }
 
         if (options.fixedHeight) {
-            classList.add(this.wrapper, "fixed-height")
+            this.wrapper.classList.add("fixed-height")
         }
 
         if (options.fixedColumns) {
-            classList.add(this.wrapper, "fixed-columns")
+            this.wrapper.classList.add("fixed-columns")
         }
 
         this.bindEvents()
@@ -411,11 +401,9 @@ export class DataTable {
      */
     renderPage() {
         if (this.hasHeadings) {
-            flush(this.header, this.isIE)
+            flush(this.header)
 
-            each(this.activeHeadings, function (th) {
-                this.header.appendChild(th)
-            }, this)
+            this.activeHeadings.forEach(th => this.header.appendChild(th))
         }
 
 
@@ -428,10 +416,7 @@ export class DataTable {
             const index = this.currentPage - 1
 
             const frag = document.createDocumentFragment()
-
-            each(this.pages[index], function (row) {
-                frag.appendChild(this.rows().render(row))
-            }, this)
+            this.pages[index].forEach(row => frag.appendChild(this.rows().render(row)))
 
             this.clear(frag)
 
@@ -478,7 +463,7 @@ export class DataTable {
      * @return {Void}
      */
     renderPager() {
-        flush(this.pagers, this.isIE)
+        flush(this.pagers)
 
         if (this.totalPages > 1) {
             const c = "pager"
@@ -510,15 +495,15 @@ export class DataTable {
             }
 
             // active page link
-            classList.add(this.links[this.currentPage - 1], "active")
+            this.links[this.currentPage - 1].classList.add("active")
 
             // append the links
-            each(pager, p => {
-                classList.remove(p, "active")
+            pager.forEach(p => {
+                p.classList.remove("active")
                 frag.appendChild(p)
             })
 
-            classList.add(this.links[this.currentPage - 1], "active")
+            this.links[this.currentPage - 1].classList.add("active")
 
             // next button
             if (this.options.nextPrev) {
@@ -531,7 +516,7 @@ export class DataTable {
             }
 
             // We may have more than one pager
-            each(this.pagers, pager => {
+            this.pagers.forEach(pager => {
                 pager.appendChild(frag.cloneNode(true))
             })
         }
@@ -545,11 +530,11 @@ export class DataTable {
         this.labels = []
 
         if (this.headings && this.headings.length) {
-            each(this.headings, (th, i) => {
+            this.headings.forEach((th, i) => {
 
                 this.labels[i] = th.textContent
 
-                if (classList.contains(th.firstElementChild, "dataTable-sorter")) {
+                if (th.firstElementChild && th.firstElementChild.classList.contains("dataTable-sorter")) {
                     th.innerHTML = th.firstElementChild.innerHTML
                 }
 
@@ -579,20 +564,19 @@ export class DataTable {
      */
     bindEvents() {
         const options = this.options
-        const that = this
         // Per page selector
         if (options.perPageSelect) {
             const selector = this.wrapper.querySelector(".dataTable-selector")
             if (selector) {
                 // Change per page
-                on(selector, "change", function () {
-                    options.perPage = parseInt(this.value, 10)
-                    that.update()
+                selector.addEventListener("change", () => {
+                    options.perPage = parseInt(selector.value, 10)
+                    this.update()
 
-                    that.fixHeight()
+                    this.fixHeight()
 
-                    that.emit("datatable.perpage", options.perPage)
-                })
+                    this.emit("datatable.perpage", options.perPage)
+                }, false)
             }
         }
 
@@ -600,14 +584,12 @@ export class DataTable {
         if (options.searchable) {
             this.input = this.wrapper.querySelector(".dataTable-input")
             if (this.input) {
-                on(this.input, "keyup", function () {
-                    that.search(this.value)
-                })
+                this.input.addEventListener("keyup", () => this.search(this.input.value), false)
             }
         }
 
         // Pager(s) / sorting
-        on(this.wrapper, "click", e => {
+        this.wrapper.addEventListener("click", e => {
             const t = e.target
             if (t.nodeName.toLowerCase() === "a") {
                 if (t.hasAttribute("data-page")) {
@@ -615,16 +597,16 @@ export class DataTable {
                     e.preventDefault()
                 } else if (
                     options.sortable &&
-                    classList.contains(t, "dataTable-sorter") &&
+                    t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
                     this.columns().sort(this.headings.indexOf(t.parentNode))
                     e.preventDefault()
                 }
             }
-        })
+        }, false)
 
-        on(window, "resize", () => {
+        window.addEventListener("resize", () => {
             this.rect = this.container.getBoundingClientRect()
             this.fixColumns()
         })
@@ -637,8 +619,8 @@ export class DataTable {
     setColumns(ajax) {
 
         if (!ajax) {
-            each(this.data, row => {
-                each(row.cells, cell => {
+            this.data.forEach(row => {
+                Array.from(row.cells).forEach(cell => {
                     cell.data = cell.innerHTML
                 })
             })
@@ -647,10 +629,10 @@ export class DataTable {
         // Check for the columns option
         if (this.options.columns && this.headings.length) {
 
-            each(this.options.columns, data => {
+            this.options.columns.forEach(data => {
 
                 // convert single column selection to array
-                if (!isArray(data.select)) {
+                if (!Array.isArray(data.select)) {
                     data.select = [data.select]
                 }
 
@@ -664,7 +646,7 @@ export class DataTable {
                 }
 
                 // Add the data attributes to the th elements
-                each(data.select, column => {
+                data.select.forEach(column => {
                     const th = this.headings[column]
                     if (data.type) {
                         th.setAttribute("data-type", data.type)
@@ -690,18 +672,18 @@ export class DataTable {
         }
 
         if (this.hasRows) {
-            each(this.data, (row, i) => {
+            this.data.forEach((row, i) => {
                 row.dataIndex = i
-                each(row.cells, cell => {
+                Array.from(row.cells).forEach(cell => {
                     cell.data = cell.innerHTML
                 })
             })
 
             if (this.selectedColumns.length) {
-                each(this.data, row => {
-                    each(row.cells, (cell, i) => {
+                this.data.forEach(row => {
+                    Array.from(row.cells).forEach((cell, i) => {
                         if (this.selectedColumns.includes(i)) {
-                            each(this.columnRenderers, o => {
+                            this.columnRenderers.forEach(options => {
                                 if (options.columns.includes(i)) {
                                     cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
                                 }
@@ -725,7 +707,7 @@ export class DataTable {
         this.table.innerHTML = this.initialLayout
 
         // Remove the className
-        classList.remove(this.table, "dataTable-table")
+        this.table.classList.remove("dataTable-table")
 
         // Remove the containers
         this.wrapper.parentNode.replaceChild(this.table, this.wrapper)
@@ -738,7 +720,7 @@ export class DataTable {
      * @return {Void}
      */
     update() {
-        classList.remove(this.wrapper, "dataTable-empty")
+        this.wrapper.classList.remove("dataTable-empty")
 
         this.paginate(this)
         this.render("page")
@@ -771,9 +753,7 @@ export class DataTable {
         if (this.searching) {
             rows = []
 
-            each(this.searchData, function (index) {
-                rows.push(this.activeRows[index])
-            }, this)
+            this.searchData.forEach(index => rows.push(this.activeRows[index]))
         }
 
         if (this.options.paging) {
@@ -816,11 +796,11 @@ export class DataTable {
                 }
 
                 // Reset widths
-                each(this.activeHeadings, cell => {
+                this.activeHeadings.forEach(cell => {
                     cell.style.width = ""
-                }, this)
+                })
 
-                each(this.activeHeadings, function (cell, i) {
+                this.activeHeadings.forEach((cell, i) => {
                     const ow = cell.offsetWidth
                     const w = ow / this.rect.width * 100
                     cell.style.width = `${w}%`
@@ -833,7 +813,7 @@ export class DataTable {
                         th.style.paddingBottom = "0"
                         th.style.border = "0"
                     }
-                }, this)
+                })
 
                 if (this.options.scrollY.length) {
                     const container = this.table.parentElement
@@ -866,8 +846,7 @@ export class DataTable {
                 // Make temperary headings
                 hd = createElement("thead")
                 const r = createElement("tr")
-                const c = this.table.tBodies[0].rows[0].cells
-                each(c, () => {
+                Array.from(this.table.tBodies[0].rows[0].cells).forEach(() => {
                     const th = createElement("th")
                     r.appendChild(th)
                     cells.push(th)
@@ -877,19 +856,19 @@ export class DataTable {
                 this.table.insertBefore(hd, this.body)
 
                 const widths = []
-                each(cells, function (cell, i) {
+                cells.forEach((cell, i) => {
                     const ow = cell.offsetWidth
                     const w = ow / this.rect.width * 100
                     widths.push(w)
                     this.columnWidths[i] = ow
-                }, this)
+                })
 
-                each(this.data, function (row) {
-                    each(row.cells, function (cell, i) {
+                this.data.forEach(row => {
+                    Array.from(row.cells).forEach((cell, i) => {
                         if (this.columns(cell.cellIndex).visible())
                             cell.style.width = `${widths[i]}%`
-                    }, this)
-                }, this)
+                    })
+                })
 
                 // Discard the temp header
                 this.table.removeChild(hd)
@@ -927,13 +906,13 @@ export class DataTable {
             this.searching = false
             this.update()
             this.emit("datatable.search", query, this.searchData)
-            classList.remove(this.wrapper, "search-results")
+            this.wrapper.classList.remove("search-results")
             return false
         }
 
         this.clear()
 
-        each(this.data, function (row, idx) {
+        this.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
@@ -964,12 +943,12 @@ export class DataTable {
             } else {
                 row.searchIndex = null
             }
-        }, this)
+        })
 
-        classList.add(this.wrapper, "search-results")
+        this.wrapper.classList.add("search-results")
 
         if (!this.searchData.length) {
-            classList.remove(this.wrapper, "search-results")
+            this.wrapper.classList.remove("search-results")
 
             this.setMessage(this.options.labels.noRows)
         } else {
@@ -1025,9 +1004,8 @@ export class DataTable {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
                     const tr = createElement("tr")
-                    let th
-                    each(data.headings, heading => {
-                        th = createElement("th", {
+                    data.headings.forEach(heading => {
+                        const th = createElement("th", {
                             html: heading
                         })
 
@@ -1051,13 +1029,13 @@ export class DataTable {
                 }
             }
 
-            if (data.data && isArray(data.data)) {
+            if (data.data && Array.isArray(data.data)) {
                 rows = data.data
             }
-        } else if (isArray(data)) {
-            each(data, row => {
+        } else if (Array.isArray(data)) {
+            data.forEach(row => {
                 const r = []
-                each(row, (cell, heading) => {
+                Object.entries(row).forEach(([heading, cell]) => {
 
                     const index = this.labels.indexOf(heading)
 
@@ -1103,7 +1081,7 @@ export class DataTable {
      */
     clear(html) {
         if (this.body) {
-            flush(this.body, this.isIE)
+            flush(this.body)
         }
 
         let parent = this.body
@@ -1158,7 +1136,10 @@ export class DataTable {
             return false
         }
 
-        const options = extend(defaults, userOptions)
+        const options = {
+            ...defaults,
+            ...userOptions
+        }
 
         if (options.type) {
             if (options.type === "txt" || options.type === "csv") {
@@ -1171,7 +1152,7 @@ export class DataTable {
                 // Page number
                 if (!isNaN(options.selection)) {
                     rows = rows.concat(this.pages[options.selection - 1])
-                } else if (isArray(options.selection)) {
+                } else if (Array.isArray(options.selection)) {
                     // Array of page numbers
                     for (i = 0; i < options.selection.length; i++) {
                         rows = rows.concat(this.pages[options.selection[i] - 1])
@@ -1327,10 +1308,10 @@ export class DataTable {
 
     /**
      * Import data to the table
-     * @param  {Object} options User options
+     * @param  {Object} userOptions User options
      * @return {Boolean}
      */
-    import(options) {
+    import(userOptions) {
         let obj = false
         const defaults = {
             // csv
@@ -1339,11 +1320,14 @@ export class DataTable {
         }
 
         // Check for the options object
-        if (!isObject(options)) {
+        if (!isObject(userOptions)) {
             return false
         }
 
-        options = extend(defaults, options)
+        const options = {
+            ...defaults,
+            ...userOptions
+        }
 
         if (options.data.length || isObject(options.data)) {
             // Import CSV
@@ -1363,14 +1347,14 @@ export class DataTable {
                         rows.shift()
                     }
 
-                    each(rows, (row, i) => {
+                    rows.forEach((row, i) => {
                         obj.data[i] = []
 
                         // Split the rows into values
                         const values = row.split(options.columnDelimiter)
 
                         if (values.length) {
-                            each(values, value => {
+                            values.forEach(value => {
                                 obj.data[i].push(value)
                             })
                         }
@@ -1386,9 +1370,9 @@ export class DataTable {
                         data: []
                     }
 
-                    each(json, (data, i) => {
+                    json.forEach((data, i) => {
                         obj.data[i] = []
-                        each(data, (value, column) => {
+                        Object.entries(data).forEach(([column, value]) => {
                             if (!obj.headings.includes(column)) {
                                 obj.headings.push(column)
                             }
@@ -1426,7 +1410,7 @@ export class DataTable {
         const tbody = createElement("tbody")
 
         const tr = createElement("tr")
-        each(headings, th => {
+        headings.forEach(th => {
             tr.appendChild(
                 createElement("th", {
                     html: th.textContent
@@ -1436,9 +1420,9 @@ export class DataTable {
 
         thead.appendChild(tr)
 
-        each(rows, row => {
+        rows.forEach(row => {
             const tr = createElement("tr")
-            each(row.cells, cell => {
+            Array.from(row.cells).forEach(cell => {
                 tr.appendChild(
                     createElement("td", {
                         html: cell.textContent
@@ -1474,7 +1458,7 @@ export class DataTable {
             colspan = this.activeHeadings.length
         }
 
-        classList.add(this.wrapper, "dataTable-empty")
+        this.wrapper.classList.add("dataTable-empty")
 
         if (this.label) {
             this.label.innerHTML = ""

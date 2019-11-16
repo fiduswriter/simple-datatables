@@ -1,4 +1,4 @@
-import {each, createElement} from "./helpers"
+import {createElement} from "./helpers"
 
 /**
  * Parse data to HTML table
@@ -12,7 +12,7 @@ export const dataToTable = function (data) {
     if (data.headings) {
         thead = createElement("thead")
         const tr = createElement("tr")
-        each(data.headings, col => {
+        data.headings.forEach(col => {
             const td = createElement("th", {
                 html: col
             })
@@ -24,7 +24,7 @@ export const dataToTable = function (data) {
 
     if (data.data && data.data.length) {
         tbody = createElement("tbody")
-        each(data.data, rows => {
+        data.data.forEach(rows => {
             if (data.headings) {
                 if (data.headings.length !== rows.length) {
                     throw new Error(
@@ -33,7 +33,7 @@ export const dataToTable = function (data) {
                 }
             }
             const tr = createElement("tr")
-            each(rows, value => {
+            rows.forEach(value => {
                 const td = createElement("td", {
                     html: value
                 })

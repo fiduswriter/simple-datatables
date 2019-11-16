@@ -1,4 +1,4 @@
-import {isArray, each, createElement} from "./helpers"
+import {createElement} from "./helpers"
 /**
  * Rows API
  * @param {Object} instance DataTable instance
@@ -26,7 +26,7 @@ export class Rows {
             headings = row.map(() => "")
         }
 
-        each(headings, (h, i) => {
+        headings.forEach((h, i) => {
             const td = createElement("td")
 
             // Fixes #29
@@ -53,13 +53,13 @@ export class Rows {
      * @param {Array} select
      */
     add(data) {
-        if (isArray(data)) {
+        if (Array.isArray(data)) {
             const dt = this.dt
             // Check for multiple rows
-            if (isArray(data[0])) {
-                each(data, function (row) {
+            if (Array.isArray(data[0])) {
+                data.forEach(row => {
                     dt.data.push(this.build(row))
-                }, this)
+                })
             } else {
                 dt.data.push(this.build(data))
             }
@@ -85,11 +85,11 @@ export class Rows {
     remove(select) {
         const dt = this.dt
 
-        if (isArray(select)) {
+        if (Array.isArray(select)) {
             // Remove in reverse otherwise the indexes will be incorrect
             select.sort((a, b) => b - a)
 
-            each(select, row => {
+            select.forEach(row => {
                 dt.data.splice(row, 1)
             })
         } else {
@@ -110,7 +110,7 @@ export class Rows {
      * @return {Void}
      */
     update() {
-        each(this.dt.data, (row, i) => {
+        this.dt.data.forEach((row, i) => {
             row.dataIndex = i
         })
     }
