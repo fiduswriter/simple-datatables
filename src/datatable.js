@@ -333,7 +333,6 @@ export class DataTable {
 
         // Pager(s) placement
         template = template.replace(/\{pager\}/g, w.outerHTML)
-
         this.wrapper.innerHTML = template
 
         this.container = this.wrapper.querySelector(".dataTable-container")
@@ -469,7 +468,7 @@ export class DataTable {
             const c = "pager"
             const frag = document.createDocumentFragment()
             const prev = this.onFirstPage ? 1 : this.currentPage - 1
-            const next = this.onlastPage ? this.totalPages : this.currentPage + 1
+            const next = this.onLastPage ? this.totalPages : this.currentPage + 1
 
             // first button
             if (this.options.firstLast) {
@@ -1054,7 +1053,7 @@ export class DataTable {
         }
 
         this.update()
-
+        this.setColumns()
         this.fixColumns()
     }
 
