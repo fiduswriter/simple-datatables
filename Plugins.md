@@ -11,31 +11,23 @@ A `destroy()` method is preferred as well so the end-user can kill the plugin as
 Example plugin:
 
 ```javascript
-DataTable.extend("myPlugin", function(options) {
+DataTable.extend("myPlugin", options => {
 
     /**
      * Main lib
      */
-    let myPlugin = function() {
-        //
-    };
+    const class myPlugin {
+        constructor() {}
 
-    /**
-     * Init instance (required)
-     */
-    myPlugin.prototype.init = function() {
-        //
-    };
+        init() {} // init instance (required)
 
-    /**
-     * Destroy instance
-     */
-    myPlugin.prototype.destroy = function() {
-        //
-    };
+        destroy() {} // destroy instance
+    }
 
-    return new myPlugin();
-}
+    return new myPlugin()
+
+})
+
 ```
 
 Then simply enable the plugin with the `plugins` option:
