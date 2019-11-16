@@ -13,11 +13,8 @@ Example plugin:
 ```javascript
 DataTable.extend("myPlugin", options => {
 
-    /**
-     * Main lib
-     */
     const class myPlugin {
-        constructor() {}
+        constructor() {} // main lib
 
         init() {} // init instance (required)
 
