@@ -19,7 +19,15 @@ export class DataTable {
         // user options
         this.options = {
             ...defaultConfig,
-            ...options
+            ...options,
+            layout: {
+                ...defaultConfig.layout,
+                ...options.layout
+            },
+            labels: {
+                ...defaultConfig.labels,
+                ...options.labels
+            }
         }
 
         if (typeof table === "string") {
