@@ -831,7 +831,14 @@ export class DataTable {
                     this.headerTable.tHead = thd
 
                     // Compensate for scrollbars.
-                    this.headerTable.style.paddingRight = `${this.headerTable.clientWidth - this.table.clientWidth}px`
+                    this.headerTable.parentElement.style.paddingRight = `${
+                        this.headerTable.clientWidth -
+                        this.table.clientWidth +
+                        parseInt(
+                            this.headerTable.parentElement.style.paddingRight ||
+                            '0'
+                        )
+                    }px`
 
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
