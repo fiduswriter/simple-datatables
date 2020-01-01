@@ -1,4 +1,4 @@
-import {isArray, each, classList, sortItems} from "./helpers"
+import {sortItems} from "./helpers"
 
 /**
  * Columns API
@@ -20,7 +20,7 @@ export class Columns {
             const cols = []
 
             // Get the current column indexes
-            each(this.dt.headings, (h, i) => {
+            this.dt.headings.forEach((h, i) => {
                 cols.push(i)
             })
 
@@ -57,7 +57,7 @@ export class Columns {
         const dt = this.dt
 
         // Order the headings
-        each(columns, (column, x) => {
+        columns.forEach((column, x) => {
             h = dt.headings[column]
             s = h.getAttribute("data-sortable") !== "false"
             a = h.cloneNode(true)
@@ -76,7 +76,7 @@ export class Columns {
         })
 
         // Order the row cells
-        each(dt.data, (row, i) => {
+        dt.data.forEach((row, i) => {
             c = row.cloneNode(false)
             d = row.cloneNode(false)
 
@@ -87,7 +87,7 @@ export class Columns {
             }
 
             // Append the cell to the fragment in the correct order
-            each(columns, column => {
+            columns.forEach(column => {
                 cell = row.cells[column].cloneNode(true)
                 cell.data = row.cells[column].data
                 c.appendChild(cell)
@@ -121,7 +121,7 @@ export class Columns {
         if (columns.length) {
             const dt = this.dt
 
-            each(columns, column => {
+            columns.forEach(column => {
                 if (!dt.hiddenColumns.includes(column)) {
                     dt.hiddenColumns.push(column)
                 }
@@ -140,7 +140,7 @@ export class Columns {
             let index
             const dt = this.dt
 
-            each(columns, column => {
+            columns.forEach(column => {
                 index = dt.hiddenColumns.indexOf(column)
                 if (index > -1) {
                     dt.hiddenColumns.splice(index, 1)
@@ -163,9 +163,9 @@ export class Columns {
 
         if (!isNaN(columns)) {
             cols = !dt.hiddenColumns.includes(columns)
-        } else if (isArray(columns)) {
+        } else if (Array.isArray(columns)) {
             cols = []
-            each(columns, column => {
+            columns.forEach(column => {
                 cols.push(!dt.hiddenColumns.includes(column))
             })
         }
@@ -202,7 +202,7 @@ export class Columns {
 
         this.dt.headings.push(th)
 
-        each(this.dt.data, (row, i) => {
+        this.dt.data.forEach((row, i) => {
             if (data.data[i]) {
                 td = document.createElement("td")
 
@@ -245,17 +245,14 @@ export class Columns {
      * @return {Void}
      */
     remove(select) {
-        if (isArray(select)) {
+        if (Array.isArray(select)) {
             // Remove in reverse otherwise the indexes will be incorrect
             select.sort((a, b) => b - a)
-
-            each(select, function (column) {
-                this.remove(column)
-            }, this)
+            select.forEach(column => this.remove(column))
         } else {
             this.dt.headings.splice(select, 1)
 
-            each(this.dt.data, row => {
+            this.dt.data.forEach(row => {
                 row.removeChild(row.cells[select])
             })
         }
@@ -322,7 +319,7 @@ export class Columns {
 
             /* Sort according to direction (ascending or descending) */
             if (!dir) {
-                if (classList.contains(th, "asc")) {
+                if (th.classList.contains("asc")) {
                     dir = "desc"
                 } else {
                     dir = "asc"
@@ -333,19 +330,19 @@ export class Columns {
             if (dir == "desc") {
                 top = sortItems(alpha, -1)
                 btm = sortItems(numeric, -1)
-                classList.remove(th, "asc")
-                classList.add(th, "desc")
+                th.classList.remove("asc")
+                th.classList.add("desc")
             } else {
                 top = sortItems(numeric, 1)
                 btm = sortItems(alpha, 1)
-                classList.remove(th, "desc")
-                classList.add(th, "asc")
+                th.classList.remove("desc")
+                th.classList.add("asc")
             }
 
             /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
             if (dt.lastTh && th != dt.lastTh) {
-                classList.remove(dt.lastTh, "desc")
-                classList.remove(dt.lastTh, "asc")
+                dt.lastTh.classList.remove("desc")
+                dt.lastTh.classList.remove("asc")
             }
 
             dt.lastTh = th
@@ -356,13 +353,13 @@ export class Columns {
             dt.data = []
             const indexes = []
 
-            each(rows, (v, i) => {
+            rows.forEach((v, i) => {
                 dt.data.push(v.row)
 
                 if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
                     indexes.push(i)
                 }
-            }, dt)
+            })
 
             dt.searchData = indexes
 
@@ -391,16 +388,16 @@ export class Columns {
         dt.activeRows = []
         dt.activeHeadings = []
 
-        each(dt.headings, (th, i) => {
+        dt.headings.forEach((th, i) => {
             th.originalCellIndex = i
             th.sortable = th.getAttribute("data-sortable") !== "false"
             if (!dt.hiddenColumns.includes(i)) {
                 dt.activeHeadings.push(th)
             }
-        }, this)
+        })
 
         // Loop over the rows and reorder the cells
-        each(dt.data, (row, i) => {
+        dt.data.forEach((row, i) => {
             a = row.cloneNode(false)
             b = row.cloneNode(false)
 
@@ -411,7 +408,7 @@ export class Columns {
             }
 
             // Append the cell to the fragment in the correct order
-            each(row.cells, cell => {
+            Array.from(row.cells).forEach(cell => {
                 c = cell.cloneNode(true)
                 c.data = cell.data
                 a.appendChild(c)
