@@ -836,7 +836,8 @@ export class DataTable {
                         this.table.clientWidth +
                         parseInt(
                             this.headerTable.parentElement.style.paddingRight ||
-                            '0'
+                            '0',
+                            10
                         )
                     }px`
 
