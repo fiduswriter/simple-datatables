@@ -294,7 +294,6 @@ export class Columns {
             if (formatted) {
                 format = th.getAttribute("data-format")
             }
-            
             waitFor.push(parseFunction = content => parseDate(content, format));
         }
 
