@@ -1,4 +1,5 @@
 import {sortItems} from "./helpers"
+import {parseDate} from "./date"
 
 /**
  * Columns API
@@ -293,9 +294,8 @@ export class Columns {
             if (formatted) {
                 format = th.getAttribute("data-format")
             }
-            waitFor.push(import("./date").then(({parseDate}) => {
-                parseFunction = content => parseDate(content, format)
-            }))
+            
+            waitFor.push(parseFunction = content => parseDate(content, format));
         }
 
         Promise.all(waitFor).then(() => {
