@@ -271,7 +271,7 @@ export class Columns {
         const dt = this.dt
 
         // Creates a internal state for the filter
-        // if filter was passed in as a parameter or if the filter is different than before
+        // only if filter was passed in as a parameter or if the filter is different than before
         if (
             (Array.isArray(terms) && !dt.filterState) ||
                 (dt.filterState && dt.filterState.filterTerms.every(e => terms.includes(e)))
@@ -289,7 +289,6 @@ export class Columns {
         }
 
         const term = dt.filterState.nextTerm()
-        console.log(term)
         let filteredRows;
         if (term === '') {
             filteredRows = dt.filterState.originalData
