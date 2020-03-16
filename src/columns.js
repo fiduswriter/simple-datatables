@@ -261,6 +261,55 @@ export class Columns {
     }
 
     /**
+     * Filter by column
+     * @param  {int} column - The column no.
+     * @param  {string} dir - asc or desc
+     * @filter {array} filter - optional parameter with a list of strings
+     * @return {void}
+     */
+    filter(column, dir, init, terms) {
+        const dt = this.dt
+
+        // Creates a internal state for the filter
+        // only if filter was passed in as a parameter or if the filter is different than before
+        if (
+            (Array.isArray(terms) && !dt.filterState) ||
+                (dt.filterState && dt.filterState.filterTerms.every(e => terms.includes(e)))
+        ) {
+            const filterTerms = [...terms, '']
+            dt.filterState = {
+                originalData: dt.data,
+                filterTerms,
+                nextTerm: (
+                    function() {
+                        let i = 0;
+                        return () => filterTerms[i++ % (terms.length + 1)]
+                    }())
+            };
+        }
+
+        const term = dt.filterState.nextTerm()
+        let filteredRows;
+        if (term === '') {
+            filteredRows = dt.filterState.originalData
+        } else {
+            filteredRows = Array.from(dt.filterState.originalData).filter(tr => {
+                const cell = tr.cells[column]
+                const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText;
+                return content === term;
+            })
+        }
+        dt.data = filteredRows
+        this.rebuild()
+        dt.update()
+        if (!init) {
+            dt.emit("datatable.sort", column, dir)
+        }
+
+        return term
+    }
+
+    /**
      * Sort by column
      * @param  {int} column - The column no.
      * @param  {string} dir - asc or desc
@@ -272,6 +321,14 @@ export class Columns {
         // Check column is present
         if (dt.hasHeadings && (column < 0 || column > dt.headings.length)) {
             return false
+        }
+
+        //If there is a filter for this column, apply it instead of sorting
+        const filterTerms = dt.options.filters &&
+              dt.options.filters[dt.headings[column].textContent]
+        if ( filterTerms && filterTerms.length !== 0 ) {
+            this.filter(column, dir, init, filterTerms)
+            return;
         }
 
         dt.sorting = true
