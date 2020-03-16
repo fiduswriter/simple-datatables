@@ -13,7 +13,7 @@ import {
 
 
 export class DataTable {
-    constructor(table, options) {
+    constructor(table, options = {}) {
         this.initialized = false
 
         // user options
