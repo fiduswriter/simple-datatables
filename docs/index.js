@@ -1,7 +1,3 @@
-import {
-    DataTable
-} from "../src"
-
 const t = document.createElement('table')
 const data = {
     "headings": [
@@ -136,9 +132,7 @@ const data = {
 
 document.body.appendChild(t)
 
-const log = []
-let testName
-window.dt = new DataTable(t, {
+window.dt = new simpleDatatables.DataTable(t, {
     data,
     filters: {"Job": ["Assistant", "Manager"]},
     columns: [
