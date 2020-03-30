@@ -134,7 +134,7 @@
                      "Caleb X. Finch",
 	                 "Assistant",
                      "Elit Associates",
-                     "3629",
+                     "7079",
                      "09/19/2016",
                      "condimentum@eleifend.com",
                      "056 1551 7431"
@@ -145,7 +145,10 @@
          document.body.appendChild(t);
          const config = {
              data,
-             filters: {"Job": ["Assistant", "Manager"]},
+             filters: {"Job": ["Assistant", "Manager"],
+                       "Email": [e => e.endsWith('.edu'), e => e.endsWith('.com')],
+                       "Ext.": [e => e > 6000]},
+
              columns: [{ select: 4, type: 'date', format: 'MM/DD/YYYY' }]
          };
          const dt = new simpleDatatables.DataTable(t, config);
