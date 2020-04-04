@@ -270,43 +270,43 @@ export class Columns {
     filter(column, dir, init, terms) {
         const dt = this.dt
 
-        // Creates a internal state for the filter
-        // only if filter was passed in as a parameter or if the filter is different than before
-        if (
-            (Array.isArray(terms) && !dt.filterState) ||
-                (dt.filterState && dt.filterState.filterTerms.every(e => terms.includes(e)))
-        ) {
-            const filterTerms = [...terms, '']
+        // Creates a internal state that manages filters if there are none
+        if ( !dt.filterState ) {
             dt.filterState = {
-                originalData: dt.data,
-                filterTerms,
-                nextTerm: (
-                    function() {
-                        let i = 0;
-                        return () => filterTerms[i++ % (terms.length + 1)]
-                    }())
-            };
+                originalData: dt.data
+            }
         }
 
-        const term = dt.filterState.nextTerm()
-        let filteredRows;
-        if (term === '') {
-            filteredRows = dt.filterState.originalData
-        } else {
-            filteredRows = Array.from(dt.filterState.originalData).filter(tr => {
-                const cell = tr.cells[column]
-                const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText;
-                return content === term;
-            })
+        // If that column is was not filtered yet, we need to create its state
+        if ( !dt.filterState[column] ) {
+
+            // append a filter that selects all rows, 'resetting' the filter
+            const filters = [...terms, () => true]
+
+            dt.filterState[column] = (
+                function() {
+                    let i = 0;
+                    return () => filters[i++ % (filters.length)]
+                }()
+            )
         }
+
+        // Apply the filter and rebuild table
+        const rowFilter = dt.filterState[column]() // fetches next filter
+        const filteredRows = Array.from(dt.filterState.originalData).filter(tr => {
+            const cell = tr.cells[column]
+            const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
+
+            // If the filter is a function, call it, if it is a string, compare it
+            return (typeof rowFilter) === 'function' ? rowFilter(content) : content === rowFilter;
+        })
+
         dt.data = filteredRows
         this.rebuild()
         dt.update()
         if (!init) {
             dt.emit("datatable.sort", column, dir)
         }
-
-        return term
     }
 
     /**
