@@ -343,7 +343,8 @@ export class Columns {
         const waitFor = []
 
         // Check for date format
-        if (th.getAttribute("data-type") === "date") {
+	const isDate = th.getAttribute("data-type") === "date"
+        if (isDate) {
             let format = false
             const formatted = th.hasAttribute("data-format")
 
@@ -359,7 +360,7 @@ export class Columns {
             Array.from(rows).forEach(tr => {
                 const cell = tr.cells[column]
                 const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
-                const num = parseFunction(typeof content==="string" ? content.replace(/(\$|,|\s|%)/g, "") : content)
+                const num = parseFunction(typeof content==="string" && !isDate  ? content.replace(/(\$|,|\s|%)/g, "") : content)
 
                 if (parseFloat(num) == num) {
                     numeric[n++] = {
