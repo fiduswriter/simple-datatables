@@ -16,23 +16,23 @@ export const parseDate = (content, format) => {
 
     if (format) {
         switch (format) {
-            case "ISO_8601":
-                // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
-                date = content
-                break
-            case "RFC_2822":
-                date = dayjs(content, "ddd, MM MMM YYYY HH:mm:ss ZZ").format("YYYYMMDD")
-                break
-            case "MYSQL":
-                date = dayjs(content, "YYYY-MM-DD hh:mm:ss").format("YYYYMMDD")
-                break
-            case "UNIX":
-                date = dayjs(content).unix()
-                break
-            // User defined format using the data-format attribute or columns[n].format option
-            default:
-                date = dayjs(content, format).format("YYYYMMDD")
-                break
+        case "ISO_8601":
+            // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
+            date = content
+            break
+        case "RFC_2822":
+            date = dayjs(content, "ddd, MM MMM YYYY HH:mm:ss ZZ").format("YYYYMMDD")
+            break
+        case "MYSQL":
+            date = dayjs(content, "YYYY-MM-DD hh:mm:ss").format("YYYYMMDD")
+            break
+        case "UNIX":
+            date = dayjs(content).unix()
+            break
+        // User defined format using the data-format attribute or columns[n].format option
+        default:
+            date = dayjs(content, format).format("YYYYMMDD")
+            break
         }
     }
 
