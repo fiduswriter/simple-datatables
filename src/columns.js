@@ -339,7 +339,7 @@ export class Columns {
         let a = 0
         let n = 0
         const th = dt.headings[column]
-        let parseFunction = content => content
+
         const waitFor = []
 
         // Check for date format
@@ -350,16 +350,22 @@ export class Columns {
             if (formatted) {
                 format = th.getAttribute("data-format")
             }
-            waitFor.push(import("./date").then(({parseDate}) => {
-                parseFunction = content => parseDate(content, format)
-            }))
+            waitFor.push(import("./date").then(({parseDate}) => date => parseDate(date, format)))
         }
 
-        Promise.all(waitFor).then(() => {
+        Promise.all(waitFor).then(importedFunctions => {
+            const parseFunction = importedFunctions[0] // only defined if date
             Array.from(rows).forEach(tr => {
                 const cell = tr.cells[column]
                 const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
-                const num = parseFunction(typeof content==="string" ? content.replace(/(\$|,|\s|%)/g, "") : content)
+                let num
+                if (parseFunction) {
+                    num = parseFunction(content)
+                } else if (typeof content==="string") {
+                    num = content.replace(/(\$|,|\s|%)/g, "")
+                } else {
+                    num = content
+                }
 
                 if (parseFloat(num) == num) {
                     numeric[n++] = {
