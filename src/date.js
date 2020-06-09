@@ -1,4 +1,7 @@
 import dayjs from "dayjs"
+import customParseFormat from "dayjs/plugin/customParseFormat"
+
+dayjs.extend(customParseFormat)
 
 /**
  * Use dayjs to parse cell contents for sorting
@@ -26,7 +29,7 @@ export const parseDate = (content, format) => {
         case "UNIX":
             date = dayjs(content).unix()
             break
-            // User defined format using the data-format attribute or columns[n].format option
+        // User defined format using the data-format attribute or columns[n].format option
         default:
             date = dayjs(content, format).format("YYYYMMDD")
             break
