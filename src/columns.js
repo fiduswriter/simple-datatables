@@ -332,6 +332,10 @@ export class Columns {
         }
 
         dt.sorting = true
+        
+        if (!init) {
+            dt.emit("datatable.sorting", column, dir)
+        }
 
         let rows = dt.data
         const alpha = []
