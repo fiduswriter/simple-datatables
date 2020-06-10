@@ -50,9 +50,9 @@
     "rollup-plugin-node-resolve": "^5.2.0",
     "rollup-plugin-terser": "^6.1.0",
     "systemjs": "^6.3.2",
-    "dayjs": "^1.8.28"
+    "updates": "^10.2.13"
   },
   "dependencies": {
-    "updates": "^10.2.13"
+    "dayjs": "^1.8.28"
   }
 }
