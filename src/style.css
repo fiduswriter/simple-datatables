@@ -144,7 +144,7 @@
 
 .dataTable-sorter::before {
 	border-top: 4px solid #000;
-	bottom: 10px;
+	bottom: 0px;
 }
 
 .dataTable-sorter::after {

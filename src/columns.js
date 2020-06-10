@@ -378,7 +378,7 @@ export class Columns {
                     }
                 } else {
                     alpha[a++] = {
-                        value: content,
+                        value: typeof content==="string" ? content.toLowerCase() : content,
                         row: tr
                     }
                 }

@@ -62,7 +62,7 @@ const data = {
         [
             "Ocean W. Curtis",
             "Manager",
-            "Eu Ltd",
+            "EU Ltd",
             "6868",
             "August 24 2017",
             "cursus.et@cursus.edu",
@@ -80,7 +80,7 @@ const data = {
         [
             "Robin J. Wise",
             "Manager",
-            "Curabitur Dictum PC",
+            "iCurabitur Dictum PC",
             "3285",
             "February 9 2017",
             "blandit@montesnascetur.edu",
