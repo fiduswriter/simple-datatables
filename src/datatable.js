@@ -597,7 +597,7 @@ export class DataTable {
 
         // Pager(s) / sorting
         this.wrapper.addEventListener("click", e => {
-            const t = e.target
+            const t = e.target.closest('a')
             if (t.nodeName.toLowerCase() === "a") {
                 if (t.hasAttribute("data-page")) {
                     this.page(t.getAttribute("data-page"))
