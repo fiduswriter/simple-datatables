@@ -641,6 +641,7 @@ export class DataTable {
             // Rather than adding more, creating duplicates, we build columnRenderers from scratch.
             // This is a hack solution that should be fixed later
             this.columnRenderers = [];
+            this.selectedColumns = [];
 
             this.options.columns.forEach(data => {
 
