@@ -625,6 +625,7 @@ export class DataTable {
      */
     setColumns(ajax) {
 
+        // Is this necessary? It seems to be getting done again after the next code block
         if (!ajax) {
             this.data.forEach(row => {
                 Array.from(row.cells).forEach(cell => {
@@ -635,6 +636,11 @@ export class DataTable {
 
         // Check for the columns option
         if (this.options.columns && this.headings.length) {
+
+            // This is a fix for setColumns being run when there are already columnRenderers.
+            // Rather than adding more, creating duplicates, we build columnRenderers from scratch.
+            // This is a hack solution that should be fixed later
+            this.columnRenderers = [];
 
             this.options.columns.forEach(data => {
 
