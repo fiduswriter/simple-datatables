@@ -637,11 +637,15 @@ export class DataTable {
         // Check for the columns option
         if (this.options.columns && this.headings.length) {
 
-            // This is a fix for setColumns being run when there are already columnRenderers.
-            // Rather than adding more, creating duplicates, we build columnRenderers from scratch.
-            // This is a hack solution that should be fixed later
-            this.columnRenderers = [];
-            this.selectedColumns = [];
+            // This is a fix for setColumns being run when there are already columnRenderers,
+            // selectedColumns, and/or hiddenColumns. Rather than pushing more to the arrays
+            // and creating duplicates, we reset the arrays and re-build them from scratch.
+            //
+            // This is a hack solution.  Ideally setColumns should not have to be called unless
+            // a new column is added.
+            this.columnRenderers = []
+            this.selectedColumns = []
+            this.hiddenColumns = []
 
             this.options.columns.forEach(data => {
 
