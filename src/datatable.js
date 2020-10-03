@@ -175,7 +175,7 @@ export class DataTable {
 
                         this.import(obj)
 
-                        this.setColumns(true)
+                        this.setColumns()
 
                         this.emit("datatable.ajax.success", e, xhr)
                     } else {
@@ -423,8 +423,14 @@ export class DataTable {
             const index = this.currentPage - 1
 
             const frag = document.createDocumentFragment()
+            /*
+             * This is where the rendering should happen
+             */
             this.pages[index].forEach(row => frag.appendChild(this.rows().render(row)))
 
+            /*
+             * We create a fragment, append rows to it, and then clear it? what?
+             */
             this.clear(frag)
 
             this.onFirstPage = this.currentPage === 1
@@ -623,16 +629,20 @@ export class DataTable {
      * Set up columns
      * @return {[type]} [description]
      */
-    setColumns(ajax) {
+    setColumns() {
 
-        // Is this necessary? It seems to be getting done again after the next code block
-        if (!ajax) {
-            this.data.forEach(row => {
-                Array.from(row.cells).forEach(cell => {
-                    cell.data = cell.innerHTML
-                })
-            })
-        }
+        /*
+         * We should never need to change cell.data for any cell
+         *  cell.data is set once at cell initiation and stays constant.
+         *  only cell.html should change.
+         */
+        // if (!ajax) {
+        //     this.data.forEach(row => {
+        //         Array.from(row.cells).forEach(cell => {
+        //             cell.data = cell.innerHTML
+        //         })
+        //     })
+        // }
 
         // Check for the columns option
         if (this.options.columns && this.headings.length) {
@@ -690,26 +700,36 @@ export class DataTable {
         }
 
         if (this.hasRows) {
-            this.data.forEach((row, i) => {
-                row.dataIndex = i
-                Array.from(row.cells).forEach(cell => {
-                    cell.data = cell.innerHTML
-                })
-            })
+            /*
+             * We should never need to change cell.data for any cell
+             *  cell.data is set once at cell initiation and stays constant.
+             *  only cell.html should change.
+             */
+            // this.data.forEach((row, i) => {
+            //     row.dataIndex = i
+            //     Array.from(row.cells).forEach(cell => {
+            //         cell.data = cell.innerHTML
+            //     })
+            // })
 
-            if (this.selectedColumns.length) {
-                this.data.forEach(row => {
-                    Array.from(row.cells).forEach((cell, i) => {
-                        if (this.selectedColumns.includes(i)) {
-                            this.columnRenderers.forEach(options => {
-                                if (options.columns.includes(i)) {
-                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
-                                }
-                            })
-                        }
-                    })
-                })
-            }
+            /*
+             * This code block renderss all rows, but probably shouldn't be here.
+             * Rendering should be done either at instatiation of a new cell or
+             * at page render for just the visible page.
+             */
+            // if (this.selectedColumns.length) {
+            //     this.data.forEach(row => {
+            //         Array.from(row.cells).forEach((cell, i) => {
+            //             if (this.selectedColumns.includes(i)) {
+            //                 this.columnRenderers.forEach(options => {
+            //                     if (options.columns.includes(i)) {
+            //                         cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
+            //                     }
+            //                 })
+            //             }
+            //         })
+            //     })
+            // }
 
             this.columns().rebuild()
         }
@@ -820,6 +840,10 @@ export class DataTable {
 
                 this.activeHeadings.forEach((cell, i) => {
                     const ow = cell.offsetWidth
+                    /*
+                     * this.rect.width is sometimes 0, making w = NaN.
+                     *   that can't be good.
+                     */
                     const w = ow / this.rect.width * 100
                     cell.style.width = `${w}%`
                     this.columnWidths[i] = ow
@@ -884,6 +908,8 @@ export class DataTable {
                 const widths = []
                 cells.forEach((cell, i) => {
                     const ow = cell.offsetWidth
+
+                    /* this.rect.width can be zero. this is a problem  */
                     const w = ow / this.rect.width * 100
                     widths.push(w)
                     this.columnWidths[i] = ow

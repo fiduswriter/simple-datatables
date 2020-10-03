@@ -1,3 +1,9 @@
+/*
+ * Whenever a new row is created each cell <td> is initialized with two values:
+ *    td.data = the original supplied value (constant)
+ *    td.innerHTML = rendered from td.data
+ */
+
 import {createElement} from "./helpers"
 /**
  * Rows API

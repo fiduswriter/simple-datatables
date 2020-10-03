@@ -212,6 +212,7 @@ export class Columns {
                     td.innerHTML = data.data[i]
                 }
 
+                // :( not sure about this
                 td.data = td.innerHTML
 
                 if (data.render) {
