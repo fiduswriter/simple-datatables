@@ -61,9 +61,17 @@ export class Rows {
 
         const dt = this.dt
 
-        if (rowData.length) {
+        if (!dt.hasHeadings) {
+            throw new Error("Cannot add data to a table with no headings")
+        }
 
-            // rowData is a single row Array
+        const nHeadings = dt.headings.length
+
+        if (rowData.length === nHeadings && rowData.some(el => el.length !== nHeadings)) {
+            /* If rowData is an Array with the same length as number of headings
+             *  and at least one of its elements is not an Array with that length
+             *  then we assume this is a single row
+             */
             dt.data.push(this.build(rowData))
 
         } else {
@@ -72,11 +80,6 @@ export class Rows {
             for (const row of rowData) {
                 dt.data.push(this.build(row))
             }
-        }
-
-        // We may have added data to an empty table
-        if ( dt.data.length ) {
-            dt.hasRows = true
         }
 
         this.update()
@@ -101,11 +104,6 @@ export class Rows {
             dt.data = [];
         } else {
             dt.data.splice(select, 1)
-        }
-
-        // We may have emptied the table
-        if ( !dt.data.length ) {
-            dt.hasRows = false
         }
 
         this.update()

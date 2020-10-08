@@ -1,7 +1,7 @@
 import {Rows} from "./rows"
 import {Columns} from "./columns"
 import {defaultConfig} from "./config"
-import {makeHTMLTableFromOptions} from "./table"
+import {createTable} from "./init"
 
 import {
     insert,
@@ -20,6 +20,45 @@ import {
 
 
 export class DataTable {
+    /*
+     * define any getters and setters for the DataTable object here
+     * These eliminate potential bugs coming from a developer forgetting
+     * to explicitly update the values when they change
+     */
+    get head() {
+        return this.table.tHead
+    }
+
+    get header() {
+        return this.head.rows[0]
+    }
+
+    get headings() {
+        return [].slice.call(this.header.cells)
+    }
+
+    get hasHeadings() {
+        return this.head && this.head.rows.length
+    }
+
+    get body() {
+        return this.table.tBodies[0]
+    }
+
+    get foot() {
+        return this.table.tFoot
+    }
+
+    get hasRows() {
+        return this.body && (this.body.rows.length || this.data.length)
+    }
+
+    get rect() {
+        // Current table dimensions
+        return this.table.getBoundingClientRect()
+    }
+
+    // Constructor
     constructor(table, options = {}) {
         this.initialized = false
 
@@ -104,7 +143,16 @@ export class DataTable {
         this.hiddenColumns = []
         this.renderers = {}
 
-        this.render()
+        createTable(this)
+
+        if (this.options.ajax) {
+
+            this.ajaxImport(this.options.ajax)
+
+        } else if (this.options.data) {
+
+            this.insert(this.options.data)
+        }
 
         setTimeout(() => {
             this.emit("datatable.init")
@@ -146,36 +194,6 @@ export class DataTable {
 
             return false
         }
-
-        /* This code gets run once, on initiation */
-        this.makeHTMLTableFromOptions()
-
-        if (this.options.ajax) {
-
-            this.ajaxImport(this.options.ajax)
-
-        } else if (this.options.data) {
-
-            this.insert(this.options.data)
-        }
-
-        if (this.hasHeadings) {
-            // Sortable
-            this.render("header")
-        }
-
-
-        // Update
-        this.update()
-
-        // Fix height
-        this.fixHeight()
-
-        // Fix columns
-        this.fixColumns()
-
-
-        this.bindEvents()
     }
 
     /**
@@ -341,63 +359,6 @@ export class DataTable {
         }
 
         this.fixColumns()
-    }
-
-    /**
-     * Bind event listeners
-     * @return {[type]} [description]
-     */
-    bindEvents() {
-        const options = this.options
-        // Per page selector
-        if (options.perPageSelect) {
-            const selector = this.wrapper.querySelector(".dataTable-selector")
-            if (selector) {
-                // Change per page
-                selector.addEventListener("change", () => {
-                    options.perPage = parseInt(selector.value, 10)
-                    this.update()
-
-                    this.fixHeight()
-
-                    this.emit("datatable.perpage", options.perPage)
-                }, false)
-            }
-        }
-
-        // Search input
-        if (options.searchable) {
-            this.input = this.wrapper.querySelector(".dataTable-input")
-            if (this.input) {
-                this.input.addEventListener("keyup", () => this.search(this.input.value), false)
-            }
-        }
-
-        // Pager(s) / sorting
-        this.wrapper.addEventListener("click", e => {
-            const t = e.target.closest('a')
-            if (!t) {
-                return;
-            }
-            if (t.nodeName.toLowerCase() === "a") {
-                if (t.hasAttribute("data-page")) {
-                    this.page(t.getAttribute("data-page"))
-                    e.preventDefault()
-                } else if (
-                    options.sortable &&
-                    t.classList.contains("dataTable-sorter") &&
-                    t.parentNode.getAttribute("data-sortable") != "false"
-                ) {
-                    this.columns().sort(this.headings.indexOf(t.parentNode))
-                    e.preventDefault()
-                }
-            }
-        }, false)
-
-        window.addEventListener("resize", () => {
-            this.rect = this.container.getBoundingClientRect()
-            this.fixColumns()
-        })
     }
 
     /**
@@ -909,4 +870,3 @@ DataTable.prototype.import = importData
 DataTable.prototype.export = exportData
 DataTable.prototype.print = print
 DataTable.prototype.ajaxImport = ajaxImport
-DataTable.prototype.makeHTMLTableFromOptions = makeHTMLTableFromOptions

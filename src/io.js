@@ -57,16 +57,12 @@ export const insert = function(data) {
                 })
                 this.head.appendChild(tr)
 
-                this.header = tr
-                this.headings = [].slice.call(tr.cells)
-                this.hasHeadings = true
-
                 // Re-enable sorting if it was disabled due
                 // to missing header
                 this.options.sortable = this.initialSortable
 
                 // Allow sorting on new header
-                // this.render("header")
+                this.render("header")
 
                 // Activate newly added headings
                 this.activeHeadings = this.headings.slice()
@@ -114,13 +110,18 @@ export const insert = function(data) {
     if (newRows) {
         this.rows().add(newRows)
     }
+
     this.update()
+    // Fix height
+    this.fixHeight()
+
+    // Fix columns
     this.fixColumns()
 }
 
 
 /**
- * Import data to the table
+ * Import data to the table (this is DataTable.import)
  * @param  {Object} userOptions User options
  * @return {Boolean}
  */
@@ -143,8 +144,11 @@ export const importData = function(userOptions) {
     }
 
     if (options.data.length || isObject(options.data)) {
-        // Import CSV
-        if (options.type === "csv") {
+
+        if (isObject(options.data)) {
+            obj = options.data
+
+        } else if (options.type === "csv") {
             obj = {
                 data: []
             }
@@ -198,11 +202,7 @@ export const importData = function(userOptions) {
             }
         }
 
-        if (isObject(options.data)) {
-            obj = options.data
-        }
-
-        if (obj) {
+        if (isObject(obj)) {
             // Add the rows
             this.insert(obj)
         }
@@ -214,7 +214,8 @@ export const importData = function(userOptions) {
 
 /**
  * Implements the ajax option for importing data into a new dataTable
- * @param  {Object} ajax [description]
+ * @param {Object} ajax -- an ajax options object
+ * @param {Function} [callback] -- a function to call after the import is done
  */
 export const ajaxImport = function(ajax) {
     const xhr = new XMLHttpRequest()
