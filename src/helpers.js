@@ -20,6 +20,19 @@ export const isJson = str => {
 }
 
 /**
+ * Check if a given object is iterable (if can we for-loop through it)
+ * @param  {Object} obj
+ * @return {Boolean}
+ */
+export const isIterable = obj => {
+    // checks for null and undefined
+    if (obj === null) {
+        return false;
+    }
+    return typeof obj[Symbol.iterator] === 'function';
+}
+
+/**
  * Create DOM element node
  * @param  {String}   nodeName nodeName
  * @param  {Object}   attrs properties and attributes

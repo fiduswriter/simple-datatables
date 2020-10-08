@@ -1,10 +1,10 @@
 /*
  * Whenever a new row is created each cell <td> is initialized with two values:
- *    td.data = the original supplied value (constant)
- *    td.innerHTML = rendered from td.data
+ *    td.data = the original supplied Object (this value should not change)
+ *    td.innerHTML = String rendered from td.data
  */
 
-import {createElement} from "./helpers"
+import {createElement, isIterable} from "./helpers"
 /**
  * Rows API
  * @param {Object} instance DataTable instance
@@ -20,7 +20,7 @@ export class Rows {
 
     /**
      * Build a new row
-     * @param  {Array} row
+     * @param  {Array} row -- An Array of objects
      * @return {HTMLElement}
      */
     build(row) {
@@ -35,14 +35,10 @@ export class Rows {
         headings.forEach((h, i) => {
             const td = createElement("td")
 
-            // Fixes #29
-            if (!row[i] || !row[i].length) {
-                row[i] = ""
-            }
-
-            td.innerHTML = row[i]
-
             td.data = row[i]
+
+            const renderer = this.dt.renderers[i]
+            td.innerHTML = renderer? renderer.call(this, td.data, td, tr) : td.data
 
             tr.appendChild(td)
         })
@@ -55,49 +51,52 @@ export class Rows {
     }
 
     /**
-     * Add new row
-     * @param {Array} select
+     * Add new row(s) to this DataTable
+     * @param {Iterable} rowData -- A single row (Array) or an Iterable of rows
      */
-    add(data) {
-        if (Array.isArray(data)) {
-            const dt = this.dt
-            // Check for multiple rows
-            if (Array.isArray(data[0])) {
-                data.forEach(row => {
-                    dt.data.push(this.build(row))
-                })
-            } else {
-                dt.data.push(this.build(data))
-            }
-
-            // We may have added data to an empty table
-            if ( dt.data.length ) {
-                dt.hasRows = true
-            }
-
-
-            this.update()
-
-            dt.columns().rebuild()
+    add(rowData) {
+        if (!isIterable(rowData)) {
+            throw new TypeError("rowData must be an Array or iterable")
         }
+
+        const dt = this.dt
+
+        if (rowData.length) {
+
+            // rowData is a single row Array
+            dt.data.push(this.build(rowData))
+
+        } else {
+
+            // rowData is an iterable of row Arrays
+            for (const row of rowData) {
+                dt.data.push(this.build(row))
+            }
+        }
+
+        // We may have added data to an empty table
+        if ( dt.data.length ) {
+            dt.hasRows = true
+        }
+
+        this.update()
+        dt.columns().rebuild()
 
     }
 
     /**
      * Remove row(s)
-     * @param  {Array|Number} select
-     * @return {Void}
+     * @param  {Iterable|Number} select -- An index (Number) or iterable of indexes of rows to remove
      */
     remove(select) {
         const dt = this.dt
 
-        if (Array.isArray(select)) {
-            // Remove in reverse otherwise the indexes will be incorrect
-            select.sort((a, b) => b - a)
+        if (isIterable(select)) {
+            for (const idx of select) {
+                dt.data[idx] = null
+            }
+            dt.data = dt.data.filter(el => el)
 
-            select.forEach(row => {
-                dt.data.splice(row, 1)
-            })
         } else if (select == 'all') {
             dt.data = [];
         } else {

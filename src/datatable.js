@@ -1,10 +1,17 @@
 import {Rows} from "./rows"
 import {Columns} from "./columns"
-import {dataToTable} from "./table"
 import {defaultConfig} from "./config"
+import {makeHTMLTableFromOptions} from "./table"
+
 import {
-    isObject,
-    isJson,
+    insert,
+    importData,
+    ajaxImport,
+    exportData,
+    print
+} from "./io.js"
+
+import {
     createElement,
     flush,
     button,
@@ -95,8 +102,7 @@ export class DataTable {
         this.onFirstPage = true
 
         this.hiddenColumns = []
-        this.columnRenderers = []
-        this.selectedColumns = []
+        this.renderers = {}
 
         this.render()
 
@@ -141,187 +147,16 @@ export class DataTable {
             return false
         }
 
-        const options = this.options
-        let template = ""
+        /* This code gets run once, on initiation */
+        this.makeHTMLTableFromOptions()
 
-        // Convert data to HTML
-        if (options.data) {
-            dataToTable.call(this)
-        }
+        if (this.options.ajax) {
 
-        if (options.ajax) {
-            const ajax = options.ajax
-            const xhr = new XMLHttpRequest()
+            this.ajaxImport(this.options.ajax)
 
-            const xhrProgress = e => {
-                this.emit("datatable.ajax.progress", e, xhr)
-            }
+        } else if (this.options.data) {
 
-            const xhrLoad = e => {
-                if (xhr.readyState === 4) {
-                    this.emit("datatable.ajax.loaded", e, xhr)
-
-                    if (xhr.status === 200) {
-                        const obj = {}
-                        obj.data = ajax.load ? ajax.load.call(this, xhr) : xhr.responseText
-
-                        obj.type = "json"
-
-                        if (ajax.content && ajax.content.type) {
-                            obj.type = ajax.content.type
-
-                            Object.assign(obj, ajax.content)
-                        }
-
-                        this.import(obj)
-
-                        this.setColumns()
-
-                        this.emit("datatable.ajax.success", e, xhr)
-                    } else {
-                        this.emit("datatable.ajax.error", e, xhr)
-                    }
-                }
-            }
-
-            const xhrFailed = e => {
-                this.emit("datatable.ajax.error", e, xhr)
-            }
-
-            const xhrCancelled = e => {
-                this.emit("datatable.ajax.abort", e, xhr)
-            }
-
-            xhr.addEventListener("progress", xhrProgress, false)
-            xhr.addEventListener("load", xhrLoad, false)
-            xhr.addEventListener("error", xhrFailed, false)
-            xhr.addEventListener("abort", xhrCancelled, false)
-
-            this.emit("datatable.ajax.loading", xhr)
-
-            xhr.open("GET", typeof ajax === "string" ? options.ajax : options.ajax.url)
-            xhr.send()
-        }
-
-        // Store references
-        this.body = this.table.tBodies[0]
-        this.head = this.table.tHead
-        this.foot = this.table.tFoot
-
-        if (!this.body) {
-            this.body = createElement("tbody")
-
-            this.table.appendChild(this.body)
-        }
-
-        this.hasRows = this.body.rows.length > 0
-
-        // Make a tHead if there isn't one (fixes #8)
-        if (!this.head) {
-            const h = createElement("thead")
-            const t = createElement("tr")
-
-            if (this.hasRows) {
-                Array.from(this.body.rows[0].cells).forEach(() => {
-                    t.appendChild(createElement("th"))
-                })
-
-                h.appendChild(t)
-            }
-
-            this.head = h
-
-            this.table.insertBefore(this.head, this.body)
-
-            this.hiddenHeader = !options.ajax
-        }
-
-        this.headings = []
-        this.hasHeadings = this.head.rows.length > 0
-
-        if (this.hasHeadings) {
-            this.header = this.head.rows[0]
-            this.headings = [].slice.call(this.header.cells)
-        }
-
-        // Header
-        if (!options.header) {
-            if (this.head) {
-                this.table.removeChild(this.table.tHead)
-            }
-        }
-
-        // Footer
-        if (options.footer) {
-            if (this.head && !this.foot) {
-                this.foot = createElement("tfoot", {
-                    html: this.head.innerHTML
-                })
-                this.table.appendChild(this.foot)
-            }
-        } else {
-            if (this.foot) {
-                this.table.removeChild(this.table.tFoot)
-            }
-        }
-
-        // Build
-        this.wrapper = createElement("div", {
-            class: "dataTable-wrapper dataTable-loading"
-        })
-
-        // Template for custom layouts
-        template += "<div class='dataTable-top'>"
-        template += options.layout.top
-        template += "</div>"
-        if (options.scrollY.length) {
-            template += `<div class='dataTable-container' style='height: ${options.scrollY}; overflow-Y: auto;'></div>`
-        } else {
-            template += "<div class='dataTable-container'></div>"
-        }
-        template += "<div class='dataTable-bottom'>"
-        template += options.layout.bottom
-        template += "</div>"
-
-        // Info placement
-        template = template.replace("{info}", options.paging ? "<div class='dataTable-info'></div>" : "")
-
-        // Per Page Select
-        if (options.paging && options.perPageSelect) {
-            let wrap = "<div class='dataTable-dropdown'><label>"
-            wrap += options.labels.perPage
-            wrap += "</label></div>"
-
-            // Create the select
-            const select = createElement("select", {
-                class: "dataTable-selector"
-            })
-
-            // Create the options
-            options.perPageSelect.forEach(val => {
-                const selected = val === options.perPage
-                const option = new Option(val, val, selected, selected)
-                select.add(option)
-            })
-
-            // Custom label
-            wrap = wrap.replace("{select}", select.outerHTML)
-
-            // Selector placement
-            template = template.replace("{select}", wrap)
-        } else {
-            template = template.replace("{select}", "")
-        }
-
-        // Searchable
-        if (options.searchable) {
-            const form =
-                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${options.labels.placeholder}' type='text'></div>`
-
-            // Search input placement
-            template = template.replace("{search}", form)
-        } else {
-            template = template.replace("{search}", "")
+            this.insert(this.options.data)
         }
 
         if (this.hasHeadings) {
@@ -329,44 +164,9 @@ export class DataTable {
             this.render("header")
         }
 
-        // Add table class
-        this.table.classList.add("dataTable-table")
-
-        // Paginator
-        const w = createElement("div", {
-            class: "dataTable-pagination"
-        })
-        const paginator = createElement("ul")
-        w.appendChild(paginator)
-
-        // Pager(s) placement
-        template = template.replace(/\{pager\}/g, w.outerHTML)
-        this.wrapper.innerHTML = template
-
-        this.container = this.wrapper.querySelector(".dataTable-container")
-
-        this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination")
-
-        this.label = this.wrapper.querySelector(".dataTable-info")
-
-        // Insert in to DOM tree
-        this.table.parentNode.replaceChild(this.wrapper, this.table)
-        this.container.appendChild(this.table)
-
-        // Store the table dimensions
-        this.rect = this.table.getBoundingClientRect()
-
-        // Convert rows to array for processing
-        this.data = Array.from(this.body.rows)
-        this.activeRows = this.data.slice()
-        this.activeHeadings = this.headings.slice()
 
         // Update
         this.update()
-
-        if (!options.ajax) {
-            this.setColumns()
-        }
 
         // Fix height
         this.fixHeight()
@@ -374,30 +174,6 @@ export class DataTable {
         // Fix columns
         this.fixColumns()
 
-        // Class names
-        if (!options.header) {
-            this.wrapper.classList.add("no-header")
-        }
-
-        if (!options.footer) {
-            this.wrapper.classList.add("no-footer")
-        }
-
-        if (options.sortable) {
-            this.wrapper.classList.add("sortable")
-        }
-
-        if (options.searchable) {
-            this.wrapper.classList.add("searchable")
-        }
-
-        if (options.fixedHeight) {
-            this.wrapper.classList.add("fixed-height")
-        }
-
-        if (options.fixedColumns) {
-            this.wrapper.classList.add("fixed-columns")
-        }
 
         this.bindEvents()
     }
@@ -423,14 +199,10 @@ export class DataTable {
             const index = this.currentPage - 1
 
             const frag = document.createDocumentFragment()
-            /*
-             * This is where the rendering should happen
-             */
-            this.pages[index].forEach(row => frag.appendChild(this.rows().render(row)))
+            const renderRow = this.rows().render
 
-            /*
-             * We create a fragment, append rows to it, and then clear it? what?
-             */
+            this.pages[index].forEach(row => frag.appendChild(renderRow(row)))
+
             this.clear(frag)
 
             this.onFirstPage = this.currentPage === 1
@@ -629,110 +401,63 @@ export class DataTable {
     }
 
     /**
-     * Set up columns
-     * @return {[type]} [description]
+     * Set up columns. This method sets properties for each column,
+     *   from specifications in options.columns.  Since it also sets the renderer for
+     *   each column, it should be called before adding any row data
+     *   and after adding a new column.
      */
     setColumns() {
-
-        /*
-         * We should never need to change cell.data for any cell
-         *  cell.data is set once at cell initiation and stays constant.
-         *  only cell.html should change.
-         */
-        // if (!ajax) {
-        //     this.data.forEach(row => {
-        //         Array.from(row.cells).forEach(cell => {
-        //             cell.data = cell.innerHTML
-        //         })
-        //     })
-        // }
 
         // Check for the columns option
         if (this.options.columns && this.headings.length) {
 
-            // This is a fix for setColumns being run when there are already columnRenderers,
-            // selectedColumns, and/or hiddenColumns. Rather than pushing more to the arrays
-            // and creating duplicates, we reset the arrays and re-build them from scratch.
-            //
-            // This is a hack solution.  Ideally setColumns should not have to be called unless
-            // a new column is added.
-            this.columnRenderers = []
-            this.selectedColumns = []
             this.hiddenColumns = []
+            const selected = new Set()
 
-            this.options.columns.forEach(data => {
+            this.options.columns.forEach(colSpec => {
 
                 // convert single column selection to array
-                if (!Array.isArray(data.select)) {
-                    data.select = [data.select]
+                if (!Array.isArray(colSpec.select)) {
+                    colSpec.select = [colSpec.select]
                 }
 
-                if (data.hasOwnProperty("render") && typeof data.render === "function") {
-                    this.selectedColumns = this.selectedColumns.concat(data.select)
+                // Add the attributes specified in this column specification to the th elements
+                colSpec.select.forEach(column => {
 
-                    this.columnRenderers.push({
-                        columns: data.select,
-                        renderer: data.render
-                    })
-                }
+                    // we only allow one "select" for each column
+                    if (selected.has(column)) {
+                        throw new Error(`column ${column} specifications have already been set`)
+                    } else {
+                        selected.add(column)
+                    }
 
-                // Add the data attributes to the th elements
-                data.select.forEach(column => {
                     const th = this.headings[column]
-                    if (data.type) {
-                        th.setAttribute("data-type", data.type)
-                    }
-                    if (data.format) {
-                        th.setAttribute("data-format", data.format)
-                    }
-                    if (data.hasOwnProperty("sortable")) {
-                        th.setAttribute("data-sortable", data.sortable)
-                    }
 
-                    if (data.hasOwnProperty("hidden")) {
-                        if (data.hidden !== false) {
-                            this.columns().hide([column])
+                    for (const spec of ["type", "format", "sortable"]) {
+                        if (colSpec.hasOwnProperty(spec)) {
+                            // note: th.dataset is an object consisting of "data-*" attributes
+                            th.dataset[spec] = colSpec[spec]
                         }
                     }
 
-                    if (data.hasOwnProperty("sort") && data.select.length === 1) {
-                        this.columns().sort(data.select[0], data.sort, true)
+                    if (colSpec.hasOwnProperty("hidden") && colSpec.hidden !== false) {
+                        this.columns().hide([column])
                     }
+
+                    /* It makes no sense to sort since columns haven't been rendered yet */
+                    // if (colSpec.hasOwnProperty("sort") && colSpec.select.length === 1) {
+                    //     this.columns().sort(colSpec.select[0], colSpec.sort, true)
+                    // }
+
+                    if (colSpec.hasOwnProperty("render") && typeof colSpec.render === "function") {
+                        this.renderers[column] = colSpec.render
+                    }
+
                 })
             })
         }
 
         if (this.hasRows) {
-            /*
-             * We should never need to change cell.data for any cell
-             *  cell.data is set once at cell initiation and stays constant.
-             *  only cell.html should change.
-             */
-            // this.data.forEach((row, i) => {
-            //     row.dataIndex = i
-            //     Array.from(row.cells).forEach(cell => {
-            //         cell.data = cell.innerHTML
-            //     })
-            // })
-
-            /*
-             * This code block renderss all rows, but probably shouldn't be here.
-             * Rendering should be done either at instatiation of a new cell or
-             * at page render for just the visible page.
-             */
-            // if (this.selectedColumns.length) {
-            //     this.data.forEach(row => {
-            //         Array.from(row.cells).forEach((cell, i) => {
-            //             if (this.selectedColumns.includes(i)) {
-            //                 this.columnRenderers.forEach(options => {
-            //                     if (options.columns.includes(i)) {
-            //                         cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
-            //                     }
-            //                 })
-            //             }
-            //         })
-            //     })
-            // }
 
             this.columns().rebuild()
         }
@@ -1049,69 +774,6 @@ export class DataTable {
         this.columns().sort(column, direction)
     }
 
-    /**
-     * Add new row data
-     * @param {object} data
-     */
-    insert(data) {
-        let rows = []
-        if (isObject(data)) {
-            if (data.headings) {
-                if (!this.hasHeadings && !this.hasRows) {
-                    const tr = createElement("tr")
-                    data.headings.forEach(heading => {
-                        const th = createElement("th", {
-                            html: heading
-                        })
-
-                        tr.appendChild(th)
-                    })
-                    this.head.appendChild(tr)
-
-                    this.header = tr
-                    this.headings = [].slice.call(tr.cells)
-                    this.hasHeadings = true
-
-                    // Re-enable sorting if it was disabled due
-                    // to missing header
-                    this.options.sortable = this.initialSortable
-
-                    // Allow sorting on new header
-                    this.render("header")
-
-                    // Activate newly added headings
-                    this.activeHeadings = this.headings.slice()
-                }
-            }
-
-            if (data.data && Array.isArray(data.data)) {
-                rows = data.data
-            }
-        } else if (Array.isArray(data)) {
-            data.forEach(row => {
-                const r = []
-                Object.entries(row).forEach(([heading, cell]) => {
-
-                    const index = this.labels.indexOf(heading)
-
-                    if (index > -1) {
-                        r[index] = cell
-                    }
-                })
-                rows.push(r)
-            })
-        }
-
-        if (rows.length) {
-            this.rows().add(rows)
-
-            this.hasRows = true
-        }
-
-        this.update()
-        this.setColumns()
-        this.fixColumns()
-    }
 
     /**
      * Refresh the instance
@@ -1152,352 +814,6 @@ export class DataTable {
 
             parent.appendChild(html)
         }
-    }
-
-    /**
-     * Export table to various formats (csv, txt or sql)
-     * @param  {Object} userOptions User options
-     * @return {Boolean}
-     */
-    export(userOptions) {
-        if (!this.hasHeadings && !this.hasRows) return false
-
-        const headers = this.activeHeadings
-        let rows = []
-        const arr = []
-        let i
-        let x
-        let str
-        let link
-
-        const defaults = {
-            download: true,
-            skipColumn: [],
-
-            // csv
-            lineDelimiter: "\n",
-            columnDelimiter: ",",
-
-            // sql
-            tableName: "myTable",
-
-            // json
-            replacer: null,
-            space: 4
-        }
-
-        // Check for the options object
-        if (!isObject(userOptions)) {
-            return false
-        }
-
-        const options = {
-            ...defaults,
-            ...userOptions
-        }
-
-        if (options.type) {
-            if (options.type === "txt" || options.type === "csv") {
-                // Include headings
-                rows[0] = this.header
-            }
-
-            // Selection or whole table
-            if (options.selection) {
-                // Page number
-                if (!isNaN(options.selection)) {
-                    rows = rows.concat(this.pages[options.selection - 1])
-                } else if (Array.isArray(options.selection)) {
-                    // Array of page numbers
-                    for (i = 0; i < options.selection.length; i++) {
-                        rows = rows.concat(this.pages[options.selection[i] - 1])
-                    }
-                }
-            } else {
-                rows = rows.concat(this.activeRows)
-            }
-
-            // Only proceed if we have data
-            if (rows.length) {
-                if (options.type === "txt" || options.type === "csv") {
-                    str = ""
-
-                    for (i = 0; i < rows.length; i++) {
-                        for (x = 0; x < rows[i].cells.length; x++) {
-                            // Check for column skip and visibility
-                            if (
-                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                                this.columns(headers[x].originalCellIndex).visible()
-                            ) {
-                                let text = rows[i].cells[x].textContent
-                                text = text.trim()
-                                text = text.replace(/\s{2,}/g, ' ')
-                                text = text.replace(/\n/g, '  ')
-                                text = text.replace(/"/g, '""')
-                                //have to manually encode "#" as encodeURI leaves it as is.
-                                text = text.replace(/#/g, "%23")
-                                if (text.includes(","))
-                                    text = `"${text}"`
-
-
-                                str += text + options.columnDelimiter
-                            }
-                        }
-                        // Remove trailing column delimiter
-                        str = str.trim().substring(0, str.length - 1)
-
-                        // Apply line delimiter
-                        str += options.lineDelimiter
-                    }
-
-                    // Remove trailing line delimiter
-                    str = str.trim().substring(0, str.length - 1)
-
-                    if (options.download) {
-                        str = `data:text/csv;charset=utf-8,${str}`
-                    }
-                } else if (options.type === "sql") {
-                    // Begin INSERT statement
-                    str = `INSERT INTO \`${options.tableName}\` (`
-
-                    // Convert table headings to column names
-                    for (i = 0; i < headers.length; i++) {
-                        // Check for column skip and column visibility
-                        if (
-                            !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                            this.columns(headers[i].originalCellIndex).visible()
-                        ) {
-                            str += `\`${headers[i].textContent}\`,`
-                        }
-                    }
-
-                    // Remove trailing comma
-                    str = str.trim().substring(0, str.length - 1)
-
-                    // Begin VALUES
-                    str += ") VALUES "
-
-                    // Iterate rows and convert cell data to column values
-                    for (i = 0; i < rows.length; i++) {
-                        str += "("
-
-                        for (x = 0; x < rows[i].cells.length; x++) {
-                            // Check for column skip and column visibility
-                            if (
-                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                                this.columns(headers[x].originalCellIndex).visible()
-                            ) {
-                                str += `"${rows[i].cells[x].textContent}",`
-                            }
-                        }
-
-                        // Remove trailing comma
-                        str = str.trim().substring(0, str.length - 1)
-
-                        // end VALUES
-                        str += "),"
-                    }
-
-                    // Remove trailing comma
-                    str = str.trim().substring(0, str.length - 1)
-
-                    // Add trailing colon
-                    str += ";"
-
-                    if (options.download) {
-                        str = `data:application/sql;charset=utf-8,${str}`
-                    }
-                } else if (options.type === "json") {
-                    // Iterate rows
-                    for (x = 0; x < rows.length; x++) {
-                        arr[x] = arr[x] || {}
-                        // Iterate columns
-                        for (i = 0; i < headers.length; i++) {
-                            // Check for column skip and column visibility
-                            if (
-                                !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                                this.columns(headers[i].originalCellIndex).visible()
-                            ) {
-                                arr[x][headers[i].textContent] = rows[x].cells[i].textContent
-                            }
-                        }
-                    }
-
-                    // Convert the array of objects to JSON string
-                    str = JSON.stringify(arr, options.replacer, options.space)
-
-                    if (options.download) {
-                        str = `data:application/json;charset=utf-8,${str}`
-                    }
-                }
-
-                // Download
-                if (options.download) {
-                    // Filename
-                    options.filename = options.filename || "datatable_export"
-                    options.filename += `.${options.type}`
-
-                    str = encodeURI(str)
-
-                    // Create a link to trigger the download
-                    link = document.createElement("a")
-                    link.href = str
-                    link.download = options.filename
-
-                    // Append the link
-                    document.body.appendChild(link)
-
-                    // Trigger the download
-                    link.click()
-
-                    // Remove the link
-                    document.body.removeChild(link)
-                }
-
-                return str
-            }
-        }
-
-        return false
-    }
-
-    /**
-     * Import data to the table
-     * @param  {Object} userOptions User options
-     * @return {Boolean}
-     */
-    import(userOptions) {
-        let obj = false
-        const defaults = {
-            // csv
-            lineDelimiter: "\n",
-            columnDelimiter: ","
-        }
-
-        // Check for the options object
-        if (!isObject(userOptions)) {
-            return false
-        }
-
-        const options = {
-            ...defaults,
-            ...userOptions
-        }
-
-        if (options.data.length || isObject(options.data)) {
-            // Import CSV
-            if (options.type === "csv") {
-                obj = {
-                    data: []
-                }
-
-                // Split the string into rows
-                const rows = options.data.split(options.lineDelimiter)
-
-                if (rows.length) {
-
-                    if (options.headings) {
-                        obj.headings = rows[0].split(options.columnDelimiter)
-
-                        rows.shift()
-                    }
-
-                    rows.forEach((row, i) => {
-                        obj.data[i] = []
-
-                        // Split the rows into values
-                        const values = row.split(options.columnDelimiter)
-
-                        if (values.length) {
-                            values.forEach(value => {
-                                obj.data[i].push(value)
-                            })
-                        }
-                    })
-                }
-            } else if (options.type === "json") {
-                const json = isJson(options.data)
-
-                // Valid JSON string
-                if (json) {
-                    obj = {
-                        headings: [],
-                        data: []
-                    }
-
-                    json.forEach((data, i) => {
-                        obj.data[i] = []
-                        Object.entries(data).forEach(([column, value]) => {
-                            if (!obj.headings.includes(column)) {
-                                obj.headings.push(column)
-                            }
-
-                            obj.data[i].push(value)
-                        })
-                    })
-                } else {
-                    // console.warn("That's not valid JSON!")
-                }
-            }
-
-            if (isObject(options.data)) {
-                obj = options.data
-            }
-
-            if (obj) {
-                // Add the rows
-                this.insert(obj)
-            }
-        }
-
-        return false
-    }
-
-    /**
-     * Print the table
-     * @return {void}
-     */
-    print() {
-        const headings = this.activeHeadings
-        const rows = this.activeRows
-        const table = createElement("table")
-        const thead = createElement("thead")
-        const tbody = createElement("tbody")
-
-        const tr = createElement("tr")
-        headings.forEach(th => {
-            tr.appendChild(
-                createElement("th", {
-                    html: th.textContent
-                })
-            )
-        })
-
-        thead.appendChild(tr)
-
-        rows.forEach(row => {
-            const tr = createElement("tr")
-            Array.from(row.cells).forEach(cell => {
-                tr.appendChild(
-                    createElement("td", {
-                        html: cell.textContent
-                    })
-                )
-            })
-            tbody.appendChild(tr)
-        })
-
-        table.appendChild(thead)
-        table.appendChild(tbody)
-
-        // Open new window
-        const w = window.open()
-
-        // Append the table to the body
-        w.document.body.appendChild(table)
-
-        // Print
-        w.print()
     }
 
     /**
@@ -1581,3 +897,16 @@ export class DataTable {
         }
     }
 }
+
+
+/*
+ * some functions imported from other modules are actually DataTable methods
+ * Note that import and export are JavaScript keywords so we cannot define
+ * functions or variables with those names
+ */
+DataTable.prototype.insert = insert
+DataTable.prototype.import = importData
+DataTable.prototype.export = exportData
+DataTable.prototype.print = print
+DataTable.prototype.ajaxImport = ajaxImport
+DataTable.prototype.makeHTMLTableFromOptions = makeHTMLTableFromOptions

@@ -178,10 +178,12 @@ export class Columns {
      * @param {Object} data
      */
     add(data) {
-        let td
-        const th = document.createElement("th")
 
+        // If there are no headings then we are inserting data into an empty table
         if (!this.dt.headings.length) {
+            if (data.render) {
+                this.renderers = [data.render]
+            }
             this.dt.insert({
                 headings: [data.heading],
                 data: data.data.map(i => [i])
@@ -189,6 +191,8 @@ export class Columns {
             this.rebuild()
             return
         }
+
+        const th = document.createElement("th")
 
         if (!this.dt.hiddenHeader) {
             if (data.heading.nodeName) {
@@ -202,22 +206,25 @@ export class Columns {
 
         this.dt.headings.push(th)
 
+        let render
+        if (data.render) {
+            render = (data, cell, row) => data.render.call(this, data, cell, row)
+            this.dt.renderers.push(data.render)
+        } else {
+            render = data => data
+        }
+
         this.dt.data.forEach((row, i) => {
             if (data.data[i]) {
-                td = document.createElement("td")
+                const td = document.createElement("td")
 
                 if (data.data[i].nodeName) {
                     td.appendChild(data.data[i])
                 } else {
-                    td.innerHTML = data.data[i]
+                    td.data = data.data[i]
                 }
 
-                // :( not sure about this
-                td.data = td.innerHTML
-
-                if (data.render) {
-                    td.innerHTML = data.render.call(this, td.data, td, row)
-                }
+                td.innerHTML = render(td.data, td, row)
 
                 row.appendChild(td)
             }
