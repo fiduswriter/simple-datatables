@@ -36,7 +36,6 @@ export class Columns {
 
     /**
      * Reorder the columns
-     * @return {Array} columns  Array of ordered column indexes
      */
     order(columns) {
         let a
@@ -103,7 +102,9 @@ export class Columns {
             temp[3].push(d)
         })
 
+        // oops
         dt.headings = temp[0]
+
         dt.activeHeadings = temp[1]
 
         dt.data = temp[2]
@@ -204,7 +205,7 @@ export class Columns {
             th.innerHTML = ""
         }
 
-        this.dt.headings.push(th)
+        // this.dt.headings.push(th)
 
         let render
         if (data.render) {
@@ -258,6 +259,7 @@ export class Columns {
             select.sort((a, b) => b - a)
             select.forEach(column => this.remove(column))
         } else {
+            // oops
             this.dt.headings.splice(select, 1)
 
             this.dt.data.forEach(row => {

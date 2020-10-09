@@ -5,18 +5,21 @@
 export const isObject = val => Object.prototype.toString.call(val) === "[object Object]"
 
 /**
- * Check for valid JSON string
- * @param  {String}   str
+ * Check for valid JSON string and convert to JSON
+ * @param  {String|Object}  obj
  * @return {Boolean|Array|Object}
  */
-export const isJson = str => {
-    let t = !1
-    try {
-        t = JSON.parse(str)
-    } catch (e) {
-        return !1
+export const isJson = obj => {
+    if (isObject(obj) || Array.isArray(obj)) {
+        return obj
     }
-    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t
+    let t
+    try {
+        t = JSON.parse(obj)
+    } catch (e) {
+        return false
+    }
+    return ((Array.isArray(t) || isObject(t))) && t
 }
 
 /**

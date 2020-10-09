@@ -502,119 +502,122 @@ export class DataTable {
      * @return {Void}
      */
     fixColumns() {
-
-        if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
-            let cells
-            let hd = false
-            this.columnWidths = []
-
-            // If we have headings we need only set the widths on them
-            // otherwise we need a temp header and the widths need applying to all cells
-            if (this.table.tHead) {
-
-                if (this.options.scrollY.length) {
-                    hd = createElement("thead")
-                    hd.appendChild(createElement("tr"))
-                    hd.style.height = '0px'
-                    if (this.headerTable) {
-                        // move real header back into place
-                        this.table.tHead = this.headerTable.tHead
-                    }
-                }
-
-                // Reset widths
-                this.activeHeadings.forEach(cell => {
-                    cell.style.width = ""
-                })
-
-                this.activeHeadings.forEach((cell, i) => {
-                    const ow = cell.offsetWidth
-                    /*
-                     * this.rect.width is sometimes 0, making w = NaN.
-                     *   that can't be good.
-                     */
-                    const w = ow / this.rect.width * 100
-                    cell.style.width = `${w}%`
-                    this.columnWidths[i] = ow
-                    if (this.options.scrollY.length) {
-                        const th = createElement("th")
-                        hd.firstElementChild.appendChild(th)
-                        th.style.width = `${w}%`
-                        th.style.paddingTop = "0"
-                        th.style.paddingBottom = "0"
-                        th.style.border = "0"
-                    }
-                })
-
-                if (this.options.scrollY.length) {
-                    const container = this.table.parentElement
-                    if (!this.headerTable) {
-                        this.headerTable = createElement("table", {
-                            class: "dataTable-table"
-                        })
-                        const headercontainer = createElement("div", {
-                            class: "dataTable-headercontainer"
-                        })
-                        headercontainer.appendChild(this.headerTable)
-                        container.parentElement.insertBefore(headercontainer, container)
-                    }
-                    const thd = this.table.tHead
-                    this.table.replaceChild(hd, thd)
-                    this.headerTable.tHead = thd
-
-                    // Compensate for scrollbars.
-                    this.headerTable.parentElement.style.paddingRight = `${
-                        this.headerTable.clientWidth -
-                        this.table.clientWidth +
-                        parseInt(
-                            this.headerTable.parentElement.style.paddingRight ||
-                            '0',
-                            10
-                        )
-                    }px`
-
-                    if (container.scrollHeight > container.clientHeight) {
-                        // scrollbars on one page means scrollbars on all pages.
-                        container.style.overflowY = 'scroll'
-                    }
-                }
-
-            } else {
-                cells = []
-
-                // Make temperary headings
-                hd = createElement("thead")
-                const r = createElement("tr")
-                Array.from(this.table.tBodies[0].rows[0].cells).forEach(() => {
-                    const th = createElement("th")
-                    r.appendChild(th)
-                    cells.push(th)
-                })
-
-                hd.appendChild(r)
-                this.table.insertBefore(hd, this.body)
-
-                const widths = []
-                cells.forEach((cell, i) => {
-                    const ow = cell.offsetWidth
-
-                    /* this.rect.width can be zero. this is a problem  */
-                    const w = ow / this.rect.width * 100
-                    widths.push(w)
-                    this.columnWidths[i] = ow
-                })
-
-                this.data.forEach(row => {
-                    Array.from(row.cells).forEach((cell, i) => {
-                        if (this.columns(cell.cellIndex).visible())
-                            cell.style.width = `${widths[i]}%`
-                    })
-                })
-
-                // Discard the temp header
-                this.table.removeChild(hd)
-            }
+        if (!this.activeHeadings || !this.activeHeadings.length ||
+            !(this.options.scrollY.length || this.options.fixedColumns)) {
+            return
         }
+
+        let cells
+        let hd = false
+        this.columnWidths = []
+
+        // If we have headings we need only set the widths on them
+        // otherwise we need a temp header and the widths need applying to all cells
+        if (this.table.tHead) {
+
+            if (this.options.scrollY.length) {
+                hd = createElement("thead")
+                hd.appendChild(createElement("tr"))
+                hd.style.height = '0px'
+                if (this.headerTable) {
+                    // move real header back into place
+                    this.table.tHead = this.headerTable.tHead
+                }
+            }
+
+            // Reset widths
+            this.activeHeadings.forEach(cell => {
+                cell.style.width = ""
+            })
+
+            this.activeHeadings.forEach((cell, i) => {
+                const ow = cell.offsetWidth
+                /*
+                 * this.rect.width is sometimes 0, making w = NaN.
+                 *   that can't be good.
+                 */
+                const w = ow / this.rect.width * 100
+                cell.style.width = `${w}%`
+                this.columnWidths[i] = ow
+                if (this.options.scrollY.length) {
+                    const th = createElement("th")
+                    hd.firstElementChild.appendChild(th)
+                    th.style.width = `${w}%`
+                    th.style.paddingTop = "0"
+                    th.style.paddingBottom = "0"
+                    th.style.border = "0"
+                }
+            })
+
+            if (this.options.scrollY.length) {
+                const container = this.table.parentElement
+                if (!this.headerTable) {
+                    this.headerTable = createElement("table", {
+                        class: "dataTable-table"
+                    })
+                    const headercontainer = createElement("div", {
+                        class: "dataTable-headercontainer"
+                    })
+                    headercontainer.appendChild(this.headerTable)
+                    container.parentElement.insertBefore(headercontainer, container)
+                }
+                const thd = this.table.tHead
+                this.table.replaceChild(hd, thd)
+                this.headerTable.tHead = thd
+
+                // Compensate for scrollbars.
+                this.headerTable.parentElement.style.paddingRight = `${
+                    this.headerTable.clientWidth -
+                    this.table.clientWidth +
+                    parseInt(
+                        this.headerTable.parentElement.style.paddingRight ||
+                        '0',
+                        10
+                    )
+                }px`
+
+                if (container.scrollHeight > container.clientHeight) {
+                    // scrollbars on one page means scrollbars on all pages.
+                    container.style.overflowY = 'scroll'
+                }
+            }
+
+        } else {
+            cells = []
+
+            // Make temperary headings
+            hd = createElement("thead")
+            const r = createElement("tr")
+            Array.from(this.table.tBodies[0].rows[0].cells).forEach(() => {
+                const th = createElement("th")
+                r.appendChild(th)
+                cells.push(th)
+            })
+
+            hd.appendChild(r)
+            this.table.insertBefore(hd, this.body)
+
+            const widths = []
+            cells.forEach((cell, i) => {
+                const ow = cell.offsetWidth
+
+                /* this.rect.width can be zero. this is a problem  */
+                const w = ow / this.rect.width * 100
+                widths.push(w)
+                this.columnWidths[i] = ow
+            })
+
+            this.data.forEach(row => {
+                Array.from(row.cells).forEach((cell, i) => {
+                    if (this.columns(cell.cellIndex).visible())
+                        cell.style.width = `${widths[i]}%`
+                })
+            })
+
+            // Discard the temp header
+            this.table.removeChild(hd)
+        }
+
     }
 
     /**
@@ -762,10 +765,7 @@ export class DataTable {
             flush(this.body)
         }
 
-        let parent = this.body
-        if (!this.body) {
-            parent = this.table
-        }
+        const parent = this.body || this.table
 
         if (html) {
             if (typeof html === "string") {
