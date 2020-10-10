@@ -405,11 +405,6 @@ export class DataTable {
                         this.columns().hide([column])
                     }
 
-                    /* It makes no sense to sort since columns haven't been rendered yet */
-                    // if (colSpec.hasOwnProperty("sort") && colSpec.select.length === 1) {
-                    //     this.columns().sort(colSpec.select[0], colSpec.sort, true)
-                    // }
-
                     if (colSpec.hasOwnProperty("render") && typeof colSpec.render === "function") {
                         this.renderers[column] = colSpec.render
                     }
@@ -532,10 +527,7 @@ export class DataTable {
 
             this.activeHeadings.forEach((cell, i) => {
                 const ow = cell.offsetWidth
-                /*
-                 * this.rect.width is sometimes 0, making w = NaN.
-                 *   that can't be good.
-                 */
+
                 const w = ow / this.rect.width * 100
                 cell.style.width = `${w}%`
                 this.columnWidths[i] = ow
@@ -601,7 +593,6 @@ export class DataTable {
             cells.forEach((cell, i) => {
                 const ow = cell.offsetWidth
 
-                /* this.rect.width can be zero. this is a problem  */
                 const w = ow / this.rect.width * 100
                 widths.push(w)
                 this.columnWidths[i] = ow

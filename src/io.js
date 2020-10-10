@@ -61,9 +61,6 @@ export const insert = function(data) {
                 // to missing header
                 this.options.sortable = this.initialSortable
 
-                // Allow sorting on new header
-                this.render("header")
-
                 // Activate newly added headings
                 this.activeHeadings = this.headings.slice()
             }
@@ -109,14 +106,16 @@ export const insert = function(data) {
 
     if (newRows) {
         this.rows().add(newRows)
+        this.update()
+
+        // Fix height
+        this.fixHeight()
+
+        // Fix columns
+        this.fixColumns()
     }
 
-    this.update()
-    // Fix height
-    this.fixHeight()
 
-    // Fix columns
-    this.fixColumns()
 }
 
 
