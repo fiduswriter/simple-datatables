@@ -79,3 +79,13 @@ const dataTable = new DataTable("#myTable", {
 	...
 })
 ```
+
+If using the CDN:
+
+```javascript
+const dataTable = new simpleDatatables.DataTable("#myTable", {
+	searchable: false,
+	fixedHeight: true,
+	...
+})
+```
