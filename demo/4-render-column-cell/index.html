@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Render Column Cells</title>
+
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
+
+  <!-- Demo Styles -->
+  <link rel="stylesheet" href="../demo.css">
+  <style>
+    tr.yes .icon 	{ color: red; }
+    tr.no .icon 	{ color: green; }
+    tr.yes b  { color: green; }
+    tr.no b 	{ color: red; }
+  </style>
+</head>
+<body>
+  <h1>Render Column Cells</h1>
+  <table id="drinks"></table>
+  
+  <!-- CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+
+  <!-- Custom Code -->
+  <script>
+    const data = {
+      headings: ['ID', 'Drink', 'Price', 'Caffeinated'],
+      data: [
+        [574, 'latte',      4.00, false],
+        [984, 'herbal tea', 3.00, false],
+        [312, 'green tea',  3.00, true],
+        [312, 'latte',  3.00, true],
+        [312, 'latte',  3.00, true],
+        [312, 'latte',  3.00, true],
+        [312, 'green tea',  3.00, true],
+        [312, 'green tea',  3.00, true],
+        [312, 'green tea',  3.00, true],
+        [312, 'latte',  3.00, true],
+        [312, 'green tea',  3.00, true],
+        [312, 'green tea',  3.00, false],
+        [312, 'green tea',  3.00, true],
+        [312, 'green tea',  3.00, false],
+        [312, 'green tea',  3.00, true],
+        [312, 'latte',  3.00, false],
+        [312, 'latte',  3.00, true],
+        [312, 'green tea',  3.00, true],
+        [312, 'green tea',  3.00, false],
+        [312, 'green tea',  3.00, true],
+        [312, 'latte',  3.00, false],
+        [312, 'latte',  3.00, true],
+        [312, 'latte',  3.00, true],
+        [312, 'latte',  3.00, true],
+        [312, 'latte',  3.00, true],
+        [312, 'latte',  3.00, true],
+        [312, 'green tea',  3.00, true],
+        [312, 'green tea',  3.00, true],
+        [312, 'green tea',  3.00, true],
+      ]
+    };
+
+    // Add Icon
+    function addIcon(data, cell, row) {
+      if(data == 'latte') {
+        return `🔥 ${data}`;
+      }
+      else {
+        return `🌿 ${data}`;
+      }
+    }
+
+    // Price column cell manipulation
+    function addButton(data, cell, row) {
+      return `${data}<button data-row="${row.dataIndex}">Buy Now</button>`;
+    }
+
+    // Caffeinated column cell manipulation
+    function renderYesNo(data, cell, row) {
+      if (data == 'true') {
+        return row.classList.add("yes"), `<b>Yes</b>`;
+      }
+      else if (data == 'false') {
+        return row.classList.add("no"), `<b>No</b>`;
+      }
+      
+      // Or if you don't need to add class to the "row"
+      // return data == 'true' ? '<b class="yes">Yes</b>' : '<b class="no">No</b>';
+    }
+
+    var dataTable = new simpleDatatables.DataTable("#drinks", {
+      data: data,
+      columns: [
+        { select: 0, hidden: true },
+        { select: 1, render: addIcon },
+        { select: 2, render: addButton },
+        { select: 3, render: renderYesNo }
+      ]
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Init/ Destroy - Import/ Export</title>
+
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha.6/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
+
+  <!-- Demo Styles -->
+  <link rel="stylesheet" href="../demo.css">
+  <style>
+    .btn.success, .bttn.success {
+        background-color: #27ae60;
+        box-shadow: inset 0 -3px #1e8449;
+    }
+    .btn.danger, .bttn.danger {
+        background-color: #c0392b;
+        box-shadow: inset 0 -3px #962d22;
+    }
+    .btn.primary, .bttn.primary {
+        background-color: #3498db;
+        box-shadow: inset 0 -3px #217dbb;
+    }
+  </style>
+</head>
+<body>
+  <h1>Init/ Destroy - Import/ Export</h1>
+  <div class="container">
+    <div class="row">
+     <div class="col-12">
+      <div class="card">
+       <div class="card-block">
+        <div class="form-group">
+         <button type="button" class="bttn success main" id="init">Init</button>
+         <button type="button" class="bttn danger main" id="destroy">Destroy</button>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>	
+    <div class="row">
+     <div class="col-12">
+      <div class="card">
+       <div class="card-block">
+        <table>
+         <thead>
+          <tr>
+           <th>Select</th>
+           <th>Customer</th>
+           <th>Version</th>
+           <th>Planned upgrade</th>
+           <th>DB-Info</th>
+           <th>Website info</th>
+          </tr>
+         </thead>
+         <tbody>
+          <tr>
+           <td></td>
+           <td>Test one<br>CCode: 33123</td>
+           <td>7.1.5</td>
+           <td>26.11.2018</td>
+           <td>Server: s1<br>DB: db1</td>
+           <td>Websitename: Red<br>Node: 10</td>
+          </tr>
+           <tr>
+           <td></td>
+           <td>Test two<br>CCode: 12353</td>
+           <td>7.1.5.2</td>
+           <td>26.11.2019</td>
+           <td>Server: s1<br>DB: db2</td>
+           <td>Websitename: Green<br>Node: 6</td>
+          </tr>
+           <tr>
+           <td></td>
+           <td>Test three<br>CCode: 33522</td>
+           <td>7.1.6</td>
+           <td>01.01.2020</td>
+           <td>Server: s2<br>DB: db1</td>
+           <td>Websitename: Orange<br>Node: 5</td>
+          </tr>
+           <tr>
+           <td></td>
+           <td>Test four<br>CCode: 25512</td>
+           <td>7.1.7</td>
+           <td>26.03.2021</td>
+           <td>Server: s1<br>DB: db3</td>
+           <td>Websitename: Blue<br>Node: 10</td>
+          </tr>
+         </tbody>
+        </table>
+       </div>
+      </div>
+     </div>
+    </div>
+    <div id="hide">
+     <div class="row">
+      <div class="col-12">
+       <div class="card">
+        <div class="card-header">
+         Column Visibility
+        </div>
+        <div class="card-block">
+         <div class="form-group" id="columns"></div>
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="row">
+      <div class="col-12">
+       <div class="card">
+        <div class="card-header">
+         Import / Export Data
+        </div>
+        <div class="card-block">
+         <div class="form-group">
+          <textarea name="" id="" cols="30" rows="2" placeholder="Paste your csv or json string here..."></textarea>
+         </div>
+         <div class="form-group"> 
+          <button type="button" class="bttn primary import" data-type="csv">Import CSV</button>
+          <button type="button" class="bttn primary import" data-type="json">Import JSON</button>
+          <button type="button" class="bttn success export" data-type="csv">Export CSV</button>
+          <button type="button" class="bttn success export" data-type="sql">Export SQL</button>
+          <button type="button" class="bttn success export" data-type="json">Export JSON</button>
+         </div>
+         <div class="form-group">
+          <small>NOTE: The csv column delimiters and line delimiters are set to <code>","</code> and <code>"\n"</code> respectively.</small>
+         </div>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  
+  <!-- CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+  <script src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/86186/utils.js"></script>
+
+  <!-- Custom Code -->
+  <script>
+    var table = document.getElementsByTagName("table")[0];
+    var textarea = document.getElementsByTagName("textarea")[0];
+    var div = document.getElementById("data");
+    var btn = document.getElementsByTagName("button")[0];
+    var checkboxes = document.getElementById("columns");
+    var inputs = [], visible = [], hidden = [];
+
+    var datatable = new simpleDatatables.DataTable(table, {
+      perPage: 5,
+    });
+
+    datatable.on("datatable.init", function() {
+      setCheckboxes()
+    });
+
+    function updateColumns() {
+      try {
+        datatable.columns().show(visible);
+        datatable.columns().hide(hidden);	
+      } catch(e) {
+        console.log(e);
+      }
+    }
+
+    function setCheckboxes() {
+      inputs = [];
+      visible = [];	
+      checkboxes.innerHTML = "";
+      
+      util.each(datatable.headings, function(i, heading) {
+        var checkbox = util.createElement("div", { class: "checkbox" });
+        var input = util.createElement("input", { type: "checkbox", id: "checkbox-" + i, name: "checkbox" });
+        var label = util.createElement("label", { for: "checkbox-" + i, text: heading.textContent });
+        
+        input.idx = i;
+
+        if ( datatable.columns().visible(heading.cellIndex) ) {
+          input.checked = true;
+          visible.push(i);
+        } else {
+          if ( hidden.indexOf(i) < 0 ) {
+            hidden.push(i);
+          }
+        }
+
+        checkbox.appendChild(input)
+        checkbox.appendChild(label)
+
+        checkboxes.appendChild(checkbox);
+
+        inputs.push(input);
+      });
+      
+      util.each(inputs, function(i, input) {
+
+          input.onchange = function(e) {
+            if ( input.checked ) {
+              hidden.splice(hidden.indexOf(input.idx), 1);
+              visible.push(input.idx);
+            } else {
+              visible.splice(visible.indexOf(input.idx), 1);
+              hidden.push(input.idx);
+            }
+            
+            updateColumns();
+          };	
+      });	
+    }
+
+    textarea.addEventListener("input", function(e) {
+      if ( this.value.length ) {
+        this.parentNode.classList.remove("error");
+      }
+    })
+
+    document.querySelectorAll(".export").forEach(function(el) {
+      el.addEventListener("click", function(e) {
+        var type = el.dataset.type;
+        
+        var data = {
+          type: type,
+          filename: "my-" + type,
+        };
+        
+        if ( type === "csv" ) {
+          data.columnDelimiter = "|";
+        }
+        
+        datatable.export(data);
+      });
+    });
+
+    document.querySelectorAll(".main").forEach(function(el) {
+      el.addEventListener("click", e => {
+        datatable[el.id]();
+        setTimeout(function() {
+          document.getElementById("hide").classList.toggle("hidden", !datatable.initialized);
+          table.classList.toggle("table", !datatable.initialized);
+        }, 10);
+      });
+    });
+
+    document.querySelectorAll(".import").forEach(function(el) {
+      el.addEventListener("click", e => {
+        var type = el.dataset.type;
+        
+        var data = {
+          type: type,
+          data: textarea.value
+        };
+        
+        textarea.parentNode.classList.remove("error");
+        
+        if ( !data.data.length ) {
+          textarea.parentNode.classList.add("error");
+          return false;
+        }
+        
+        datatable.import(data);
+      });
+    });
+  </script>
+</body>
+</html>
