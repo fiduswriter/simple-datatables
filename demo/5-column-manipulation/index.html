@@ -6,7 +6,10 @@
   <title>Column Manipulation</title>
 
   <!-- CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css"> -->
+
+  <!-- DataTable Styles -->
+  <link rel="stylesheet" href="../../src/style.css">
 
   <!-- Demo Styles -->
   <link rel="stylesheet" href="../demo.css">
@@ -52,7 +55,7 @@
 
     // Instantiate
     var datatable = new simpleDatatables.DataTable("table", {
-      ajax: "https://s3-us-west-2.amazonaws.com/s.cdpn.io/86186/datatable.json",
+      ajax: "datatable.json",
       columns: columnData,
       labels: labelData
     });
@@ -61,7 +64,7 @@
     // and add a new column
     datatable.on("datatable.init", function () {
 
-      var url = "https://s3-us-west-2.amazonaws.com/s.cdpn.io/86186/datatable.column.json";
+      var url = "datatable.column.json";
 
       fetch(url).then(function (response) { return response.json(); })
         .then(function (column) {

@@ -6,15 +6,27 @@
   <title>Render Column Cells</title>
 
   <!-- CDN -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
+  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css"> -->
+
+  <!-- DataTable Styles -->
+  <link rel="stylesheet" href="../../src/style.css">
 
   <!-- Demo Styles -->
   <link rel="stylesheet" href="../demo.css">
+
+  <!-- Custom Styles -->
   <style>
     tr.yes .icon 	{ color: red; }
-    tr.no .icon 	{ color: green; }
-    tr.yes b  { color: green; }
+    tr.no .icon 	{ color: limegreen; }
+    tr.yes b  { color: limegreen; }
     tr.no b 	{ color: red; }
+
+    .currency {  }
+    .currency:before { content: "$" }
+
+    .currency--profit { color: limegreen; }
+    .currency--loss 	{ color: red; }
+    .currency--zero 	{ color: gray; }
   </style>
 </head>
 <body>
@@ -26,78 +38,89 @@
 
   <!-- Custom Code -->
   <script>
-    const data = {
-      headings: ['ID', 'Drink', 'Price', 'Caffeinated'],
-      data: [
-        [574, 'latte',      4.00, false],
-        [984, 'herbal tea', 3.00, false],
-        [312, 'green tea',  3.00, true],
-        [312, 'latte',  3.00, true],
-        [312, 'latte',  3.00, true],
-        [312, 'latte',  3.00, true],
-        [312, 'green tea',  3.00, true],
-        [312, 'green tea',  3.00, true],
-        [312, 'green tea',  3.00, true],
-        [312, 'latte',  3.00, true],
-        [312, 'green tea',  3.00, true],
-        [312, 'green tea',  3.00, false],
-        [312, 'green tea',  3.00, true],
-        [312, 'green tea',  3.00, false],
-        [312, 'green tea',  3.00, true],
-        [312, 'latte',  3.00, false],
-        [312, 'latte',  3.00, true],
-        [312, 'green tea',  3.00, true],
-        [312, 'green tea',  3.00, false],
-        [312, 'green tea',  3.00, true],
-        [312, 'latte',  3.00, false],
-        [312, 'latte',  3.00, true],
-        [312, 'latte',  3.00, true],
-        [312, 'latte',  3.00, true],
-        [312, 'latte',  3.00, true],
-        [312, 'latte',  3.00, true],
-        [312, 'green tea',  3.00, true],
-        [312, 'green tea',  3.00, true],
-        [312, 'green tea',  3.00, true],
-      ]
-    };
+  const data = {
+    headings: ['ID', 'Drink', 'Price', 'Caffeinated', 'Profit'],
+    data: [
+      [574, 'latte',      4.00, false, 0.00],
+      [984, 'herbal tea', 3.00, false, 0.56],
+      [312, 'green tea',  3.00, true,  1.72],
+      [312, 'latte',  		3.00, true,  -1.21],
+      [312, 'green tea',  3.00, false, 0.00],
+      [312, 'green tea',  3.00, false, 0.00],
+      [312, 'green tea',  3.00, true,  1.72],
+      [312, 'latte',  		3.00, true,  1.72],
+      [312, 'green tea',  3.00, true,  -1.21],
+      [312, 'green tea',  3.00, false, 0.00],
+      [312, 'green tea',  3.00, true,  1.72],
+      [312, 'green tea',  3.00, true,  1.72],
+      [312, 'latte',  		3.00, false, 0.00],
+      [312, 'latte',  		3.00, true,  1.72],
+      [312, 'green tea',  3.00, false, 0.00],
+      [312, 'green tea',  3.00, true,  1.72],
+      [312, 'latte',  		3.00, false, 0.00],
+      [312, 'latte',  		3.00, true,  -1.21],
+      [312, 'latte',  		3.00, true,  1.72],
+      [312, 'latte',  		3.00, false, 0.00],
+      [312, 'latte',  		3.00, false, 0.00],
+      [312, 'latte',  		3.00, true,  1.72],
+      [312, 'green tea',  3.00, true,  -1.21],
+      [312, 'green tea',  3.00, true,  -1.21],
+      [312, 'green tea',  3.00, true,  -1.21],
+    ]
+  };
 
-    // Add Icon
-    function addIcon(data, cell, row) {
-      if(data == 'latte') {
-        return `🔥 ${data}`;
-      }
-      else {
-        return `🌿 ${data}`;
-      }
+  // Add Icon
+  function renderIcon(data, cell, row) {
+    if(data == 'latte') {
+      return `🔥 ${data}`;
     }
-
-    // Price column cell manipulation
-    function addButton(data, cell, row) {
-      return `${data}<button data-row="${row.dataIndex}">Buy Now</button>`;
+    else {
+      return `🌿 ${data}`;
     }
+  }
 
-    // Caffeinated column cell manipulation
-    function renderYesNo(data, cell, row) {
-      if (data == 'true') {
-        return row.classList.add("yes"), `<b>Yes</b>`;
-      }
-      else if (data == 'false') {
-        return row.classList.add("no"), `<b>No</b>`;
-      }
-      
-      // Or if you don't need to add class to the "row"
-      // return data == 'true' ? '<b class="yes">Yes</b>' : '<b class="no">No</b>';
+  // Price column cell manipulation
+  function renderButton(data, cell, row) {
+    return `${data}<button data-row="${row.dataIndex}">Buy Now</button>`;
+  }
+
+  // Caffeinated column cell manipulation
+  function renderYesNo(data, cell, row) {
+    if (data == 'true') {
+      return row.classList.add("yes"), `<b>Yes</b>`;
     }
+    else if (data == 'false') {
+      return row.classList.add("no"), `<b>No</b>`;
+    }
+    
+    // Or if you don't need to add class to the "row"
+    // return data == 'true' ? '<b class="yes">Yes</b>' : '<b class="no">No</b>';
+  }
 
-    var dataTable = new simpleDatatables.DataTable("#drinks", {
-      data: data,
-      columns: [
-        { select: 0, hidden: true },
-        { select: 1, render: addIcon },
-        { select: 2, render: addButton },
-        { select: 3, render: renderYesNo }
-      ]
-    });
+  // numbers
+  function renderHighLow(data, cell, row) {
+    if (data < 0) {
+      return `<span class="currency currency--loss">${data}</span>`;
+    }
+    else if (data > 0) {
+      return `<span class="currency currency--profit">${data}</span>`;
+    }
+    else if (data == 0) {
+      return `<span class="currency currency--zero">${data}</span>`;
+    }
+  }
+
+  var dataTable = new simpleDatatables.DataTable("#drinks", {
+    data: data,
+    perPage: 25,
+    columns: [
+      { select: 0, hidden: true },
+      { select: 1, render: renderIcon },
+      { select: 2, render: renderButton },
+      { select: 3, render: renderYesNo },
+      { select: 4, render: renderHighLow }
+    ]
+  });
   </script>
 </body>
 </html>
