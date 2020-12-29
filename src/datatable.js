@@ -333,19 +333,21 @@ export class DataTable {
         this.table.classList.add("dataTable-table")
 
         // Paginator
-        const w = createElement("div", {
+        const paginatorWrapper = createElement("nav", {
             class: "dataTable-pagination"
         })
-        const paginator = createElement("ul")
-        w.appendChild(paginator)
+        const paginator = createElement("ul", {
+            class: "dataTable-pagination-list"
+        })
+        paginatorWrapper.appendChild(paginator)
 
         // Pager(s) placement
-        template = template.replace(/\{pager\}/g, w.outerHTML)
+        template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML)
         this.wrapper.innerHTML = template
 
         this.container = this.wrapper.querySelector(".dataTable-container")
 
-        this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination")
+        this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination-list")
 
         this.label = this.wrapper.querySelector(".dataTable-info")
 
