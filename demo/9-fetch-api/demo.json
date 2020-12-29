@@ -1,0 +1,177 @@
+[
+  {
+    "ID": 1,
+    "Drink": "latte",
+    "Caffeinated": false,
+    "Price": 4,
+    "Profit": 0
+  },
+  {
+    "ID": 2,
+    "Drink": "herbal tea",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0.56
+  },
+  {
+    "ID": 3,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 4,
+    "Drink": "latte",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": -1.21
+  },
+  {
+    "ID": 5,
+    "Drink": "green tea",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0
+  },
+  {
+    "ID": 6,
+    "Drink": "green tea",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0
+  },
+  {
+    "ID": 7,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 8,
+    "Drink": "latte",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 9,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": -1.21
+  },
+  {
+    "ID": 10,
+    "Drink": "green tea",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0
+  },
+  {
+    "ID": 11,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 12,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 13,
+    "Drink": "latte",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0
+  },
+  {
+    "ID": 14,
+    "Drink": "latte",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 15,
+    "Drink": "green tea",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0
+  },
+  {
+    "ID": 16,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 17,
+    "Drink": "latte",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0
+  },
+  {
+    "ID": 18,
+    "Drink": "latte",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": -1.21
+  },
+  {
+    "ID": 19,
+    "Drink": "latte",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 20,
+    "Drink": "latte",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0
+  },
+  {
+    "ID": 21,
+    "Drink": "latte",
+    "Caffeinated": false,
+    "Price": 3,
+    "Profit": 0
+  },
+  {
+    "ID": 22,
+    "Drink": "latte",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": 1.72
+  },
+  {
+    "ID": 23,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": -1.21
+  },
+  {
+    "ID": 24,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": -1.21
+  },
+  {
+    "ID": 25,
+    "Drink": "green tea",
+    "Caffeinated": true,
+    "Price": 3,
+    "Profit": -1.21
+  }
+]
