@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AJAX Example</title>
+
+  <!-- CDN -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css">
+
+  <!-- Demo Styles -->
+  <link rel="stylesheet" href="../demo.css">
+</head>
+<body>
+  <h1>AJAX Example</h1>
+  <table class="table"></table>
+  <!-- CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+
+  <!-- Custom Code -->
+  <script>
+    var table = new simpleDatatables.DataTable(".table", {
+      ajax: {
+        url: "ajax-example.txt",
+        content: {
+          type: "csv",
+          headings: true
+        }
+      }
+    });
+  </script>
+</body>
+</html>
