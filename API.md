@@ -71,13 +71,6 @@ Returns true if the library is fully loaded and all HTML is rendered.
 
 ---
 
-### isIE
-#### type `Boolean`
-
-Returns `true` if the current browser is a version of `MS Internet Exporer` or `MS Edge`.
-
----
-
 ### data
 #### type `Array`
 
