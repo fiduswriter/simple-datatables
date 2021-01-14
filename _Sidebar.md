@@ -30,6 +30,7 @@
 * [fixedHeight](https://github.com/fiduswriter/Simple-DataTables/wiki/fixedHeight)
 * [footer](https://github.com/fiduswriter/Simple-DataTables/wiki/footer)
 * [header](https://github.com/fiduswriter/Simple-DataTables/wiki/header)
+* [hiddenHeader](https://github.com/fiduswriter/Simple-DataTables/wiki/hiddenHeader)
 * [labels](https://github.com/fiduswriter/Simple-DataTables/wiki/labels)
 * [layout](https://github.com/fiduswriter/Simple-DataTables/wiki/layout)
 * [lastText](https://github.com/fiduswriter/Simple-DataTables/wiki/lastText)
@@ -47,17 +48,17 @@
 
 #### Properties
 * [table](https://github.com/fiduswriter/Simple-DataTables/wiki/API#table)
-* [head](https://github.com/fiduswriter/Simple-DataTables/wiki/API#header) DEPRECATED
-* [body](https://github.com/fiduswriter/Simple-DataTables/wiki/API#body) DEPRECATED
-* [foot](https://github.com/fiduswriter/Simple-DataTables/wiki/API#foot) DEPRECATED
+* [head](https://github.com/fiduswriter/Simple-DataTables/wiki/API#header)
+* [body](https://github.com/fiduswriter/Simple-DataTables/wiki/API#body)
+* [foot](https://github.com/fiduswriter/Simple-DataTables/wiki/API#foot)
 * [wrapper](https://github.com/fiduswriter/Simple-DataTables/wiki/API#wrapper)
 * [container](https://github.com/fiduswriter/Simple-DataTables/wiki/API#container)
 * [pagers](https://github.com/fiduswriter/Simple-DataTables/wiki/API#pagers)
 * [headings](https://github.com/fiduswriter/Simple-DataTables/wiki/API#headings)
-* [options](https://github.com/fiduswriter/Simple-DataTables/wiki/API#options) DEPRECATED
+* [options](https://github.com/fiduswriter/Simple-DataTables/wiki/API#options)
 * [initialized](https://github.com/fiduswriter/Simple-DataTables/wiki/API#initialized)
 * [data](https://github.com/fiduswriter/Simple-DataTables/wiki/API#data)
-* [activeRows](https://github.com/fiduswriter/Simple-DataTables/wiki/API#activerows) DEPRECATED
+* [activeRows](https://github.com/fiduswriter/Simple-DataTables/wiki/API#activerows)
 * [dataIndex](https://github.com/fiduswriter/Simple-DataTables/wiki/API#dataindex)
 * [pages](https://github.com/fiduswriter/Simple-DataTables/wiki/API#pages)
 * [hasRows](https://github.com/fiduswriter/Simple-DataTables/wiki/API#hasrows)
