@@ -29,7 +29,6 @@ LGPL
 * Customisable layout
 * Customisable labels
 * Customise column rendering
-* Load data via AJAX requests
 * Export to common formats like `csv`, `txt` `json`, and `sql`
 * Import `csv` and `json` data
 * Control column visibility
