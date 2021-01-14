@@ -127,9 +127,12 @@
     </tbody>
   </table>
 
-  <script type="module">
-    import {DataTable} from "../dist/module.js"
-    const table = new DataTable("table")
+  <!-- CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+
+  <!-- Custom Code -->
+  <script>
+        const table = new simpleDatatables.DataTable("table")
   </script>
 </body>
 </html>

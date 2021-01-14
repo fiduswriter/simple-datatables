@@ -9,14 +9,14 @@
   "scripts": {
     "test": "npm run lint",
     "lint": "eslint src/",
-    "compile": "npm run compile_js && npm run compile_js_umd && npm run compile_css && npm run compile_docs",
-    "compile_js": "rollup -c",
-    "compile_js_umd": "browserify dist/index.js --standalone simpleDatatables -o dist/umd/simple-datatables.js",
-    "compile_css": "cp src/style.css dist/style.css",
-    "compile_docs": "npm run compile_docs_js && cp node_modules/systemjs/dist/s.min.js docs/dist/nomodule/ && cp src/style.css docs/dist/style.css",
-    "compile_docs_js": "rollup -c rollup.docs.config.js",
-    "postcompile_docs": "cp -r dist/umd docs/dist",
-    "prepare": "npm run compile"
+    "build": "npm run build_js && npm run build_js_umd && npm run build_css && npm run build_docs",
+    "build_js": "rollup -c",
+    "build_js_umd": "browserify dist/index.js --standalone simpleDatatables -o dist/umd/simple-datatables.js",
+    "build_css": "cp src/style.css dist/style.css",
+    "build_docs": "npm run build_docs_js && cp src/style.css docs/dist/style.css",
+    "build_docs_js": "rollup -c rollup.docs.config.js",
+    "postbuild_docs": "cp -r dist/umd/simple-datatables.js docs/dist/umd.js",
+    "prepare": "npm run build"
   },
   "repository": {
     "type": "git",
@@ -40,17 +40,16 @@
     "@babel/core": "^7.10.2",
     "@babel/plugin-syntax-dynamic-import": "^7.8.3",
     "babel-eslint": "^10.1.0",
-    "browserify": "^16.5.1",
+    "browserify": "^17.0.0",
     "eslint": "^7.2.0",
-    "rollup": "^2.15.0",
+    "rollup": "^2.36.1",
     "rollup-plugin-babel": "^4.4.0",
     "rollup-plugin-commonjs": "^10.1.0",
     "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-terser": "^6.1.0",
-    "systemjs": "^6.3.2",
-    "updates": "^10.2.13"
+    "rollup-plugin-terser": "^7.0.2",
+    "updates": "^11.4.2"
   },
   "dependencies": {
     "dayjs": "^1.8.28"

@@ -126,10 +126,10 @@
       <tr><td>Zelenia Roman</td><td>7516</td><td>Redwater</td><td>2012/03/03</td><td>31%</td></tr>
     </tbody>
   </table>
-
   <script type="module">
-    import {DataTable} from "../dist/module.js"
-    const table = new DataTable("table")
+    import("../dist/module.js").then(({DataTable}) => {
+        const table = new DataTable("table")
+    })
   </script>
 </body>
 </html>

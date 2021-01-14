@@ -7,23 +7,20 @@ import {terser} from 'rollup-plugin-terser'
 
 export default [
     {
-        input: 'docs/index.js',
+        input: 'src/index.js',
         plugins: [
             resolve({browser: true}),
             commonjs(),
             builtins(),
             globals(),
-            babel({
-			           plugins: [
-				               '@babel/plugin-syntax-dynamic-import'
-			           ]
-		        }),
+            babel({plugins: ['@babel/plugin-syntax-dynamic-import']}),
             terser()
         ],
         output: {
-            dir: "docs/dist/module",
+            file: "docs/dist/module.js",
+            inlineDynamicImports: true,
             format: "es",
-            sourcemap: true
+            sourcemap: false
         }
     }
 ]

@@ -20,7 +20,7 @@ export default [
 		        }),
             terser()
         ],
-        output: // ES module version, for modern browsers
+        output: // ES module version, for modern browsers with days split into separate file
         {
             dir: "dist/module",
             format: "es",

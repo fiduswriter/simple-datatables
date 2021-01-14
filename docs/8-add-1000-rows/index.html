@@ -5,11 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Add 1000 Rows</title>
 
-  <!-- CDN -->
-  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css"> -->
-
   <!-- DataTable Styles -->
-  <link rel="stylesheet" href="../../src/style.css">
+  <link rel="stylesheet" href="../dist/style.css">
 
   <!-- Demo Styles -->
   <link rel="stylesheet" href="../demo.css">
@@ -30,12 +27,12 @@
 </head>
 <body>
   <h1>Add 1000 Rows</h1>
-  
+
   <table></table>
   <button class="btn btn-primary" id="add">Add 1000 Rows</button>
-  
+
   <!-- CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+  <script src="../dist/umd.js"></script>
 
   <!-- Custom Code -->
   <script>
@@ -7050,9 +7047,9 @@
             "Redwater",
             "2012/03/03",
             "31%"
-          ]			
+          ]
         ]
-      },	
+      },
     });
 
     document.getElementById("add").addEventListener("click", function(e) {

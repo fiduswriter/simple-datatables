@@ -5,11 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Init/ Destroy - Import/ Export</title>
 
-  <!-- CDN -->
-  <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css"> -->
-
   <!-- DataTable Styles -->
-  <link rel="stylesheet" href="../../src/style.css">
+  <link rel="stylesheet" href="../dist/style.css">
 
   <!-- Demo Styles -->
   <link rel="stylesheet" href="../demo.css">
@@ -42,7 +39,7 @@
        </div>
       </div>
      </div>
-    </div>	
+    </div>
     <div class="row">
      <div class="col-12">
       <div class="card">
@@ -120,7 +117,7 @@
          <div class="form-group">
           <textarea name="" id="" cols="30" rows="2" placeholder="Paste your csv or json string here..."></textarea>
          </div>
-         <div class="form-group"> 
+         <div class="form-group">
           <button type="button" class="bttn primary import" data-type="csv">Import CSV</button>
           <button type="button" class="bttn primary import" data-type="json">Import JSON</button>
           <button type="button" class="bttn success export" data-type="csv">Export CSV</button>
@@ -136,9 +133,9 @@
      </div>
     </div>
    </div>
-  
+
   <!-- CDN -->
-  <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
+  <script src="../dist/umd.js"></script>
   <script src="utils.js"></script>
 
   <!-- Custom Code -->
@@ -161,7 +158,7 @@
     function updateColumns() {
       try {
         datatable.columns().show(visible);
-        datatable.columns().hide(hidden);	
+        datatable.columns().hide(hidden);
       } catch(e) {
         console.log(e);
       }
@@ -169,14 +166,14 @@
 
     function setCheckboxes() {
       inputs = [];
-      visible = [];	
+      visible = [];
       checkboxes.innerHTML = "";
-      
+
       util.each(datatable.headings, function(i, heading) {
         var checkbox = util.createElement("div", { class: "checkbox" });
         var input = util.createElement("input", { type: "checkbox", id: "checkbox-" + i, name: "checkbox" });
         var label = util.createElement("label", { for: "checkbox-" + i, text: heading.textContent });
-        
+
         input.idx = i;
 
         if ( datatable.columns().visible(heading.cellIndex) ) {
@@ -195,7 +192,7 @@
 
         inputs.push(input);
       });
-      
+
       util.each(inputs, function(i, input) {
 
           input.onchange = function(e) {
@@ -206,10 +203,10 @@
               visible.splice(visible.indexOf(input.idx), 1);
               hidden.push(input.idx);
             }
-            
+
             updateColumns();
-          };	
-      });	
+          };
+      });
     }
 
     textarea.addEventListener("input", function(e) {
@@ -221,16 +218,16 @@
     document.querySelectorAll(".export").forEach(function(el) {
       el.addEventListener("click", function(e) {
         var type = el.dataset.type;
-        
+
         var data = {
           type: type,
           filename: "my-" + type,
         };
-        
+
         if ( type === "csv" ) {
           data.columnDelimiter = "|";
         }
-        
+
         datatable.export(data);
       });
     });
@@ -248,19 +245,19 @@
     document.querySelectorAll(".import").forEach(function(el) {
       el.addEventListener("click", e => {
         var type = el.dataset.type;
-        
+
         var data = {
           type: type,
           data: textarea.value
         };
-        
+
         textarea.parentNode.classList.remove("error");
-        
+
         if ( !data.data.length ) {
           textarea.parentNode.classList.add("error");
           return false;
         }
-        
+
         datatable.import(data);
       });
     });
