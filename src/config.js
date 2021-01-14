@@ -28,6 +28,7 @@ export const defaultConfig = {
     fixedHeight: false,
 
     header: true,
+    hiddenHeader: false,
     footer: false,
 
     // Customise the display text
