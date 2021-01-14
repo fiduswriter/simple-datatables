@@ -1,10 +1,10 @@
 /*!
  *
- * Vanilla-DataTables
- * Copyright (c) 2015-2017 Karl Saunders (http://mobius.ovh)
- * Licensed under MIT (http://www.opensource.org/licenses/mit-license.php)
+ * Simple-DataTables
+ * Copyright (c) 2015-2017 Karl Saunders (https://mobius.ovh)
+ * Copyright (c) 2018- Johannes Wilm (https://www.johanneswilm.org)
+ * Licensed under MIT (https://www.opensource.org/licenses/mit-license.php)
  *
- * Version: 1.6.14
  *
  */
 
