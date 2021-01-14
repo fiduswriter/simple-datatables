@@ -57,7 +57,6 @@
 * [headings](https://github.com/fiduswriter/Simple-DataTables/wiki/API#headings)
 * [options](https://github.com/fiduswriter/Simple-DataTables/wiki/API#options) DEPRECATED
 * [initialized](https://github.com/fiduswriter/Simple-DataTables/wiki/API#initialized)
-* [isIE](https://github.com/fiduswriter/Simple-DataTables/wiki/API#isie) DEPRECATED
 * [data](https://github.com/fiduswriter/Simple-DataTables/wiki/API#data)
 * [activeRows](https://github.com/fiduswriter/Simple-DataTables/wiki/API#activerows) DEPRECATED
 * [dataIndex](https://github.com/fiduswriter/Simple-DataTables/wiki/API#dataindex)
