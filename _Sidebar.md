@@ -22,7 +22,6 @@
 * [datatable.search](https://github.com/fiduswriter/Simple-DataTables/wiki/Events#datatablesearch)
 
 #### Options
-* [ajax](https://github.com/fiduswriter/Simple-DataTables/wiki/ajax)
 * [columns](https://github.com/fiduswriter/Simple-DataTables/wiki/columns)
 * [data](https://github.com/fiduswriter/Simple-DataTables/wiki/data)
 * [firstLast](https://github.com/fiduswriter/Simple-DataTables/wiki/firstLast)
