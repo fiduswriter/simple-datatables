@@ -4,7 +4,7 @@ A lightweight, extendable, dependency-free javascript HTML table plugin. Similar
 
 Based on [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in ES2018.
 
-See the demo [here](https://fiduswriter.github.io/Simple-DataTables/).
+See the demos [here](https://fiduswriter.github.io/Simple-DataTables/).
 
 # CDN
 
