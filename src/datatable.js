@@ -149,60 +149,6 @@ export class DataTable {
             dataToTable.call(this)
         }
 
-        if (options.ajax) {
-            const ajax = options.ajax
-            const xhr = new XMLHttpRequest()
-
-            const xhrProgress = e => {
-                this.emit("datatable.ajax.progress", e, xhr)
-            }
-
-            const xhrLoad = e => {
-                if (xhr.readyState === 4) {
-                    this.emit("datatable.ajax.loaded", e, xhr)
-
-                    if (xhr.status === 200) {
-                        const obj = {}
-                        obj.data = ajax.load ? ajax.load.call(this, xhr) : xhr.responseText
-
-                        obj.type = "json"
-
-                        if (ajax.content && ajax.content.type) {
-                            obj.type = ajax.content.type
-
-                            Object.assign(obj, ajax.content)
-                        }
-
-                        this.import(obj)
-
-                        this.setColumns(true)
-
-                        this.emit("datatable.ajax.success", e, xhr)
-                    } else {
-                        this.emit("datatable.ajax.error", e, xhr)
-                    }
-                }
-            }
-
-            const xhrFailed = e => {
-                this.emit("datatable.ajax.error", e, xhr)
-            }
-
-            const xhrCancelled = e => {
-                this.emit("datatable.ajax.abort", e, xhr)
-            }
-
-            xhr.addEventListener("progress", xhrProgress, false)
-            xhr.addEventListener("load", xhrLoad, false)
-            xhr.addEventListener("error", xhrFailed, false)
-            xhr.addEventListener("abort", xhrCancelled, false)
-
-            this.emit("datatable.ajax.loading", xhr)
-
-            xhr.open("GET", typeof ajax === "string" ? options.ajax : options.ajax.url)
-            xhr.send()
-        }
-
         // Store references
         this.body = this.table.tBodies[0]
         this.head = this.table.tHead
@@ -233,7 +179,7 @@ export class DataTable {
 
             this.table.insertBefore(this.head, this.body)
 
-            this.hiddenHeader = !options.ajax
+            this.hiddenHeader = options.hiddenHeader
         }
 
         this.headings = []
@@ -366,9 +312,9 @@ export class DataTable {
         // Update
         this.update()
 
-        if (!options.ajax) {
-            this.setColumns()
-        }
+
+        this.setColumns()
+
 
         // Fix height
         this.fixHeight()
