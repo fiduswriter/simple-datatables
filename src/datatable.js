@@ -571,7 +571,7 @@ export class DataTable {
     /**
      * execute on resize
      */
-    onResize(_event) {
+    onResize() {
         this.rect = this.container.getBoundingClientRect()
         if (!this.rect.width) {
             // No longer shown, likely no longer part of DOM. Give up.
