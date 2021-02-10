@@ -62,6 +62,10 @@ export class DataTable {
 
         this.table = table
 
+        this.listeners = {
+            onResize: event => this.onResize(event)
+        }
+
         this.init()
     }
 
@@ -561,10 +565,19 @@ export class DataTable {
             }
         }, false)
 
-        window.addEventListener("resize", () => {
-            this.rect = this.container.getBoundingClientRect()
-            this.fixColumns()
-        })
+        window.addEventListener("resize", this.listeners.onResize)
+    }
+
+    /**
+     * execute on resize
+     */
+    onResize(_event) {
+        this.rect = this.container.getBoundingClientRect()
+        if (!this.rect.width) {
+            // No longer shown, likely no longer part of DOM. Give up.
+            return
+        }
+        this.fixColumns()
     }
 
     /**
@@ -668,6 +681,8 @@ export class DataTable {
         this.wrapper.parentNode.replaceChild(this.table, this.wrapper)
 
         this.initialized = false
+
+        window.removeEventListener("resize", this.listeners.onResize)
     }
 
     /**
