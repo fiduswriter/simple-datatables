@@ -48,6 +48,10 @@ LGPL
 ```
 npm install simple-datatables --save
 ```
+## Yarn
+```
+yarn add simple-datatables
+```
 
 ---
 
