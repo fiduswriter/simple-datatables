@@ -304,7 +304,7 @@ export class Columns {
         dt.data = filteredRows
 
         if (!dt.data.length) {
-            dt.wrapper.classList.remove("search-results")
+            dt.clear()
             dt.setMessage(dt.options.labels.noRows)
         } else {
             this.rebuild()
