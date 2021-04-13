@@ -302,8 +302,15 @@ export class Columns {
         })
 
         dt.data = filteredRows
-        this.rebuild()
-        dt.update()
+
+        if (!dt.data.length) {
+            dt.clear()
+            dt.setMessage(dt.options.labels.noRows)
+        } else {
+            this.rebuild()
+            dt.update()
+        }
+
         if (!init) {
             dt.emit("datatable.sort", column, dir)
         }
