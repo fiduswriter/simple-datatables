@@ -71,7 +71,7 @@ const dataTable = new DataTable("#myTable");
 
 ```
 
-You can also pass the options object as the second paramater:
+You can also pass the options object as the second parameter:
 
 ```javascript
 import {DataTable} from "simple-datatables"
