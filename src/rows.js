@@ -92,7 +92,7 @@ export class Rows {
             select.forEach(row => {
                 dt.data.splice(row, 1)
             })
-        } else if (select == 'all') {
+        } else if (select == "all") {
             dt.data = [];
         } else {
             dt.data.splice(select, 1)

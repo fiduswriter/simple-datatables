@@ -549,7 +549,7 @@ export class DataTable {
 
         // Pager(s) / sorting
         this.wrapper.addEventListener("click", e => {
-            const t = e.target.closest('a')
+            const t = e.target.closest("a")
             if (t && (t.nodeName.toLowerCase() === "a")) {
                 if (t.hasAttribute("data-page")) {
                     this.page(t.getAttribute("data-page"))
@@ -758,7 +758,7 @@ export class DataTable {
                 if (this.options.scrollY.length) {
                     hd = createElement("thead")
                     hd.appendChild(createElement("tr"))
-                    hd.style.height = '0px'
+                    hd.style.height = "0px"
                     if (this.headerTable) {
                         // move real header back into place
                         this.table.tHead = this.headerTable.tHead
@@ -807,14 +807,14 @@ export class DataTable {
                         this.table.clientWidth +
                         parseInt(
                             this.headerTable.parentElement.style.paddingRight ||
-                            '0',
+                            "0",
                             10
                         )
                     }px`
 
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
-                        container.style.overflowY = 'scroll'
+                        container.style.overflowY = "scroll"
                     }
                 }
 
@@ -901,7 +901,7 @@ export class DataTable {
 
                 for (let x = 0; x < row.cells.length; x++) {
                     cell = row.cells[x]
-                    content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.textContent
+                    content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.textContent
 
                     if (
                         content.toLowerCase().includes(word) &&
@@ -1154,9 +1154,9 @@ export class DataTable {
                             ) {
                                 let text = rows[i].cells[x].textContent
                                 text = text.trim()
-                                text = text.replace(/\s{2,}/g, ' ')
-                                text = text.replace(/\n/g, '  ')
-                                text = text.replace(/"/g, '""')
+                                text = text.replace(/\s{2,}/g, " ")
+                                text = text.replace(/\n/g, "  ")
+                                text = text.replace(/"/g, "\"\"")
                                 //have to manually encode "#" as encodeURI leaves it as is.
                                 text = text.replace(/#/g, "%23")
                                 if (text.includes(","))
