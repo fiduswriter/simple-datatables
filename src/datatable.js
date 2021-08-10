@@ -13,8 +13,9 @@ import {
 
 
 export class DataTable {
-    constructor(dom, options = {}) {
-        this.initialized = false
+    constructor(table, options = {}) {
+
+        const dom = typeof table === "string" ? document.querySelector(table) : table
 
         // user options
         this.options = {
@@ -30,9 +31,7 @@ export class DataTable {
             }
         }
 
-        if (typeof dom === "string") {
-            dom = document.querySelector(table)
-        }
+        this.initialized = false
 
         this.initialLayout = dom.innerHTML
         this.initialSortable = this.options.sortable
