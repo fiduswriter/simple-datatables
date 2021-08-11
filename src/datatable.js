@@ -435,7 +435,7 @@ export class DataTable {
             }
 
             // prev button
-            if (this.options.nextPrev) {
+            if (this.options.nextPrev && !this.onFirstPage) {
                 frag.appendChild(button(c, prev, this.options.prevText))
             }
 
@@ -464,7 +464,7 @@ export class DataTable {
             this.links[this.currentPage - 1].classList.add("active")
 
             // next button
-            if (this.options.nextPrev) {
+            if (this.options.nextPrev && !this.onLastPage) {
                 frag.appendChild(button(c, next, this.options.nextText))
             }
 
