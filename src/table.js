@@ -44,16 +44,16 @@ export const dataToTable = function (data) {
     }
 
     if (thead) {
-        if (this.table.tHead !== null) {
-            this.table.removeChild(this.table.tHead)
+        if (this.dom.tHead !== null) {
+            this.dom.removeChild(this.dom.tHead)
         }
-        this.table.appendChild(thead)
+        this.dom.appendChild(thead)
     }
 
     if (tbody) {
-        if (this.table.tBodies.length) {
-            this.table.removeChild(this.table.tBodies[0])
+        if (this.dom.tBodies.length) {
+            this.dom.removeChild(this.dom.tBodies[0])
         }
-        this.table.appendChild(tbody)
+        this.dom.appendChild(tbody)
     }
 }

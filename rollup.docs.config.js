@@ -13,7 +13,7 @@ export default [
             commonjs(),
             builtins(),
             globals(),
-            babel({plugins: ['@babel/plugin-syntax-dynamic-import']}),
+            babel(),
             terser()
         ],
         output: {

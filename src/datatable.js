@@ -14,7 +14,8 @@ import {
 
 export class DataTable {
     constructor(table, options = {}) {
-        this.initialized = false
+
+        const dom = typeof table === "string" ? document.querySelector(table) : table
 
         // user options
         this.options = {
@@ -30,11 +31,9 @@ export class DataTable {
             }
         }
 
-        if (typeof table === "string") {
-            table = document.querySelector(table)
-        }
+        this.initialized = false
 
-        this.initialLayout = table.innerHTML
+        this.initialLayout = dom.innerHTML
         this.initialSortable = this.options.sortable
 
         // Disable manual sorting if no header is present (#4)
@@ -42,7 +41,7 @@ export class DataTable {
             this.options.sortable = false
         }
 
-        if (table.tHead === null) {
+        if (dom.tHead === null) {
             if (!this.options.data ||
                 (this.options.data && !this.options.data.headings)
             ) {
@@ -50,7 +49,7 @@ export class DataTable {
             }
         }
 
-        if (table.tBodies.length && !table.tBodies[0].rows.length) {
+        if (dom.tBodies.length && !dom.tBodies[0].rows.length) {
             if (this.options.data) {
                 if (!this.options.data.data) {
                     throw new Error(
@@ -60,7 +59,7 @@ export class DataTable {
             }
         }
 
-        this.table = table
+        this.dom = dom
 
         this.listeners = {
             onResize: event => this.onResize(event)
@@ -89,7 +88,7 @@ export class DataTable {
      * @return {Void}
      */
     init(options) {
-        if (this.initialized || this.table.classList.contains("dataTable-table")) {
+        if (this.initialized || this.dom.classList.contains("dataTable-table")) {
             return false
         }
 
@@ -154,14 +153,14 @@ export class DataTable {
         }
 
         // Store references
-        this.body = this.table.tBodies[0]
-        this.head = this.table.tHead
-        this.foot = this.table.tFoot
+        this.body = this.dom.tBodies[0]
+        this.head = this.dom.tHead
+        this.foot = this.dom.tFoot
 
         if (!this.body) {
             this.body = createElement("tbody")
 
-            this.table.appendChild(this.body)
+            this.dom.appendChild(this.body)
         }
 
         this.hasRows = this.body.rows.length > 0
@@ -181,7 +180,7 @@ export class DataTable {
 
             this.head = h
 
-            this.table.insertBefore(this.head, this.body)
+            this.dom.insertBefore(this.head, this.body)
 
             this.hiddenHeader = options.hiddenHeader
         }
@@ -197,7 +196,7 @@ export class DataTable {
         // Header
         if (!options.header) {
             if (this.head) {
-                this.table.removeChild(this.table.tHead)
+                this.dom.removeChild(this.dom.tHead)
             }
         }
 
@@ -207,11 +206,11 @@ export class DataTable {
                 this.foot = createElement("tfoot", {
                     html: this.head.innerHTML
                 })
-                this.table.appendChild(this.foot)
+                this.dom.appendChild(this.foot)
             }
         } else {
             if (this.foot) {
-                this.table.removeChild(this.table.tFoot)
+                this.dom.removeChild(this.dom.tFoot)
             }
         }
 
@@ -280,7 +279,7 @@ export class DataTable {
         }
 
         // Add table class
-        this.table.classList.add("dataTable-table")
+        this.dom.classList.add("dataTable-table")
 
         // Paginator
         const paginatorWrapper = createElement("nav", {
@@ -302,11 +301,11 @@ export class DataTable {
         this.label = this.wrapper.querySelector(".dataTable-info")
 
         // Insert in to DOM tree
-        this.table.parentNode.replaceChild(this.wrapper, this.table)
-        this.container.appendChild(this.table)
+        this.dom.parentNode.replaceChild(this.wrapper, this.dom)
+        this.container.appendChild(this.dom)
 
         // Store the table dimensions
-        this.rect = this.table.getBoundingClientRect()
+        this.rect = this.dom.getBoundingClientRect()
 
         // Convert rows to array for processing
         this.data = Array.from(this.body.rows)
@@ -436,7 +435,7 @@ export class DataTable {
             }
 
             // prev button
-            if (this.options.nextPrev) {
+            if (this.options.nextPrev && !this.onFirstPage) {
                 frag.appendChild(button(c, prev, this.options.prevText))
             }
 
@@ -465,7 +464,7 @@ export class DataTable {
             this.links[this.currentPage - 1].classList.add("active")
 
             // next button
-            if (this.options.nextPrev) {
+            if (this.options.nextPrev && !this.onLastPage) {
                 frag.appendChild(button(c, next, this.options.nextText))
             }
 
@@ -549,7 +548,7 @@ export class DataTable {
 
         // Pager(s) / sorting
         this.wrapper.addEventListener("click", e => {
-            const t = e.target.closest('a')
+            const t = e.target.closest("a")
             if (t && (t.nodeName.toLowerCase() === "a")) {
                 if (t.hasAttribute("data-page")) {
                     this.page(t.getAttribute("data-page"))
@@ -672,13 +671,13 @@ export class DataTable {
      * @return {void}
      */
     destroy() {
-        this.table.innerHTML = this.initialLayout
+        this.dom.innerHTML = this.initialLayout
 
         // Remove the className
-        this.table.classList.remove("dataTable-table")
+        this.dom.classList.remove("dataTable-table")
 
         // Remove the containers
-        this.wrapper.parentNode.replaceChild(this.table, this.wrapper)
+        this.wrapper.parentNode.replaceChild(this.dom, this.wrapper)
 
         this.initialized = false
 
@@ -753,15 +752,15 @@ export class DataTable {
 
             // If we have headings we need only set the widths on them
             // otherwise we need a temp header and the widths need applying to all cells
-            if (this.table.tHead) {
+            if (this.dom.tHead) {
 
                 if (this.options.scrollY.length) {
                     hd = createElement("thead")
                     hd.appendChild(createElement("tr"))
-                    hd.style.height = '0px'
+                    hd.style.height = "0px"
                     if (this.headerTable) {
                         // move real header back into place
-                        this.table.tHead = this.headerTable.tHead
+                        this.dom.tHead = this.headerTable.tHead
                     }
                 }
 
@@ -786,7 +785,7 @@ export class DataTable {
                 })
 
                 if (this.options.scrollY.length) {
-                    const container = this.table.parentElement
+                    const container = this.dom.parentElement
                     if (!this.headerTable) {
                         this.headerTable = createElement("table", {
                             class: "dataTable-table"
@@ -797,24 +796,24 @@ export class DataTable {
                         headercontainer.appendChild(this.headerTable)
                         container.parentElement.insertBefore(headercontainer, container)
                     }
-                    const thd = this.table.tHead
-                    this.table.replaceChild(hd, thd)
+                    const thd = this.dom.tHead
+                    this.dom.replaceChild(hd, thd)
                     this.headerTable.tHead = thd
 
                     // Compensate for scrollbars.
                     this.headerTable.parentElement.style.paddingRight = `${
                         this.headerTable.clientWidth -
-                        this.table.clientWidth +
+                        this.dom.clientWidth +
                         parseInt(
                             this.headerTable.parentElement.style.paddingRight ||
-                            '0',
+                            "0",
                             10
                         )
                     }px`
 
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
-                        container.style.overflowY = 'scroll'
+                        container.style.overflowY = "scroll"
                     }
                 }
 
@@ -824,14 +823,14 @@ export class DataTable {
                 // Make temperary headings
                 hd = createElement("thead")
                 const r = createElement("tr")
-                Array.from(this.table.tBodies[0].rows[0].cells).forEach(() => {
+                Array.from(this.dom.tBodies[0].rows[0].cells).forEach(() => {
                     const th = createElement("th")
                     r.appendChild(th)
                     cells.push(th)
                 })
 
                 hd.appendChild(r)
-                this.table.insertBefore(hd, this.body)
+                this.dom.insertBefore(hd, this.body)
 
                 const widths = []
                 cells.forEach((cell, i) => {
@@ -849,7 +848,7 @@ export class DataTable {
                 })
 
                 // Discard the temp header
-                this.table.removeChild(hd)
+                this.dom.removeChild(hd)
             }
         }
     }
@@ -901,7 +900,7 @@ export class DataTable {
 
                 for (let x = 0; x < row.cells.length; x++) {
                     cell = row.cells[x]
-                    content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.textContent
+                    content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.textContent
 
                     if (
                         content.toLowerCase().includes(word) &&
@@ -1064,7 +1063,7 @@ export class DataTable {
 
         let parent = this.body
         if (!this.body) {
-            parent = this.table
+            parent = this.dom
         }
 
         if (html) {
@@ -1154,9 +1153,9 @@ export class DataTable {
                             ) {
                                 let text = rows[i].cells[x].textContent
                                 text = text.trim()
-                                text = text.replace(/\s{2,}/g, ' ')
-                                text = text.replace(/\n/g, '  ')
-                                text = text.replace(/"/g, '""')
+                                text = text.replace(/\s{2,}/g, " ")
+                                text = text.replace(/\n/g, "  ")
+                                text = text.replace(/"/g, "\"\"")
                                 //have to manually encode "#" as encodeURI leaves it as is.
                                 text = text.replace(/#/g, "%23")
                                 if (text.includes(","))

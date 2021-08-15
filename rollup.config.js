@@ -13,11 +13,7 @@ export default [
             commonjs(),
             builtins(),
             globals(),
-            babel({
-			           plugins: [
-				               '@babel/plugin-syntax-dynamic-import'
-			           ]
-		        }),
+            babel(),
             terser()
         ],
         output: // ES module version, for modern browsers with days split into separate file
@@ -34,11 +30,7 @@ export default [
             commonjs(),
             builtins(),
             globals(),
-            babel({
-			           plugins: [
-				               '@babel/plugin-syntax-dynamic-import'
-			           ]
-		        }),
+            babel(),
             terser()
         ],
         output: // SystemJS version, for older browsers
@@ -55,11 +47,7 @@ export default [
             commonjs(),
             builtins(),
             globals(),
-            babel({
-			           plugins: [
-				               '@babel/plugin-syntax-dynamic-import'
-			           ]
-		        }),
+            babel(),
             terser()
         ],
         output: // CJS version

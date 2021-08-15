@@ -295,10 +295,10 @@ export class Columns {
         const rowFilter = dt.filterState[column]() // fetches next filter
         const filteredRows = Array.from(dt.filterState.originalData).filter(tr => {
             const cell = tr.cells[column]
-            const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
+            const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText
 
             // If the filter is a function, call it, if it is a string, compare it
-            return (typeof rowFilter) === 'function' ? rowFilter(content) : content === rowFilter;
+            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter;
         })
 
         dt.data = filteredRows
@@ -368,7 +368,7 @@ export class Columns {
             const parseFunction = importedFunctions[0] // only defined if date
             Array.from(rows).forEach(tr => {
                 const cell = tr.cells[column]
-                const content = cell.hasAttribute('data-content') ? cell.getAttribute('data-content') : cell.innerText
+                const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText
                 let num
                 if (parseFunction) {
                     num = parseFunction(content)
