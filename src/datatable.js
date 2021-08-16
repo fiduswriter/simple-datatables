@@ -61,6 +61,8 @@ export class DataTable {
 
         this.dom = dom
 
+        this.table = this.dom // For compatibility. Remove in version 4
+
         this.listeners = {
             onResize: event => this.onResize(event)
         }
