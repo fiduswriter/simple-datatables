@@ -21,17 +21,17 @@ export const parseDate = (content, format) => {
             date = content
             break
         case "RFC_2822":
-            date = dayjs(content, "ddd, MM MMM YYYY HH:mm:ss ZZ").format("YYYYMMDD")
+            date = dayjs(content.slice(5), "DD MMM YYYY HH:mm:ss ZZ").unix()
             break
         case "MYSQL":
-            date = dayjs(content, "YYYY-MM-DD hh:mm:ss").format("YYYYMMDD")
+            date = dayjs(content, "YYYY-MM-DD hh:mm:ss").unix()
             break
         case "UNIX":
             date = dayjs(content).unix()
             break
         // User defined format using the data-format attribute or columns[n].format option
         default:
-            date = dayjs(content, format).format("YYYYMMDD")
+            date = dayjs(content, format).valueOf()
             break
         }
     }
