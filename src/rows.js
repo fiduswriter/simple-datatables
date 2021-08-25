@@ -116,4 +116,60 @@ export class Rows {
             row.dataIndex = i
         })
     }
+
+    /**
+     * Find index of row by searching for a value in a column
+     * @param  {Number} columnIndex
+     * @param  {String} value
+     * @return {Number}
+     */
+    findRowIndex(columnIndex, value) {
+        // returns row index of first case-insensitive string match
+        // inside the td innerText at specific column index
+        return this.dt.data.findIndex(
+            tr => tr.children[columnIndex].innerText.toLowerCase().includes(String(value).toLowerCase())
+        )
+    }
+
+    /**
+     * Find index, row, and column data by searching for a value in a column
+     * @param  {Number} columnIndex
+     * @param  {String} value
+     * @return {Object}
+     */
+    findRow(columnIndex, value) {
+        // get the row index
+        const index = this.findRowIndex(columnIndex, value)
+        // exit if not found
+        if(index < 0) {
+            return {
+                index: -1,
+                row: null,
+                cols: []
+            }
+        }
+        // get the row from data
+        const row = this.dt.data[index]
+        // return innerHTML of each td
+        const cols = [...row.cells].map(r => r.innerHTML)
+        // return everything
+        return {
+            index,
+            row,
+            cols
+        }
+    }
+
+    /**
+     * Update a row with new data
+     * @param  {Number} select
+     * @param  {Array} data
+     * @return {Void}
+     */
+    updateRow(select, data) {
+        const row = this.build(data)
+        this.dt.data.splice(select, 1, row)
+        this.update()
+        this.dt.columns().rebuild()
+    }
 }
