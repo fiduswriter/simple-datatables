@@ -35,7 +35,8 @@ export const defaultConfig = {
     labels: {
         placeholder: "Search...", // The search input placeholder
         perPage: "{select} entries per page", // per-page dropdown label
-        noRows: "No entries found", // Message shown when there are no search results
+        noRows: "No entries found", // Message shown when there are no records to show
+        noResults: "No results match your search query", // Message shown when there are no search results
         info: "Showing {start} to {end} of {rows} entries" //
     },
 

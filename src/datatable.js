@@ -929,7 +929,7 @@ export class DataTable {
         if (!this.searchData.length) {
             this.wrapper.classList.remove("search-results")
 
-            this.setMessage(this.options.labels.noRows)
+            this.setMessage(this.options.labels.noResults)
         } else {
             this.update()
         }
