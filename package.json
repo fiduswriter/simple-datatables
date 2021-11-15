@@ -37,6 +37,7 @@
   },
   "homepage": "https://github.com/fiduswriter/Simple-DataTables#readme",
   "devDependencies": {
+    "@babel/core": "^7.15.0",
     "@rollup/plugin-node-resolve": "^13.0.4",
     "browserify": "^17.0.0",
     "eslint": "^8.2.0",
