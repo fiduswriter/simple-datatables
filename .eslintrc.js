@@ -4,11 +4,9 @@ module.exports = {
         "es6": true
     },
     "extends": "eslint:recommended",
-    "parser": "babel-eslint",
     "parserOptions": {
-        "ecmaVersion": 2018,
-        "sourceType": "module",
-        "allowImportExportEverywhere": true
+        "ecmaVersion": 2021,
+        "sourceType": "module"
     },
     "rules": {
         "accessor-pairs": "error",
