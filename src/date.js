@@ -31,10 +31,9 @@ export const parseDate = (content, format) => {
             break
         // User defined format using the data-format attribute or columns[n].format option
         default:
-            date = dayjs(content, format).valueOf()
+            date = dayjs(content, format, true).valueOf()
             break
         }
     }
-
     return date
 }

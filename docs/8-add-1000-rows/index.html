@@ -39,6 +39,19 @@
     var datatable = new simpleDatatables.DataTable('table', {
       perPageSelect: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500, 1000],
       perPage: 10,
+      columns: [{
+        // select the fourth column ...
+        select: 3,
+
+        // ... let the instance know we have datetimes in it ...
+        type: "date",
+
+        // ... pass the correct datetime format ...
+        format: "YYYY/DD/MM",
+
+        // ... sort it ...
+        sort: "desc",
+      }],
       data: {
         "headings": [
           "Name",
