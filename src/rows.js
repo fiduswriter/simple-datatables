@@ -141,7 +141,7 @@ export class Rows {
         // get the row index
         const index = this.findRowIndex(columnIndex, value)
         // exit if not found
-        if(index < 0) {
+        if (index < 0) {
             return {
                 index: -1,
                 row: null,
