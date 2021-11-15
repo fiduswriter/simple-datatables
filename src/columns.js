@@ -305,6 +305,7 @@ export class Columns {
 
         if (!dt.data.length) {
             dt.clear()
+            dt.hasRows = false
             dt.setMessage(dt.options.labels.noRows)
         } else {
             this.rebuild()
