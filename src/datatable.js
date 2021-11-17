@@ -9,7 +9,8 @@ import {
     flush,
     button,
     truncate,
-    truncateRemote
+    truncateRemote,
+    isEmpty
 } from "./helpers"
 
 
@@ -31,7 +32,7 @@ export class DataTable {
                 ...options.labels
             }
         }
-        if (!_.isEmpty(this.options.pageOptions)) {
+        if (!isEmpty(this.options.pageOptions)) {
             delete this.options.pageOptions.data
         }
         this.initialized = false
@@ -413,7 +414,7 @@ export class DataTable {
             f = current * this.options.perPage
             t = f + this.pages[current].length
             f = f + 1
-            if (!_.isEmpty(this.options.pageOptions)) {
+            if (!isEmpty(this.options.pageOptions)) {
                 items = this.options.pageOptions.total
                 if (this.onLastPage){
                     t = this.options.pageOptions.total
@@ -468,7 +469,7 @@ export class DataTable {
             let pager = this.links
 
             // truncate the links
-            if (!_.isEmpty(this.options.pageOptions)) {
+            if (!isEmpty(this.options.pageOptions)) {
                 if (this.options.truncatePager) {
                     pager = truncateRemote(
                         this.options.pageOptions.links,
@@ -493,7 +494,7 @@ export class DataTable {
             this.links = pager
             // active page link
             let active;
-            if(!_.isEmpty(this.options.pageOptions)){
+            if(!isEmpty(this.options.pageOptions)){
                 active = this.options.pageOptions.links.findIndex(obj => parseInt(obj.label) === this.currentPage)
             }else{
                 active = this.currentPage
@@ -745,7 +746,7 @@ export class DataTable {
         this.links = []
 
         let i;
-        if (!_.isEmpty(this.options.pageOptions)) {
+        if (!isEmpty(this.options.pageOptions)) {
             i = this.options.pageOptions.links.length
         }else{
             i = this.pages.length
@@ -778,12 +779,12 @@ export class DataTable {
             this.searchData.forEach(index => rows.push(this.activeRows[index]))
         }
 
-        if (this.options.paging && _.isEmpty(this.options.pageOptions)) {
+        if (this.options.paging && isEmpty(this.options.pageOptions)) {
             // Check for hidden columns
             this.pages = rows
                 .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
                 .filter(page => page)
-        } else if(!_.isEmpty(this.options.pageOptions)){
+        } else if(!isEmpty(this.options.pageOptions)){
             this.pages = rows
                 .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
                 .filter(page => page)
@@ -794,7 +795,7 @@ export class DataTable {
             this.pages = [rows]
         }
 
-        if (_.isEmpty(this.options.pageOptions)){
+        if (isEmpty(this.options.pageOptions)){
             this.totalPages = this.lastPage = this.pages.length
         }else{
             this.totalPages = this.lastPage = this.options.pageOptions.last_page
@@ -1019,7 +1020,7 @@ export class DataTable {
             this.currentPage = parseInt(page, 10)
         }
 
-        if (!_.isEmpty(this.options.pageOptions)){
+        if (!isEmpty(this.options.pageOptions)){
             const url = this.options.pageOptions.links.filter(obj => obj.label === page)
             fetch(url[0].url, this.options.remoteDatas.url_options)
                 .then(response => response.json())
