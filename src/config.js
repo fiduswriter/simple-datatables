@@ -25,10 +25,10 @@ export const defaultConfig = {
         liClasses: [],
         liClassesEllispsis: [],
         liClassesPrev: [],
-        liClassesNext: [],
+        liClassesNext: []
     },
-    page_ : {},
-    remote_datas : {},
+    pageOptions: {},
+    remoteDatas: {},
     scrollY: "",
 
     fixedColumns: true,

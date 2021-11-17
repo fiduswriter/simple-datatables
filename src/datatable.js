@@ -31,8 +31,8 @@ export class DataTable {
                 ...options.labels
             }
         }
-        if (!_.isEmpty(this.options.page_)) {
-            delete this.options.page_.data
+        if (!_.isEmpty(this.options.pageOptions)) {
+            delete this.options.pageOptions.data
         }
         this.initialized = false
 
@@ -282,11 +282,11 @@ export class DataTable {
         }
         // Actions
         if (options.actions) {
-            const actions_wrapper =
+            const actionsWrapper =
                 `<div class='dataTable-actions'>${options.actionsTemplate??''}</div>`
             // Search input placement
-            template = template.replace("{actions}", actions_wrapper)
-        }else {
+            template = template.replace("{actions}", actionsWrapper)
+        } else {
             template = template.replace("{actions}", "")
         }
 
@@ -413,10 +413,10 @@ export class DataTable {
             f = current * this.options.perPage
             t = f + this.pages[current].length
             f = f + 1
-            if (!_.isEmpty(this.options.page_)) {
-                items = this.options.page_.total
+            if (!_.isEmpty(this.options.pageOptions)) {
+                items = this.options.pageOptions.total
                 if (this.onLastPage){
-                    t = this.options.page_.total
+                    t = this.options.pageOptions.total
                 }
             }else{
                 items = this.searching ? this.searchData.length : this.data.length
@@ -468,12 +468,12 @@ export class DataTable {
             let pager = this.links
 
             // truncate the links
-            if (!_.isEmpty(this.options.page_)) {
+            if (!_.isEmpty(this.options.pageOptions)) {
                 if (this.options.truncatePager) {
                     pager = truncateRemote(
-                        this.options.page_.links,
+                        this.options.pageOptions.links,
                         this.currentPage,
-                        this.options.page_.last_page,
+                        this.options.pageOptions.last_page,
                         this.options.pagerDelta,
                         this.options.ellipsisText
                     )
@@ -493,8 +493,8 @@ export class DataTable {
             this.links = pager
             // active page link
             let active;
-            if(!_.isEmpty(this.options.page_)){
-                active = this.options.page_.links.findIndex(obj => parseInt(obj.label) === this.currentPage)
+            if(!_.isEmpty(this.options.pageOptions)){
+                active = this.options.pageOptions.links.findIndex(obj => parseInt(obj.label) === this.currentPage)
             }else{
                 active = this.currentPage
             }
@@ -745,8 +745,8 @@ export class DataTable {
         this.links = []
 
         let i;
-        if (!_.isEmpty(this.options.page_)) {
-            i = this.options.page_.links.length
+        if (!_.isEmpty(this.options.pageOptions)) {
+            i = this.options.pageOptions.links.length
         }else{
             i = this.pages.length
         }
@@ -778,26 +778,26 @@ export class DataTable {
             this.searchData.forEach(index => rows.push(this.activeRows[index]))
         }
 
-        if (this.options.paging && _.isEmpty(this.options.page_)) {
+        if (this.options.paging && _.isEmpty(this.options.pageOptions)) {
             // Check for hidden columns
             this.pages = rows
                 .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
                 .filter(page => page)
-        } else if(!_.isEmpty(this.options.page_)){
+        } else if(!_.isEmpty(this.options.pageOptions)){
             this.pages = rows
                 .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
                 .filter(page => page)
-            for (let x = 0; x < this.options.page_.last_page; x++) {
-                this.pages.push(Array(this.options.page_.per_page))
+            for (let x = 0; x < this.options.pageOptions.last_page; x++) {
+                this.pages.push(Array(this.options.pageOptions.per_page))
             }
         } else {
             this.pages = [rows]
         }
 
-        if (_.isEmpty(this.options.page_)){
+        if (_.isEmpty(this.options.pageOptions)){
             this.totalPages = this.lastPage = this.pages.length
         }else{
-            this.totalPages = this.lastPage = this.options.page_.last_page
+            this.totalPages = this.lastPage = this.options.pageOptions.last_page
         }
 
         return this.totalPages
@@ -1019,12 +1019,12 @@ export class DataTable {
             this.currentPage = parseInt(page, 10)
         }
 
-        if (!_.isEmpty(this.options.page_)){
-            const url = this.options.page_.links.filter(obj => obj.label === page)
-            fetch(url[0].url, this.options.remote_datas.url_options)
+        if (!_.isEmpty(this.options.pageOptions)){
+            const url = this.options.pageOptions.links.filter(obj => obj.label === page)
+            fetch(url[0].url, this.options.remoteDatas.url_options)
                 .then(response => response.json())
                 .then(data => {
-                    this.options.page_ = data.data
+                    this.options.pageOptions = data.data
                     if (page-2 >= 0){
                         this.pages[page-2] = []
                     }
