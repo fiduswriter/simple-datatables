@@ -12,9 +12,11 @@ export const dataToTable = function (data) {
     if (data.headings) {
         thead = createElement("thead")
         const tr = createElement("tr")
-        data.headings.forEach(col => {
+        data.headings.forEach((col, index) => {
+            const current_params = this.options.columns.find(o => o.name === data.headings[index] || o.select === index)
             const td = createElement("th", {
-                html: col
+                html: col!=='actions' ? col : '',
+                class: (current_params!==undefined && current_params.hasOwnProperty('headerClass')) ? current_params.headerClass : ''
             })
             tr.appendChild(td)
         })
@@ -33,9 +35,14 @@ export const dataToTable = function (data) {
                 }
             }
             const tr = createElement("tr")
-            rows.forEach(value => {
+            rows.forEach((value, index) => {
+                const current_params = this.options.columns.find(o => o.name === this.options.data.headings[index] || o.select === index)
+                if(current_params && current_params.hasOwnProperty('renderBefore')){
+                    value = current_params.renderBefore(value)
+                }
                 const td = createElement("td", {
-                    html: value
+                    html: value,
+                    class: (current_params!==undefined) ? current_params.cellClass : ''
                 })
                 tr.appendChild(td)
             })

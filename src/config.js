@@ -21,7 +21,14 @@ export const defaultConfig = {
     descText: "▾",
     truncatePager: true,
     pagerDelta: 2,
-
+    pagerClasses: {
+        liClasses: [],
+        liClassesEllispsis: [],
+        liClassesPrev: [],
+        liClassesNext: [],
+    },
+    page_ : {},
+    remote_datas : {},
     scrollY: "",
 
     fixedColumns: true,
@@ -42,6 +49,7 @@ export const defaultConfig = {
 
     // Customise the layout
     layout: {
+        above: "{actions}",
         top: "{select}{search}",
         bottom: "{info}{pager}"
     }
