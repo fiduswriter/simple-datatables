@@ -48,6 +48,18 @@ export const flush = el => {
 }
 
 /**
+ * Check if a value is Empty
+ * @param  {any} value
+ * @return {Boolean}
+ */
+export const isEmpty = (value) => {
+    return  value === undefined ||
+        value === null ||
+        (typeof value === "object" && Object.keys(value).length === 0) ||
+        (typeof value === "string" && value.trim().length === 0)
+}
+
+/**
  * Create button helper
  * @param  {String}   class
  * @param  {Number}   page
