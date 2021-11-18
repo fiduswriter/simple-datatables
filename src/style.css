@@ -11,6 +11,14 @@
 	padding: 8px 10px;
 }
 
+.dataTable-above{
+	width: 100%;
+	padding: 8px 10px;
+}
+
+.dataTable-above:empty {
+	padding: 0;
+}
 .dataTable-top > nav:first-child,
 .dataTable-top > div:first-child,
 .dataTable-bottom > nav:first-child,
@@ -107,7 +115,7 @@
 
 .dataTable-table > thead > tr > th {
 	vertical-align: bottom;
-	text-align: left;
+	/*text-align: left;*/
 	border-bottom: 1px solid #d9d9d9;
 }
 
@@ -119,7 +127,7 @@
 
 .dataTable-table th {
 	vertical-align: bottom;
-	text-align: left;
+	/*text-align: left;*/
 }
 
 .dataTable-table th a {

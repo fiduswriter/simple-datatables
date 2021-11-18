@@ -112,8 +112,10 @@ export const truncate = (a, b, c, d, ellipsis) => {
     for (let k = 1; k <= c; k++) {
         if (1 == k || k == c || (k >= f && k <= g)) {
             const l = a[k - 1]
-            l.classList.remove("active")
-            h.push(l)
+            if (l){
+                l.classList.remove("active")
+                h.push(l)
+            }
         }
     }
     h.forEach(c => {
@@ -131,6 +133,35 @@ export const truncate = (a, b, c, d, ellipsis) => {
         }
         i.push(c)
         j = c
+    })
+
+    return i
+}
+
+/**
+ * Pager truncation Remote algorithm
+ */
+export const truncateRemote = (a, b, c, d, ellipsis) => {
+
+    const i = []
+
+    a.forEach(c => {
+        let d = c.label
+        let f;
+        if (d!=='...' && d!=='&laquo; Previous' && d!=='Next &raquo;'){
+            f = createElement("li", {
+                class: '',
+                html: `<a href="#" data-page="${d}">${d}</a>`
+            })
+            i.push(f)
+        }else if(d==='...'){
+            f = createElement("li", {
+                class: "ellipsis",
+                html: `<a>${d}</a>`
+            })
+            i.push(f)
+        }
+
     })
 
     return i
