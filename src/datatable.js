@@ -32,7 +32,7 @@ export class DataTable {
             }
         }
 
-        if (!Object.keys(this.options.pageOptions).length) {
+        if (!Object.keys(this.options.pageOptions).length <= 1) {
             delete this.options.pageOptions.data
         }
         this.initialized = false
@@ -414,7 +414,7 @@ export class DataTable {
             f = current * this.options.perPage
             t = f + this.pages[current].length
             f = f + 1
-            if (!Object.keys(this.options.pageOptions).length) {
+            if (!Object.keys(this.options.pageOptions).length <= 1) {
                 items = this.options.pageOptions.total
                 if (this.onLastPage){
                     t = this.options.pageOptions.total
@@ -436,7 +436,7 @@ export class DataTable {
             this.label.innerHTML = items ? string : ""
         }
 
-        if (this.currentPage == 1) {
+        if (this.currentPage === 1) {
             this.fixHeight()
         }
     }
@@ -469,7 +469,7 @@ export class DataTable {
             let pager = this.links
 
             // truncate the links
-            if (!Object.keys(this.options.pageOptions).length) {
+            if (!Object.keys(this.options.pageOptions).length <= 1) {
                 if (this.options.truncatePager) {
                     pager = truncateRemote(
                         this.options.pageOptions.links,
@@ -494,7 +494,7 @@ export class DataTable {
             this.links = pager
             // active page link
             let active;
-            if(!Object.keys(this.options.pageOptions).length){
+            if(!Object.keys(this.options.pageOptions).length <= 1){
                 active = this.options.pageOptions.links.findIndex(obj => parseInt(obj.label) === this.currentPage)
             }else{
                 active = this.currentPage
@@ -605,7 +605,7 @@ export class DataTable {
                 } else if (
                     options.sortable &&
                     t.classList.contains("dataTable-sorter") &&
-                    t.parentNode.getAttribute("data-sortable") != "false"
+                    t.parentNode.getAttribute("data-sortable") !== "false"
                 ) {
                     this.columns().sort(this.headings.indexOf(t.parentNode))
                     e.preventDefault()
@@ -746,7 +746,7 @@ export class DataTable {
         this.links = []
 
         let i;
-        if (!Object.keys(this.options.pageOptions).length) {
+        if (!Object.keys(this.options.pageOptions).length <= 1) {
             i = this.options.pageOptions.links.length
         }else{
             i = this.pages.length
@@ -779,12 +779,12 @@ export class DataTable {
             this.searchData.forEach(index => rows.push(this.activeRows[index]))
         }
 
-        if (this.options.paging && Object.keys(this.options.pageOptions).length) {
+        if (this.options.paging && Object.keys(this.options.pageOptions).length <= 1) {
             // Check for hidden columns
             this.pages = rows
                 .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
                 .filter(page => page)
-        } else if(!Object.keys(this.options.pageOptions).length){
+        } else if(!Object.keys(this.options.pageOptions).length <= 1){
             this.pages = rows
                 .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
                 .filter(page => page)
@@ -795,7 +795,7 @@ export class DataTable {
             this.pages = [rows]
         }
 
-        if (Object.keys(this.options.pageOptions).length){
+        if (Object.keys(this.options.pageOptions).length <= 1){
             this.totalPages = this.lastPage = this.pages.length
         }else{
             this.totalPages = this.lastPage = this.options.pageOptions.last_page
@@ -935,71 +935,121 @@ export class DataTable {
         }
     }
 
+    remote(params, page = null) {
+        if (page == null) {
+            page = this.currentPage
+        }
+        let url = this.options.pageOptions.links.filter(obj => obj.label === page)
+        if (url[0] === undefined) {
+            url = this.options.remoteDatas.url;
+        }
+        fetch(url, params)
+            .then(response => response.json())
+            .then(data => {
+                this.options.pageOptions = data.data
+                if (page-2 >= 0){
+                    this.pages[page-2] = []
+                }
+                this.pages[page-1] = []
+                data.data.data.forEach(rows => {
+                    const tr = createElement("tr")
+                    Object.values(rows).forEach((value, index) => {
+                        const current_params = this.options.columns.find(o => o.name === this.options.data.headings[index] || o.select.includes(index))
+                        if(current_params && current_params.hasOwnProperty('renderBefore')){
+                            value = current_params.renderBefore(value)
+                        }
+                        if(current_params && current_params.hasOwnProperty('render')){
+                            value = current_params.render(value)
+                        }
+                        const td = createElement("td", {
+                            html: value,
+                            class: (current_params !== undefined) ? current_params.cellClass : ''
+                        })
+                        tr.appendChild(td)
+                    })
+                    this.pages[page-1].push(tr)
+                })
+                if (page > this.pages.length || page < 0) {
+                    return false
+                }
+                this.render("page")
+                this.render("pager")
+                this.emit("datatable.page", page)
+            })
+    }
     /**
      * Perform a search of the data set
      * @param  {string} query
      * @return {void}
      */
     search(query) {
-        if (!this.hasRows) return false
+        if (!Object.keys(this.options.pageOptions).length <= 1) {
+            console.log('test');
+            let myJsonObject = JSON.parse(this.options.remoteDatas.url_options.body); //change to obj
+            myJsonObject.search = query; //add something
+            this.options.remoteDatas.url_options.body = JSON.stringify(myJsonObject); //change back to string
+            this.remote(this.options.remoteDatas.url_options)
+        }else{
+            if (!this.hasRows) return false
 
-        query = query.toLowerCase()
+            query = query.toLowerCase()
 
-        this.currentPage = 1
-        this.searching = true
-        this.searchData = []
+            this.currentPage = 1
+            this.searching = true
+            this.searchData = []
 
-        if (!query.length) {
-            this.searching = false
-            this.update()
-            this.emit("datatable.search", query, this.searchData)
-            this.wrapper.classList.remove("search-results")
-            return false
-        }
-
-        this.clear()
-
-        this.data.forEach((row, idx) => {
-            const inArray = this.searchData.includes(row)
-
-            // https://github.com/Mobius1/Vanilla-DataTables/issues/12
-            const doesQueryMatch = query.split(" ").reduce((bool, word) => {
-                let includes = false
-                let cell = null
-                let content = null
-
-                for (let x = 0; x < row.cells.length; x++) {
-                    cell = row.cells[x]
-                    content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.textContent
-
-                    if (
-                        content.toLowerCase().includes(word) &&
-                        this.columns(cell.cellIndex).visible()
-                    ) {
-                        includes = true
-                        break
-                    }
-                }
-
-                return bool && includes
-            }, true)
-
-            if (doesQueryMatch && !inArray) {
-                row.searchIndex = idx
-                this.searchData.push(idx)
-            } else {
-                row.searchIndex = null
+            if (!query.length) {
+                this.searching = false
+                this.update()
+                this.emit("datatable.search", query, this.searchData)
+                this.wrapper.classList.remove("search-results")
+                return false
             }
-        })
 
-        this.wrapper.classList.add("search-results")
+            this.clear()
 
-        if (!this.searchData.length) {
-            this.wrapper.classList.remove("search-results")
+            this.data.forEach((row, idx) => {
+                const inArray = this.searchData.includes(row)
 
-            this.setMessage(this.options.labels.noResults)
-        } else {
-            this.update()
+                // https://github.com/Mobius1/Vanilla-DataTables/issues/12
+                const doesQueryMatch = query.split(" ").reduce((bool, word) => {
+                    let includes = false
+                    let cell = null
+                    let content = null
+
+                    for (let x = 0; x < row.cells.length; x++) {
+                        cell = row.cells[x]
+                        content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.textContent
+
+                        if (
+                            content.toLowerCase().includes(word) &&
+                            this.columns(cell.cellIndex).visible()
+                        ) {
+                            includes = true
+                            break
+                        }
+                    }
+
+                    return bool && includes
+                }, true)
+
+                if (doesQueryMatch && !inArray) {
+                    row.searchIndex = idx
+                    this.searchData.push(idx)
+                } else {
+                    row.searchIndex = null
+                }
+            })
+
+            this.wrapper.classList.add("search-results")
+
+            if (!this.searchData.length) {
+                this.wrapper.classList.remove("search-results")
+
+                this.setMessage(this.options.labels.noResults)
+            } else {
+                this.update()
+            }
         }
 
         this.emit("datatable.search", query, this.searchData)
@@ -1020,41 +1070,8 @@ export class DataTable {
             this.currentPage = parseInt(page, 10)
         }
 
-        if (!Object.keys(this.options.pageOptions).length){
-            const url = this.options.pageOptions.links.filter(obj => obj.label === page)
-            fetch(url[0].url, this.options.remoteDatas.url_options)
-                .then(response => response.json())
-                .then(data => {
-                    this.options.pageOptions = data.data
-                    if (page-2 >= 0){
-                        this.pages[page-2] = []
-                    }
-                    this.pages[page-1] = []
-                    data.data.data.forEach(rows => {
-                        const tr = createElement("tr")
-                        Object.values(rows).forEach((value, index) => {
-                            const current_params = this.options.columns.find(o => o.name === this.options.data.headings[index] || o.select.includes(index))
-                            if(current_params && current_params.hasOwnProperty('renderBefore')){
-                                value = current_params.renderBefore(value)
-                            }
-                            if(current_params && current_params.hasOwnProperty('render')){
-                                value = current_params.render(value)
-                            }
-                            const td = createElement("td", {
-                                html: value,
-                                class: (current_params != undefined) ? current_params.cellClass : ''
-                            })
-                            tr.appendChild(td)
-                        })
-                        this.pages[page-1].push(tr)
-                    })
-                    if (page > this.pages.length || page < 0) {
-                        return false
-                    }
-                    this.render("page")
-                    this.render("pager")
-                    this.emit("datatable.page", page)
-                })
+        if (!Object.keys(this.options.pageOptions).length <= 1){
+            this.remote(this.options.remoteDatas.url_options, page)
         }else{
             if (page > this.pages.length || page < 0) {
                 return false
