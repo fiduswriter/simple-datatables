@@ -1528,6 +1528,7 @@ class DataTable {
 
                 // Add the data attributes to the th elements
                 data.select.forEach(column => {
+                    console.log({headings: this.headings, column});
                     const th = this.headings[column];
                     if (!th) {
                       return
@@ -1686,14 +1687,14 @@ class DataTable {
                     cell.style.width = "";
                 });
 
-                this.activeHeadings.reduce(
+                const totalOffsetWidth = this.activeHeadings.reduce(
                   (total, cell) => total + cell.offsetWidth,
                   0
                 );
 
                 this.activeHeadings.forEach((cell, i) => {
                     const ow = cell.offsetWidth;
-                    const w = ow / this.rect.width * 100;
+                    const w = ow / totalOffsetWidth * 100;
                     cell.style.width = `${w}%`;
                     this.columnWidths[i] = ow;
                     if (this.options.scrollY.length) {
