@@ -1304,7 +1304,7 @@ export class DataTable {
             // csv
             lineDelimiter: "\n",
             columnDelimiter: ",",
-            removeDoubleQuotes: false,
+            removeDoubleQuotes: false
         }
 
         // Check for the options object
@@ -1332,7 +1332,7 @@ export class DataTable {
                     if (options.headings) {
                         obj.headings = rows[0].split(options.columnDelimiter)
                         if (options.removeDoubleQuotes) {
-                            obj.headings = obj.headings.map(e => e.trim().replace(/(^"|"$)/g, ''))
+                            obj.headings = obj.headings.map(e => e.trim().replace(/(^"|"$)/g, ""))
                         }
                         rows.shift()
                     }
@@ -1346,7 +1346,7 @@ export class DataTable {
                         if (values.length) {
                             values.forEach(value => {
                                 if (options.removeDoubleQuotes) {
-                                    value = value.trim().replace(/(^"|"$)/g, '')
+                                    value = value.trim().replace(/(^"|"$)/g, "")
                                 }
                                 obj.data[i].push(value)
                             })
