@@ -617,6 +617,9 @@ export class DataTable {
                 // Add the data attributes to the th elements
                 data.select.forEach(column => {
                     const th = this.headings[column]
+                    if (!th) {
+                      return
+                    }
                     if (data.type) {
                         th.setAttribute("data-type", data.type)
                     }
@@ -770,6 +773,11 @@ export class DataTable {
                 this.activeHeadings.forEach(cell => {
                     cell.style.width = ""
                 })
+
+                const totalOffsetWidth = this.activeHeadings.reduce(
+                  (total, cell) => total + cell.offsetWidth,
+                  0
+                )
 
                 this.activeHeadings.forEach((cell, i) => {
                     const ow = cell.offsetWidth

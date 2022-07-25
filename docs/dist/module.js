@@ -1,1 +1,2488 @@
-const t=t=>"[object Object]"===Object.prototype.toString.call(t),e=(t,e)=>{const s=document.createElement(t);if(e&&"object"==typeof e)for(const t in e)"html"===t?s.innerHTML=e[t]:s.setAttribute(t,e[t]);return s},s=t=>{t instanceof NodeList?t.forEach((t=>s(t))):t.innerHTML=""},i=(t,s,i)=>e("li",{class:t,html:`<a href="#" data-page="${s}">${i}</a>`}),a=(t,e)=>{let s,i;1===e?(s=0,i=t.length):-1===e&&(s=t.length-1,i=-1);for(let a=!0;a;){a=!1;for(let n=s;n!=i;n+=e)if(t[n+e]&&t[n].value>t[n+e].value){const s=t[n],i=t[n+e],r=s;t[n]=i,t[n+e]=r,a=!0}}return t};class n{constructor(t,e){return this.dt=t,this.rows=e,this}build(t){const s=e("tr");let i=this.dt.headings;return i.length||(i=t.map((()=>""))),i.forEach(((i,a)=>{const n=e("td");t[a]&&t[a].length||(t[a]=""),n.innerHTML=t[a],n.data=t[a],s.appendChild(n)})),s}render(t){return t}add(t){if(Array.isArray(t)){const e=this.dt;Array.isArray(t[0])?t.forEach((t=>{e.data.push(this.build(t))})):e.data.push(this.build(t)),e.data.length&&(e.hasRows=!0),this.update(),e.columns().rebuild()}}remove(t){const e=this.dt;Array.isArray(t)?(t.sort(((t,e)=>e-t)),t.forEach((t=>{e.data.splice(t,1)}))):"all"==t?e.data=[]:e.data.splice(t,1),e.data.length||(e.hasRows=!1),this.update(),e.columns().rebuild()}update(){this.dt.data.forEach(((t,e)=>{t.dataIndex=e}))}findRowIndex(t,e){return this.dt.data.findIndex((s=>s.children[t].innerText.toLowerCase().includes(String(e).toLowerCase())))}findRow(t,e){const s=this.findRowIndex(t,e);if(s<0)return{index:-1,row:null,cols:[]};const i=this.dt.data[s];return{index:s,row:i,cols:[...i.cells].map((t=>t.innerHTML))}}updateRow(t,e){const s=this.build(e);this.dt.data.splice(t,1,s),this.update(),this.dt.columns().rebuild()}}class r{constructor(t){return this.dt=t,this}swap(t){if(t.length&&2===t.length){const e=[];this.dt.headings.forEach(((t,s)=>{e.push(s)}));const s=t[0],i=t[1],a=e[i];e[i]=e[s],e[s]=a,this.order(e)}}order(t){let e,s,i,a,n,r,h;const o=[[],[],[],[]],l=this.dt;t.forEach(((t,i)=>{n=l.headings[t],r="false"!==n.getAttribute("data-sortable"),e=n.cloneNode(!0),e.originalCellIndex=i,e.sortable=r,o[0].push(e),l.hiddenColumns.includes(t)||(s=n.cloneNode(!0),s.originalCellIndex=i,s.sortable=r,o[1].push(s))})),l.data.forEach(((e,s)=>{i=e.cloneNode(!1),a=e.cloneNode(!1),i.dataIndex=a.dataIndex=s,null!==e.searchIndex&&void 0!==e.searchIndex&&(i.searchIndex=a.searchIndex=e.searchIndex),t.forEach((t=>{h=e.cells[t].cloneNode(!0),h.data=e.cells[t].data,i.appendChild(h),l.hiddenColumns.includes(t)||(h=e.cells[t].cloneNode(!0),h.data=e.cells[t].data,a.appendChild(h))})),o[2].push(i),o[3].push(a)})),l.headings=o[0],l.activeHeadings=o[1],l.data=o[2],l.activeRows=o[3],l.update()}hide(t){if(t.length){const e=this.dt;t.forEach((t=>{e.hiddenColumns.includes(t)||e.hiddenColumns.push(t)})),this.rebuild()}}show(t){if(t.length){let e;const s=this.dt;t.forEach((t=>{e=s.hiddenColumns.indexOf(t),e>-1&&s.hiddenColumns.splice(e,1)})),this.rebuild()}}visible(t){let e;const s=this.dt;return t=t||s.headings.map((t=>t.originalCellIndex)),isNaN(t)?Array.isArray(t)&&(e=[],t.forEach((t=>{e.push(!s.hiddenColumns.includes(t))}))):e=!s.hiddenColumns.includes(t),e}add(t){let e;const s=document.createElement("th");if(!this.dt.headings.length)return this.dt.insert({headings:[t.heading],data:t.data.map((t=>[t]))}),void this.rebuild();this.dt.hiddenHeader?s.innerHTML="":t.heading.nodeName?s.appendChild(t.heading):s.innerHTML=t.heading,this.dt.headings.push(s),this.dt.data.forEach(((s,i)=>{t.data[i]&&(e=document.createElement("td"),t.data[i].nodeName?e.appendChild(t.data[i]):e.innerHTML=t.data[i],e.data=e.innerHTML,t.render&&(e.innerHTML=t.render.call(this,e.data,e,s)),s.appendChild(e))})),t.type&&s.setAttribute("data-type",t.type),t.format&&s.setAttribute("data-format",t.format),t.hasOwnProperty("sortable")&&(s.sortable=t.sortable,s.setAttribute("data-sortable",!0===t.sortable?"true":"false")),this.rebuild(),this.dt.renderHeader()}remove(t){Array.isArray(t)?(t.sort(((t,e)=>e-t)),t.forEach((t=>this.remove(t)))):(this.dt.headings.splice(t,1),this.dt.data.forEach((e=>{e.removeChild(e.cells[t])}))),this.rebuild()}filter(t,e,s,i){const a=this.dt;if(a.filterState||(a.filterState={originalData:a.data}),!a.filterState[t]){const e=[...i,()=>!0];a.filterState[t]=function(){let t=0;return()=>e[t++%e.length]}()}const n=a.filterState[t](),r=Array.from(a.filterState.originalData).filter((e=>{const s=e.cells[t],i=s.hasAttribute("data-content")?s.getAttribute("data-content"):s.innerText;return"function"==typeof n?n(i):i===n}));a.data=r,a.data.length?(this.rebuild(),a.update()):(a.clear(),a.hasRows=!1,a.setMessage(a.options.labels.noRows)),s||a.emit("datatable.sort",t,e)}sort(t,e,s){const i=this.dt;if(i.hasHeadings&&(t<0||t>i.headings.length))return!1;const n=i.options.filters&&i.options.filters[i.headings[t].textContent];if(n&&0!==n.length)return void this.filter(t,e,s,n);i.sorting=!0,s||i.emit("datatable.sorting",t,e);let r=i.data;const h=[],o=[];let l=0,d=0;const c=i.headings[t],u=[];if("date"===c.getAttribute("data-type")){let t=!1;c.hasAttribute("data-format")&&(t=c.getAttribute("data-format")),u.push(Promise.resolve().then((function(){return p})).then((({parseDate:e})=>s=>e(s,t))))}Promise.all(u).then((n=>{const u=n[0];let p,f;Array.from(r).forEach((e=>{const s=e.cells[t],i=s.hasAttribute("data-content")?s.getAttribute("data-content"):s.innerText;let a;a=u?u(i):"string"==typeof i?i.replace(/(\$|,|\s|%)/g,""):i,parseFloat(a)==a?o[d++]={value:Number(a),row:e}:h[l++]={value:"string"==typeof i?i.toLowerCase():i,row:e}})),e||(e=c.classList.contains("asc")?"desc":"asc"),"desc"==e?(p=a(h,-1),f=a(o,-1),c.classList.remove("asc"),c.classList.add("desc")):(p=a(o,1),f=a(h,1),c.classList.remove("desc"),c.classList.add("asc")),i.lastTh&&c!=i.lastTh&&(i.lastTh.classList.remove("desc"),i.lastTh.classList.remove("asc")),i.lastTh=c,r=p.concat(f),i.data=[];const g=[];r.forEach(((t,e)=>{i.data.push(t.row),null!==t.row.searchIndex&&void 0!==t.row.searchIndex&&g.push(e)})),i.searchData=g,this.rebuild(),i.update(),s||i.emit("datatable.sort",t,e)}))}rebuild(){let t,e,s,i;const a=this.dt,n=[];a.activeRows=[],a.activeHeadings=[],a.headings.forEach(((t,e)=>{t.originalCellIndex=e,t.sortable="false"!==t.getAttribute("data-sortable"),a.hiddenColumns.includes(e)||a.activeHeadings.push(t)})),a.data.forEach(((r,h)=>{t=r.cloneNode(!1),e=r.cloneNode(!1),t.dataIndex=e.dataIndex=h,null!==r.searchIndex&&void 0!==r.searchIndex&&(t.searchIndex=e.searchIndex=r.searchIndex),Array.from(r.cells).forEach((n=>{s=n.cloneNode(!0),s.data=n.data,t.appendChild(s),a.hiddenColumns.includes(s.cellIndex)||(i=s.cloneNode(!0),i.data=s.data,e.appendChild(i))})),n.push(t),a.activeRows.push(e)})),a.data=n,a.update()}}const h=function(t){let s=!1,i=!1;if((t=t||this.options.data).headings){s=e("thead");const i=e("tr");t.headings.forEach((t=>{const s=e("th",{html:t});i.appendChild(s)})),s.appendChild(i)}t.data&&t.data.length&&(i=e("tbody"),t.data.forEach((s=>{if(t.headings&&t.headings.length!==s.length)throw new Error("The number of rows do not match the number of headings.");const a=e("tr");s.forEach((t=>{const s=e("td",{html:t});a.appendChild(s)})),i.appendChild(a)}))),s&&(null!==this.dom.tHead&&this.dom.removeChild(this.dom.tHead),this.dom.appendChild(s)),i&&(this.dom.tBodies.length&&this.dom.removeChild(this.dom.tBodies[0]),this.dom.appendChild(i))},o={sortable:!0,searchable:!0,paging:!0,perPage:10,perPageSelect:[5,10,15,20,25],nextPrev:!0,firstLast:!1,prevText:"&lsaquo;",nextText:"&rsaquo;",firstText:"&laquo;",lastText:"&raquo;",ellipsisText:"&hellip;",ascText:"▴",descText:"▾",truncatePager:!0,pagerDelta:2,scrollY:"",fixedColumns:!0,fixedHeight:!1,header:!0,hiddenHeader:!1,footer:!1,labels:{placeholder:"Search...",perPage:"{select} entries per page",noRows:"No entries found",noResults:"No results match your search query",info:"Showing {start} to {end} of {rows} entries"},layout:{top:"{select}{search}",bottom:"{info}{pager}"}};class l{constructor(t,e={}){const s="string"==typeof t?document.querySelector(t):t;if(this.options={...o,...e,layout:{...o.layout,...e.layout},labels:{...o.labels,...e.labels}},this.initialized=!1,this.initialLayout=s.innerHTML,this.initialSortable=this.options.sortable,this.options.header||(this.options.sortable=!1),null===s.tHead&&(!this.options.data||this.options.data&&!this.options.data.headings)&&(this.options.sortable=!1),s.tBodies.length&&!s.tBodies[0].rows.length&&this.options.data&&!this.options.data.data)throw new Error("You seem to be using the data option, but you've not defined any rows.");this.dom=s,this.table=this.dom,this.listeners={onResize:t=>this.onResize(t)},this.init()}static extend(t,e){"function"==typeof e?l.prototype[t]=e:l[t]=e}init(t){if(this.initialized||this.dom.classList.contains("dataTable-table"))return!1;Object.assign(this.options,t||{}),this.currentPage=1,this.onFirstPage=!0,this.hiddenColumns=[],this.columnRenderers=[],this.selectedColumns=[],this.render(),setTimeout((()=>{this.emit("datatable.init"),this.initialized=!0,this.options.plugins&&Object.entries(this.options.plugins).forEach((([t,s])=>{this[t]&&"function"==typeof this[t]&&(this[t]=this[t](s,{createElement:e}),s.enabled&&this[t].init&&"function"==typeof this[t].init&&this[t].init())}))}),10)}render(t){if(t){switch(t){case"page":this.renderPage();break;case"pager":this.renderPager();break;case"header":this.renderHeader()}return!1}const s=this.options;let i="";if(s.data&&h.call(this),this.body=this.dom.tBodies[0],this.head=this.dom.tHead,this.foot=this.dom.tFoot,this.body||(this.body=e("tbody"),this.dom.appendChild(this.body)),this.hasRows=this.body.rows.length>0,!this.head){const t=e("thead"),i=e("tr");this.hasRows&&(Array.from(this.body.rows[0].cells).forEach((()=>{i.appendChild(e("th"))})),t.appendChild(i)),this.head=t,this.dom.insertBefore(this.head,this.body),this.hiddenHeader=s.hiddenHeader}if(this.headings=[],this.hasHeadings=this.head.rows.length>0,this.hasHeadings&&(this.header=this.head.rows[0],this.headings=[].slice.call(this.header.cells)),s.header||this.head&&this.dom.removeChild(this.dom.tHead),s.footer?this.head&&!this.foot&&(this.foot=e("tfoot",{html:this.head.innerHTML}),this.dom.appendChild(this.foot)):this.foot&&this.dom.removeChild(this.dom.tFoot),this.wrapper=e("div",{class:"dataTable-wrapper dataTable-loading"}),i+="<div class='dataTable-top'>",i+=s.layout.top,i+="</div>",s.scrollY.length?i+=`<div class='dataTable-container' style='height: ${s.scrollY}; overflow-Y: auto;'></div>`:i+="<div class='dataTable-container'></div>",i+="<div class='dataTable-bottom'>",i+=s.layout.bottom,i+="</div>",i=i.replace("{info}",s.paging?"<div class='dataTable-info'></div>":""),s.paging&&s.perPageSelect){let t="<div class='dataTable-dropdown'><label>";t+=s.labels.perPage,t+="</label></div>";const a=e("select",{class:"dataTable-selector"});s.perPageSelect.forEach((t=>{const e=t===s.perPage,i=new Option(t,t,e,e);a.add(i)})),t=t.replace("{select}",a.outerHTML),i=i.replace("{select}",t)}else i=i.replace("{select}","");if(s.searchable){const t=`<div class='dataTable-search'><input class='dataTable-input' placeholder='${s.labels.placeholder}' type='text'></div>`;i=i.replace("{search}",t)}else i=i.replace("{search}","");this.hasHeadings&&this.render("header"),this.dom.classList.add("dataTable-table");const a=e("nav",{class:"dataTable-pagination"}),n=e("ul",{class:"dataTable-pagination-list"});a.appendChild(n),i=i.replace(/\{pager\}/g,a.outerHTML),this.wrapper.innerHTML=i,this.container=this.wrapper.querySelector(".dataTable-container"),this.pagers=this.wrapper.querySelectorAll(".dataTable-pagination-list"),this.label=this.wrapper.querySelector(".dataTable-info"),this.dom.parentNode.replaceChild(this.wrapper,this.dom),this.container.appendChild(this.dom),this.rect=this.dom.getBoundingClientRect(),this.data=Array.from(this.body.rows),this.activeRows=this.data.slice(),this.activeHeadings=this.headings.slice(),this.update(),this.setColumns(),this.fixHeight(),this.fixColumns(),s.header||this.wrapper.classList.add("no-header"),s.footer||this.wrapper.classList.add("no-footer"),s.sortable&&this.wrapper.classList.add("sortable"),s.searchable&&this.wrapper.classList.add("searchable"),s.fixedHeight&&this.wrapper.classList.add("fixed-height"),s.fixedColumns&&this.wrapper.classList.add("fixed-columns"),this.bindEvents()}renderPage(){if(this.hasHeadings&&(s(this.header),this.activeHeadings.forEach((t=>this.header.appendChild(t)))),this.hasRows&&this.totalPages){this.currentPage>this.totalPages&&(this.currentPage=1);const t=this.currentPage-1,e=document.createDocumentFragment();this.pages[t].forEach((t=>e.appendChild(this.rows().render(t)))),this.clear(e),this.onFirstPage=1===this.currentPage,this.onLastPage=this.currentPage===this.lastPage}else this.setMessage(this.options.labels.noRows);let t,e=0,i=0,a=0;if(this.totalPages&&(e=this.currentPage-1,i=e*this.options.perPage,a=i+this.pages[e].length,i+=1,t=this.searching?this.searchData.length:this.data.length),this.label&&this.options.labels.info.length){const e=this.options.labels.info.replace("{start}",i).replace("{end}",a).replace("{page}",this.currentPage).replace("{pages}",this.totalPages).replace("{rows}",t);this.label.innerHTML=t?e:""}1==this.currentPage&&this.fixHeight()}renderPager(){if(s(this.pagers),this.totalPages>1){const t="pager",s=document.createDocumentFragment(),a=this.onFirstPage?1:this.currentPage-1,n=this.onLastPage?this.totalPages:this.currentPage+1;this.options.firstLast&&s.appendChild(i(t,1,this.options.firstText)),this.options.nextPrev&&!this.onFirstPage&&s.appendChild(i(t,a,this.options.prevText));let r=this.links;this.options.truncatePager&&(r=((t,s,i,a,n)=>{let r;const h=2*(a=a||2);let o=s-a,l=s+a;const d=[],c=[];s<4-a+h?l=3+h:s>i-(3-a+h)&&(o=i-(2+h));for(let e=1;e<=i;e++)if(1==e||e==i||e>=o&&e<=l){const s=t[e-1];s.classList.remove("active"),d.push(s)}return d.forEach((s=>{const i=s.children[0].getAttribute("data-page");if(r){const s=r.children[0].getAttribute("data-page");if(i-s==2)c.push(t[s]);else if(i-s!=1){const t=e("li",{class:"ellipsis",html:`<a href="#">${n}</a>`});c.push(t)}}c.push(s),r=s})),c})(this.links,this.currentPage,this.pages.length,this.options.pagerDelta,this.options.ellipsisText)),this.links[this.currentPage-1].classList.add("active"),r.forEach((t=>{t.classList.remove("active"),s.appendChild(t)})),this.links[this.currentPage-1].classList.add("active"),this.options.nextPrev&&!this.onLastPage&&s.appendChild(i(t,n,this.options.nextText)),this.options.firstLast&&s.appendChild(i(t,this.totalPages,this.options.lastText)),this.pagers.forEach((t=>{t.appendChild(s.cloneNode(!0))}))}}renderHeader(){this.labels=[],this.headings&&this.headings.length&&this.headings.forEach(((t,s)=>{if(this.labels[s]=t.textContent,t.firstElementChild&&t.firstElementChild.classList.contains("dataTable-sorter")&&(t.innerHTML=t.firstElementChild.innerHTML),t.sortable="false"!==t.getAttribute("data-sortable"),t.originalCellIndex=s,this.options.sortable&&t.sortable){const s=e("a",{href:"#",class:"dataTable-sorter",html:t.innerHTML});t.innerHTML="",t.setAttribute("data-sortable",""),t.appendChild(s)}})),this.fixColumns()}bindEvents(){const t=this.options;if(t.perPageSelect){const e=this.wrapper.querySelector(".dataTable-selector");e&&e.addEventListener("change",(()=>{t.perPage=parseInt(e.value,10),this.update(),this.fixHeight(),this.emit("datatable.perpage",t.perPage)}),!1)}t.searchable&&(this.input=this.wrapper.querySelector(".dataTable-input"),this.input&&this.input.addEventListener("keyup",(()=>this.search(this.input.value)),!1)),this.wrapper.addEventListener("click",(e=>{const s=e.target.closest("a");s&&"a"===s.nodeName.toLowerCase()&&(s.hasAttribute("data-page")?(this.page(s.getAttribute("data-page")),e.preventDefault()):t.sortable&&s.classList.contains("dataTable-sorter")&&"false"!=s.parentNode.getAttribute("data-sortable")&&(this.columns().sort(this.headings.indexOf(s.parentNode)),e.preventDefault()))}),!1),window.addEventListener("resize",this.listeners.onResize)}onResize(){this.rect=this.container.getBoundingClientRect(),this.rect.width&&this.fixColumns()}setColumns(t){t||this.data.forEach((t=>{Array.from(t.cells).forEach((t=>{t.data=t.innerHTML}))})),this.options.columns&&this.headings.length&&this.options.columns.forEach((t=>{Array.isArray(t.select)||(t.select=[t.select]),t.hasOwnProperty("render")&&"function"==typeof t.render&&(this.selectedColumns=this.selectedColumns.concat(t.select),this.columnRenderers.push({columns:t.select,renderer:t.render})),t.select.forEach((e=>{const s=this.headings[e];t.type&&s.setAttribute("data-type",t.type),t.format&&s.setAttribute("data-format",t.format),t.hasOwnProperty("sortable")&&s.setAttribute("data-sortable",t.sortable),t.hasOwnProperty("hidden")&&!1!==t.hidden&&this.columns().hide([e]),t.hasOwnProperty("sort")&&1===t.select.length&&this.columns().sort(t.select[0],t.sort,!0)}))})),this.hasRows&&(this.data.forEach(((t,e)=>{t.dataIndex=e,Array.from(t.cells).forEach((t=>{t.data=t.innerHTML}))})),this.selectedColumns.length&&this.data.forEach((t=>{Array.from(t.cells).forEach(((e,s)=>{this.selectedColumns.includes(s)&&this.columnRenderers.forEach((i=>{i.columns.includes(s)&&(e.innerHTML=i.renderer.call(this,e.data,e,t))}))}))})),this.columns().rebuild()),this.render("header")}destroy(){this.dom.innerHTML=this.initialLayout,this.dom.classList.remove("dataTable-table"),this.wrapper.parentNode.replaceChild(this.dom,this.wrapper),this.initialized=!1,window.removeEventListener("resize",this.listeners.onResize)}update(){this.wrapper.classList.remove("dataTable-empty"),this.paginate(this),this.render("page"),this.links=[];let t=this.pages.length;for(;t--;){const e=t+1;this.links[t]=i(0===t?"active":"",e,e)}this.sorting=!1,this.render("pager"),this.rows().update(),this.emit("datatable.update")}paginate(){const t=this.options.perPage;let e=this.activeRows;return this.searching&&(e=[],this.searchData.forEach((t=>e.push(this.activeRows[t])))),this.options.paging?this.pages=e.map(((s,i)=>i%t==0?e.slice(i,i+t):null)).filter((t=>t)):this.pages=[e],this.totalPages=this.lastPage=this.pages.length,this.totalPages}fixColumns(){if((this.options.scrollY.length||this.options.fixedColumns)&&this.activeHeadings&&this.activeHeadings.length){let t,s=!1;if(this.columnWidths=[],this.dom.tHead){if(this.options.scrollY.length&&(s=e("thead"),s.appendChild(e("tr")),s.style.height="0px",this.headerTable&&(this.dom.tHead=this.headerTable.tHead)),this.activeHeadings.forEach((t=>{t.style.width=""})),this.activeHeadings.forEach(((t,i)=>{const a=t.offsetWidth,n=a/this.rect.width*100;if(t.style.width=`${n}%`,this.columnWidths[i]=a,this.options.scrollY.length){const t=e("th");s.firstElementChild.appendChild(t),t.style.width=`${n}%`,t.style.paddingTop="0",t.style.paddingBottom="0",t.style.border="0"}})),this.options.scrollY.length){const t=this.dom.parentElement;if(!this.headerTable){this.headerTable=e("table",{class:"dataTable-table"});const s=e("div",{class:"dataTable-headercontainer"});s.appendChild(this.headerTable),t.parentElement.insertBefore(s,t)}const i=this.dom.tHead;this.dom.replaceChild(s,i),this.headerTable.tHead=i,this.headerTable.parentElement.style.paddingRight=`${this.headerTable.clientWidth-this.dom.clientWidth+parseInt(this.headerTable.parentElement.style.paddingRight||"0",10)}px`,t.scrollHeight>t.clientHeight&&(t.style.overflowY="scroll")}}else{t=[],s=e("thead");const i=e("tr");Array.from(this.dom.tBodies[0].rows[0].cells).forEach((()=>{const s=e("th");i.appendChild(s),t.push(s)})),s.appendChild(i),this.dom.insertBefore(s,this.body);const a=[];t.forEach(((t,e)=>{const s=t.offsetWidth,i=s/this.rect.width*100;a.push(i),this.columnWidths[e]=s})),this.data.forEach((t=>{Array.from(t.cells).forEach(((t,e)=>{this.columns(t.cellIndex).visible()&&(t.style.width=`${a[e]}%`)}))})),this.dom.removeChild(s)}}}fixHeight(){this.options.fixedHeight&&(this.container.style.height=null,this.rect=this.container.getBoundingClientRect(),this.container.style.height=`${this.rect.height}px`)}search(t){return!!this.hasRows&&(t=t.toLowerCase(),this.currentPage=1,this.searching=!0,this.searchData=[],t.length?(this.clear(),this.data.forEach(((e,s)=>{const i=this.searchData.includes(e);t.split(" ").reduce(((t,s)=>{let i=!1,a=null,n=null;for(let t=0;t<e.cells.length;t++)if(a=e.cells[t],n=a.hasAttribute("data-content")?a.getAttribute("data-content"):a.textContent,n.toLowerCase().includes(s)&&this.columns(a.cellIndex).visible()){i=!0;break}return t&&i}),!0)&&!i?(e.searchIndex=s,this.searchData.push(s)):e.searchIndex=null})),this.wrapper.classList.add("search-results"),this.searchData.length?this.update():(this.wrapper.classList.remove("search-results"),this.setMessage(this.options.labels.noResults)),void this.emit("datatable.search",t,this.searchData)):(this.searching=!1,this.update(),this.emit("datatable.search",t,this.searchData),this.wrapper.classList.remove("search-results"),!1))}page(t){return t!=this.currentPage&&(isNaN(t)||(this.currentPage=parseInt(t,10)),!(t>this.pages.length||t<0)&&(this.render("page"),this.render("pager"),void this.emit("datatable.page",t)))}sortColumn(t,e){this.columns().sort(t,e)}insert(s){let i=[];if(t(s)){if(s.headings&&!this.hasHeadings&&!this.hasRows){const t=e("tr");s.headings.forEach((s=>{const i=e("th",{html:s});t.appendChild(i)})),this.head.appendChild(t),this.header=t,this.headings=[].slice.call(t.cells),this.hasHeadings=!0,this.options.sortable=this.initialSortable,this.render("header"),this.activeHeadings=this.headings.slice()}s.data&&Array.isArray(s.data)&&(i=s.data)}else Array.isArray(s)&&s.forEach((t=>{const e=[];Object.entries(t).forEach((([t,s])=>{const i=this.labels.indexOf(t);i>-1&&(e[i]=s)})),i.push(e)}));i.length&&(this.rows().add(i),this.hasRows=!0),this.update(),this.setColumns(),this.fixColumns()}refresh(){this.options.searchable&&(this.input.value="",this.searching=!1),this.currentPage=1,this.onFirstPage=!0,this.update(),this.emit("datatable.refresh")}clear(t){this.body&&s(this.body);let e=this.body;if(this.body||(e=this.dom),t){if("string"==typeof t){document.createDocumentFragment().innerHTML=t}e.appendChild(t)}}export(e){if(!this.hasHeadings&&!this.hasRows)return!1;const s=this.activeHeadings;let i=[];const a=[];let n,r,h,o;if(!t(e))return!1;const l={download:!0,skipColumn:[],lineDelimiter:"\n",columnDelimiter:",",tableName:"myTable",replacer:null,space:4,...e};if(l.type){if("txt"!==l.type&&"csv"!==l.type||(i[0]=this.header),l.selection)if(isNaN(l.selection)){if(Array.isArray(l.selection))for(n=0;n<l.selection.length;n++)i=i.concat(this.pages[l.selection[n]-1])}else i=i.concat(this.pages[l.selection-1]);else i=i.concat(this.activeRows);if(i.length){if("txt"===l.type||"csv"===l.type){for(h="",n=0;n<i.length;n++){for(r=0;r<i[n].cells.length;r++)if(!l.skipColumn.includes(s[r].originalCellIndex)&&this.columns(s[r].originalCellIndex).visible()){let t=i[n].cells[r].textContent;t=t.trim(),t=t.replace(/\s{2,}/g," "),t=t.replace(/\n/g,"  "),t=t.replace(/"/g,'""'),t=t.replace(/#/g,"%23"),t.includes(",")&&(t=`"${t}"`),h+=t+l.columnDelimiter}h=h.trim().substring(0,h.length-1),h+=l.lineDelimiter}h=h.trim().substring(0,h.length-1),l.download&&(h=`data:text/csv;charset=utf-8,${h}`)}else if("sql"===l.type){for(h=`INSERT INTO \`${l.tableName}\` (`,n=0;n<s.length;n++)!l.skipColumn.includes(s[n].originalCellIndex)&&this.columns(s[n].originalCellIndex).visible()&&(h+=`\`${s[n].textContent}\`,`);for(h=h.trim().substring(0,h.length-1),h+=") VALUES ",n=0;n<i.length;n++){for(h+="(",r=0;r<i[n].cells.length;r++)!l.skipColumn.includes(s[r].originalCellIndex)&&this.columns(s[r].originalCellIndex).visible()&&(h+=`"${i[n].cells[r].textContent}",`);h=h.trim().substring(0,h.length-1),h+="),"}h=h.trim().substring(0,h.length-1),h+=";",l.download&&(h=`data:application/sql;charset=utf-8,${h}`)}else if("json"===l.type){for(r=0;r<i.length;r++)for(a[r]=a[r]||{},n=0;n<s.length;n++)!l.skipColumn.includes(s[n].originalCellIndex)&&this.columns(s[n].originalCellIndex).visible()&&(a[r][s[n].textContent]=i[r].cells[n].textContent);h=JSON.stringify(a,l.replacer,l.space),l.download&&(h=`data:application/json;charset=utf-8,${h}`)}return l.download&&(l.filename=l.filename||"datatable_export",l.filename+=`.${l.type}`,h=encodeURI(h),o=document.createElement("a"),o.href=h,o.download=l.filename,document.body.appendChild(o),o.click(),document.body.removeChild(o)),h}}return!1}import(e){let s=!1;if(!t(e))return!1;const i={lineDelimiter:"\n",columnDelimiter:",",...e};if(i.data.length||t(i.data)){if("csv"===i.type){s={data:[]};const t=i.data.split(i.lineDelimiter);t.length&&(i.headings&&(s.headings=t[0].split(i.columnDelimiter),t.shift()),t.forEach(((t,e)=>{s.data[e]=[];const a=t.split(i.columnDelimiter);a.length&&a.forEach((t=>{s.data[e].push(t)}))})))}else if("json"===i.type){const e=(e=>{let s=!1;try{s=JSON.parse(e)}catch(t){return!1}return!(null===s||!Array.isArray(s)&&!t(s))&&s})(i.data);e&&(s={headings:[],data:[]},e.forEach(((t,e)=>{s.data[e]=[],Object.entries(t).forEach((([t,i])=>{s.headings.includes(t)||s.headings.push(t),s.data[e].push(i)}))})))}t(i.data)&&(s=i.data),s&&this.insert(s)}return!1}print(){const t=this.activeHeadings,s=this.activeRows,i=e("table"),a=e("thead"),n=e("tbody"),r=e("tr");t.forEach((t=>{r.appendChild(e("th",{html:t.textContent}))})),a.appendChild(r),s.forEach((t=>{const s=e("tr");Array.from(t.cells).forEach((t=>{s.appendChild(e("td",{html:t.textContent}))})),n.appendChild(s)})),i.appendChild(a),i.appendChild(n);const h=window.open();h.document.body.appendChild(i),h.print()}setMessage(t){let s=1;this.hasRows?s=this.data[0].cells.length:this.activeHeadings.length&&(s=this.activeHeadings.length),this.wrapper.classList.add("dataTable-empty"),this.label&&(this.label.innerHTML=""),this.totalPages=0,this.render("pager"),this.clear(e("tr",{html:`<td class="dataTables-empty" colspan="${s}">${t}</td>`}))}columns(t){return new r(this,t)}rows(t){return new n(this,t)}on(t,e){this.events=this.events||{},this.events[t]=this.events[t]||[],this.events[t].push(e)}off(t,e){this.events=this.events||{},t in this.events!=!1&&this.events[t].splice(this.events[t].indexOf(e),1)}emit(t){if(this.events=this.events||{},t in this.events!=!1)for(let e=0;e<this.events[t].length;e++)this.events[t][e].apply(this,Array.prototype.slice.call(arguments,1))}}"undefined"!=typeof globalThis?globalThis:"undefined"!=typeof window?window:"undefined"!=typeof global?global:"undefined"!=typeof self&&self;function d(t,e){return t(e={exports:{}},e.exports),e.exports}var c=d((function(t,e){t.exports=function(){var t=1e3,e=6e4,s=36e5,i="millisecond",a="second",n="minute",r="hour",h="day",o="week",l="month",d="quarter",c="year",u="date",p="Invalid Date",f=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,g=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,m={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},b=function(t,e,s){var i=String(t);return!i||i.length>=e?t:""+Array(e+1-i.length).join(s)+t},v={s:b,z:function(t){var e=-t.utcOffset(),s=Math.abs(e),i=Math.floor(s/60),a=s%60;return(e<=0?"+":"-")+b(i,2,"0")+":"+b(a,2,"0")},m:function t(e,s){if(e.date()<s.date())return-t(s,e);var i=12*(s.year()-e.year())+(s.month()-e.month()),a=e.clone().add(i,l),n=s-a<0,r=e.clone().add(i+(n?-1:1),l);return+(-(i+(s-a)/(n?a-r:r-a))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return{M:l,y:c,w:o,d:h,D:u,h:r,m:n,s:a,ms:i,Q:d}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},y="en",w={};w[y]=m;var C=function(t){return t instanceof T},x=function(t,e,s){var i;if(!t)return y;if("string"==typeof t)w[t]&&(i=t),e&&(w[t]=e,i=t);else{var a=t.name;w[a]=t,i=a}return!s&&i&&(y=i),i||!s&&y},M=function(t,e){if(C(t))return t.clone();var s="object"==typeof e?e:{};return s.date=t,s.args=arguments,new T(s)},$=v;$.l=x,$.i=C,$.w=function(t,e){return M(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var T=function(){function m(t){this.$L=x(t.locale,null,!0),this.parse(t)}var b=m.prototype;return b.parse=function(t){this.$d=function(t){var e=t.date,s=t.utc;if(null===e)return new Date(NaN);if($.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var i=e.match(f);if(i){var a=i[2]-1||0,n=(i[7]||"0").substring(0,3);return s?new Date(Date.UTC(i[1],a,i[3]||1,i[4]||0,i[5]||0,i[6]||0,n)):new Date(i[1],a,i[3]||1,i[4]||0,i[5]||0,i[6]||0,n)}}return new Date(e)}(t),this.$x=t.x||{},this.init()},b.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds()},b.$utils=function(){return $},b.isValid=function(){return!(this.$d.toString()===p)},b.isSame=function(t,e){var s=M(t);return this.startOf(e)<=s&&s<=this.endOf(e)},b.isAfter=function(t,e){return M(t)<this.startOf(e)},b.isBefore=function(t,e){return this.endOf(e)<M(t)},b.$g=function(t,e,s){return $.u(t)?this[e]:this.set(s,t)},b.unix=function(){return Math.floor(this.valueOf()/1e3)},b.valueOf=function(){return this.$d.getTime()},b.startOf=function(t,e){var s=this,i=!!$.u(e)||e,d=$.p(t),p=function(t,e){var a=$.w(s.$u?Date.UTC(s.$y,e,t):new Date(s.$y,e,t),s);return i?a:a.endOf(h)},f=function(t,e){return $.w(s.toDate()[t].apply(s.toDate("s"),(i?[0,0,0,0]:[23,59,59,999]).slice(e)),s)},g=this.$W,m=this.$M,b=this.$D,v="set"+(this.$u?"UTC":"");switch(d){case c:return i?p(1,0):p(31,11);case l:return i?p(1,m):p(0,m+1);case o:var y=this.$locale().weekStart||0,w=(g<y?g+7:g)-y;return p(i?b-w:b+(6-w),m);case h:case u:return f(v+"Hours",0);case r:return f(v+"Minutes",1);case n:return f(v+"Seconds",2);case a:return f(v+"Milliseconds",3);default:return this.clone()}},b.endOf=function(t){return this.startOf(t,!1)},b.$set=function(t,e){var s,o=$.p(t),d="set"+(this.$u?"UTC":""),p=(s={},s[h]=d+"Date",s[u]=d+"Date",s[l]=d+"Month",s[c]=d+"FullYear",s[r]=d+"Hours",s[n]=d+"Minutes",s[a]=d+"Seconds",s[i]=d+"Milliseconds",s)[o],f=o===h?this.$D+(e-this.$W):e;if(o===l||o===c){var g=this.clone().set(u,1);g.$d[p](f),g.init(),this.$d=g.set(u,Math.min(this.$D,g.daysInMonth())).$d}else p&&this.$d[p](f);return this.init(),this},b.set=function(t,e){return this.clone().$set(t,e)},b.get=function(t){return this[$.p(t)]()},b.add=function(i,d){var u,p=this;i=Number(i);var f=$.p(d),g=function(t){var e=M(p);return $.w(e.date(e.date()+Math.round(t*i)),p)};if(f===l)return this.set(l,this.$M+i);if(f===c)return this.set(c,this.$y+i);if(f===h)return g(1);if(f===o)return g(7);var m=(u={},u[n]=e,u[r]=s,u[a]=t,u)[f]||1,b=this.$d.getTime()+i*m;return $.w(b,this)},b.subtract=function(t,e){return this.add(-1*t,e)},b.format=function(t){var e=this,s=this.$locale();if(!this.isValid())return s.invalidDate||p;var i=t||"YYYY-MM-DDTHH:mm:ssZ",a=$.z(this),n=this.$H,r=this.$m,h=this.$M,o=s.weekdays,l=s.months,d=function(t,s,a,n){return t&&(t[s]||t(e,i))||a[s].substr(0,n)},c=function(t){return $.s(n%12||12,t,"0")},u=s.meridiem||function(t,e,s){var i=t<12?"AM":"PM";return s?i.toLowerCase():i},f={YY:String(this.$y).slice(-2),YYYY:this.$y,M:h+1,MM:$.s(h+1,2,"0"),MMM:d(s.monthsShort,h,l,3),MMMM:d(l,h),D:this.$D,DD:$.s(this.$D,2,"0"),d:String(this.$W),dd:d(s.weekdaysMin,this.$W,o,2),ddd:d(s.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(n),HH:$.s(n,2,"0"),h:c(1),hh:c(2),a:u(n,r,!0),A:u(n,r,!1),m:String(r),mm:$.s(r,2,"0"),s:String(this.$s),ss:$.s(this.$s,2,"0"),SSS:$.s(this.$ms,3,"0"),Z:a};return i.replace(g,(function(t,e){return e||f[t]||a.replace(":","")}))},b.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},b.diff=function(i,u,p){var f,g=$.p(u),m=M(i),b=(m.utcOffset()-this.utcOffset())*e,v=this-m,y=$.m(this,m);return y=(f={},f[c]=y/12,f[l]=y,f[d]=y/3,f[o]=(v-b)/6048e5,f[h]=(v-b)/864e5,f[r]=v/s,f[n]=v/e,f[a]=v/t,f)[g]||v,p?y:$.a(y)},b.daysInMonth=function(){return this.endOf(l).$D},b.$locale=function(){return w[this.$L]},b.locale=function(t,e){if(!t)return this.$L;var s=this.clone(),i=x(t,e,!0);return i&&(s.$L=i),s},b.clone=function(){return $.w(this.$d,this)},b.toDate=function(){return new Date(this.valueOf())},b.toJSON=function(){return this.isValid()?this.toISOString():null},b.toISOString=function(){return this.$d.toISOString()},b.toString=function(){return this.$d.toUTCString()},m}(),L=T.prototype;return M.prototype=L,[["$ms",i],["$s",a],["$m",n],["$H",r],["$W",h],["$M",l],["$y",c],["$D",u]].forEach((function(t){L[t[1]]=function(e){return this.$g(e,t[0],t[1])}})),M.extend=function(t,e){return t.$i||(t(e,T,M),t.$i=!0),M},M.locale=x,M.isDayjs=C,M.unix=function(t){return M(1e3*t)},M.en=w[y],M.Ls=w,M.p={},M}()})),u=d((function(t,e){t.exports=function(){var t={LTS:"h:mm:ss A",LT:"h:mm A",L:"MM/DD/YYYY",LL:"MMMM D, YYYY",LLL:"MMMM D, YYYY h:mm A",LLLL:"dddd, MMMM D, YYYY h:mm A"},e=/(\[[^[]*\])|([-:/.()\s]+)|(A|a|YYYY|YY?|MM?M?M?|Do|DD?|hh?|HH?|mm?|ss?|S{1,3}|z|ZZ?)/g,s=/\d\d/,i=/\d\d?/,a=/\d*[^\s\d-_:/()]+/,n={},r=function(t){return(t=+t)+(t>68?1900:2e3)},h=function(t){return function(e){this[t]=+e}},o=[/[+-]\d\d:?(\d\d)?|Z/,function(t){(this.zone||(this.zone={})).offset=function(t){if(!t)return 0;if("Z"===t)return 0;var e=t.match(/([+-]|\d\d)/g),s=60*e[1]+(+e[2]||0);return 0===s?0:"+"===e[0]?-s:s}(t)}],l=function(t){var e=n[t];return e&&(e.indexOf?e:e.s.concat(e.f))},d=function(t,e){var s,i=n.meridiem;if(i){for(var a=1;a<=24;a+=1)if(t.indexOf(i(a,0,e))>-1){s=a>12;break}}else s=t===(e?"pm":"PM");return s},c={A:[a,function(t){this.afternoon=d(t,!1)}],a:[a,function(t){this.afternoon=d(t,!0)}],S:[/\d/,function(t){this.milliseconds=100*+t}],SS:[s,function(t){this.milliseconds=10*+t}],SSS:[/\d{3}/,function(t){this.milliseconds=+t}],s:[i,h("seconds")],ss:[i,h("seconds")],m:[i,h("minutes")],mm:[i,h("minutes")],H:[i,h("hours")],h:[i,h("hours")],HH:[i,h("hours")],hh:[i,h("hours")],D:[i,h("day")],DD:[s,h("day")],Do:[a,function(t){var e=n.ordinal,s=t.match(/\d+/);if(this.day=s[0],e)for(var i=1;i<=31;i+=1)e(i).replace(/\[|\]/g,"")===t&&(this.day=i)}],M:[i,h("month")],MM:[s,h("month")],MMM:[a,function(t){var e=l("months"),s=(l("monthsShort")||e.map((function(t){return t.substr(0,3)}))).indexOf(t)+1;if(s<1)throw new Error;this.month=s%12||s}],MMMM:[a,function(t){var e=l("months").indexOf(t)+1;if(e<1)throw new Error;this.month=e%12||e}],Y:[/[+-]?\d+/,h("year")],YY:[s,function(t){this.year=r(t)}],YYYY:[/\d{4}/,h("year")],Z:o,ZZ:o};function u(s){var i,a;i=s,a=n&&n.formats;for(var r=(s=i.replace(/(\[[^\]]+])|(LTS?|l{1,4}|L{1,4})/g,(function(e,s,i){var n=i&&i.toUpperCase();return s||a[i]||t[i]||a[n].replace(/(\[[^\]]+])|(MMMM|MM|DD|dddd)/g,(function(t,e,s){return e||s.slice(1)}))}))).match(e),h=r.length,o=0;o<h;o+=1){var l=r[o],d=c[l],u=d&&d[0],p=d&&d[1];r[o]=p?{regex:u,parser:p}:l.replace(/^\[|\]$/g,"")}return function(t){for(var e={},s=0,i=0;s<h;s+=1){var a=r[s];if("string"==typeof a)i+=a.length;else{var n=a.regex,o=a.parser,l=t.substr(i),d=n.exec(l)[0];o.call(e,d),t=t.replace(d,"")}}return function(t){var e=t.afternoon;if(void 0!==e){var s=t.hours;e?s<12&&(t.hours+=12):12===s&&(t.hours=0),delete t.afternoon}}(e),e}}return function(t,e,s){s.p.customParseFormat=!0,t&&t.parseTwoDigitYear&&(r=t.parseTwoDigitYear);var i=e.prototype,a=i.parse;i.parse=function(t){var e=t.date,i=t.utc,r=t.args;this.$u=i;var h=r[1];if("string"==typeof h){var o=!0===r[2],l=!0===r[3],d=o||l,c=r[2];l&&(c=r[2]),n=this.$locale(),!o&&c&&(n=s.Ls[c]),this.$d=function(t,e,s){try{if(["x","X"].indexOf(e)>-1)return new Date(("X"===e?1e3:1)*t);var i=u(e)(t),a=i.year,n=i.month,r=i.day,h=i.hours,o=i.minutes,l=i.seconds,d=i.milliseconds,c=i.zone,p=new Date,f=r||(a||n?1:p.getDate()),g=a||p.getFullYear(),m=0;a&&!n||(m=n>0?n-1:p.getMonth());var b=h||0,v=o||0,y=l||0,w=d||0;return c?new Date(Date.UTC(g,m,f,b,v,y,w+60*c.offset*1e3)):s?new Date(Date.UTC(g,m,f,b,v,y,w)):new Date(g,m,f,b,v,y,w)}catch(t){return new Date("")}}(e,h,i),this.init(),c&&!0!==c&&(this.$L=this.locale(c).$L),d&&e!=this.format(h)&&(this.$d=new Date("")),n={}}else if(h instanceof Array)for(var p=h.length,f=1;f<=p;f+=1){r[1]=h[f-1];var g=s.apply(this,r);if(g.isValid()){this.$d=g.$d,this.$L=g.$L,this.init();break}f===p&&(this.$d=new Date(""))}else a.call(this,t)}}}()}));c.extend(u);var p=Object.freeze({__proto__:null,parseDate:(t,e)=>{let s=!1;if(e)switch(e){case"ISO_8601":s=t;break;case"RFC_2822":s=c(t.slice(5),"DD MMM YYYY HH:mm:ss ZZ").unix();break;case"MYSQL":s=c(t,"YYYY-MM-DD hh:mm:ss").unix();break;case"UNIX":s=c(t).unix();break;default:s=c(t,e,!0).valueOf()}return s}});export{l as DataTable};
+/**
+ * Check is item is object
+ * @return {Boolean}
+ */
+const isObject = val => Object.prototype.toString.call(val) === "[object Object]";
+
+/**
+ * Check for valid JSON string
+ * @param  {String}   str
+ * @return {Boolean|Array|Object}
+ */
+const isJson = str => {
+    let t = !1;
+    try {
+        t = JSON.parse(str);
+    } catch (e) {
+        return !1
+    }
+    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t
+};
+
+/**
+ * Create DOM element node
+ * @param  {String}   nodeName nodeName
+ * @param  {Object}   attrs properties and attributes
+ * @return {Object}
+ */
+const createElement = (nodeName, attrs) => {
+    const dom = document.createElement(nodeName);
+    if (attrs && "object" == typeof attrs) {
+        for (const attr in attrs) {
+            if ("html" === attr) {
+                dom.innerHTML = attrs[attr];
+            } else {
+                dom.setAttribute(attr, attrs[attr]);
+            }
+        }
+    }
+    return dom
+};
+
+const flush = el => {
+    if (el instanceof NodeList) {
+        el.forEach(e => flush(e));
+    } else {
+        el.innerHTML = "";
+    }
+};
+
+/**
+ * Create button helper
+ * @param  {String}   class
+ * @param  {Number}   page
+ * @param  {String}   text
+ * @return {Object}
+ */
+const button = (className, page, text) => createElement(
+    "li",
+    {
+        class: className,
+        html: `<a href="#" data-page="${page}">${text}</a>`
+    }
+);
+
+/**
+ * Bubble sort algorithm
+ */
+const sortItems = (a, b) => {
+    let c;
+    let d;
+    if (1 === b) {
+        c = 0;
+        d = a.length;
+    } else {
+        if (b === -1) {
+            c = a.length - 1;
+            d = -1;
+        }
+    }
+    for (let e = !0; e;) {
+        e = !1;
+        for (let f = c; f != d; f += b) {
+            if (a[f + b] && a[f].value > a[f + b].value) {
+                const g = a[f];
+                const h = a[f + b];
+                const i = g;
+                a[f] = h;
+                a[f + b] = i;
+                e = !0;
+            }
+        }
+    }
+    return a
+};
+
+/**
+ * Pager truncation algorithm
+ */
+const truncate = (a, b, c, d, ellipsis) => {
+    d = d || 2;
+    let j;
+    const e = 2 * d;
+    let f = b - d;
+    let g = b + d;
+    const h = [];
+    const i = [];
+    if (b < 4 - d + e) {
+        g = 3 + e;
+    } else if (b > c - (3 - d + e)) {
+        f = c - (2 + e);
+    }
+    for (let k = 1; k <= c; k++) {
+        if (1 == k || k == c || (k >= f && k <= g)) {
+            const l = a[k - 1];
+            l.classList.remove("active");
+            h.push(l);
+        }
+    }
+    h.forEach(c => {
+        const d = c.children[0].getAttribute("data-page");
+        if (j) {
+            const e = j.children[0].getAttribute("data-page");
+            if (d - e == 2) i.push(a[e]);
+            else if (d - e != 1) {
+                const f = createElement("li", {
+                    class: "ellipsis",
+                    html: `<a href="#">${ellipsis}</a>`
+                });
+                i.push(f);
+            }
+        }
+        i.push(c);
+        j = c;
+    });
+
+    return i
+};
+
+/**
+ * Rows API
+ * @param {Object} instance DataTable instance
+ * @param {Array} rows
+ */
+class Rows {
+    constructor(dt, rows) {
+        this.dt = dt;
+        this.rows = rows;
+
+        return this
+    }
+
+    /**
+     * Build a new row
+     * @param  {Array} row
+     * @return {HTMLElement}
+     */
+    build(row) {
+        const tr = createElement("tr");
+
+        let headings = this.dt.headings;
+
+        if (!headings.length) {
+            headings = row.map(() => "");
+        }
+
+        headings.forEach((h, i) => {
+            const td = createElement("td");
+
+            // Fixes #29
+            if (!row[i] || !row[i].length) {
+                row[i] = "";
+            }
+
+            td.innerHTML = row[i];
+
+            td.data = row[i];
+
+            tr.appendChild(td);
+        });
+
+        return tr
+    }
+
+    render(row) {
+        return row
+    }
+
+    /**
+     * Add new row
+     * @param {Array} select
+     */
+    add(data) {
+        if (Array.isArray(data)) {
+            const dt = this.dt;
+            // Check for multiple rows
+            if (Array.isArray(data[0])) {
+                data.forEach(row => {
+                    dt.data.push(this.build(row));
+                });
+            } else {
+                dt.data.push(this.build(data));
+            }
+
+            // We may have added data to an empty table
+            if ( dt.data.length ) {
+                dt.hasRows = true;
+            }
+
+
+            this.update();
+
+            dt.columns().rebuild();
+        }
+
+    }
+
+    /**
+     * Remove row(s)
+     * @param  {Array|Number} select
+     * @return {Void}
+     */
+    remove(select) {
+        const dt = this.dt;
+
+        if (Array.isArray(select)) {
+            // Remove in reverse otherwise the indexes will be incorrect
+            select.sort((a, b) => b - a);
+
+            select.forEach(row => {
+                dt.data.splice(row, 1);
+            });
+        } else if (select == "all") {
+            dt.data = [];
+        } else {
+            dt.data.splice(select, 1);
+        }
+
+        // We may have emptied the table
+        if ( !dt.data.length ) {
+            dt.hasRows = false;
+        }
+
+        this.update();
+        dt.columns().rebuild();
+    }
+
+    /**
+     * Update row indexes
+     * @return {Void}
+     */
+    update() {
+        this.dt.data.forEach((row, i) => {
+            row.dataIndex = i;
+        });
+    }
+
+    /**
+     * Find index of row by searching for a value in a column
+     * @param  {Number} columnIndex
+     * @param  {String} value
+     * @return {Number}
+     */
+    findRowIndex(columnIndex, value) {
+        // returns row index of first case-insensitive string match
+        // inside the td innerText at specific column index
+        return this.dt.data.findIndex(
+            tr => tr.children[columnIndex].innerText.toLowerCase().includes(String(value).toLowerCase())
+        )
+    }
+
+    /**
+     * Find index, row, and column data by searching for a value in a column
+     * @param  {Number} columnIndex
+     * @param  {String} value
+     * @return {Object}
+     */
+    findRow(columnIndex, value) {
+        // get the row index
+        const index = this.findRowIndex(columnIndex, value);
+        // exit if not found
+        if (index < 0) {
+            return {
+                index: -1,
+                row: null,
+                cols: []
+            }
+        }
+        // get the row from data
+        const row = this.dt.data[index];
+        // return innerHTML of each td
+        const cols = [...row.cells].map(r => r.innerHTML);
+        // return everything
+        return {
+            index,
+            row,
+            cols
+        }
+    }
+
+    /**
+     * Update a row with new data
+     * @param  {Number} select
+     * @param  {Array} data
+     * @return {Void}
+     */
+    updateRow(select, data) {
+        const row = this.build(data);
+        this.dt.data.splice(select, 1, row);
+        this.update();
+        this.dt.columns().rebuild();
+    }
+}
+
+/**
+ * Columns API
+ * @param {Object} instance DataTable instance
+ * @param {Mixed} columns  Column index or array of column indexes
+ */
+class Columns {
+    constructor(dt) {
+        this.dt = dt;
+        return this
+    }
+
+    /**
+     * Swap two columns
+     * @return {Void}
+     */
+    swap(columns) {
+        if (columns.length && columns.length === 2) {
+            const cols = [];
+
+            // Get the current column indexes
+            this.dt.headings.forEach((h, i) => {
+                cols.push(i);
+            });
+
+            const x = columns[0];
+            const y = columns[1];
+            const b = cols[y];
+            cols[y] = cols[x];
+            cols[x] = b;
+
+            this.order(cols);
+        }
+    }
+
+    /**
+     * Reorder the columns
+     * @return {Array} columns  Array of ordered column indexes
+     */
+    order(columns) {
+        let a;
+        let b;
+        let c;
+        let d;
+        let h;
+        let s;
+        let cell;
+
+        const temp = [
+            [],
+            [],
+            [],
+            []
+        ];
+
+        const dt = this.dt;
+
+        // Order the headings
+        columns.forEach((column, x) => {
+            h = dt.headings[column];
+            s = h.getAttribute("data-sortable") !== "false";
+            a = h.cloneNode(true);
+            a.originalCellIndex = x;
+            a.sortable = s;
+
+            temp[0].push(a);
+
+            if (!dt.hiddenColumns.includes(column)) {
+                b = h.cloneNode(true);
+                b.originalCellIndex = x;
+                b.sortable = s;
+
+                temp[1].push(b);
+            }
+        });
+
+        // Order the row cells
+        dt.data.forEach((row, i) => {
+            c = row.cloneNode(false);
+            d = row.cloneNode(false);
+
+            c.dataIndex = d.dataIndex = i;
+
+            if (row.searchIndex !== null && row.searchIndex !== undefined) {
+                c.searchIndex = d.searchIndex = row.searchIndex;
+            }
+
+            // Append the cell to the fragment in the correct order
+            columns.forEach(column => {
+                cell = row.cells[column].cloneNode(true);
+                cell.data = row.cells[column].data;
+                c.appendChild(cell);
+
+                if (!dt.hiddenColumns.includes(column)) {
+                    cell = row.cells[column].cloneNode(true);
+                    cell.data = row.cells[column].data;
+                    d.appendChild(cell);
+                }
+            });
+
+            temp[2].push(c);
+            temp[3].push(d);
+        });
+
+        dt.headings = temp[0];
+        dt.activeHeadings = temp[1];
+
+        dt.data = temp[2];
+        dt.activeRows = temp[3];
+
+        // Update
+        dt.update();
+    }
+
+    /**
+     * Hide columns
+     * @return {Void}
+     */
+    hide(columns) {
+        if (columns.length) {
+            const dt = this.dt;
+
+            columns.forEach(column => {
+                if (!dt.hiddenColumns.includes(column)) {
+                    dt.hiddenColumns.push(column);
+                }
+            });
+
+            this.rebuild();
+        }
+    }
+
+    /**
+     * Show columns
+     * @return {Void}
+     */
+    show(columns) {
+        if (columns.length) {
+            let index;
+            const dt = this.dt;
+
+            columns.forEach(column => {
+                index = dt.hiddenColumns.indexOf(column);
+                if (index > -1) {
+                    dt.hiddenColumns.splice(index, 1);
+                }
+            });
+
+            this.rebuild();
+        }
+    }
+
+    /**
+     * Check column(s) visibility
+     * @return {Boolean}
+     */
+    visible(columns) {
+        let cols;
+        const dt = this.dt;
+
+        columns = columns || dt.headings.map(th => th.originalCellIndex);
+
+        if (!isNaN(columns)) {
+            cols = !dt.hiddenColumns.includes(columns);
+        } else if (Array.isArray(columns)) {
+            cols = [];
+            columns.forEach(column => {
+                cols.push(!dt.hiddenColumns.includes(column));
+            });
+        }
+
+        return cols
+    }
+
+    /**
+     * Add a new column
+     * @param {Object} data
+     */
+    add(data) {
+        let td;
+        const th = document.createElement("th");
+
+        if (!this.dt.headings.length) {
+            this.dt.insert({
+                headings: [data.heading],
+                data: data.data.map(i => [i])
+            });
+            this.rebuild();
+            return
+        }
+
+        if (!this.dt.hiddenHeader) {
+            if (data.heading.nodeName) {
+                th.appendChild(data.heading);
+            } else {
+                th.innerHTML = data.heading;
+            }
+        } else {
+            th.innerHTML = "";
+        }
+
+        this.dt.headings.push(th);
+
+        this.dt.data.forEach((row, i) => {
+            if (data.data[i]) {
+                td = document.createElement("td");
+
+                if (data.data[i].nodeName) {
+                    td.appendChild(data.data[i]);
+                } else {
+                    td.innerHTML = data.data[i];
+                }
+
+                td.data = td.innerHTML;
+
+                if (data.render) {
+                    td.innerHTML = data.render.call(this, td.data, td, row);
+                }
+
+                row.appendChild(td);
+            }
+        });
+
+        if (data.type) {
+            th.setAttribute("data-type", data.type);
+        }
+        if (data.format) {
+            th.setAttribute("data-format", data.format);
+        }
+
+        if (data.hasOwnProperty("sortable")) {
+            th.sortable = data.sortable;
+            th.setAttribute("data-sortable", data.sortable === true ? "true" : "false");
+        }
+
+        this.rebuild();
+
+        this.dt.renderHeader();
+    }
+
+    /**
+     * Remove column(s)
+     * @param  {Array|Number} select
+     * @return {Void}
+     */
+    remove(select) {
+        if (Array.isArray(select)) {
+            // Remove in reverse otherwise the indexes will be incorrect
+            select.sort((a, b) => b - a);
+            select.forEach(column => this.remove(column));
+        } else {
+            this.dt.headings.splice(select, 1);
+
+            this.dt.data.forEach(row => {
+                row.removeChild(row.cells[select]);
+            });
+        }
+
+        this.rebuild();
+    }
+
+    /**
+     * Filter by column
+     * @param  {int} column - The column no.
+     * @param  {string} dir - asc or desc
+     * @filter {array} filter - optional parameter with a list of strings
+     * @return {void}
+     */
+    filter(column, dir, init, terms) {
+        const dt = this.dt;
+
+        // Creates a internal state that manages filters if there are none
+        if ( !dt.filterState ) {
+            dt.filterState = {
+                originalData: dt.data
+            };
+        }
+
+        // If that column is was not filtered yet, we need to create its state
+        if ( !dt.filterState[column] ) {
+
+            // append a filter that selects all rows, 'resetting' the filter
+            const filters = [...terms, () => true];
+
+            dt.filterState[column] = (
+                function() {
+                    let i = 0;
+                    return () => filters[i++ % (filters.length)]
+                }()
+            );
+        }
+
+        // Apply the filter and rebuild table
+        const rowFilter = dt.filterState[column](); // fetches next filter
+        const filteredRows = Array.from(dt.filterState.originalData).filter(tr => {
+            const cell = tr.cells[column];
+            const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText;
+
+            // If the filter is a function, call it, if it is a string, compare it
+            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter;
+        });
+
+        dt.data = filteredRows;
+
+        if (!dt.data.length) {
+            dt.clear();
+            dt.hasRows = false;
+            dt.setMessage(dt.options.labels.noRows);
+        } else {
+            this.rebuild();
+            dt.update();
+        }
+
+        if (!init) {
+            dt.emit("datatable.sort", column, dir);
+        }
+    }
+
+    /**
+     * Sort by column
+     * @param  {int} column - The column no.
+     * @param  {string} dir - asc or desc
+     * @return {void}
+     */
+    sort(column, dir, init) {
+        const dt = this.dt;
+
+        // Check column is present
+        if (dt.hasHeadings && (column < 0 || column > dt.headings.length)) {
+            return false
+        }
+
+        //If there is a filter for this column, apply it instead of sorting
+        const filterTerms = dt.options.filters &&
+              dt.options.filters[dt.headings[column].textContent];
+        if ( filterTerms && filterTerms.length !== 0 ) {
+            this.filter(column, dir, init, filterTerms);
+            return;
+        }
+
+        dt.sorting = true;
+
+        if (!init) {
+            dt.emit("datatable.sorting", column, dir);
+        }
+
+        let rows = dt.data;
+        const alpha = [];
+        const numeric = [];
+        let a = 0;
+        let n = 0;
+        const th = dt.headings[column];
+
+        const waitFor = [];
+
+        // Check for date format
+        if (th.getAttribute("data-type") === "date") {
+            let format = false;
+            const formatted = th.hasAttribute("data-format");
+
+            if (formatted) {
+                format = th.getAttribute("data-format");
+            }
+            waitFor.push(Promise.resolve().then(function () { return date; }).then(({parseDate}) => date => parseDate(date, format)));
+        }
+
+        Promise.all(waitFor).then(importedFunctions => {
+            const parseFunction = importedFunctions[0]; // only defined if date
+            Array.from(rows).forEach(tr => {
+                const cell = tr.cells[column];
+                const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText;
+                let num;
+                if (parseFunction) {
+                    num = parseFunction(content);
+                } else if (typeof content==="string") {
+                    num = content.replace(/(\$|,|\s|%)/g, "");
+                } else {
+                    num = content;
+                }
+
+                if (parseFloat(num) == num) {
+                    numeric[n++] = {
+                        value: Number(num),
+                        row: tr
+                    };
+                } else {
+                    alpha[a++] = {
+                        value: typeof content==="string" ? content.toLowerCase() : content,
+                        row: tr
+                    };
+                }
+            });
+
+            /* Sort according to direction (ascending or descending) */
+            if (!dir) {
+                if (th.classList.contains("asc")) {
+                    dir = "desc";
+                } else {
+                    dir = "asc";
+                }
+            }
+            let top;
+            let btm;
+            if (dir == "desc") {
+                top = sortItems(alpha, -1);
+                btm = sortItems(numeric, -1);
+                th.classList.remove("asc");
+                th.classList.add("desc");
+            } else {
+                top = sortItems(numeric, 1);
+                btm = sortItems(alpha, 1);
+                th.classList.remove("desc");
+                th.classList.add("asc");
+            }
+
+            /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
+            if (dt.lastTh && th != dt.lastTh) {
+                dt.lastTh.classList.remove("desc");
+                dt.lastTh.classList.remove("asc");
+            }
+
+            dt.lastTh = th;
+
+            /* Reorder the table */
+            rows = top.concat(btm);
+
+            dt.data = [];
+            const indexes = [];
+
+            rows.forEach((v, i) => {
+                dt.data.push(v.row);
+
+                if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
+                    indexes.push(i);
+                }
+            });
+
+            dt.searchData = indexes;
+
+            this.rebuild();
+
+            dt.update();
+
+            if (!init) {
+                dt.emit("datatable.sort", column, dir);
+            }
+        });
+    }
+
+    /**
+     * Rebuild the columns
+     * @return {Void}
+     */
+    rebuild() {
+        let a;
+        let b;
+        let c;
+        let d;
+        const dt = this.dt;
+        const temp = [];
+
+        dt.activeRows = [];
+        dt.activeHeadings = [];
+
+        dt.headings.forEach((th, i) => {
+            th.originalCellIndex = i;
+            th.sortable = th.getAttribute("data-sortable") !== "false";
+            if (!dt.hiddenColumns.includes(i)) {
+                dt.activeHeadings.push(th);
+            }
+        });
+
+        // Loop over the rows and reorder the cells
+        dt.data.forEach((row, i) => {
+            a = row.cloneNode(false);
+            b = row.cloneNode(false);
+
+            a.dataIndex = b.dataIndex = i;
+
+            if (row.searchIndex !== null && row.searchIndex !== undefined) {
+                a.searchIndex = b.searchIndex = row.searchIndex;
+            }
+
+            // Append the cell to the fragment in the correct order
+            Array.from(row.cells).forEach(cell => {
+                c = cell.cloneNode(true);
+                c.data = cell.data;
+                a.appendChild(c);
+
+                if (!dt.hiddenColumns.includes(c.cellIndex)) {
+                    d = c.cloneNode(true);
+                    d.data = c.data;
+                    b.appendChild(d);
+                }
+            });
+
+            // Append the fragment with the ordered cells
+            temp.push(a);
+            dt.activeRows.push(b);
+        });
+
+        dt.data = temp;
+
+        dt.update();
+    }
+}
+
+/**
+ * Parse data to HTML table
+ */
+const dataToTable = function (data) {
+    let thead = false;
+    let tbody = false;
+
+    data = data || this.options.data;
+
+    if (data.headings) {
+        thead = createElement("thead");
+        const tr = createElement("tr");
+        data.headings.forEach(col => {
+            const td = createElement("th", {
+                html: col
+            });
+            tr.appendChild(td);
+        });
+
+        thead.appendChild(tr);
+    }
+
+    if (data.data && data.data.length) {
+        tbody = createElement("tbody");
+        data.data.forEach(rows => {
+            if (data.headings) {
+                if (data.headings.length !== rows.length) {
+                    throw new Error(
+                        "The number of rows do not match the number of headings."
+                    )
+                }
+            }
+            const tr = createElement("tr");
+            rows.forEach(value => {
+                const td = createElement("td", {
+                    html: value
+                });
+                tr.appendChild(td);
+            });
+            tbody.appendChild(tr);
+        });
+    }
+
+    if (thead) {
+        if (this.dom.tHead !== null) {
+            this.dom.removeChild(this.dom.tHead);
+        }
+        this.dom.appendChild(thead);
+    }
+
+    if (tbody) {
+        if (this.dom.tBodies.length) {
+            this.dom.removeChild(this.dom.tBodies[0]);
+        }
+        this.dom.appendChild(tbody);
+    }
+};
+
+/**
+ * Default configuration
+ * @typ {Object}
+ */
+const defaultConfig = {
+    sortable: true,
+    searchable: true,
+
+    // Pagination
+    paging: true,
+    perPage: 10,
+    perPageSelect: [5, 10, 15, 20, 25],
+    nextPrev: true,
+    firstLast: false,
+    prevText: "&lsaquo;",
+    nextText: "&rsaquo;",
+    firstText: "&laquo;",
+    lastText: "&raquo;",
+    ellipsisText: "&hellip;",
+    ascText: "▴",
+    descText: "▾",
+    truncatePager: true,
+    pagerDelta: 2,
+
+    scrollY: "",
+
+    fixedColumns: true,
+    fixedHeight: false,
+
+    header: true,
+    hiddenHeader: false,
+    footer: false,
+
+    // Customise the display text
+    labels: {
+        placeholder: "Search...", // The search input placeholder
+        perPage: "{select} entries per page", // per-page dropdown label
+        noRows: "No entries found", // Message shown when there are no records to show
+        noResults: "No results match your search query", // Message shown when there are no search results
+        info: "Showing {start} to {end} of {rows} entries" //
+    },
+
+    // Customise the layout
+    layout: {
+        top: "{select}{search}",
+        bottom: "{info}{pager}"
+    }
+};
+
+class DataTable {
+    constructor(table, options = {}) {
+
+        const dom = typeof table === "string" ? document.querySelector(table) : table;
+
+        // user options
+        this.options = {
+            ...defaultConfig,
+            ...options,
+            layout: {
+                ...defaultConfig.layout,
+                ...options.layout
+            },
+            labels: {
+                ...defaultConfig.labels,
+                ...options.labels
+            }
+        };
+
+        this.initialized = false;
+
+        this.initialLayout = dom.innerHTML;
+        this.initialSortable = this.options.sortable;
+
+        // Disable manual sorting if no header is present (#4)
+        if (!this.options.header) {
+            this.options.sortable = false;
+        }
+
+        if (dom.tHead === null) {
+            if (!this.options.data ||
+                (this.options.data && !this.options.data.headings)
+            ) {
+                this.options.sortable = false;
+            }
+        }
+
+        if (dom.tBodies.length && !dom.tBodies[0].rows.length) {
+            if (this.options.data) {
+                if (!this.options.data.data) {
+                    throw new Error(
+                        "You seem to be using the data option, but you've not defined any rows."
+                    )
+                }
+            }
+        }
+
+        this.dom = dom;
+
+        this.table = this.dom; // For compatibility. Remove in version 4
+
+        this.listeners = {
+            onResize: event => this.onResize(event)
+        };
+
+        this.init();
+    }
+
+    /**
+     * Add custom property or method to extend DataTable
+     * @param  {String} prop    - Method name or property
+     * @param  {Mixed} val      - Function or property value
+     * @return {Void}
+     */
+    static extend(prop, val) {
+        if (typeof val === "function") {
+            DataTable.prototype[prop] = val;
+        } else {
+            DataTable[prop] = val;
+        }
+    }
+
+    /**
+     * Initialize the instance
+     * @param  {Object} options
+     * @return {Void}
+     */
+    init(options) {
+        if (this.initialized || this.dom.classList.contains("dataTable-table")) {
+            return false
+        }
+
+        Object.assign(this.options, options || {});
+
+        this.currentPage = 1;
+        this.onFirstPage = true;
+
+        this.hiddenColumns = [];
+        this.columnRenderers = [];
+        this.selectedColumns = [];
+
+        this.render();
+
+        setTimeout(() => {
+            this.emit("datatable.init");
+            this.initialized = true;
+
+            if (this.options.plugins) {
+                Object.entries(this.options.plugins).forEach(([plugin, options]) => {
+                    if (this[plugin] && typeof this[plugin] === "function") {
+                        this[plugin] = this[plugin](options, {createElement});
+
+                        // Init plugin
+                        if (options.enabled && this[plugin].init && typeof this[plugin].init === "function") {
+                            this[plugin].init();
+                        }
+                    }
+                });
+            }
+        }, 10);
+    }
+
+    /**
+     * Render the instance
+     * @param  {String} type
+     * @return {Void}
+     */
+    render(type) {
+        if (type) {
+            switch (type) {
+            case "page":
+                this.renderPage();
+                break
+            case "pager":
+                this.renderPager();
+                break
+            case "header":
+                this.renderHeader();
+                break
+            }
+
+            return false
+        }
+
+        const options = this.options;
+        let template = "";
+
+        // Convert data to HTML
+        if (options.data) {
+            dataToTable.call(this);
+        }
+
+        // Store references
+        this.body = this.dom.tBodies[0];
+        this.head = this.dom.tHead;
+        this.foot = this.dom.tFoot;
+
+        if (!this.body) {
+            this.body = createElement("tbody");
+
+            this.dom.appendChild(this.body);
+        }
+
+        this.hasRows = this.body.rows.length > 0;
+
+        // Make a tHead if there isn't one (fixes #8)
+        if (!this.head) {
+            const h = createElement("thead");
+            const t = createElement("tr");
+
+            if (this.hasRows) {
+                Array.from(this.body.rows[0].cells).forEach(() => {
+                    t.appendChild(createElement("th"));
+                });
+
+                h.appendChild(t);
+            }
+
+            this.head = h;
+
+            this.dom.insertBefore(this.head, this.body);
+
+            this.hiddenHeader = options.hiddenHeader;
+        }
+
+        this.headings = [];
+        this.hasHeadings = this.head.rows.length > 0;
+
+        if (this.hasHeadings) {
+            this.header = this.head.rows[0];
+            this.headings = [].slice.call(this.header.cells);
+        }
+
+        // Header
+        if (!options.header) {
+            if (this.head) {
+                this.dom.removeChild(this.dom.tHead);
+            }
+        }
+
+        // Footer
+        if (options.footer) {
+            if (this.head && !this.foot) {
+                this.foot = createElement("tfoot", {
+                    html: this.head.innerHTML
+                });
+                this.dom.appendChild(this.foot);
+            }
+        } else {
+            if (this.foot) {
+                this.dom.removeChild(this.dom.tFoot);
+            }
+        }
+
+        // Build
+        this.wrapper = createElement("div", {
+            class: "dataTable-wrapper dataTable-loading"
+        });
+
+        // Template for custom layouts
+        template += "<div class='dataTable-top'>";
+        template += options.layout.top;
+        template += "</div>";
+        if (options.scrollY.length) {
+            template += `<div class='dataTable-container' style='height: ${options.scrollY}; overflow-Y: auto;'></div>`;
+        } else {
+            template += "<div class='dataTable-container'></div>";
+        }
+        template += "<div class='dataTable-bottom'>";
+        template += options.layout.bottom;
+        template += "</div>";
+
+        // Info placement
+        template = template.replace("{info}", options.paging ? "<div class='dataTable-info'></div>" : "");
+
+        // Per Page Select
+        if (options.paging && options.perPageSelect) {
+            let wrap = "<div class='dataTable-dropdown'><label>";
+            wrap += options.labels.perPage;
+            wrap += "</label></div>";
+
+            // Create the select
+            const select = createElement("select", {
+                class: "dataTable-selector"
+            });
+
+            // Create the options
+            options.perPageSelect.forEach(val => {
+                const selected = val === options.perPage;
+                const option = new Option(val, val, selected, selected);
+                select.add(option);
+            });
+
+            // Custom label
+            wrap = wrap.replace("{select}", select.outerHTML);
+
+            // Selector placement
+            template = template.replace("{select}", wrap);
+        } else {
+            template = template.replace("{select}", "");
+        }
+
+        // Searchable
+        if (options.searchable) {
+            const form =
+                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${options.labels.placeholder}' type='text'></div>`;
+
+            // Search input placement
+            template = template.replace("{search}", form);
+        } else {
+            template = template.replace("{search}", "");
+        }
+
+        if (this.hasHeadings) {
+            // Sortable
+            this.render("header");
+        }
+
+        // Add table class
+        this.dom.classList.add("dataTable-table");
+
+        // Paginator
+        const paginatorWrapper = createElement("nav", {
+            class: "dataTable-pagination"
+        });
+        const paginator = createElement("ul", {
+            class: "dataTable-pagination-list"
+        });
+        paginatorWrapper.appendChild(paginator);
+
+        // Pager(s) placement
+        template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML);
+        this.wrapper.innerHTML = template;
+
+        this.container = this.wrapper.querySelector(".dataTable-container");
+
+        this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination-list");
+
+        this.label = this.wrapper.querySelector(".dataTable-info");
+
+        // Insert in to DOM tree
+        this.dom.parentNode.replaceChild(this.wrapper, this.dom);
+        this.container.appendChild(this.dom);
+
+        // Store the table dimensions
+        this.rect = this.dom.getBoundingClientRect();
+
+        // Convert rows to array for processing
+        this.data = Array.from(this.body.rows);
+        this.activeRows = this.data.slice();
+        this.activeHeadings = this.headings.slice();
+
+        // Update
+        this.update();
+
+
+        this.setColumns();
+
+
+        // Fix height
+        this.fixHeight();
+
+        // Fix columns
+        this.fixColumns();
+
+        // Class names
+        if (!options.header) {
+            this.wrapper.classList.add("no-header");
+        }
+
+        if (!options.footer) {
+            this.wrapper.classList.add("no-footer");
+        }
+
+        if (options.sortable) {
+            this.wrapper.classList.add("sortable");
+        }
+
+        if (options.searchable) {
+            this.wrapper.classList.add("searchable");
+        }
+
+        if (options.fixedHeight) {
+            this.wrapper.classList.add("fixed-height");
+        }
+
+        if (options.fixedColumns) {
+            this.wrapper.classList.add("fixed-columns");
+        }
+
+        this.bindEvents();
+    }
+
+    /**
+     * Render the page
+     * @return {Void}
+     */
+    renderPage() {
+        if (this.hasHeadings) {
+            flush(this.header);
+
+            this.activeHeadings.forEach(th => this.header.appendChild(th));
+        }
+
+
+        if (this.hasRows && this.totalPages) {
+            if (this.currentPage > this.totalPages) {
+                this.currentPage = 1;
+            }
+
+            // Use a fragment to limit touching the DOM
+            const index = this.currentPage - 1;
+
+            const frag = document.createDocumentFragment();
+            this.pages[index].forEach(row => frag.appendChild(this.rows().render(row)));
+
+            this.clear(frag);
+
+            this.onFirstPage = this.currentPage === 1;
+            this.onLastPage = this.currentPage === this.lastPage;
+        } else {
+            this.setMessage(this.options.labels.noRows);
+        }
+
+        // Update the info
+        let current = 0;
+
+        let f = 0;
+        let t = 0;
+        let items;
+
+        if (this.totalPages) {
+            current = this.currentPage - 1;
+            f = current * this.options.perPage;
+            t = f + this.pages[current].length;
+            f = f + 1;
+            items = this.searching ? this.searchData.length : this.data.length;
+        }
+
+        if (this.label && this.options.labels.info.length) {
+            // CUSTOM LABELS
+            const string = this.options.labels.info
+                .replace("{start}", f)
+                .replace("{end}", t)
+                .replace("{page}", this.currentPage)
+                .replace("{pages}", this.totalPages)
+                .replace("{rows}", items);
+
+            this.label.innerHTML = items ? string : "";
+        }
+
+        if (this.currentPage == 1) {
+            this.fixHeight();
+        }
+    }
+
+    /**
+     * Render the pager(s)
+     * @return {Void}
+     */
+    renderPager() {
+        flush(this.pagers);
+
+        if (this.totalPages > 1) {
+            const c = "pager";
+            const frag = document.createDocumentFragment();
+            const prev = this.onFirstPage ? 1 : this.currentPage - 1;
+            const next = this.onLastPage ? this.totalPages : this.currentPage + 1;
+
+            // first button
+            if (this.options.firstLast) {
+                frag.appendChild(button(c, 1, this.options.firstText));
+            }
+
+            // prev button
+            if (this.options.nextPrev && !this.onFirstPage) {
+                frag.appendChild(button(c, prev, this.options.prevText));
+            }
+
+            let pager = this.links;
+
+            // truncate the links
+            if (this.options.truncatePager) {
+                pager = truncate(
+                    this.links,
+                    this.currentPage,
+                    this.pages.length,
+                    this.options.pagerDelta,
+                    this.options.ellipsisText
+                );
+            }
+
+            // active page link
+            this.links[this.currentPage - 1].classList.add("active");
+
+            // append the links
+            pager.forEach(p => {
+                p.classList.remove("active");
+                frag.appendChild(p);
+            });
+
+            this.links[this.currentPage - 1].classList.add("active");
+
+            // next button
+            if (this.options.nextPrev && !this.onLastPage) {
+                frag.appendChild(button(c, next, this.options.nextText));
+            }
+
+            // first button
+            if (this.options.firstLast) {
+                frag.appendChild(button(c, this.totalPages, this.options.lastText));
+            }
+
+            // We may have more than one pager
+            this.pagers.forEach(pager => {
+                pager.appendChild(frag.cloneNode(true));
+            });
+        }
+    }
+
+    /**
+     * Render the header
+     * @return {Void}
+     */
+    renderHeader() {
+        this.labels = [];
+
+        if (this.headings && this.headings.length) {
+            this.headings.forEach((th, i) => {
+
+                this.labels[i] = th.textContent;
+
+                if (th.firstElementChild && th.firstElementChild.classList.contains("dataTable-sorter")) {
+                    th.innerHTML = th.firstElementChild.innerHTML;
+                }
+
+                th.sortable = th.getAttribute("data-sortable") !== "false";
+
+                th.originalCellIndex = i;
+                if (this.options.sortable && th.sortable) {
+                    const link = createElement("a", {
+                        href: "#",
+                        class: "dataTable-sorter",
+                        html: th.innerHTML
+                    });
+
+                    th.innerHTML = "";
+                    th.setAttribute("data-sortable", "");
+                    th.appendChild(link);
+                }
+            });
+        }
+
+        this.fixColumns();
+    }
+
+    /**
+     * Bind event listeners
+     * @return {[type]} [description]
+     */
+    bindEvents() {
+        const options = this.options;
+        // Per page selector
+        if (options.perPageSelect) {
+            const selector = this.wrapper.querySelector(".dataTable-selector");
+            if (selector) {
+                // Change per page
+                selector.addEventListener("change", () => {
+                    options.perPage = parseInt(selector.value, 10);
+                    this.update();
+
+                    this.fixHeight();
+
+                    this.emit("datatable.perpage", options.perPage);
+                }, false);
+            }
+        }
+
+        // Search input
+        if (options.searchable) {
+            this.input = this.wrapper.querySelector(".dataTable-input");
+            if (this.input) {
+                this.input.addEventListener("keyup", () => this.search(this.input.value), false);
+            }
+        }
+
+        // Pager(s) / sorting
+        this.wrapper.addEventListener("click", e => {
+            const t = e.target.closest("a");
+            if (t && (t.nodeName.toLowerCase() === "a")) {
+                if (t.hasAttribute("data-page")) {
+                    this.page(t.getAttribute("data-page"));
+                    e.preventDefault();
+                } else if (
+                    options.sortable &&
+                    t.classList.contains("dataTable-sorter") &&
+                    t.parentNode.getAttribute("data-sortable") != "false"
+                ) {
+                    this.columns().sort(this.headings.indexOf(t.parentNode));
+                    e.preventDefault();
+                }
+            }
+        }, false);
+
+        window.addEventListener("resize", this.listeners.onResize);
+    }
+
+    /**
+     * execute on resize
+     */
+    onResize() {
+        this.rect = this.container.getBoundingClientRect();
+        if (!this.rect.width) {
+            // No longer shown, likely no longer part of DOM. Give up.
+            return
+        }
+        this.fixColumns();
+    }
+
+    /**
+     * Set up columns
+     * @return {[type]} [description]
+     */
+    setColumns(ajax) {
+
+        if (!ajax) {
+            this.data.forEach(row => {
+                Array.from(row.cells).forEach(cell => {
+                    cell.data = cell.innerHTML;
+                });
+            });
+        }
+
+        // Check for the columns option
+        if (this.options.columns && this.headings.length) {
+
+            this.options.columns.forEach(data => {
+
+                // convert single column selection to array
+                if (!Array.isArray(data.select)) {
+                    data.select = [data.select];
+                }
+
+                if (data.hasOwnProperty("render") && typeof data.render === "function") {
+                    this.selectedColumns = this.selectedColumns.concat(data.select);
+
+                    this.columnRenderers.push({
+                        columns: data.select,
+                        renderer: data.render
+                    });
+                }
+
+                // Add the data attributes to the th elements
+                data.select.forEach(column => {
+                    const th = this.headings[column];
+                    if (!th) {
+                      return
+                    }
+                    if (data.type) {
+                        th.setAttribute("data-type", data.type);
+                    }
+                    if (data.format) {
+                        th.setAttribute("data-format", data.format);
+                    }
+                    if (data.hasOwnProperty("sortable")) {
+                        th.setAttribute("data-sortable", data.sortable);
+                    }
+
+                    if (data.hasOwnProperty("hidden")) {
+                        if (data.hidden !== false) {
+                            this.columns().hide([column]);
+                        }
+                    }
+
+                    if (data.hasOwnProperty("sort") && data.select.length === 1) {
+                        this.columns().sort(data.select[0], data.sort, true);
+                    }
+                });
+            });
+        }
+
+        if (this.hasRows) {
+            this.data.forEach((row, i) => {
+                row.dataIndex = i;
+                Array.from(row.cells).forEach(cell => {
+                    cell.data = cell.innerHTML;
+                });
+            });
+
+            if (this.selectedColumns.length) {
+                this.data.forEach(row => {
+                    Array.from(row.cells).forEach((cell, i) => {
+                        if (this.selectedColumns.includes(i)) {
+                            this.columnRenderers.forEach(options => {
+                                if (options.columns.includes(i)) {
+                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row);
+                                }
+                            });
+                        }
+                    });
+                });
+            }
+
+            this.columns().rebuild();
+        }
+
+        this.render("header");
+    }
+
+    /**
+     * Destroy the instance
+     * @return {void}
+     */
+    destroy() {
+        this.dom.innerHTML = this.initialLayout;
+
+        // Remove the className
+        this.dom.classList.remove("dataTable-table");
+
+        // Remove the containers
+        this.wrapper.parentNode.replaceChild(this.dom, this.wrapper);
+
+        this.initialized = false;
+
+        window.removeEventListener("resize", this.listeners.onResize);
+    }
+
+    /**
+     * Update the instance
+     * @return {Void}
+     */
+    update() {
+        this.wrapper.classList.remove("dataTable-empty");
+
+        this.paginate(this);
+        this.render("page");
+
+        this.links = [];
+
+        let i = this.pages.length;
+        while (i--) {
+            const num = i + 1;
+            this.links[i] = button(i === 0 ? "active" : "", num, num);
+        }
+
+        this.sorting = false;
+
+        this.render("pager");
+
+        this.rows().update();
+
+        this.emit("datatable.update");
+    }
+
+    /**
+     * Sort rows into pages
+     * @return {Number}
+     */
+    paginate() {
+        const perPage = this.options.perPage;
+        let rows = this.activeRows;
+
+        if (this.searching) {
+            rows = [];
+
+            this.searchData.forEach(index => rows.push(this.activeRows[index]));
+        }
+
+        if (this.options.paging) {
+            // Check for hidden columns
+            this.pages = rows
+                .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
+                .filter(page => page);
+        } else {
+            this.pages = [rows];
+        }
+
+        this.totalPages = this.lastPage = this.pages.length;
+
+        return this.totalPages
+    }
+
+    /**
+     * Fix column widths
+     * @return {Void}
+     */
+    fixColumns() {
+
+        if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
+            let cells;
+            let hd = false;
+            this.columnWidths = [];
+
+            // If we have headings we need only set the widths on them
+            // otherwise we need a temp header and the widths need applying to all cells
+            if (this.dom.tHead) {
+
+                if (this.options.scrollY.length) {
+                    hd = createElement("thead");
+                    hd.appendChild(createElement("tr"));
+                    hd.style.height = "0px";
+                    if (this.headerTable) {
+                        // move real header back into place
+                        this.dom.tHead = this.headerTable.tHead;
+                    }
+                }
+
+                // Reset widths
+                this.activeHeadings.forEach(cell => {
+                    cell.style.width = "";
+                });
+
+                this.activeHeadings.reduce(
+                  (total, cell) => total + cell.offsetWidth,
+                  0
+                );
+
+                this.activeHeadings.forEach((cell, i) => {
+                    const ow = cell.offsetWidth;
+                    const w = ow / this.rect.width * 100;
+                    cell.style.width = `${w}%`;
+                    this.columnWidths[i] = ow;
+                    if (this.options.scrollY.length) {
+                        const th = createElement("th");
+                        hd.firstElementChild.appendChild(th);
+                        th.style.width = `${w}%`;
+                        th.style.paddingTop = "0";
+                        th.style.paddingBottom = "0";
+                        th.style.border = "0";
+                    }
+                });
+
+                if (this.options.scrollY.length) {
+                    const container = this.dom.parentElement;
+                    if (!this.headerTable) {
+                        this.headerTable = createElement("table", {
+                            class: "dataTable-table"
+                        });
+                        const headercontainer = createElement("div", {
+                            class: "dataTable-headercontainer"
+                        });
+                        headercontainer.appendChild(this.headerTable);
+                        container.parentElement.insertBefore(headercontainer, container);
+                    }
+                    const thd = this.dom.tHead;
+                    this.dom.replaceChild(hd, thd);
+                    this.headerTable.tHead = thd;
+
+                    // Compensate for scrollbars.
+                    this.headerTable.parentElement.style.paddingRight = `${
+                        this.headerTable.clientWidth -
+                        this.dom.clientWidth +
+                        parseInt(
+                            this.headerTable.parentElement.style.paddingRight ||
+                            "0",
+                            10
+                        )
+                    }px`;
+
+                    if (container.scrollHeight > container.clientHeight) {
+                        // scrollbars on one page means scrollbars on all pages.
+                        container.style.overflowY = "scroll";
+                    }
+                }
+
+            } else {
+                cells = [];
+
+                // Make temperary headings
+                hd = createElement("thead");
+                const r = createElement("tr");
+                Array.from(this.dom.tBodies[0].rows[0].cells).forEach(() => {
+                    const th = createElement("th");
+                    r.appendChild(th);
+                    cells.push(th);
+                });
+
+                hd.appendChild(r);
+                this.dom.insertBefore(hd, this.body);
+
+                const widths = [];
+                cells.forEach((cell, i) => {
+                    const ow = cell.offsetWidth;
+                    const w = ow / this.rect.width * 100;
+                    widths.push(w);
+                    this.columnWidths[i] = ow;
+                });
+
+                this.data.forEach(row => {
+                    Array.from(row.cells).forEach((cell, i) => {
+                        if (this.columns(cell.cellIndex).visible())
+                            cell.style.width = `${widths[i]}%`;
+                    });
+                });
+
+                // Discard the temp header
+                this.dom.removeChild(hd);
+            }
+        }
+    }
+
+    /**
+     * Fix the container height
+     * @return {Void}
+     */
+    fixHeight() {
+        if (this.options.fixedHeight) {
+            this.container.style.height = null;
+            this.rect = this.container.getBoundingClientRect();
+            this.container.style.height = `${this.rect.height}px`;
+        }
+    }
+
+    /**
+     * Perform a search of the data set
+     * @param  {string} query
+     * @return {void}
+     */
+    search(query) {
+        if (!this.hasRows) return false
+
+        query = query.toLowerCase();
+
+        this.currentPage = 1;
+        this.searching = true;
+        this.searchData = [];
+
+        if (!query.length) {
+            this.searching = false;
+            this.update();
+            this.emit("datatable.search", query, this.searchData);
+            this.wrapper.classList.remove("search-results");
+            return false
+        }
+
+        this.clear();
+
+        this.data.forEach((row, idx) => {
+            const inArray = this.searchData.includes(row);
+
+            // https://github.com/Mobius1/Vanilla-DataTables/issues/12
+            const doesQueryMatch = query.split(" ").reduce((bool, word) => {
+                let includes = false;
+                let cell = null;
+                let content = null;
+
+                for (let x = 0; x < row.cells.length; x++) {
+                    cell = row.cells[x];
+                    content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.textContent;
+
+                    if (
+                        content.toLowerCase().includes(word) &&
+                        this.columns(cell.cellIndex).visible()
+                    ) {
+                        includes = true;
+                        break
+                    }
+                }
+
+                return bool && includes
+            }, true);
+
+            if (doesQueryMatch && !inArray) {
+                row.searchIndex = idx;
+                this.searchData.push(idx);
+            } else {
+                row.searchIndex = null;
+            }
+        });
+
+        this.wrapper.classList.add("search-results");
+
+        if (!this.searchData.length) {
+            this.wrapper.classList.remove("search-results");
+
+            this.setMessage(this.options.labels.noResults);
+        } else {
+            this.update();
+        }
+
+        this.emit("datatable.search", query, this.searchData);
+    }
+
+    /**
+     * Change page
+     * @param  {int} page
+     * @return {void}
+     */
+    page(page) {
+        // We don't want to load the current page again.
+        if (page == this.currentPage) {
+            return false
+        }
+
+        if (!isNaN(page)) {
+            this.currentPage = parseInt(page, 10);
+        }
+
+        if (page > this.pages.length || page < 0) {
+            return false
+        }
+
+        this.render("page");
+        this.render("pager");
+
+        this.emit("datatable.page", page);
+    }
+
+    /**
+     * Sort by column
+     * @param  {int} column - The column no.
+     * @param  {string} direction - asc or desc
+     * @return {void}
+     */
+    sortColumn(column, direction) {
+        // Use columns API until sortColumn method is removed
+        this.columns().sort(column, direction);
+    }
+
+    /**
+     * Add new row data
+     * @param {object} data
+     */
+    insert(data) {
+        let rows = [];
+        if (isObject(data)) {
+            if (data.headings) {
+                if (!this.hasHeadings && !this.hasRows) {
+                    const tr = createElement("tr");
+                    data.headings.forEach(heading => {
+                        const th = createElement("th", {
+                            html: heading
+                        });
+
+                        tr.appendChild(th);
+                    });
+                    this.head.appendChild(tr);
+
+                    this.header = tr;
+                    this.headings = [].slice.call(tr.cells);
+                    this.hasHeadings = true;
+
+                    // Re-enable sorting if it was disabled due
+                    // to missing header
+                    this.options.sortable = this.initialSortable;
+
+                    // Allow sorting on new header
+                    this.render("header");
+
+                    // Activate newly added headings
+                    this.activeHeadings = this.headings.slice();
+                }
+            }
+
+            if (data.data && Array.isArray(data.data)) {
+                rows = data.data;
+            }
+        } else if (Array.isArray(data)) {
+            data.forEach(row => {
+                const r = [];
+                Object.entries(row).forEach(([heading, cell]) => {
+
+                    const index = this.labels.indexOf(heading);
+
+                    if (index > -1) {
+                        r[index] = cell;
+                    }
+                });
+                rows.push(r);
+            });
+        }
+
+        if (rows.length) {
+            this.rows().add(rows);
+
+            this.hasRows = true;
+        }
+
+        this.update();
+        this.setColumns();
+        this.fixColumns();
+    }
+
+    /**
+     * Refresh the instance
+     * @return {void}
+     */
+    refresh() {
+        if (this.options.searchable) {
+            this.input.value = "";
+            this.searching = false;
+        }
+        this.currentPage = 1;
+        this.onFirstPage = true;
+        this.update();
+
+        this.emit("datatable.refresh");
+    }
+
+    /**
+     * Truncate the table
+     * @param  {mixes} html - HTML string or HTMLElement
+     * @return {void}
+     */
+    clear(html) {
+        if (this.body) {
+            flush(this.body);
+        }
+
+        let parent = this.body;
+        if (!this.body) {
+            parent = this.dom;
+        }
+
+        if (html) {
+            if (typeof html === "string") {
+                const frag = document.createDocumentFragment();
+                frag.innerHTML = html;
+            }
+
+            parent.appendChild(html);
+        }
+    }
+
+    /**
+     * Export table to various formats (csv, txt or sql)
+     * @param  {Object} userOptions User options
+     * @return {Boolean}
+     */
+    export(userOptions) {
+        if (!this.hasHeadings && !this.hasRows) return false
+
+        const headers = this.activeHeadings;
+        let rows = [];
+        const arr = [];
+        let i;
+        let x;
+        let str;
+        let link;
+
+        const defaults = {
+            download: true,
+            skipColumn: [],
+
+            // csv
+            lineDelimiter: "\n",
+            columnDelimiter: ",",
+
+            // sql
+            tableName: "myTable",
+
+            // json
+            replacer: null,
+            space: 4
+        };
+
+        // Check for the options object
+        if (!isObject(userOptions)) {
+            return false
+        }
+
+        const options = {
+            ...defaults,
+            ...userOptions
+        };
+
+        if (options.type) {
+            if (options.type === "txt" || options.type === "csv") {
+                // Include headings
+                rows[0] = this.header;
+            }
+
+            // Selection or whole table
+            if (options.selection) {
+                // Page number
+                if (!isNaN(options.selection)) {
+                    rows = rows.concat(this.pages[options.selection - 1]);
+                } else if (Array.isArray(options.selection)) {
+                    // Array of page numbers
+                    for (i = 0; i < options.selection.length; i++) {
+                        rows = rows.concat(this.pages[options.selection[i] - 1]);
+                    }
+                }
+            } else {
+                rows = rows.concat(this.activeRows);
+            }
+
+            // Only proceed if we have data
+            if (rows.length) {
+                if (options.type === "txt" || options.type === "csv") {
+                    str = "";
+
+                    for (i = 0; i < rows.length; i++) {
+                        for (x = 0; x < rows[i].cells.length; x++) {
+                            // Check for column skip and visibility
+                            if (
+                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                                this.columns(headers[x].originalCellIndex).visible()
+                            ) {
+                                let text = rows[i].cells[x].textContent;
+                                text = text.trim();
+                                text = text.replace(/\s{2,}/g, " ");
+                                text = text.replace(/\n/g, "  ");
+                                text = text.replace(/"/g, "\"\"");
+                                //have to manually encode "#" as encodeURI leaves it as is.
+                                text = text.replace(/#/g, "%23");
+                                if (text.includes(","))
+                                    text = `"${text}"`;
+
+
+                                str += text + options.columnDelimiter;
+                            }
+                        }
+                        // Remove trailing column delimiter
+                        str = str.trim().substring(0, str.length - 1);
+
+                        // Apply line delimiter
+                        str += options.lineDelimiter;
+                    }
+
+                    // Remove trailing line delimiter
+                    str = str.trim().substring(0, str.length - 1);
+
+                    if (options.download) {
+                        str = `data:text/csv;charset=utf-8,${str}`;
+                    }
+                } else if (options.type === "sql") {
+                    // Begin INSERT statement
+                    str = `INSERT INTO \`${options.tableName}\` (`;
+
+                    // Convert table headings to column names
+                    for (i = 0; i < headers.length; i++) {
+                        // Check for column skip and column visibility
+                        if (
+                            !options.skipColumn.includes(headers[i].originalCellIndex) &&
+                            this.columns(headers[i].originalCellIndex).visible()
+                        ) {
+                            str += `\`${headers[i].textContent}\`,`;
+                        }
+                    }
+
+                    // Remove trailing comma
+                    str = str.trim().substring(0, str.length - 1);
+
+                    // Begin VALUES
+                    str += ") VALUES ";
+
+                    // Iterate rows and convert cell data to column values
+                    for (i = 0; i < rows.length; i++) {
+                        str += "(";
+
+                        for (x = 0; x < rows[i].cells.length; x++) {
+                            // Check for column skip and column visibility
+                            if (
+                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                                this.columns(headers[x].originalCellIndex).visible()
+                            ) {
+                                str += `"${rows[i].cells[x].textContent}",`;
+                            }
+                        }
+
+                        // Remove trailing comma
+                        str = str.trim().substring(0, str.length - 1);
+
+                        // end VALUES
+                        str += "),";
+                    }
+
+                    // Remove trailing comma
+                    str = str.trim().substring(0, str.length - 1);
+
+                    // Add trailing colon
+                    str += ";";
+
+                    if (options.download) {
+                        str = `data:application/sql;charset=utf-8,${str}`;
+                    }
+                } else if (options.type === "json") {
+                    // Iterate rows
+                    for (x = 0; x < rows.length; x++) {
+                        arr[x] = arr[x] || {};
+                        // Iterate columns
+                        for (i = 0; i < headers.length; i++) {
+                            // Check for column skip and column visibility
+                            if (
+                                !options.skipColumn.includes(headers[i].originalCellIndex) &&
+                                this.columns(headers[i].originalCellIndex).visible()
+                            ) {
+                                arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
+                            }
+                        }
+                    }
+
+                    // Convert the array of objects to JSON string
+                    str = JSON.stringify(arr, options.replacer, options.space);
+
+                    if (options.download) {
+                        str = `data:application/json;charset=utf-8,${str}`;
+                    }
+                }
+
+                // Download
+                if (options.download) {
+                    // Filename
+                    options.filename = options.filename || "datatable_export";
+                    options.filename += `.${options.type}`;
+
+                    str = encodeURI(str);
+
+                    // Create a link to trigger the download
+                    link = document.createElement("a");
+                    link.href = str;
+                    link.download = options.filename;
+
+                    // Append the link
+                    document.body.appendChild(link);
+
+                    // Trigger the download
+                    link.click();
+
+                    // Remove the link
+                    document.body.removeChild(link);
+                }
+
+                return str
+            }
+        }
+
+        return false
+    }
+
+    /**
+     * Import data to the table
+     * @param  {Object} userOptions User options
+     * @return {Boolean}
+     */
+    import(userOptions) {
+        let obj = false;
+        const defaults = {
+            // csv
+            lineDelimiter: "\n",
+            columnDelimiter: ","
+        };
+
+        // Check for the options object
+        if (!isObject(userOptions)) {
+            return false
+        }
+
+        const options = {
+            ...defaults,
+            ...userOptions
+        };
+
+        if (options.data.length || isObject(options.data)) {
+            // Import CSV
+            if (options.type === "csv") {
+                obj = {
+                    data: []
+                };
+
+                // Split the string into rows
+                const rows = options.data.split(options.lineDelimiter);
+
+                if (rows.length) {
+
+                    if (options.headings) {
+                        obj.headings = rows[0].split(options.columnDelimiter);
+
+                        rows.shift();
+                    }
+
+                    rows.forEach((row, i) => {
+                        obj.data[i] = [];
+
+                        // Split the rows into values
+                        const values = row.split(options.columnDelimiter);
+
+                        if (values.length) {
+                            values.forEach(value => {
+                                obj.data[i].push(value);
+                            });
+                        }
+                    });
+                }
+            } else if (options.type === "json") {
+                const json = isJson(options.data);
+
+                // Valid JSON string
+                if (json) {
+                    obj = {
+                        headings: [],
+                        data: []
+                    };
+
+                    json.forEach((data, i) => {
+                        obj.data[i] = [];
+                        Object.entries(data).forEach(([column, value]) => {
+                            if (!obj.headings.includes(column)) {
+                                obj.headings.push(column);
+                            }
+
+                            obj.data[i].push(value);
+                        });
+                    });
+                }
+            }
+
+            if (isObject(options.data)) {
+                obj = options.data;
+            }
+
+            if (obj) {
+                // Add the rows
+                this.insert(obj);
+            }
+        }
+
+        return false
+    }
+
+    /**
+     * Print the table
+     * @return {void}
+     */
+    print() {
+        const headings = this.activeHeadings;
+        const rows = this.activeRows;
+        const table = createElement("table");
+        const thead = createElement("thead");
+        const tbody = createElement("tbody");
+
+        const tr = createElement("tr");
+        headings.forEach(th => {
+            tr.appendChild(
+                createElement("th", {
+                    html: th.textContent
+                })
+            );
+        });
+
+        thead.appendChild(tr);
+
+        rows.forEach(row => {
+            const tr = createElement("tr");
+            Array.from(row.cells).forEach(cell => {
+                tr.appendChild(
+                    createElement("td", {
+                        html: cell.textContent
+                    })
+                );
+            });
+            tbody.appendChild(tr);
+        });
+
+        table.appendChild(thead);
+        table.appendChild(tbody);
+
+        // Open new window
+        const w = window.open();
+
+        // Append the table to the body
+        w.document.body.appendChild(table);
+
+        // Print
+        w.print();
+    }
+
+    /**
+     * Show a message in the table
+     * @param {string} message
+     */
+    setMessage(message) {
+        let colspan = 1;
+
+        if (this.hasRows) {
+            colspan = this.data[0].cells.length;
+        } else if (this.activeHeadings.length) {
+            colspan = this.activeHeadings.length;
+        }
+
+        this.wrapper.classList.add("dataTable-empty");
+
+        if (this.label) {
+            this.label.innerHTML = "";
+        }
+        this.totalPages = 0;
+        this.render("pager");
+
+        this.clear(
+            createElement("tr", {
+                html: `<td class="dataTables-empty" colspan="${colspan}">${message}</td>`
+            })
+        );
+    }
+
+    /**
+     * Columns API access
+     * @return {Object} new Columns instance
+     */
+    columns(columns) {
+        return new Columns(this, columns)
+    }
+
+    /**
+     * Rows API access
+     * @return {Object} new Rows instance
+     */
+    rows(rows) {
+        return new Rows(this, rows)
+    }
+
+    /**
+     * Add custom event listener
+     * @param  {String} event
+     * @param  {Function} callback
+     * @return {Void}
+     */
+    on(event, callback) {
+        this.events = this.events || {};
+        this.events[event] = this.events[event] || [];
+        this.events[event].push(callback);
+    }
+
+    /**
+     * Remove custom event listener
+     * @param  {String} event
+     * @param  {Function} callback
+     * @return {Void}
+     */
+    off(event, callback) {
+        this.events = this.events || {};
+        if (event in this.events === false) return
+        this.events[event].splice(this.events[event].indexOf(callback), 1);
+    }
+
+    /**
+     * Fire custom event
+     * @param  {String} event
+     * @return {Void}
+     */
+    emit(event) {
+        this.events = this.events || {};
+        if (event in this.events === false) return
+        for (let i = 0; i < this.events[event].length; i++) {
+            this.events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+        }
+    }
+}
+
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+var dayjs_min = {exports: {}};
+
+(function (module, exports) {
+	!function(t,e){module.exports=e();}(commonjsGlobal,(function(){var t=1e3,e=6e4,n=36e5,r="millisecond",i="second",s="minute",u="hour",a="day",o="week",f="month",h="quarter",c="year",d="date",$="Invalid Date",l=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,y=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,M={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},m=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},g={s:m,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+m(r,2,"0")+":"+m(i,2,"0")},m:function t(e,n){if(e.date()<n.date())return -t(n,e);var r=12*(n.year()-e.year())+(n.month()-e.month()),i=e.clone().add(r,f),s=n-i<0,u=e.clone().add(r+(s?-1:1),f);return +(-(r+(n-i)/(s?i-u:u-i))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return {M:f,y:c,w:o,d:a,D:d,h:u,m:s,s:i,ms:r,Q:h}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},v="en",D={};D[v]=M;var p=function(t){return t instanceof _},S=function t(e,n,r){var i;if(!e)return v;if("string"==typeof e){var s=e.toLowerCase();D[s]&&(i=s),n&&(D[s]=n,i=s);var u=e.split("-");if(!i&&u.length>1)return t(u[0])}else {var a=e.name;D[a]=e,i=a;}return !r&&i&&(v=i),i||!r&&v},w=function(t,e){if(p(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new _(n)},O=g;O.l=S,O.i=p,O.w=function(t,e){return w(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var _=function(){function M(t){this.$L=S(t.locale,null,!0),this.parse(t);}var m=M.prototype;return m.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(O.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match(l);if(r){var i=r[2]-1||0,s=(r[7]||"0").substring(0,3);return n?new Date(Date.UTC(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)):new Date(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)}}return new Date(e)}(t),this.$x=t.x||{},this.init();},m.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},m.$utils=function(){return O},m.isValid=function(){return !(this.$d.toString()===$)},m.isSame=function(t,e){var n=w(t);return this.startOf(e)<=n&&n<=this.endOf(e)},m.isAfter=function(t,e){return w(t)<this.startOf(e)},m.isBefore=function(t,e){return this.endOf(e)<w(t)},m.$g=function(t,e,n){return O.u(t)?this[e]:this.set(n,t)},m.unix=function(){return Math.floor(this.valueOf()/1e3)},m.valueOf=function(){return this.$d.getTime()},m.startOf=function(t,e){var n=this,r=!!O.u(e)||e,h=O.p(t),$=function(t,e){var i=O.w(n.$u?Date.UTC(n.$y,e,t):new Date(n.$y,e,t),n);return r?i:i.endOf(a)},l=function(t,e){return O.w(n.toDate()[t].apply(n.toDate("s"),(r?[0,0,0,0]:[23,59,59,999]).slice(e)),n)},y=this.$W,M=this.$M,m=this.$D,g="set"+(this.$u?"UTC":"");switch(h){case c:return r?$(1,0):$(31,11);case f:return r?$(1,M):$(0,M+1);case o:var v=this.$locale().weekStart||0,D=(y<v?y+7:y)-v;return $(r?m-D:m+(6-D),M);case a:case d:return l(g+"Hours",0);case u:return l(g+"Minutes",1);case s:return l(g+"Seconds",2);case i:return l(g+"Milliseconds",3);default:return this.clone()}},m.endOf=function(t){return this.startOf(t,!1)},m.$set=function(t,e){var n,o=O.p(t),h="set"+(this.$u?"UTC":""),$=(n={},n[a]=h+"Date",n[d]=h+"Date",n[f]=h+"Month",n[c]=h+"FullYear",n[u]=h+"Hours",n[s]=h+"Minutes",n[i]=h+"Seconds",n[r]=h+"Milliseconds",n)[o],l=o===a?this.$D+(e-this.$W):e;if(o===f||o===c){var y=this.clone().set(d,1);y.$d[$](l),y.init(),this.$d=y.set(d,Math.min(this.$D,y.daysInMonth())).$d;}else $&&this.$d[$](l);return this.init(),this},m.set=function(t,e){return this.clone().$set(t,e)},m.get=function(t){return this[O.p(t)]()},m.add=function(r,h){var d,$=this;r=Number(r);var l=O.p(h),y=function(t){var e=w($);return O.w(e.date(e.date()+Math.round(t*r)),$)};if(l===f)return this.set(f,this.$M+r);if(l===c)return this.set(c,this.$y+r);if(l===a)return y(1);if(l===o)return y(7);var M=(d={},d[s]=e,d[u]=n,d[i]=t,d)[l]||1,m=this.$d.getTime()+r*M;return O.w(m,this)},m.subtract=function(t,e){return this.add(-1*t,e)},m.format=function(t){var e=this,n=this.$locale();if(!this.isValid())return n.invalidDate||$;var r=t||"YYYY-MM-DDTHH:mm:ssZ",i=O.z(this),s=this.$H,u=this.$m,a=this.$M,o=n.weekdays,f=n.months,h=function(t,n,i,s){return t&&(t[n]||t(e,r))||i[n].slice(0,s)},c=function(t){return O.s(s%12||12,t,"0")},d=n.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:a+1,MM:O.s(a+1,2,"0"),MMM:h(n.monthsShort,a,f,3),MMMM:h(f,a),D:this.$D,DD:O.s(this.$D,2,"0"),d:String(this.$W),dd:h(n.weekdaysMin,this.$W,o,2),ddd:h(n.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(s),HH:O.s(s,2,"0"),h:c(1),hh:c(2),a:d(s,u,!0),A:d(s,u,!1),m:String(u),mm:O.s(u,2,"0"),s:String(this.$s),ss:O.s(this.$s,2,"0"),SSS:O.s(this.$ms,3,"0"),Z:i};return r.replace(y,(function(t,e){return e||l[t]||i.replace(":","")}))},m.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},m.diff=function(r,d,$){var l,y=O.p(d),M=w(r),m=(M.utcOffset()-this.utcOffset())*e,g=this-M,v=O.m(this,M);return v=(l={},l[c]=v/12,l[f]=v,l[h]=v/3,l[o]=(g-m)/6048e5,l[a]=(g-m)/864e5,l[u]=g/n,l[s]=g/e,l[i]=g/t,l)[y]||g,$?v:O.a(v)},m.daysInMonth=function(){return this.endOf(f).$D},m.$locale=function(){return D[this.$L]},m.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=S(t,e,!0);return r&&(n.$L=r),n},m.clone=function(){return O.w(this.$d,this)},m.toDate=function(){return new Date(this.valueOf())},m.toJSON=function(){return this.isValid()?this.toISOString():null},m.toISOString=function(){return this.$d.toISOString()},m.toString=function(){return this.$d.toUTCString()},M}(),T=_.prototype;return w.prototype=T,[["$ms",r],["$s",i],["$m",s],["$H",u],["$W",a],["$M",f],["$y",c],["$D",d]].forEach((function(t){T[t[1]]=function(e){return this.$g(e,t[0],t[1])};})),w.extend=function(t,e){return t.$i||(t(e,_,w),t.$i=!0),w},w.locale=S,w.isDayjs=p,w.unix=function(t){return w(1e3*t)},w.en=D[v],w.Ls=D,w.p={},w}));
+} (dayjs_min));
+
+var dayjs = dayjs_min.exports;
+
+var customParseFormat$1 = {exports: {}};
+
+(function (module, exports) {
+	!function(e,t){module.exports=t();}(commonjsGlobal,(function(){var e={LTS:"h:mm:ss A",LT:"h:mm A",L:"MM/DD/YYYY",LL:"MMMM D, YYYY",LLL:"MMMM D, YYYY h:mm A",LLLL:"dddd, MMMM D, YYYY h:mm A"},t=/(\[[^[]*\])|([-_:/.,()\s]+)|(A|a|YYYY|YY?|MM?M?M?|Do|DD?|hh?|HH?|mm?|ss?|S{1,3}|z|ZZ?)/g,n=/\d\d/,r=/\d\d?/,i=/\d*[^-_:/,()\s\d]+/,o={},s=function(e){return (e=+e)+(e>68?1900:2e3)};var a=function(e){return function(t){this[e]=+t;}},f=[/[+-]\d\d:?(\d\d)?|Z/,function(e){(this.zone||(this.zone={})).offset=function(e){if(!e)return 0;if("Z"===e)return 0;var t=e.match(/([+-]|\d\d)/g),n=60*t[1]+(+t[2]||0);return 0===n?0:"+"===t[0]?-n:n}(e);}],h=function(e){var t=o[e];return t&&(t.indexOf?t:t.s.concat(t.f))},u=function(e,t){var n,r=o.meridiem;if(r){for(var i=1;i<=24;i+=1)if(e.indexOf(r(i,0,t))>-1){n=i>12;break}}else n=e===(t?"pm":"PM");return n},d={A:[i,function(e){this.afternoon=u(e,!1);}],a:[i,function(e){this.afternoon=u(e,!0);}],S:[/\d/,function(e){this.milliseconds=100*+e;}],SS:[n,function(e){this.milliseconds=10*+e;}],SSS:[/\d{3}/,function(e){this.milliseconds=+e;}],s:[r,a("seconds")],ss:[r,a("seconds")],m:[r,a("minutes")],mm:[r,a("minutes")],H:[r,a("hours")],h:[r,a("hours")],HH:[r,a("hours")],hh:[r,a("hours")],D:[r,a("day")],DD:[n,a("day")],Do:[i,function(e){var t=o.ordinal,n=e.match(/\d+/);if(this.day=n[0],t)for(var r=1;r<=31;r+=1)t(r).replace(/\[|\]/g,"")===e&&(this.day=r);}],M:[r,a("month")],MM:[n,a("month")],MMM:[i,function(e){var t=h("months"),n=(h("monthsShort")||t.map((function(e){return e.slice(0,3)}))).indexOf(e)+1;if(n<1)throw new Error;this.month=n%12||n;}],MMMM:[i,function(e){var t=h("months").indexOf(e)+1;if(t<1)throw new Error;this.month=t%12||t;}],Y:[/[+-]?\d+/,a("year")],YY:[n,function(e){this.year=s(e);}],YYYY:[/\d{4}/,a("year")],Z:f,ZZ:f};function c(n){var r,i;r=n,i=o&&o.formats;for(var s=(n=r.replace(/(\[[^\]]+])|(LTS?|l{1,4}|L{1,4})/g,(function(t,n,r){var o=r&&r.toUpperCase();return n||i[r]||e[r]||i[o].replace(/(\[[^\]]+])|(MMMM|MM|DD|dddd)/g,(function(e,t,n){return t||n.slice(1)}))}))).match(t),a=s.length,f=0;f<a;f+=1){var h=s[f],u=d[h],c=u&&u[0],l=u&&u[1];s[f]=l?{regex:c,parser:l}:h.replace(/^\[|\]$/g,"");}return function(e){for(var t={},n=0,r=0;n<a;n+=1){var i=s[n];if("string"==typeof i)r+=i.length;else {var o=i.regex,f=i.parser,h=e.slice(r),u=o.exec(h)[0];f.call(t,u),e=e.replace(u,"");}}return function(e){var t=e.afternoon;if(void 0!==t){var n=e.hours;t?n<12&&(e.hours+=12):12===n&&(e.hours=0),delete e.afternoon;}}(t),t}}return function(e,t,n){n.p.customParseFormat=!0,e&&e.parseTwoDigitYear&&(s=e.parseTwoDigitYear);var r=t.prototype,i=r.parse;r.parse=function(e){var t=e.date,r=e.utc,s=e.args;this.$u=r;var a=s[1];if("string"==typeof a){var f=!0===s[2],h=!0===s[3],u=f||h,d=s[2];h&&(d=s[2]),o=this.$locale(),!f&&d&&(o=n.Ls[d]),this.$d=function(e,t,n){try{if(["x","X"].indexOf(t)>-1)return new Date(("X"===t?1e3:1)*e);var r=c(t)(e),i=r.year,o=r.month,s=r.day,a=r.hours,f=r.minutes,h=r.seconds,u=r.milliseconds,d=r.zone,l=new Date,m=s||(i||o?1:l.getDate()),M=i||l.getFullYear(),Y=0;i&&!o||(Y=o>0?o-1:l.getMonth());var p=a||0,v=f||0,D=h||0,g=u||0;return d?new Date(Date.UTC(M,Y,m,p,v,D,g+60*d.offset*1e3)):n?new Date(Date.UTC(M,Y,m,p,v,D,g)):new Date(M,Y,m,p,v,D,g)}catch(e){return new Date("")}}(t,a,r),this.init(),d&&!0!==d&&(this.$L=this.locale(d).$L),u&&t!=this.format(a)&&(this.$d=new Date("")),o={};}else if(a instanceof Array)for(var l=a.length,m=1;m<=l;m+=1){s[1]=a[m-1];var M=n.apply(this,s);if(M.isValid()){this.$d=M.$d,this.$L=M.$L,this.init();break}m===l&&(this.$d=new Date(""));}else i.call(this,e);};}}));
+} (customParseFormat$1));
+
+var customParseFormat = customParseFormat$1.exports;
+
+dayjs.extend(customParseFormat);
+
+/**
+ * Use dayjs to parse cell contents for sorting
+ * @param  {String} content     The datetime string to parse
+ * @param  {String} format      The format for dayjs to use
+ * @return {String|Boolean}     Datatime string or false
+ */
+const parseDate = (content, format) => {
+    let date = false;
+
+    // Converting to YYYYMMDD ensures we can accurately sort the column numerically
+
+    if (format) {
+        switch (format) {
+        case "ISO_8601":
+            // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
+            date = content;
+            break
+        case "RFC_2822":
+            date = dayjs(content.slice(5), "DD MMM YYYY HH:mm:ss ZZ").unix();
+            break
+        case "MYSQL":
+            date = dayjs(content, "YYYY-MM-DD hh:mm:ss").unix();
+            break
+        case "UNIX":
+            date = dayjs(content).unix();
+            break
+        // User defined format using the data-format attribute or columns[n].format option
+        default:
+            date = dayjs(content, format, true).valueOf();
+            break
+        }
+    }
+    return date
+};
+
+var date = /*#__PURE__*/Object.freeze({
+    __proto__: null,
+    parseDate: parseDate
+});
+
+export { DataTable };
+//# sourceMappingURL=module.js.map
