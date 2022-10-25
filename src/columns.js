@@ -407,17 +407,20 @@ export class Columns {
                 btm = sortItems(numeric, -1)
                 th.classList.remove("asc")
                 th.classList.add("desc")
+                th.setAttribute("aria-sort", "descending")
             } else {
                 top = sortItems(numeric, 1)
                 btm = sortItems(alpha, 1)
                 th.classList.remove("desc")
                 th.classList.add("asc")
+                th.setAttribute("aria-sort", "ascending")
             }
 
             /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
             if (dt.lastTh && th != dt.lastTh) {
                 dt.lastTh.classList.remove("desc")
                 dt.lastTh.classList.remove("asc")
+                dt.lastTh.removeAttribute("aria-sort")
             }
 
             dt.lastTh = th
