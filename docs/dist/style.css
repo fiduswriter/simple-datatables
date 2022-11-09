@@ -171,3 +171,7 @@
 	content: " ";
 	display: table;
 }
+
+table:focus tr.dataTable-cursor > td:first-child {
+	border-left: 3px blue solid;
+}

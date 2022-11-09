@@ -36,6 +36,12 @@ export class DataTable {
         this.initialLayout = dom.innerHTML
         this.initialSortable = this.options.sortable
 
+        if (this.options.tabIndex) {
+            dom.tabIndex = this.options.tabIndex
+        } else if (this.options.rowNavigation && dom.tabIndex === -1) {
+            dom.tabIndex = 0
+        }
+
         // Disable manual sorting if no header is present (#4)
         if (!this.options.header) {
             this.options.sortable = false
@@ -129,28 +135,11 @@ export class DataTable {
      * @param  {String} type
      * @return {Void}
      */
-    render(type) {
-        if (type) {
-            switch (type) {
-            case "page":
-                this.renderPage()
-                break
-            case "pager":
-                this.renderPager()
-                break
-            case "header":
-                this.renderHeader()
-                break
-            }
-
-            return false
-        }
-
-        const options = this.options
+    render() {
         let template = ""
 
         // Convert data to HTML
-        if (options.data) {
+        if (this.options.data) {
             dataToTable.call(this)
         }
 
@@ -184,7 +173,7 @@ export class DataTable {
 
             this.dom.insertBefore(this.head, this.body)
 
-            this.hiddenHeader = options.hiddenHeader
+            this.hiddenHeader = this.options.hiddenHeader
         }
 
         this.headings = []
@@ -196,14 +185,14 @@ export class DataTable {
         }
 
         // Header
-        if (!options.header) {
+        if (!this.options.header) {
             if (this.head) {
                 this.dom.removeChild(this.dom.tHead)
             }
         }
 
         // Footer
-        if (options.footer) {
+        if (this.options.footer) {
             if (this.head && !this.foot) {
                 this.foot = createElement("tfoot", {
                     html: this.head.innerHTML
@@ -223,24 +212,24 @@ export class DataTable {
 
         // Template for custom layouts
         template += "<div class='dataTable-top'>"
-        template += options.layout.top
+        template += this.options.layout.top
         template += "</div>"
-        if (options.scrollY.length) {
-            template += `<div class='dataTable-container' style='height: ${options.scrollY}; overflow-Y: auto;'></div>`
+        if (this.options.scrollY.length) {
+            template += `<div class='dataTable-container' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`
         } else {
             template += "<div class='dataTable-container'></div>"
         }
         template += "<div class='dataTable-bottom'>"
-        template += options.layout.bottom
+        template += this.options.layout.bottom
         template += "</div>"
 
         // Info placement
-        template = template.replace("{info}", options.paging ? "<div class='dataTable-info'></div>" : "")
+        template = template.replace("{info}", this.options.paging ? "<div class='dataTable-info'></div>" : "")
 
         // Per Page Select
-        if (options.paging && options.perPageSelect) {
+        if (this.options.paging && this.options.perPageSelect) {
             let wrap = "<div class='dataTable-dropdown'><label>"
-            wrap += options.labels.perPage
+            wrap += this.options.labels.perPage
             wrap += "</label></div>"
 
             // Create the select
@@ -249,8 +238,8 @@ export class DataTable {
             })
 
             // Create the options
-            options.perPageSelect.forEach(val => {
-                const selected = val === options.perPage
+            this.options.perPageSelect.forEach(val => {
+                const selected = val === this.options.perPage
                 const option = new Option(val, val, selected, selected)
                 select.add(option)
             })
@@ -265,9 +254,9 @@ export class DataTable {
         }
 
         // Searchable
-        if (options.searchable) {
+        if (this.options.searchable) {
             const form =
-                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${options.labels.placeholder}' type='text'></div>`
+                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${this.options.labels.placeholder}' type='text'></div>`
 
             // Search input placement
             template = template.replace("{search}", form)
@@ -277,7 +266,7 @@ export class DataTable {
 
         if (this.hasHeadings) {
             // Sortable
-            this.render("header")
+            this.renderHeader()
         }
 
         // Add table class
@@ -328,27 +317,27 @@ export class DataTable {
         this.fixColumns()
 
         // Class names
-        if (!options.header) {
+        if (!this.options.header) {
             this.wrapper.classList.add("no-header")
         }
 
-        if (!options.footer) {
+        if (!this.options.footer) {
             this.wrapper.classList.add("no-footer")
         }
 
-        if (options.sortable) {
+        if (this.options.sortable) {
             this.wrapper.classList.add("sortable")
         }
 
-        if (options.searchable) {
+        if (this.options.searchable) {
             this.wrapper.classList.add("searchable")
         }
 
-        if (options.fixedHeight) {
+        if (this.options.fixedHeight) {
             this.wrapper.classList.add("fixed-height")
         }
 
-        if (options.fixedColumns) {
+        if (this.options.fixedColumns) {
             this.wrapper.classList.add("fixed-columns")
         }
 
@@ -359,7 +348,7 @@ export class DataTable {
      * Render the page
      * @return {Void}
      */
-    renderPage() {
+    renderPage(lastRowCursor=false) {
         if (this.hasHeadings) {
             flush(this.header)
 
@@ -415,6 +404,18 @@ export class DataTable {
 
         if (this.currentPage == 1) {
             this.fixHeight()
+        }
+
+        if (this.options.rowNavigation) {
+            if (!this.cursorRow || !this.pages[this.currentPage-1].includes(this.cursorRow)) {
+                const rows = this.pages[this.currentPage-1]
+                if (lastRowCursor) {
+                    this.updateCursorRow(rows[rows.length-1])
+                } else {
+                    this.updateCursorRow(rows[0])
+                }
+
+            }
         }
     }
 
@@ -518,30 +519,39 @@ export class DataTable {
         this.fixColumns()
     }
 
+    updateCursorRow(row=false) {
+        if (this.cursorRow) {
+            this.cursorRow.classList.remove("dataTable-cursor")
+        }
+        if (row) {
+            row.classList.add("dataTable-cursor")
+            this.cursorRow = row
+        }
+    }
+
     /**
      * Bind event listeners
      * @return {[type]} [description]
      */
     bindEvents() {
-        const options = this.options
         // Per page selector
-        if (options.perPageSelect) {
+        if (this.options.perPageSelect) {
             const selector = this.wrapper.querySelector(".dataTable-selector")
             if (selector) {
                 // Change per page
                 selector.addEventListener("change", () => {
-                    options.perPage = parseInt(selector.value, 10)
+                    this.options.perPage = parseInt(selector.value, 10)
                     this.update()
 
                     this.fixHeight()
 
-                    this.emit("datatable.perpage", options.perPage)
+                    this.emit("datatable.perpage", this.options.perPage)
                 }, false)
             }
         }
 
         // Search input
-        if (options.searchable) {
+        if (this.options.searchable) {
             this.input = this.wrapper.querySelector(".dataTable-input")
             if (this.input) {
                 this.input.addEventListener("keyup", () => this.search(this.input.value), false)
@@ -556,7 +566,7 @@ export class DataTable {
                     this.page(t.getAttribute("data-page"))
                     e.preventDefault()
                 } else if (
-                    options.sortable &&
+                    this.options.sortable &&
                     t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
@@ -565,6 +575,26 @@ export class DataTable {
                 }
             }
         }, false)
+
+        if (this.options.rowNavigation) {
+            this.wrapper.addEventListener("keyup", e => {
+                if (e.keyCode === 38) {
+                    if (this.cursorRow.previousElementSibling) {
+                        this.updateCursorRow(this.cursorRow.previousElementSibling)
+                        e.preventDefault()
+                    } else if (!this.onFirstPage) {
+                        this.page(this.currentPage-1, true)
+                    }
+                } else if (e.keyCode === 40) {
+                    if (this.cursorRow.nextElementSibling) {
+                        this.updateCursorRow(this.cursorRow.nextElementSibling)
+                        e.preventDefault()
+                    } else if (!this.onLastPage) {
+                        this.page(this.currentPage+1)
+                    }
+                }
+            })
+        }
 
         window.addEventListener("resize", this.listeners.onResize)
     }
@@ -668,7 +698,7 @@ export class DataTable {
             this.columns().rebuild()
         }
 
-        this.render("header")
+        this.renderHeader()
     }
 
     /**
@@ -696,8 +726,8 @@ export class DataTable {
     update() {
         this.wrapper.classList.remove("dataTable-empty")
 
-        this.paginate(this)
-        this.render("page")
+        this.paginate()
+        this.renderPage()
 
         this.links = []
 
@@ -709,7 +739,7 @@ export class DataTable {
 
         this.sorting = false
 
-        this.render("pager")
+        this.renderPager()
 
         this.rows().update()
 
@@ -721,7 +751,6 @@ export class DataTable {
      * @return {Number}
      */
     paginate() {
-        const perPage = this.options.perPage
         let rows = this.activeRows
 
         if (this.searching) {
@@ -733,11 +762,12 @@ export class DataTable {
         if (this.options.paging) {
             // Check for hidden columns
             this.pages = rows
-                .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
+                .map((tr, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
                 .filter(page => page)
         } else {
             this.pages = [rows]
         }
+        console.log({pages: this.pages})
 
         this.totalPages = this.lastPage = this.pages.length
 
@@ -950,7 +980,7 @@ export class DataTable {
      * @param  {int} page
      * @return {void}
      */
-    page(page) {
+    page(page, lastRowCursor=false) {
         // We don't want to load the current page again.
         if (page == this.currentPage) {
             return false
@@ -964,8 +994,8 @@ export class DataTable {
             return false
         }
 
-        this.render("page")
-        this.render("pager")
+        this.renderPage(lastRowCursor)
+        this.renderPager()
 
         this.emit("datatable.page", page)
     }
@@ -1009,7 +1039,7 @@ export class DataTable {
                     this.options.sortable = this.initialSortable
 
                     // Allow sorting on new header
-                    this.render("header")
+                    this.renderHeader()
 
                     // Activate newly added headings
                     this.activeHeadings = this.headings.slice()
@@ -1457,7 +1487,7 @@ export class DataTable {
             this.label.innerHTML = ""
         }
         this.totalPages = 0
-        this.render("pager")
+        this.renderPager()
 
         this.clear(
             createElement("tr", {

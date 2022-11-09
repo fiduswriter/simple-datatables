@@ -31,6 +31,9 @@ export const defaultConfig = {
     hiddenHeader: false,
     footer: false,
 
+    tabIndex: false,
+    rowNavigation: false,
+
     // Customise the display text
     labels: {
         placeholder: "Search...", // The search input placeholder

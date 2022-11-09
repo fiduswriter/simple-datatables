@@ -911,6 +911,9 @@ const defaultConfig = {
     hiddenHeader: false,
     footer: false,
 
+    tabIndex: false,
+    rowNavigation: false,
+
     // Customise the display text
     labels: {
         placeholder: "Search...", // The search input placeholder
@@ -950,6 +953,12 @@ class DataTable {
 
         this.initialLayout = dom.innerHTML;
         this.initialSortable = this.options.sortable;
+
+        if (this.options.tabIndex) {
+            dom.tabIndex = this.options.tabIndex;
+        } else if (this.options.rowNavigation && dom.tabIndex === -1) {
+            dom.tabIndex = 0;
+        }
 
         // Disable manual sorting if no header is present (#4)
         if (!this.options.header) {
@@ -1044,28 +1053,11 @@ class DataTable {
      * @param  {String} type
      * @return {Void}
      */
-    render(type) {
-        if (type) {
-            switch (type) {
-            case "page":
-                this.renderPage();
-                break
-            case "pager":
-                this.renderPager();
-                break
-            case "header":
-                this.renderHeader();
-                break
-            }
-
-            return false
-        }
-
-        const options = this.options;
+    render() {
         let template = "";
 
         // Convert data to HTML
-        if (options.data) {
+        if (this.options.data) {
             dataToTable.call(this);
         }
 
@@ -1099,7 +1091,7 @@ class DataTable {
 
             this.dom.insertBefore(this.head, this.body);
 
-            this.hiddenHeader = options.hiddenHeader;
+            this.hiddenHeader = this.options.hiddenHeader;
         }
 
         this.headings = [];
@@ -1111,14 +1103,14 @@ class DataTable {
         }
 
         // Header
-        if (!options.header) {
+        if (!this.options.header) {
             if (this.head) {
                 this.dom.removeChild(this.dom.tHead);
             }
         }
 
         // Footer
-        if (options.footer) {
+        if (this.options.footer) {
             if (this.head && !this.foot) {
                 this.foot = createElement("tfoot", {
                     html: this.head.innerHTML
@@ -1138,24 +1130,24 @@ class DataTable {
 
         // Template for custom layouts
         template += "<div class='dataTable-top'>";
-        template += options.layout.top;
+        template += this.options.layout.top;
         template += "</div>";
-        if (options.scrollY.length) {
-            template += `<div class='dataTable-container' style='height: ${options.scrollY}; overflow-Y: auto;'></div>`;
+        if (this.options.scrollY.length) {
+            template += `<div class='dataTable-container' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`;
         } else {
             template += "<div class='dataTable-container'></div>";
         }
         template += "<div class='dataTable-bottom'>";
-        template += options.layout.bottom;
+        template += this.options.layout.bottom;
         template += "</div>";
 
         // Info placement
-        template = template.replace("{info}", options.paging ? "<div class='dataTable-info'></div>" : "");
+        template = template.replace("{info}", this.options.paging ? "<div class='dataTable-info'></div>" : "");
 
         // Per Page Select
-        if (options.paging && options.perPageSelect) {
+        if (this.options.paging && this.options.perPageSelect) {
             let wrap = "<div class='dataTable-dropdown'><label>";
-            wrap += options.labels.perPage;
+            wrap += this.options.labels.perPage;
             wrap += "</label></div>";
 
             // Create the select
@@ -1164,8 +1156,8 @@ class DataTable {
             });
 
             // Create the options
-            options.perPageSelect.forEach(val => {
-                const selected = val === options.perPage;
+            this.options.perPageSelect.forEach(val => {
+                const selected = val === this.options.perPage;
                 const option = new Option(val, val, selected, selected);
                 select.add(option);
             });
@@ -1180,9 +1172,9 @@ class DataTable {
         }
 
         // Searchable
-        if (options.searchable) {
+        if (this.options.searchable) {
             const form =
-                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${options.labels.placeholder}' type='text'></div>`;
+                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${this.options.labels.placeholder}' type='text'></div>`;
 
             // Search input placement
             template = template.replace("{search}", form);
@@ -1192,7 +1184,7 @@ class DataTable {
 
         if (this.hasHeadings) {
             // Sortable
-            this.render("header");
+            this.renderHeader();
         }
 
         // Add table class
@@ -1243,27 +1235,27 @@ class DataTable {
         this.fixColumns();
 
         // Class names
-        if (!options.header) {
+        if (!this.options.header) {
             this.wrapper.classList.add("no-header");
         }
 
-        if (!options.footer) {
+        if (!this.options.footer) {
             this.wrapper.classList.add("no-footer");
         }
 
-        if (options.sortable) {
+        if (this.options.sortable) {
             this.wrapper.classList.add("sortable");
         }
 
-        if (options.searchable) {
+        if (this.options.searchable) {
             this.wrapper.classList.add("searchable");
         }
 
-        if (options.fixedHeight) {
+        if (this.options.fixedHeight) {
             this.wrapper.classList.add("fixed-height");
         }
 
-        if (options.fixedColumns) {
+        if (this.options.fixedColumns) {
             this.wrapper.classList.add("fixed-columns");
         }
 
@@ -1274,7 +1266,7 @@ class DataTable {
      * Render the page
      * @return {Void}
      */
-    renderPage() {
+    renderPage(lastRowCursor=false) {
         if (this.hasHeadings) {
             flush(this.header);
 
@@ -1330,6 +1322,18 @@ class DataTable {
 
         if (this.currentPage == 1) {
             this.fixHeight();
+        }
+
+        if (this.options.rowNavigation) {
+            if (!this.cursorRow || !this.pages[this.currentPage-1].includes(this.cursorRow)) {
+                const rows = this.pages[this.currentPage-1];
+                if (lastRowCursor) {
+                    this.updateCursorRow(rows[rows.length-1]);
+                } else {
+                    this.updateCursorRow(rows[0]);
+                }
+
+            }
         }
     }
 
@@ -1433,30 +1437,39 @@ class DataTable {
         this.fixColumns();
     }
 
+    updateCursorRow(row=false) {
+        if (this.cursorRow) {
+            this.cursorRow.classList.remove("dataTable-cursor");
+        }
+        if (row) {
+            row.classList.add("dataTable-cursor");
+            this.cursorRow = row;
+        }
+    }
+
     /**
      * Bind event listeners
      * @return {[type]} [description]
      */
     bindEvents() {
-        const options = this.options;
         // Per page selector
-        if (options.perPageSelect) {
+        if (this.options.perPageSelect) {
             const selector = this.wrapper.querySelector(".dataTable-selector");
             if (selector) {
                 // Change per page
                 selector.addEventListener("change", () => {
-                    options.perPage = parseInt(selector.value, 10);
+                    this.options.perPage = parseInt(selector.value, 10);
                     this.update();
 
                     this.fixHeight();
 
-                    this.emit("datatable.perpage", options.perPage);
+                    this.emit("datatable.perpage", this.options.perPage);
                 }, false);
             }
         }
 
         // Search input
-        if (options.searchable) {
+        if (this.options.searchable) {
             this.input = this.wrapper.querySelector(".dataTable-input");
             if (this.input) {
                 this.input.addEventListener("keyup", () => this.search(this.input.value), false);
@@ -1471,7 +1484,7 @@ class DataTable {
                     this.page(t.getAttribute("data-page"));
                     e.preventDefault();
                 } else if (
-                    options.sortable &&
+                    this.options.sortable &&
                     t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
@@ -1480,6 +1493,26 @@ class DataTable {
                 }
             }
         }, false);
+
+        if (this.options.rowNavigation) {
+            this.wrapper.addEventListener("keyup", e => {
+                if (e.keyCode === 38) {
+                    if (this.cursorRow.previousElementSibling) {
+                        this.updateCursorRow(this.cursorRow.previousElementSibling);
+                        e.preventDefault();
+                    } else if (!this.onFirstPage) {
+                        this.page(this.currentPage-1, true);
+                    }
+                } else if (e.keyCode === 40) {
+                    if (this.cursorRow.nextElementSibling) {
+                        this.updateCursorRow(this.cursorRow.nextElementSibling);
+                        e.preventDefault();
+                    } else if (!this.onLastPage) {
+                        this.page(this.currentPage+1);
+                    }
+                }
+            });
+        }
 
         window.addEventListener("resize", this.listeners.onResize);
     }
@@ -1583,7 +1616,7 @@ class DataTable {
             this.columns().rebuild();
         }
 
-        this.render("header");
+        this.renderHeader();
     }
 
     /**
@@ -1611,8 +1644,8 @@ class DataTable {
     update() {
         this.wrapper.classList.remove("dataTable-empty");
 
-        this.paginate(this);
-        this.render("page");
+        this.paginate();
+        this.renderPage();
 
         this.links = [];
 
@@ -1624,7 +1657,7 @@ class DataTable {
 
         this.sorting = false;
 
-        this.render("pager");
+        this.renderPager();
 
         this.rows().update();
 
@@ -1636,7 +1669,6 @@ class DataTable {
      * @return {Number}
      */
     paginate() {
-        const perPage = this.options.perPage;
         let rows = this.activeRows;
 
         if (this.searching) {
@@ -1648,11 +1680,12 @@ class DataTable {
         if (this.options.paging) {
             // Check for hidden columns
             this.pages = rows
-                .map((tr, i) => i % perPage === 0 ? rows.slice(i, i + perPage) : null)
+                .map((tr, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
                 .filter(page => page);
         } else {
             this.pages = [rows];
         }
+        console.log({pages: this.pages});
 
         this.totalPages = this.lastPage = this.pages.length;
 
@@ -1865,7 +1898,7 @@ class DataTable {
      * @param  {int} page
      * @return {void}
      */
-    page(page) {
+    page(page, lastRowCursor=false) {
         // We don't want to load the current page again.
         if (page == this.currentPage) {
             return false
@@ -1879,8 +1912,8 @@ class DataTable {
             return false
         }
 
-        this.render("page");
-        this.render("pager");
+        this.renderPage(lastRowCursor);
+        this.renderPager();
 
         this.emit("datatable.page", page);
     }
@@ -1924,7 +1957,7 @@ class DataTable {
                     this.options.sortable = this.initialSortable;
 
                     // Allow sorting on new header
-                    this.render("header");
+                    this.renderHeader();
 
                     // Activate newly added headings
                     this.activeHeadings = this.headings.slice();
@@ -2370,7 +2403,7 @@ class DataTable {
             this.label.innerHTML = "";
         }
         this.totalPages = 0;
-        this.render("pager");
+        this.renderPager();
 
         this.clear(
             createElement("tr", {
@@ -2438,7 +2471,7 @@ var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof win
 var dayjs_min = {exports: {}};
 
 (function (module, exports) {
-	!function(t,e){module.exports=e();}(commonjsGlobal,(function(){var t=1e3,e=6e4,n=36e5,r="millisecond",i="second",s="minute",u="hour",a="day",o="week",f="month",h="quarter",c="year",d="date",l="Invalid Date",$=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,y=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,M={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_"),ordinal:function(t){var e=["th","st","nd","rd"],n=t%100;return "["+t+(e[(n-20)%10]||e[n]||e[0])+"]"}},m=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},v={s:m,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+m(r,2,"0")+":"+m(i,2,"0")},m:function t(e,n){if(e.date()<n.date())return -t(n,e);var r=12*(n.year()-e.year())+(n.month()-e.month()),i=e.clone().add(r,f),s=n-i<0,u=e.clone().add(r+(s?-1:1),f);return +(-(r+(n-i)/(s?i-u:u-i))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return {M:f,y:c,w:o,d:a,D:d,h:u,m:s,s:i,ms:r,Q:h}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},g="en",D={};D[g]=M;var p=function(t){return t instanceof _},S=function t(e,n,r){var i;if(!e)return g;if("string"==typeof e){var s=e.toLowerCase();D[s]&&(i=s),n&&(D[s]=n,i=s);var u=e.split("-");if(!i&&u.length>1)return t(u[0])}else {var a=e.name;D[a]=e,i=a;}return !r&&i&&(g=i),i||!r&&g},w=function(t,e){if(p(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new _(n)},O=v;O.l=S,O.i=p,O.w=function(t,e){return w(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var _=function(){function M(t){this.$L=S(t.locale,null,!0),this.parse(t);}var m=M.prototype;return m.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(O.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match($);if(r){var i=r[2]-1||0,s=(r[7]||"0").substring(0,3);return n?new Date(Date.UTC(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)):new Date(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)}}return new Date(e)}(t),this.$x=t.x||{},this.init();},m.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},m.$utils=function(){return O},m.isValid=function(){return !(this.$d.toString()===l)},m.isSame=function(t,e){var n=w(t);return this.startOf(e)<=n&&n<=this.endOf(e)},m.isAfter=function(t,e){return w(t)<this.startOf(e)},m.isBefore=function(t,e){return this.endOf(e)<w(t)},m.$g=function(t,e,n){return O.u(t)?this[e]:this.set(n,t)},m.unix=function(){return Math.floor(this.valueOf()/1e3)},m.valueOf=function(){return this.$d.getTime()},m.startOf=function(t,e){var n=this,r=!!O.u(e)||e,h=O.p(t),l=function(t,e){var i=O.w(n.$u?Date.UTC(n.$y,e,t):new Date(n.$y,e,t),n);return r?i:i.endOf(a)},$=function(t,e){return O.w(n.toDate()[t].apply(n.toDate("s"),(r?[0,0,0,0]:[23,59,59,999]).slice(e)),n)},y=this.$W,M=this.$M,m=this.$D,v="set"+(this.$u?"UTC":"");switch(h){case c:return r?l(1,0):l(31,11);case f:return r?l(1,M):l(0,M+1);case o:var g=this.$locale().weekStart||0,D=(y<g?y+7:y)-g;return l(r?m-D:m+(6-D),M);case a:case d:return $(v+"Hours",0);case u:return $(v+"Minutes",1);case s:return $(v+"Seconds",2);case i:return $(v+"Milliseconds",3);default:return this.clone()}},m.endOf=function(t){return this.startOf(t,!1)},m.$set=function(t,e){var n,o=O.p(t),h="set"+(this.$u?"UTC":""),l=(n={},n[a]=h+"Date",n[d]=h+"Date",n[f]=h+"Month",n[c]=h+"FullYear",n[u]=h+"Hours",n[s]=h+"Minutes",n[i]=h+"Seconds",n[r]=h+"Milliseconds",n)[o],$=o===a?this.$D+(e-this.$W):e;if(o===f||o===c){var y=this.clone().set(d,1);y.$d[l]($),y.init(),this.$d=y.set(d,Math.min(this.$D,y.daysInMonth())).$d;}else l&&this.$d[l]($);return this.init(),this},m.set=function(t,e){return this.clone().$set(t,e)},m.get=function(t){return this[O.p(t)]()},m.add=function(r,h){var d,l=this;r=Number(r);var $=O.p(h),y=function(t){var e=w(l);return O.w(e.date(e.date()+Math.round(t*r)),l)};if($===f)return this.set(f,this.$M+r);if($===c)return this.set(c,this.$y+r);if($===a)return y(1);if($===o)return y(7);var M=(d={},d[s]=e,d[u]=n,d[i]=t,d)[$]||1,m=this.$d.getTime()+r*M;return O.w(m,this)},m.subtract=function(t,e){return this.add(-1*t,e)},m.format=function(t){var e=this,n=this.$locale();if(!this.isValid())return n.invalidDate||l;var r=t||"YYYY-MM-DDTHH:mm:ssZ",i=O.z(this),s=this.$H,u=this.$m,a=this.$M,o=n.weekdays,f=n.months,h=function(t,n,i,s){return t&&(t[n]||t(e,r))||i[n].slice(0,s)},c=function(t){return O.s(s%12||12,t,"0")},d=n.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},$={YY:String(this.$y).slice(-2),YYYY:this.$y,M:a+1,MM:O.s(a+1,2,"0"),MMM:h(n.monthsShort,a,f,3),MMMM:h(f,a),D:this.$D,DD:O.s(this.$D,2,"0"),d:String(this.$W),dd:h(n.weekdaysMin,this.$W,o,2),ddd:h(n.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(s),HH:O.s(s,2,"0"),h:c(1),hh:c(2),a:d(s,u,!0),A:d(s,u,!1),m:String(u),mm:O.s(u,2,"0"),s:String(this.$s),ss:O.s(this.$s,2,"0"),SSS:O.s(this.$ms,3,"0"),Z:i};return r.replace(y,(function(t,e){return e||$[t]||i.replace(":","")}))},m.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},m.diff=function(r,d,l){var $,y=O.p(d),M=w(r),m=(M.utcOffset()-this.utcOffset())*e,v=this-M,g=O.m(this,M);return g=($={},$[c]=g/12,$[f]=g,$[h]=g/3,$[o]=(v-m)/6048e5,$[a]=(v-m)/864e5,$[u]=v/n,$[s]=v/e,$[i]=v/t,$)[y]||v,l?g:O.a(g)},m.daysInMonth=function(){return this.endOf(f).$D},m.$locale=function(){return D[this.$L]},m.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=S(t,e,!0);return r&&(n.$L=r),n},m.clone=function(){return O.w(this.$d,this)},m.toDate=function(){return new Date(this.valueOf())},m.toJSON=function(){return this.isValid()?this.toISOString():null},m.toISOString=function(){return this.$d.toISOString()},m.toString=function(){return this.$d.toUTCString()},M}(),T=_.prototype;return w.prototype=T,[["$ms",r],["$s",i],["$m",s],["$H",u],["$W",a],["$M",f],["$y",c],["$D",d]].forEach((function(t){T[t[1]]=function(e){return this.$g(e,t[0],t[1])};})),w.extend=function(t,e){return t.$i||(t(e,_,w),t.$i=!0),w},w.locale=S,w.isDayjs=p,w.unix=function(t){return w(1e3*t)},w.en=D[g],w.Ls=D,w.p={},w}));
+	!function(t,e){module.exports=e();}(commonjsGlobal,(function(){var t=1e3,e=6e4,n=36e5,r="millisecond",i="second",s="minute",u="hour",a="day",o="week",f="month",h="quarter",c="year",d="date",$="Invalid Date",l=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,y=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,M={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},m=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},g={s:m,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+m(r,2,"0")+":"+m(i,2,"0")},m:function t(e,n){if(e.date()<n.date())return -t(n,e);var r=12*(n.year()-e.year())+(n.month()-e.month()),i=e.clone().add(r,f),s=n-i<0,u=e.clone().add(r+(s?-1:1),f);return +(-(r+(n-i)/(s?i-u:u-i))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return {M:f,y:c,w:o,d:a,D:d,h:u,m:s,s:i,ms:r,Q:h}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},v="en",D={};D[v]=M;var p=function(t){return t instanceof _},S=function t(e,n,r){var i;if(!e)return v;if("string"==typeof e){var s=e.toLowerCase();D[s]&&(i=s),n&&(D[s]=n,i=s);var u=e.split("-");if(!i&&u.length>1)return t(u[0])}else {var a=e.name;D[a]=e,i=a;}return !r&&i&&(v=i),i||!r&&v},w=function(t,e){if(p(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new _(n)},O=g;O.l=S,O.i=p,O.w=function(t,e){return w(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var _=function(){function M(t){this.$L=S(t.locale,null,!0),this.parse(t);}var m=M.prototype;return m.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(O.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match(l);if(r){var i=r[2]-1||0,s=(r[7]||"0").substring(0,3);return n?new Date(Date.UTC(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)):new Date(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)}}return new Date(e)}(t),this.$x=t.x||{},this.init();},m.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},m.$utils=function(){return O},m.isValid=function(){return !(this.$d.toString()===$)},m.isSame=function(t,e){var n=w(t);return this.startOf(e)<=n&&n<=this.endOf(e)},m.isAfter=function(t,e){return w(t)<this.startOf(e)},m.isBefore=function(t,e){return this.endOf(e)<w(t)},m.$g=function(t,e,n){return O.u(t)?this[e]:this.set(n,t)},m.unix=function(){return Math.floor(this.valueOf()/1e3)},m.valueOf=function(){return this.$d.getTime()},m.startOf=function(t,e){var n=this,r=!!O.u(e)||e,h=O.p(t),$=function(t,e){var i=O.w(n.$u?Date.UTC(n.$y,e,t):new Date(n.$y,e,t),n);return r?i:i.endOf(a)},l=function(t,e){return O.w(n.toDate()[t].apply(n.toDate("s"),(r?[0,0,0,0]:[23,59,59,999]).slice(e)),n)},y=this.$W,M=this.$M,m=this.$D,g="set"+(this.$u?"UTC":"");switch(h){case c:return r?$(1,0):$(31,11);case f:return r?$(1,M):$(0,M+1);case o:var v=this.$locale().weekStart||0,D=(y<v?y+7:y)-v;return $(r?m-D:m+(6-D),M);case a:case d:return l(g+"Hours",0);case u:return l(g+"Minutes",1);case s:return l(g+"Seconds",2);case i:return l(g+"Milliseconds",3);default:return this.clone()}},m.endOf=function(t){return this.startOf(t,!1)},m.$set=function(t,e){var n,o=O.p(t),h="set"+(this.$u?"UTC":""),$=(n={},n[a]=h+"Date",n[d]=h+"Date",n[f]=h+"Month",n[c]=h+"FullYear",n[u]=h+"Hours",n[s]=h+"Minutes",n[i]=h+"Seconds",n[r]=h+"Milliseconds",n)[o],l=o===a?this.$D+(e-this.$W):e;if(o===f||o===c){var y=this.clone().set(d,1);y.$d[$](l),y.init(),this.$d=y.set(d,Math.min(this.$D,y.daysInMonth())).$d;}else $&&this.$d[$](l);return this.init(),this},m.set=function(t,e){return this.clone().$set(t,e)},m.get=function(t){return this[O.p(t)]()},m.add=function(r,h){var d,$=this;r=Number(r);var l=O.p(h),y=function(t){var e=w($);return O.w(e.date(e.date()+Math.round(t*r)),$)};if(l===f)return this.set(f,this.$M+r);if(l===c)return this.set(c,this.$y+r);if(l===a)return y(1);if(l===o)return y(7);var M=(d={},d[s]=e,d[u]=n,d[i]=t,d)[l]||1,m=this.$d.getTime()+r*M;return O.w(m,this)},m.subtract=function(t,e){return this.add(-1*t,e)},m.format=function(t){var e=this,n=this.$locale();if(!this.isValid())return n.invalidDate||$;var r=t||"YYYY-MM-DDTHH:mm:ssZ",i=O.z(this),s=this.$H,u=this.$m,a=this.$M,o=n.weekdays,f=n.months,h=function(t,n,i,s){return t&&(t[n]||t(e,r))||i[n].slice(0,s)},c=function(t){return O.s(s%12||12,t,"0")},d=n.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:a+1,MM:O.s(a+1,2,"0"),MMM:h(n.monthsShort,a,f,3),MMMM:h(f,a),D:this.$D,DD:O.s(this.$D,2,"0"),d:String(this.$W),dd:h(n.weekdaysMin,this.$W,o,2),ddd:h(n.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(s),HH:O.s(s,2,"0"),h:c(1),hh:c(2),a:d(s,u,!0),A:d(s,u,!1),m:String(u),mm:O.s(u,2,"0"),s:String(this.$s),ss:O.s(this.$s,2,"0"),SSS:O.s(this.$ms,3,"0"),Z:i};return r.replace(y,(function(t,e){return e||l[t]||i.replace(":","")}))},m.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},m.diff=function(r,d,$){var l,y=O.p(d),M=w(r),m=(M.utcOffset()-this.utcOffset())*e,g=this-M,v=O.m(this,M);return v=(l={},l[c]=v/12,l[f]=v,l[h]=v/3,l[o]=(g-m)/6048e5,l[a]=(g-m)/864e5,l[u]=g/n,l[s]=g/e,l[i]=g/t,l)[y]||g,$?v:O.a(v)},m.daysInMonth=function(){return this.endOf(f).$D},m.$locale=function(){return D[this.$L]},m.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=S(t,e,!0);return r&&(n.$L=r),n},m.clone=function(){return O.w(this.$d,this)},m.toDate=function(){return new Date(this.valueOf())},m.toJSON=function(){return this.isValid()?this.toISOString():null},m.toISOString=function(){return this.$d.toISOString()},m.toString=function(){return this.$d.toUTCString()},M}(),T=_.prototype;return w.prototype=T,[["$ms",r],["$s",i],["$m",s],["$H",u],["$W",a],["$M",f],["$y",c],["$D",d]].forEach((function(t){T[t[1]]=function(e){return this.$g(e,t[0],t[1])};})),w.extend=function(t,e){return t.$i||(t(e,_,w),t.$i=!0),w},w.locale=S,w.isDayjs=p,w.unix=function(t){return w(1e3*t)},w.en=D[v],w.Ls=D,w.p={},w}));
 } (dayjs_min));
 
 var dayjs = dayjs_min.exports;
