@@ -55,14 +55,14 @@ declare module "simple-datatables"{
         input : HTMLInputElement;
         /**Pagination Label Element */
         label : HTMLElement;
+        /**To use the columns API just access the  columns property on the current instance: Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/columns-API */
+        columns : Columns;
+        /**To use the rows API just access the rows property on the current instance: Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/rows-API */
+        rows : Rows;
         /**Simple-DataTables fires it's own events which you can listen for by utilising the .on() method: Docs: https://github.com/fiduswriter/Simple-DataTables/wiki/on()*/
         on(event : tableEvents, func :any):void;
-        /**Sort the selected column. The column parameter should be a non-zero-based integer. The direction parameter is optional. Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/columns()*/
-        columns() :Column;
         /**Refreshes the table. This will recount the rows, reset any search and remove any set message, but will not reset any sorting. */
         refresh():void;
-        /**To use the rows API just call the rows() method on the current instance: Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/rows() */
-        rows():Rows;
         /**Insert new data in to the table. If you attempt to pass new headings to a table that has headings, they'll be ignored. Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/insert()*/
         insert(data : object[]):void;
         /**Loads a given page. Page number must be an integer. */
@@ -145,7 +145,7 @@ declare module "simple-datatables"{
         heading:string;
         data? : string[];
     }
-    interface Column {
+    interface Columns {
         /**Sort the selected column. The column parameter should be a non-zero-based integer. The direction parameter is optional. */
         sort(column : Number, direction? : 'desc' | 'asc'):any;
         /**Add a new column to the current instance. The data parameter should be an object with the required heading and data properties set. The heading property should be a string representing the new column's heading. The data property should be an array of strings representing the cell content of the new column. */
