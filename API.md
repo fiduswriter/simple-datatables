@@ -93,11 +93,11 @@ let firstRow = document.querySelector("tr");
 
 // INCORRECT: Because it's the first rendered row the native firstRow.rowIndex
 // will be 1 which will remove the second row in the data array
-datatable.rows().remove(firstRow.rowIndex);
+datatable.rows.remove(firstRow.rowIndex);
 
 // CORRECT: firstRow.dataIndex will return 20 which is the
 // correct position (21st row) in the data array
-datatable.rows().remove(firstRow.dataIndex);
+datatable.rows.remove(firstRow.dataIndex);
 
 ```
 

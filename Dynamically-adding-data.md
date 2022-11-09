@@ -1,4 +1,4 @@
-New data of many formats can be added at any time with the `insert()` and `import()` methods as well as the `rows()` and `columns()` API.
+New data of many formats can be added at any time with the `insert()` and `import()` methods as well as the `rows` and `columns` API.
 
 ---
 
@@ -7,7 +7,7 @@ You can quickly add a new row with an `array` of cell data:
 ```javascript
 let newRow = ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...];
 
-datatable.rows().add(newRow);
+datatable.rowss.add(newRow);
 ```
 
 The `add()` method also accepts a nested `array` for adding multiple rows:
@@ -20,7 +20,7 @@ let newRows = [
     ...
 ];
 
-datatable.rows().add(newRows);
+datatable.rows.add(newRows);
 ```
 ---
 

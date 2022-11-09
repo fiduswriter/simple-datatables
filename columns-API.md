@@ -1,9 +1,11 @@
 As of `v1.2.0`, the `columns` API is implemented and allows access to the table columns for quick manipulation.
 
-To use the `columns` API just call the `columns()` method on the current instance:
+As of `v4.0.0`, `columns` is a property and not a method on the current instance.
+
+To use the `columns` API just access under the `columns` property of the current instance:
 
 ```javascript
-let columns = datatable.columns();
+let columns = datatable.columns;
 ```
 
 You can then chain the following methods.
@@ -23,7 +25,7 @@ Replaces the deprecated [`sortColumn`](https://github.com/fiduswriter/Simple-Dat
 Add a new column to the current instance. The `data` parameter should be an object with the required `heading` and `data` properties set. The `heading` property should be a `string` representing the new column's heading. The `data` property should be an array of `strings` representing the cell content of the new column.
 
 ```javascript
-let columns = datatable.columns();
+let columns = datatable.columns;
 
 let newData = {
     heading: "Column Heading",
@@ -64,7 +66,7 @@ let newData = {
 Remove a column or columns from the current instance. The `select` parameter should be either an `integer` or an array of `integers` representing the column indexes to be removed.
 
 ```javascript
-let columns = datatable.columns();
+let columns = datatable.columns;
 
 // Remove the 4th column
 columns.remove(3);

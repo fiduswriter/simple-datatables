@@ -2,15 +2,12 @@
 * [Install](https://github.com/fiduswriter/Simple-DataTables/wiki/Getting-Started#install)
 * [Manual](https://github.com/fiduswriter/Simple-DataTables/wiki/Getting-Started#browser)
 * [Initialise](https://github.com/fiduswriter/Simple-DataTables/wiki/Getting-Started#initialise)
+* [Updating](https://github.com/fiduswriter/Simple-DataTables/wiki/Updating)
 
 #### Tips
 * [Sorting Datetimes](https://github.com/fiduswriter/Simple-DataTables/wiki/datetime)
 * [Dynamically Adding Data](https://github.com/fiduswriter/Simple-DataTables/wiki/Dynamically-adding-data)
 * [Add columns from remote source](https://github.com/fiduswriter/Simple-DataTables/wiki/Adding-a-column-from-a-remote-source)
-
-#### Plugins
-* [Usage](https://github.com/fiduswriter/Simple-DataTables/wiki/Plugins#usage)
-* [Events](https://github.com/fiduswriter/Simple-DataTables/wiki/Plugins#events)
 
 #### Events
 * [datatable.init](https://github.com/fiduswriter/Simple-DataTables/wiki/Events#datatableinit)
@@ -71,9 +68,9 @@
 * [searchData](https://github.com/fiduswriter/Simple-DataTables/wiki/API#searchdata)
 
 #### Methods
+* [rows API](https://github.com/fiduswriter/Simple-DataTables/wiki/rows-API)
+* [columns API](https://github.com/fiduswriter/Simple-DataTables/wiki/columns-API)
 * [on()](https://github.com/fiduswriter/Simple-DataTables/wiki/on())
-* [rows()](https://github.com/fiduswriter/Simple-DataTables/wiki/rows())
-* [columns()](https://github.com/fiduswriter/Simple-DataTables/wiki/columns())
 * [refresh()](https://github.com/fiduswriter/Simple-DataTables/wiki/refresh())
 * [page()](https://github.com/fiduswriter/Simple-DataTables/wiki/page())
 * [insert()](https://github.com/fiduswriter/Simple-DataTables/wiki/insert())

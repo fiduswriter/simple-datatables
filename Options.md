@@ -31,3 +31,5 @@ let dataTable = new DataTable(myTable, options);
 * [layout](https://github.com/fiduswriter/Simple-DataTables/wiki/layout)
 * [header](https://github.com/fiduswriter/Simple-DataTables/wiki/header)
 * [footer](https://github.com/fiduswriter/Simple-DataTables/wiki/footer)
+* [rowNavigation](https://github.com/fiduswriter/Simple-DataTables/wiki/rowNavigation)
+* [tabIndex](https://github.com/fiduswriter/Simple-DataTables/wiki/tabIndex)
