@@ -1001,20 +1001,6 @@ class DataTable {
     }
 
     /**
-     * Add custom property or method to extend DataTable
-     * @param  {String} prop    - Method name or property
-     * @param  {Mixed} val      - Function or property value
-     * @return {Void}
-     */
-    static extend(prop, val) {
-        if (typeof val === "function") {
-            DataTable.prototype[prop] = val;
-        } else {
-            DataTable[prop] = val;
-        }
-    }
-
-    /**
      * Initialize the instance
      * @param  {Object} options
      * @return {Void}
@@ -1506,7 +1492,15 @@ class DataTable {
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1);
                     }
+                } else if ([13, 32].includes(e.keyCode)) {
+                    this.emit('datatable.selectrow', {event: e, row: this.rows.cursor});
                 }
+            });
+            this.body.addEventListener("mousedown", e => {
+                if (this.table.matches(':focus')) {
+                    this.emit('datatable.selectrow', {event: e, row: e.target.closest('tr')});
+                }
+
             });
         }
 

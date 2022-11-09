@@ -4,6 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Simple</title>
+  <style>
+    tr.selected {
+      background-color: red;
+    }
+  </style>
 
   <!-- DataTable Styles -->
   <link rel="stylesheet" href="../dist/style.css">
@@ -14,6 +19,7 @@
 <body>
   <h1>Row navigation</h1>
   <p>Select the table below either by clicking on it or by using the TAB-key. Then use the up/down arrow-keys to navigate the table.</p>
+  <p>Either click on a row or hit Enter/Space after navigating to select it. In this demo we allow multi row selection, but it can also be made to only allow a single row to be selected.</p>
   <table class="table" tabindex="1">
     <thead>
       <tr>
@@ -131,6 +137,12 @@
   <script type="module">
     import {DataTable} from "../dist/module.js"
     const table = new DataTable("table", {rowNavigation: true})
+
+    table.on("datatable.selectrow", function({event, row}) {
+      event.preventDefault()
+      row.classList.toggle('selected')
+    })
+
   </script>
 </body>
 </html>

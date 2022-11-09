@@ -571,7 +571,17 @@ export class DataTable {
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1)
                     }
+                } else if ([13, 32].includes(e.keyCode)) {
+                    this.emit("datatable.selectrow", {event: e,
+                        row: this.rows.cursor})
                 }
+            })
+            this.body.addEventListener("mousedown", e => {
+                if (this.table.matches(":focus")) {
+                    this.emit("datatable.selectrow", {event: e,
+                        row: e.target.closest("tr")})
+                }
+
             })
         }
 
