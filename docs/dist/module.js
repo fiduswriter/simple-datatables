@@ -142,11 +142,8 @@ const truncate = (a, b, c, d, ellipsis) => {
  * @param {Array} rows
  */
 class Rows {
-    constructor(dt, rows) {
+    constructor(dt) {
         this.dt = dt;
-        this.rows = rows;
-
-        return this
     }
 
     /**
@@ -209,7 +206,7 @@ class Rows {
 
             this.update();
 
-            dt.columns().rebuild();
+            dt.columns.rebuild();
         }
 
     }
@@ -241,7 +238,7 @@ class Rows {
         }
 
         this.update();
-        dt.columns().rebuild();
+        dt.columns.rebuild();
     }
 
     /**
@@ -307,19 +304,13 @@ class Rows {
         const row = this.build(data);
         this.dt.data.splice(select, 1, row);
         this.update();
-        this.dt.columns().rebuild();
+        this.dt.columns.rebuild();
     }
 }
 
-/**
- * Columns API
- * @param {Object} instance DataTable instance
- * @param {Mixed} columns  Column index or array of column indexes
- */
 class Columns {
     constructor(dt) {
         this.dt = dt;
-        return this
     }
 
     /**
@@ -949,6 +940,9 @@ class DataTable {
             }
         };
 
+        this.rows = new Rows(this);
+        this.columns = new Columns(this);
+
         this.initialized = false;
 
         this.initialLayout = dom.innerHTML;
@@ -1283,7 +1277,7 @@ class DataTable {
             const index = this.currentPage - 1;
 
             const frag = document.createDocumentFragment();
-            this.pages[index].forEach(row => frag.appendChild(this.rows().render(row)));
+            this.pages[index].forEach(row => frag.appendChild(this.rows.render(row)));
 
             this.clear(frag);
 
@@ -1488,7 +1482,7 @@ class DataTable {
                     t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    this.columns().sort(this.headings.indexOf(t.parentNode));
+                    this.columns.sort(this.headings.indexOf(t.parentNode));
                     e.preventDefault();
                 }
             }
@@ -1580,12 +1574,12 @@ class DataTable {
 
                     if (data.hasOwnProperty("hidden")) {
                         if (data.hidden !== false) {
-                            this.columns().hide([column]);
+                            this.columns.hide([column]);
                         }
                     }
 
                     if (data.hasOwnProperty("sort") && data.select.length === 1) {
-                        this.columns().sort(data.select[0], data.sort, true);
+                        this.columns.sort(data.select[0], data.sort, true);
                     }
                 });
             });
@@ -1613,7 +1607,7 @@ class DataTable {
                 });
             }
 
-            this.columns().rebuild();
+            this.columns.rebuild();
         }
 
         this.renderHeader();
@@ -1659,7 +1653,7 @@ class DataTable {
 
         this.renderPager();
 
-        this.rows().update();
+        this.rows.update();
 
         this.emit("datatable.update");
     }
@@ -1685,7 +1679,6 @@ class DataTable {
         } else {
             this.pages = [rows];
         }
-        console.log({pages: this.pages});
 
         this.totalPages = this.lastPage = this.pages.length;
 
@@ -1800,7 +1793,7 @@ class DataTable {
 
                 this.data.forEach(row => {
                     Array.from(row.cells).forEach((cell, i) => {
-                        if (this.columns(cell.cellIndex).visible())
+                        if (this.columns.visible(cell.cellIndex))
                             cell.style.width = `${widths[i]}%`;
                     });
                 });
@@ -1862,7 +1855,7 @@ class DataTable {
 
                     if (
                         content.toLowerCase().includes(word) &&
-                        this.columns(cell.cellIndex).visible()
+                        this.columns.visible(cell.cellIndex)
                     ) {
                         includes = true;
                         break
@@ -1926,7 +1919,7 @@ class DataTable {
      */
     sortColumn(column, direction) {
         // Use columns API until sortColumn method is removed
-        this.columns().sort(column, direction);
+        this.columns.sort(column, direction);
     }
 
     /**
@@ -1983,7 +1976,7 @@ class DataTable {
         }
 
         if (rows.length) {
-            this.rows().add(rows);
+            this.rows.add(rows);
 
             this.hasRows = true;
         }
@@ -2107,7 +2100,7 @@ class DataTable {
                             // Check for column skip and visibility
                             if (
                                 !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                                this.columns(headers[x].originalCellIndex).visible()
+                                this.columns.visible(headers[x].originalCellIndex)
                             ) {
                                 let text = rows[i].cells[x].textContent;
                                 text = text.trim();
@@ -2145,7 +2138,7 @@ class DataTable {
                         // Check for column skip and column visibility
                         if (
                             !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                            this.columns(headers[i].originalCellIndex).visible()
+                            this.columns.visible(headers[i].originalCellIndex)
                         ) {
                             str += `\`${headers[i].textContent}\`,`;
                         }
@@ -2165,7 +2158,7 @@ class DataTable {
                             // Check for column skip and column visibility
                             if (
                                 !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                                this.columns(headers[x].originalCellIndex).visible()
+                                this.columns.visible(headers[x].originalCellIndex)
                             ) {
                                 str += `"${rows[i].cells[x].textContent}",`;
                             }
@@ -2196,7 +2189,7 @@ class DataTable {
                             // Check for column skip and column visibility
                             if (
                                 !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                                this.columns(headers[i].originalCellIndex).visible()
+                                this.columns.visible(headers[i].originalCellIndex)
                             ) {
                                 arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
                             }
@@ -2321,7 +2314,9 @@ class DataTable {
                             obj.data[i].push(value);
                         });
                     });
-                }
+                } //else {
+                    // console.warn("That's not valid JSON!")
+                //}
             }
 
             if (isObject(options.data)) {
@@ -2410,22 +2405,6 @@ class DataTable {
                 html: `<td class="dataTables-empty" colspan="${colspan}">${message}</td>`
             })
         );
-    }
-
-    /**
-     * Columns API access
-     * @return {Object} new Columns instance
-     */
-    columns(columns) {
-        return new Columns(this, columns)
-    }
-
-    /**
-     * Rows API access
-     * @return {Object} new Rows instance
-     */
-    rows(rows) {
-        return new Rows(this, rows)
     }
 
     /**

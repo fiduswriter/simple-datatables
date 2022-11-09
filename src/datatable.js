@@ -31,6 +31,9 @@ export class DataTable {
             }
         }
 
+        this.rows = new Rows(this)
+        this.columns = new Columns(this)
+
         this.initialized = false
 
         this.initialLayout = dom.innerHTML
@@ -365,7 +368,7 @@ export class DataTable {
             const index = this.currentPage - 1
 
             const frag = document.createDocumentFragment()
-            this.pages[index].forEach(row => frag.appendChild(this.rows().render(row)))
+            this.pages[index].forEach(row => frag.appendChild(this.rows.render(row)))
 
             this.clear(frag)
 
@@ -570,7 +573,7 @@ export class DataTable {
                     t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    this.columns().sort(this.headings.indexOf(t.parentNode))
+                    this.columns.sort(this.headings.indexOf(t.parentNode))
                     e.preventDefault()
                 }
             }
@@ -662,12 +665,12 @@ export class DataTable {
 
                     if (data.hasOwnProperty("hidden")) {
                         if (data.hidden !== false) {
-                            this.columns().hide([column])
+                            this.columns.hide([column])
                         }
                     }
 
                     if (data.hasOwnProperty("sort") && data.select.length === 1) {
-                        this.columns().sort(data.select[0], data.sort, true)
+                        this.columns.sort(data.select[0], data.sort, true)
                     }
                 })
             })
@@ -695,7 +698,7 @@ export class DataTable {
                 })
             }
 
-            this.columns().rebuild()
+            this.columns.rebuild()
         }
 
         this.renderHeader()
@@ -741,7 +744,7 @@ export class DataTable {
 
         this.renderPager()
 
-        this.rows().update()
+        this.rows.update()
 
         this.emit("datatable.update")
     }
@@ -767,7 +770,6 @@ export class DataTable {
         } else {
             this.pages = [rows]
         }
-        console.log({pages: this.pages})
 
         this.totalPages = this.lastPage = this.pages.length
 
@@ -882,7 +884,7 @@ export class DataTable {
 
                 this.data.forEach(row => {
                     Array.from(row.cells).forEach((cell, i) => {
-                        if (this.columns(cell.cellIndex).visible())
+                        if (this.columns.visible(cell.cellIndex))
                             cell.style.width = `${widths[i]}%`
                     })
                 })
@@ -944,7 +946,7 @@ export class DataTable {
 
                     if (
                         content.toLowerCase().includes(word) &&
-                        this.columns(cell.cellIndex).visible()
+                        this.columns.visible(cell.cellIndex)
                     ) {
                         includes = true
                         break
@@ -1008,7 +1010,7 @@ export class DataTable {
      */
     sortColumn(column, direction) {
         // Use columns API until sortColumn method is removed
-        this.columns().sort(column, direction)
+        this.columns.sort(column, direction)
     }
 
     /**
@@ -1065,7 +1067,7 @@ export class DataTable {
         }
 
         if (rows.length) {
-            this.rows().add(rows)
+            this.rows.add(rows)
 
             this.hasRows = true
         }
@@ -1189,7 +1191,7 @@ export class DataTable {
                             // Check for column skip and visibility
                             if (
                                 !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                                this.columns(headers[x].originalCellIndex).visible()
+                                this.columns.visible(headers[x].originalCellIndex)
                             ) {
                                 let text = rows[i].cells[x].textContent
                                 text = text.trim()
@@ -1227,7 +1229,7 @@ export class DataTable {
                         // Check for column skip and column visibility
                         if (
                             !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                            this.columns(headers[i].originalCellIndex).visible()
+                            this.columns.visible(headers[i].originalCellIndex)
                         ) {
                             str += `\`${headers[i].textContent}\`,`
                         }
@@ -1247,7 +1249,7 @@ export class DataTable {
                             // Check for column skip and column visibility
                             if (
                                 !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                                this.columns(headers[x].originalCellIndex).visible()
+                                this.columns.visible(headers[x].originalCellIndex)
                             ) {
                                 str += `"${rows[i].cells[x].textContent}",`
                             }
@@ -1278,7 +1280,7 @@ export class DataTable {
                             // Check for column skip and column visibility
                             if (
                                 !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                                this.columns(headers[i].originalCellIndex).visible()
+                                this.columns.visible(headers[i].originalCellIndex)
                             ) {
                                 arr[x][headers[i].textContent] = rows[x].cells[i].textContent
                             }
@@ -1403,9 +1405,9 @@ export class DataTable {
                             obj.data[i].push(value)
                         })
                     })
-                } else {
+                } //else {
                     // console.warn("That's not valid JSON!")
-                }
+                //}
             }
 
             if (isObject(options.data)) {
@@ -1494,22 +1496,6 @@ export class DataTable {
                 html: `<td class="dataTables-empty" colspan="${colspan}">${message}</td>`
             })
         )
-    }
-
-    /**
-     * Columns API access
-     * @return {Object} new Columns instance
-     */
-    columns(columns) {
-        return new Columns(this, columns)
-    }
-
-    /**
-     * Rows API access
-     * @return {Object} new Rows instance
-     */
-    rows(rows) {
-        return new Rows(this, rows)
     }
 
     /**

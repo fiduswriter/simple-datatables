@@ -70,10 +70,10 @@
             column.render =  (data, cell, row) => {
               // the dataIndex property is the correct index of the row in the data array, not the rowIndex
               // which will be -1 if not rendered or wrong if the we're not on page 1
-              return data + "<button type='button' data-id='" + row.dataIndex + "' class='btn btn-sm btn-primary pull-right notify'>Click Me</button>"
+              return data + `<button type='button' data-id='${row.dataIndex}' class='btn btn-sm btn-primary pull-right notify'>Click Me</button>`
             }
 
-            //datatable.columns().add(column)
+            datatable.columns.add(column)
           })
       })
 
@@ -106,8 +106,8 @@
       })
 
       datatable.on("datatable.sort", () => {
-        // Update the ids on eh buttons
-        this.activeRows.forEach(row => {
+        // Update the ids on the buttons
+        datatable.activeRows.forEach(row => {
           row.cells[row.cells.length - 1].lastElementChild.setAttribute("data-id", row.dataIndex)
         })
       })

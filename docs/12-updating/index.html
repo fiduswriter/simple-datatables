@@ -190,7 +190,7 @@ Replace <i>first</i> match in a specified column.<br/>&nbsp;
         const col = document.getElementById('columns').selectedIndex
 
         // find first row where string occurs in column
-        const rows = window.dt.rows()
+        const rows = window.dt.rows
         const { index, cols } = rows.findRow(col, find)
         if(index < 0) {
             alert(`Could not find "${find}" within column ${col}`)

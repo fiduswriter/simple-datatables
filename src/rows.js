@@ -5,11 +5,8 @@ import {createElement} from "./helpers"
  * @param {Array} rows
  */
 export class Rows {
-    constructor(dt, rows) {
+    constructor(dt) {
         this.dt = dt
-        this.rows = rows
-
-        return this
     }
 
     /**
@@ -72,7 +69,7 @@ export class Rows {
 
             this.update()
 
-            dt.columns().rebuild()
+            dt.columns.rebuild()
         }
 
     }
@@ -104,7 +101,7 @@ export class Rows {
         }
 
         this.update()
-        dt.columns().rebuild()
+        dt.columns.rebuild()
     }
 
     /**
@@ -170,6 +167,6 @@ export class Rows {
         const row = this.build(data)
         this.dt.data.splice(select, 1, row)
         this.update()
-        this.dt.columns().rebuild()
+        this.dt.columns.rebuild()
     }
 }

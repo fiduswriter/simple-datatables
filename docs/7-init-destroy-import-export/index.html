@@ -157,8 +157,8 @@
 
     function updateColumns() {
       try {
-        datatable.columns().show(visible);
-        datatable.columns().hide(hidden);
+        datatable.columns.show(visible);
+        datatable.columns.hide(hidden);
       } catch(e) {
         console.log(e);
       }
@@ -176,7 +176,7 @@
 
         input.idx = i;
 
-        if ( datatable.columns().visible(heading.cellIndex) ) {
+        if ( datatable.columns.visible(heading.cellIndex) ) {
           input.checked = true;
           visible.push(i);
         } else {

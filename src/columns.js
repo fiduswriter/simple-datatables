@@ -1,14 +1,9 @@
 import {sortItems} from "./helpers"
 
-/**
- * Columns API
- * @param {Object} instance DataTable instance
- * @param {Mixed} columns  Column index or array of column indexes
- */
+
 export class Columns {
     constructor(dt) {
         this.dt = dt
-        return this
     }
 
     /**
