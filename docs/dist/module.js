@@ -144,6 +144,8 @@ const truncate = (a, b, c, d, ellipsis) => {
 class Rows {
     constructor(dt) {
         this.dt = dt;
+
+        this.cursor = false;
     }
 
     /**
@@ -176,6 +178,16 @@ class Rows {
         });
 
         return tr
+    }
+
+    setCursor(row=false) {
+        if (this.cursor) {
+            this.cursor.classList.remove("dataTable-cursor");
+        }
+        if (row) {
+            row.classList.add("dataTable-cursor");
+            this.cursor = row;
+        }
     }
 
     render(row) {
@@ -1319,12 +1331,12 @@ class DataTable {
         }
 
         if (this.options.rowNavigation) {
-            if (!this.cursorRow || !this.pages[this.currentPage-1].includes(this.cursorRow)) {
+            if (!this.rows.cursor || !this.pages[this.currentPage-1].includes(this.rows.cursor)) {
                 const rows = this.pages[this.currentPage-1];
                 if (lastRowCursor) {
-                    this.updateCursorRow(rows[rows.length-1]);
+                    this.rows.setCursor(rows[rows.length-1]);
                 } else {
-                    this.updateCursorRow(rows[0]);
+                    this.rows.setCursor(rows[0]);
                 }
 
             }
@@ -1431,16 +1443,6 @@ class DataTable {
         this.fixColumns();
     }
 
-    updateCursorRow(row=false) {
-        if (this.cursorRow) {
-            this.cursorRow.classList.remove("dataTable-cursor");
-        }
-        if (row) {
-            row.classList.add("dataTable-cursor");
-            this.cursorRow = row;
-        }
-    }
-
     /**
      * Bind event listeners
      * @return {[type]} [description]
@@ -1491,15 +1493,15 @@ class DataTable {
         if (this.options.rowNavigation) {
             this.wrapper.addEventListener("keyup", e => {
                 if (e.keyCode === 38) {
-                    if (this.cursorRow.previousElementSibling) {
-                        this.updateCursorRow(this.cursorRow.previousElementSibling);
+                    if (this.rows.cursor.previousElementSibling) {
+                        this.rows.setCursor(this.rows.cursor.previousElementSibling);
                         e.preventDefault();
                     } else if (!this.onFirstPage) {
                         this.page(this.currentPage-1, true);
                     }
                 } else if (e.keyCode === 40) {
-                    if (this.cursorRow.nextElementSibling) {
-                        this.updateCursorRow(this.cursorRow.nextElementSibling);
+                    if (this.rows.cursor.nextElementSibling) {
+                        this.rows.setCursor(this.rows.cursor.nextElementSibling);
                         e.preventDefault();
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1);
@@ -2315,7 +2317,7 @@ class DataTable {
                         });
                     });
                 } //else {
-                    // console.warn("That's not valid JSON!")
+                // console.warn("That's not valid JSON!")
                 //}
             }
 

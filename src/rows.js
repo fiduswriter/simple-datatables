@@ -7,6 +7,8 @@ import {createElement} from "./helpers"
 export class Rows {
     constructor(dt) {
         this.dt = dt
+
+        this.cursor = false
     }
 
     /**
@@ -39,6 +41,16 @@ export class Rows {
         })
 
         return tr
+    }
+
+    setCursor(row=false) {
+        if (this.cursor) {
+            this.cursor.classList.remove("dataTable-cursor")
+        }
+        if (row) {
+            row.classList.add("dataTable-cursor")
+            this.cursor = row
+        }
     }
 
     render(row) {

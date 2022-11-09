@@ -80,20 +80,6 @@ export class DataTable {
     }
 
     /**
-     * Add custom property or method to extend DataTable
-     * @param  {String} prop    - Method name or property
-     * @param  {Mixed} val      - Function or property value
-     * @return {Void}
-     */
-    static extend(prop, val) {
-        if (typeof val === "function") {
-            DataTable.prototype[prop] = val
-        } else {
-            DataTable[prop] = val
-        }
-    }
-
-    /**
      * Initialize the instance
      * @param  {Object} options
      * @return {Void}
@@ -410,12 +396,12 @@ export class DataTable {
         }
 
         if (this.options.rowNavigation) {
-            if (!this.cursorRow || !this.pages[this.currentPage-1].includes(this.cursorRow)) {
+            if (!this.rows.cursor || !this.pages[this.currentPage-1].includes(this.rows.cursor)) {
                 const rows = this.pages[this.currentPage-1]
                 if (lastRowCursor) {
-                    this.updateCursorRow(rows[rows.length-1])
+                    this.rows.setCursor(rows[rows.length-1])
                 } else {
-                    this.updateCursorRow(rows[0])
+                    this.rows.setCursor(rows[0])
                 }
 
             }
@@ -522,16 +508,6 @@ export class DataTable {
         this.fixColumns()
     }
 
-    updateCursorRow(row=false) {
-        if (this.cursorRow) {
-            this.cursorRow.classList.remove("dataTable-cursor")
-        }
-        if (row) {
-            row.classList.add("dataTable-cursor")
-            this.cursorRow = row
-        }
-    }
-
     /**
      * Bind event listeners
      * @return {[type]} [description]
@@ -582,15 +558,15 @@ export class DataTable {
         if (this.options.rowNavigation) {
             this.wrapper.addEventListener("keyup", e => {
                 if (e.keyCode === 38) {
-                    if (this.cursorRow.previousElementSibling) {
-                        this.updateCursorRow(this.cursorRow.previousElementSibling)
+                    if (this.rows.cursor.previousElementSibling) {
+                        this.rows.setCursor(this.rows.cursor.previousElementSibling)
                         e.preventDefault()
                     } else if (!this.onFirstPage) {
                         this.page(this.currentPage-1, true)
                     }
                 } else if (e.keyCode === 40) {
-                    if (this.cursorRow.nextElementSibling) {
-                        this.updateCursorRow(this.cursorRow.nextElementSibling)
+                    if (this.rows.cursor.nextElementSibling) {
+                        this.rows.setCursor(this.rows.cursor.nextElementSibling)
                         e.preventDefault()
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1)
@@ -1406,7 +1382,7 @@ export class DataTable {
                         })
                     })
                 } //else {
-                    // console.warn("That's not valid JSON!")
+                // console.warn("That's not valid JSON!")
                 //}
             }
 
