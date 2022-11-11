@@ -19,9 +19,17 @@
 </head>
 <body>
   <h1>Row navigation</h1>
-  <p>Select the table below either by clicking on it or by using the TAB-key. Then use the up/down arrow-keys to navigate the table.</p>
-  <p>Either click on a row or hit Enter/Space after navigating to select it. In this demo we allow multi row selection, but it can also be made to only allow a single row to be selected.</p>
-  <table class="table" tabindex="1">
+  <p>Select the table below either by clicking on it or by using the TAB-key. Then use the up/down arrow-keys to navigate the table. Either click on a row or hit Enter/Space after navigating to select it.</p>
+  
+  <div>
+    <input type="checkbox" class="multi-select" checked="true"> <b>Multi select:</b> Whether to allow selection of more than one row.
+  </div>
+
+  <div>
+    <input type="checkbox" class="row-navigation" checked="true"> <b>Row navigation:</b> Whether to allow keyboard row navigation.
+  </div>
+
+  <table class="table">
     <thead>
       <tr>
         <th>Name</th>
@@ -137,11 +145,53 @@
 
   <script type="module">
     import {DataTable} from "../dist/module.js"
-    const table = new DataTable("table", {rowNavigation: true})
 
-    table.on("datatable.selectrow", function({event, row}) {
-      event.preventDefault()
-      row.classList.toggle('selected')
+    let rowNavigation = true,
+      multiSelect = true,
+      table = false
+
+    function resetTable() {
+      if (table) {
+        table.destroy()
+      }
+      const options = {}
+      if (rowNavigation) {
+        options.rowNavigation = true
+        options.tabIndex = 1
+      }
+      table = new DataTable("table", options)
+
+      let selectedRow
+      table.on("datatable.selectrow", function({event, row}) {
+        event.preventDefault()
+        if (!multiSelect) {
+          if (selectedRow) {
+            selectedRow.classList.toggle('selected')
+          }
+          selectedRow = row
+        }
+        row.classList.toggle('selected')
+      })
+    }
+
+    const isMobile = window.matchMedia("(any-pointer:coarse)").matches
+
+    if (isMobile) {
+      // Row navigation makes no sense on mobile, so we deactivate it and hide the checkbox.
+      rowNavigation = false
+      document.querySelector('input.row-navigation').style.display = 'none'
+    }
+    
+    resetTable()
+
+    document.querySelector('input.multi-select').addEventListener('input', event => {
+      multiSelect = !multiSelect
+      resetTable()
+    })
+
+    document.querySelector('input.row-navigation').addEventListener('input', event => {
+      rowNavigation = !rowNavigation
+      resetTable()
     })
 
   </script>

@@ -1477,32 +1477,37 @@ class DataTable {
         }, false);
 
         if (this.options.rowNavigation) {
-            this.wrapper.addEventListener("keyup", e => {
-                if (e.keyCode === 38) {
+            this.wrapper.addEventListener("keyup", event => {
+                if (event.keyCode === 38) {
                     if (this.rows.cursor.previousElementSibling) {
                         this.rows.setCursor(this.rows.cursor.previousElementSibling);
-                        e.preventDefault();
+                        event.preventDefault();
                     } else if (!this.onFirstPage) {
                         this.page(this.currentPage-1, true);
                     }
-                } else if (e.keyCode === 40) {
+                } else if (event.keyCode === 40) {
                     if (this.rows.cursor.nextElementSibling) {
                         this.rows.setCursor(this.rows.cursor.nextElementSibling);
-                        e.preventDefault();
+                        event.preventDefault();
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1);
                     }
-                } else if ([13, 32].includes(e.keyCode)) {
-                    this.emit("datatable.selectrow", {event: e,
+                } else if ([13, 32].includes(event.keyCode)) {
+                    this.emit("datatable.selectrow", {event,
                         row: this.rows.cursor});
                 }
             });
-            this.body.addEventListener("mousedown", e => {
+            this.body.addEventListener("mousedown", event => {
                 if (this.table.matches(":focus")) {
-                    this.emit("datatable.selectrow", {event: e,
-                        row: e.target.closest("tr")});
+                    const row = Array.from(this.body.rows).find(row => row.contains(event.target));
+                    this.emit("datatable.selectrow", {event, row});
                 }
 
+            });
+        } else {
+            this.body.addEventListener("mousedown", event => {
+                const row = Array.from(this.body.rows).find(row => row.contains(event.target));
+                this.emit("datatable.selectrow", {event, row});
             });
         }
 
