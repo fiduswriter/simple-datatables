@@ -1,6 +1,6 @@
 {
   "name": "simple-datatables",
-  "version": "4.0.3",
+  "version": "4.0.4",
   "description": "A lightweight, dependency-free JavaScript HTML table plugin.",
   "main": "dist/index.js",
   "jsdelivr": "dist/umd/simple-datatables.js",
