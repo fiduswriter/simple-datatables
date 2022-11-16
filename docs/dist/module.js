@@ -187,7 +187,15 @@ class Rows {
         if (row) {
             row.classList.add("dataTable-cursor");
             this.cursor = row;
-            this.cursor.scrollIntoView();
+            setTimeout(
+                ()=>{
+                    if (this.cursor) {
+                        this.cursor.scrollIntoView({block: "nearest"});
+                    }
+                }, 
+                0
+            );
+            
         }
     }
 
