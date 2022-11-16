@@ -50,6 +50,7 @@ export class Rows {
         if (row) {
             row.classList.add("dataTable-cursor")
             this.cursor = row
+            this.cursor.scrollIntoView()
         }
     }
 

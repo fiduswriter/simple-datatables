@@ -187,6 +187,7 @@ class Rows {
         if (row) {
             row.classList.add("dataTable-cursor");
             this.cursor = row;
+            this.cursor.scrollIntoView();
         }
     }
 
@@ -1477,7 +1478,7 @@ class DataTable {
         }, false);
 
         if (this.options.rowNavigation) {
-            this.wrapper.addEventListener("keyup", event => {
+            this.table.addEventListener("keyup", event => {
                 if (event.keyCode === 38) {
                     if (this.rows.cursor.previousElementSibling) {
                         this.rows.setCursor(this.rows.cursor.previousElementSibling);
