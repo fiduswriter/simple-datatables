@@ -5,7 +5,7 @@ declare module "simple-datatables"{
      */
     class DataTable {
         
-        constructor(table: string, option?: object);
+        constructor(table: string | HTMLElement, option?: object);
         /**Returns a reference to the HTMLTableElement. */
         table:HTMLElement;
         /**Returns a reference to the HTML <thead> element. */
