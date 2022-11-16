@@ -1483,6 +1483,7 @@ class DataTable {
                     if (this.rows.cursor.previousElementSibling) {
                         this.rows.setCursor(this.rows.cursor.previousElementSibling);
                         event.preventDefault();
+                        event.stopPropagation();
                     } else if (!this.onFirstPage) {
                         this.page(this.currentPage-1, true);
                     }
@@ -1490,6 +1491,7 @@ class DataTable {
                     if (this.rows.cursor.nextElementSibling) {
                         this.rows.setCursor(this.rows.cursor.nextElementSibling);
                         event.preventDefault();
+                        event.stopPropagation();
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1);
                     }
