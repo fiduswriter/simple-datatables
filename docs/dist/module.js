@@ -1486,7 +1486,7 @@ class DataTable {
         }, false);
 
         if (this.options.rowNavigation) {
-            this.table.addEventListener("keyup", event => {
+            this.table.addEventListener("keydown", event => {
                 if (event.keyCode === 38) {
                     if (this.rows.cursor.previousElementSibling) {
                         this.rows.setCursor(this.rows.cursor.previousElementSibling);
