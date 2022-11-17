@@ -5,11 +5,11 @@ declare module "simple-datatables"{
      */
     class DataTable {
         
-        constructor(table: string | HTMLElement, option?: object);
+        constructor(table: string | HTMLElement, option?: DataTableOptions);
         /**Returns a reference to the HTMLTableElement. */
         table:HTMLElement;
         /**Returns a reference to the HTML <thead> element. */
-        head:HTMLTableHeaderCellElement;
+        head:HTMLTableCellElement;
         /**Returns a reference to the HTML <tbody> element. */
         body:HTMLElement;
         /**Returns a reference to the HTML <tfoot> element. */
@@ -23,7 +23,7 @@ declare module "simple-datatables"{
         /** Returns a live HTMLCollection of the the table headings.*/
         headings : HTMLCollection;
         /**Returns the current configuration options. */
-        options:Object;
+        options:DataTableOptions;
         /**Returns true if the library is fully loaded and all HTML is rendered. */
         initialized:boolean;
         /** Returns a collection of all HTMLTableRowElements in the table.*/
@@ -75,7 +75,7 @@ declare module "simple-datatables"{
          *
          * Docs: https://github.com/fiduswriter/Simple-DataTables/wiki/init()
         */
-        init(options? : object):void;
+        init(options? : DataTableOptions):void;
         /**Destroy this data table instance*/
         destroy():void;
         /**Export the table data to various formats. 
@@ -226,7 +226,7 @@ declare module "simple-datatables"{
         /**Toggle the skip to first page and skip to last page buttons.
          * Default: false
          */
-        firstLast?: boolean;
+        firstLast?:boolean;
         /**
          * default: '&laquo;'
          * Set the content of the skip to first page button.
@@ -273,7 +273,7 @@ declare module "simple-datatables"{
          * 
          * Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/labels
          */
-        labels?:Object;
+        labels?:LabelsOptions;
         /**
          * Default: 
          * layout: {
@@ -297,7 +297,7 @@ declare module "simple-datatables"{
          *     
          * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/layout
          */
-        layout?:Object;
+        layout?:LayoutOptions;
         /**
          * default: '&raquo;'
          * Set the content of the skip to last page button.
@@ -358,23 +358,82 @@ declare module "simple-datatables"{
         sortable?:boolean;
         /** 
          * Default: true
-         *Truncate the page links to prevent overflow with large datasets.
+         * Truncate the page links to prevent overflow with large datasets.
          */
         truncatePager?:boolean;
 
     }
 
+    interface LabelsOptions {
+        /**
+         * default: 'Search...'
+         * Sets the placeholder of the search input.
+         */
+        placeholder?:string;
+        /**
+         * default: '{select} entries per page'
+         * Sets the per-page dropdown's label
+         * 
+         * {select} - the per-page dropdown (required)
+         */
+        perPage?:string;
+        /**
+         * default: 'No entries found'
+         * The message displayed when there are no search results
+         */
+        noRows?:string;
+        /**
+         * default: 'No results match your search query'
+         * The message displayed when there are no search results
+         */
+        noResults?:string;
+        /**
+         * default: 'Showing {start} to {end} of {rows} entries'
+         * Displays current range, page number, etc
+         * 
+         * {start} - The first row number of the current page
+         * {end} - The last row number of the current page
+         * {page} - The current page number
+         * {pages} - Total pages
+         * {rows} - Total rows
+         */
+        info?:string;
+    }
+
+    interface LayoutOptions {
+        /**
+         * default: '{select}{search}'
+         * Sets the top container content
+         * 
+         * {select} - The per-page dropdown
+         * {search} - The search input
+         * {info} - The info label (Showing X of Y entries)
+         * {pager} - The pager
+         */
+        top?:string;
+        /**
+         * default: '{info}{pager}'
+         * Sets the bottom container content
+         * 
+         * {select} - The per-page dropdown
+         * {search} - The search input
+         * {info} - The info label (Showing X of Y entries)
+         * {pager} - The pager
+         */
+        bottom?:string;
+    }
+
     /**See list of events here : https://github.com/fiduswriter/Simple-DataTables/wiki/Events#datatableupdate */
     type tableEvents = 
     'datatable.page'
-    |"datatable.init" 
-    |"datatable.refresh"
+    | "datatable.init" 
+    | "datatable.refresh"
     | "datatable.update"
     | "datatable.sort"
     | "datatable.perpage"
     | "datatable.search"
 
-    export {DataTable}
+    export {DataTable, DataTableOptions}
 }
 
 
