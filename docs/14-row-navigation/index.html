@@ -20,7 +20,7 @@
 <body>
   <h1>Row navigation</h1>
   <p>Select the table below either by clicking on it or by using the TAB-key. Then use the up/down arrow-keys to navigate the table. Either click on a row or hit Enter/Space after navigating to select it.</p>
-  
+
   <div>
     <input type="checkbox" class="multi-select" checked="true"> <b>Multi select:</b> Whether to allow selection of more than one row.
   </div>
@@ -162,7 +162,7 @@
       table = new DataTable("table", options)
 
       let selectedRow
-      table.on("datatable.selectrow", function({event, row}) {
+      table.on("datatable.selectrow", function(row, event) {
         event.preventDefault()
         if (!multiSelect) {
           if (selectedRow) {
@@ -181,7 +181,7 @@
       rowNavigation = false
       document.querySelector('input.row-navigation').style.display = 'none'
     }
-    
+
     resetTable()
 
     document.querySelector('input.multi-select').addEventListener('input', event => {

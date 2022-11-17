@@ -1,10 +1,10 @@
 declare module "simple-datatables"{
     /**A lightweight, extendable, dependency-free javascript HTML table plugin. Similar to jQuery DataTables for use in modern browsers, but without the jQuery dependency.
-     * 
+     *
      * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/Getting-Started#browser
      */
     class DataTable {
-        
+
         constructor(table: string | HTMLElement, option?: DataTableOptions);
         /**Returns a reference to the HTMLTableElement. */
         table:HTMLElement;
@@ -70,7 +70,7 @@ declare module "simple-datatables"{
         /**Display a message in the table. */
         setMessage(message : string):void;
         /** Initialise the instance after destroying.
-         * 
+         *
          *You can pass an optional object of options to the method if you require new a new config.
          *
          * Docs: https://github.com/fiduswriter/Simple-DataTables/wiki/init()
@@ -78,10 +78,10 @@ declare module "simple-datatables"{
         init(options? : DataTableOptions):void;
         /**Destroy this data table instance*/
         destroy():void;
-        /**Export the table data to various formats. 
-         * 
+        /**Export the table data to various formats.
+         *
          * The options argument must be an object of which the only required property is the type property which accepts either csv, txt, json or sql as it's value. The rest are optional:
-         * 
+         *
          * {
                 type: "csv" // "csv", "txt", "json" or "sql"
 
@@ -99,14 +99,14 @@ declare module "simple-datatables"{
                 replacer: null, // JSON.stringify's replacer parameter for json type
                 space: 4 // JSON.stringify's space parameter for json type
             };
-         * 
+         *
             Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/export()
         */
         export(options? : object):boolean;
-        /**Import data into the table from json or csv strings. 
-         * 
+        /**Import data into the table from json or csv strings.
+         *
          * The options argument must be an object of which the only required properties are data and type. The data property should be the csv or json string and the type property should indicate the type of data being imported - csv or json.
-         * 
+         *
          * {
                 type: "csv" // or "json"
                 data: // the csv or json string
@@ -120,13 +120,13 @@ declare module "simple-datatables"{
             Note that if the table already has headings, the first line will be treated as tbody cell data regardless of whether the headings property is set to true or not.
 
             Note that whilst checks are performed for valid json strings, none are present for csv checking so it's up to you to make sure the formatting is correct.
-         * 
+         *
          * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/import()
         */
        import(options? : object): boolean;
         /**NOTE: The print() method has been deprecated and will be removed in v2.0 in favour of the Exportable extension : https://github.com/Mobius1/Exportable.
-         * 
-         * 
+         *
+         *
          * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/print()
          */
         print():void;
@@ -190,11 +190,11 @@ declare module "simple-datatables"{
         format?:string;
         /**
          * A callback to customise the rendering of the column(s) cell content. The function takes 3 parameters and should return the formatted cell content.
-         * 
-         * 
+         *
+         *
             * @param {String} data The cell's content (innerHTML)
             * @param {Object} cell The HTMLTableCellElement
-            * @param {Object} row The cell's parent HTMLTableRowElement 
+            * @param {Object} row The cell's parent HTMLTableRowElement
             *
             render: function(data, cell, row) {
 
@@ -211,15 +211,15 @@ declare module "simple-datatables"{
     }
     interface DataTableOptions{
         /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
-         * 
+         *
          * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/columns
          */
         columns?:ColumnOption[];
         /**
          * Pass an object of data to populate the table.
          *
-         * You can set both the headings and rows with headings and data properties, respectively. The headings property is optional.  
-         * 
+         * You can set both the headings and rows with headings and data properties, respectively. The headings property is optional.
+         *
          * Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/data
          */
         data?:DataOption;
@@ -230,7 +230,7 @@ declare module "simple-datatables"{
         /**
          * default: '&laquo;'
          * Set the content of the skip to first page button.
-         * 
+         *
          */
         firstText?:string;
         /**
@@ -260,30 +260,30 @@ declare module "simple-datatables"{
         hiddenHeader?:boolean;
         /**
          * Customise the displayed labels. (v1.0.6 and above)
-         * 
+         *
          * Defaults :
-         * 
+         *
          * labels: {
-         * 
+         *
                 placeholder: "Search...",
                 perPage: "{select} entries per page",
                 noRows: "No entries to found",
                 info: "Showing {start} to {end} of {rows} entries",
             }
-         * 
+         *
          * Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/labels
          */
         labels?:LabelsOptions;
         /**
-         * Default: 
+         * Default:
          * layout: {
-         *           
+         *
          *           top: "{select}{search}",
          *           bottom: "{info}{pager}"
          *   },
          *
          *Allows for custom arranging of the DOM elements in the top and bottom containers. There are for 4 variables you can utilize:
-         *   
+         *
          *       {select} - The per-page dropdown
          *       {search} - The search input
          *       {info} - The info label (Showing X of Y entries)
@@ -293,8 +293,8 @@ declare module "simple-datatables"{
          *   Note, also, that while the {select}, {search} and {info} variables are single-use only, the {pager} variable can be used multiple times to produce multiple pagers.
          *
          *   Use of the {select} variable depends on the option perPageSelect being enabled and use of the {search} variable depends on the option searchable being enabled. Trying to use these variables while their corresponding options are disabled will result in nothing being inserted.
-         * 
-         *     
+         *
+         *
          * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/layout
          */
         layout?:LayoutOptions;
@@ -325,7 +325,7 @@ declare module "simple-datatables"{
         perPage?:number;
         /**
          * Default: [5, 10, 15, 20, 25]
-         * 
+         *
          * Sets the per page options in the dropdown. Must be an array of integers.
          *
          *   Setting this to false will hide the dropdown.
@@ -338,9 +338,9 @@ declare module "simple-datatables"{
         prevText?:string;
         /**
          * Default : ""
-         * 
+         *
          * Enable vertical scrolling. Vertical scrolling will constrain the DataTable to the given height, and enable scrolling for any data which overflows the current viewport. This can be used as an alternative to paging to display a lot of data in a small area.
-         * 
+         *
          * The value given here can be given in any CSS unit.
          */
         scrollY?:string;
@@ -352,11 +352,11 @@ declare module "simple-datatables"{
         /**
          * Default: true
          * Toggle the ability to sort the columns.
-         * 
+         *
          * This option will be forced to false if the table has no headings.
          */
         sortable?:boolean;
-        /** 
+        /**
          * Default: true
          * Truncate the page links to prevent overflow with large datasets.
          */
@@ -373,7 +373,7 @@ declare module "simple-datatables"{
         /**
          * default: '{select} entries per page'
          * Sets the per-page dropdown's label
-         * 
+         *
          * {select} - the per-page dropdown (required)
          */
         perPage?:string;
@@ -390,7 +390,7 @@ declare module "simple-datatables"{
         /**
          * default: 'Showing {start} to {end} of {rows} entries'
          * Displays current range, page number, etc
-         * 
+         *
          * {start} - The first row number of the current page
          * {end} - The last row number of the current page
          * {page} - The current page number
@@ -404,7 +404,7 @@ declare module "simple-datatables"{
         /**
          * default: '{select}{search}'
          * Sets the top container content
-         * 
+         *
          * {select} - The per-page dropdown
          * {search} - The search input
          * {info} - The info label (Showing X of Y entries)
@@ -414,7 +414,7 @@ declare module "simple-datatables"{
         /**
          * default: '{info}{pager}'
          * Sets the bottom container content
-         * 
+         *
          * {select} - The per-page dropdown
          * {search} - The search input
          * {info} - The info label (Showing X of Y entries)
@@ -423,17 +423,16 @@ declare module "simple-datatables"{
         bottom?:string;
     }
 
-    /**See list of events here : https://github.com/fiduswriter/Simple-DataTables/wiki/Events#datatableupdate */
-    type tableEvents = 
-    'datatable.page'
-    | "datatable.init" 
+    /**See list of events here : https://github.com/fiduswriter/Simple-DataTables/wiki/Events */
+    type tableEvents =
+    "datatable.page"
+    | "datatable.init"
     | "datatable.refresh"
     | "datatable.update"
     | "datatable.sort"
     | "datatable.perpage"
     | "datatable.search"
+    | "datatable.selectrow"
 
     export {DataTable, DataTableOptions}
 }
-
-

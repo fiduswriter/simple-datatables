@@ -1495,15 +1495,13 @@ class DataTable {
                         this.page(this.currentPage+1);
                     }
                 } else if ([13, 32].includes(event.keyCode)) {
-                    this.emit("datatable.selectrow", {event,
-                        row: this.rows.cursor});
+                    this.emit("datatable.selectrow", this.rows.cursor, event);
                 }
             });
             this.body.addEventListener("mousedown", event => {
                 if (this.table.matches(":focus")) {
                     const row = Array.from(this.body.rows).find(row => row.contains(event.target));
-                    this.emit("datatable.selectrow", {event,
-                        row});
+                    this.emit("datatable.selectrow", row, event);
                 }
 
             });
