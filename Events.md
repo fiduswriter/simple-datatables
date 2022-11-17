@@ -31,7 +31,6 @@ dataTable.on('datatable.perpage', function(perpage) {
 });
 ```
 
-
 ### `datatable.refresh`
 Fires when the `.refresh()` method is called.
 
