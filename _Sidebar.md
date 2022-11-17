@@ -17,6 +17,7 @@
 * [datatable.sort](https://github.com/fiduswriter/Simple-DataTables/wiki/Events#datatablesort)
 * [datatable.perpage](https://github.com/fiduswriter/Simple-DataTables/wiki/Events#datatableperpage)
 * [datatable.search](https://github.com/fiduswriter/Simple-DataTables/wiki/Events#datatablesearch)
+* [datatable.selectrow](https://github.com/fiduswriter/Simple-DataTables/wiki/Events#selectrow)
 
 #### Options
 * [columns](https://github.com/fiduswriter/Simple-DataTables/wiki/columns)
@@ -41,6 +42,8 @@
 * [searchable](https://github.com/fiduswriter/Simple-DataTables/wiki/searchable)
 * [sortable](https://github.com/fiduswriter/Simple-DataTables/wiki/sortable)
 * [truncatePager](https://github.com/fiduswriter/Simple-DataTables/wiki/truncatePager)
+* [rowNavigation](https://github.com/fiduswriter/Simple-DataTables/wiki/rowNavigation)
+* [tabIndex](https://github.com/fiduswriter/Simple-DataTables/wiki/tabIndex)
 
 
 #### Properties
