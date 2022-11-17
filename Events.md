@@ -45,6 +45,12 @@ dataTable.on('datatable.search', function(query, matched) {
 });
 ```
 
+### `datatable.rowselect`
+Fires when user selects a row - either by mouse click on a row or using `Space`/`Enter` during keyboard based navigation (requires option [[rowNavigation]]).
+
+Two arguments are available: `row` which returns the `<tr>` element that was selected and `event` which returns the event that caused the selection. You can run `event.preventDefault()` to make sure that it causes nothing else.
+
+
 ### `datatable.sort`
 Fires when the table is sorted.
 
