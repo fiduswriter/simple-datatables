@@ -45,13 +45,13 @@ dataTable.on('datatable.search', function(query, matched) {
 });
 ```
 
-### `datatable.rowselect`
+### `datatable.selectrow`
 Fires when user selects a row - either by mouse click on a row or using `Space`/`Enter` during keyboard based navigation (requires option [[rowNavigation]]).
 
 Two arguments are available: `row` which returns the `<tr>` element that was selected and `event` which returns the event that caused the selection. You can run `event.preventDefault()` like this:
 
 ```javascript
-dataTable.on('datatable.rowselect', function(row, event) {
+dataTable.on('datatable.selectrow', function(row, event) {
     event.preventDefault();
     row.classList.add('selected');
 });
