@@ -141,14 +141,14 @@
 
   <!-- Custom Code -->
   <script>
-    var table = document.getElementsByTagName("table")[0];
-    var textarea = document.getElementsByTagName("textarea")[0];
-    var div = document.getElementById("data");
-    var btn = document.getElementsByTagName("button")[0];
-    var checkboxes = document.getElementById("columns");
-    var inputs = [], visible = [], hidden = [];
+    const table = document.getElementsByTagName("table")[0];
+    const textarea = document.getElementsByTagName("textarea")[0];
+    const div = document.getElementById("data");
+    const btn = document.getElementsByTagName("button")[0];
+    const checkboxes = document.getElementById("columns");
+    const inputs = [], visible = [], hidden = [];
 
-    var datatable = new simpleDatatables.DataTable(table, {
+    const datatable = new simpleDatatables.DataTable(table, {
       perPage: 5,
     });
 
@@ -171,9 +171,9 @@
       checkboxes.innerHTML = "";
 
       util.each(datatable.headings, function(i, heading) {
-        var checkbox = util.createElement("div", { class: "checkbox" });
-        var input = util.createElement("input", { type: "checkbox", id: "checkbox-" + i, name: "checkbox" });
-        var label = util.createElement("label", { for: "checkbox-" + i, text: heading.textContent });
+        const checkbox = util.createElement("div", { class: "checkbox" });
+        const input = util.createElement("input", { type: "checkbox", id: "checkbox-" + i, name: "checkbox" });
+        const label = util.createElement("label", { for: "checkbox-" + i, text: heading.textContent });
 
         input.idx = i;
 
@@ -218,9 +218,9 @@
 
     document.querySelectorAll(".export").forEach(function(el) {
       el.addEventListener("click", function(e) {
-        var type = el.dataset.type;
+        const type = el.dataset.type;
 
-        var data = {
+        const data = {
           type: type,
           filename: "my-" + type,
         };
@@ -245,9 +245,9 @@
 
     document.querySelectorAll(".import").forEach(function(el) {
       el.addEventListener("click", e => {
-        var type = el.dataset.type;
+        const type = el.dataset.type;
 
-        var data = {
+        const data = {
           type: type,
           data: textarea.value
         };
@@ -258,6 +258,7 @@
           textarea.parentNode.classList.add("error");
           return false;
         }
+
 
         datatable.import(data);
       });
