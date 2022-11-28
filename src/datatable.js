@@ -587,8 +587,7 @@ export class DataTable {
         } else {
             this.body.addEventListener("mousedown", event => {
                 const row = Array.from(this.body.rows).find(row => row.contains(event.target))
-                this.emit("datatable.selectrow", {event,
-                    row})
+                this.emit("datatable.selectrow", row, event)
             })
         }
 
