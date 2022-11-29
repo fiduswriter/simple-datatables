@@ -296,8 +296,8 @@ export class Editor {
         data = data || this.data.inputs.map(input => input.value.trim())
         row = row || this.data.row
         // Store the old data for the emitter
-        const oldData = row.cells.map(cell => cell.innerHTML)
-        row.cells.forEach((cell, i) => {
+        const oldData = Array.from(row.cells).map(cell => cell.dataset.content || cell.innerHTML)
+        Array.from(row.cells).forEach((cell, i) => {
             cell.innerHTML = data[i]
         })
         this.closeModal()
