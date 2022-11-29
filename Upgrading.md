@@ -49,7 +49,31 @@ const convertedData = convertCSV({columnDelimiter: ';', data: '...'})
 dataTable.insert(convertedData)
 ```
 
+* The handling of the `datatable.selectrow` event has changed in some cases. If you were doing this:
 
+```
+import {
+  DataTable
+} from "simple-datatables"
+const dataTable = new DataTable("#myTable")
+dataTable.on("datatable.selectrow", function({row, event}) {
+    event.preventDefault()
+    row.classList.add('selected')
+})
+```
+
+Do now:
+
+```
+import {
+  DataTable
+} from "simple-datatables"
+const dataTable = new DataTable("#myTable")
+dataTable.on("datatable.selectrow", function(row, event) {
+    event.preventDefault()
+    row.classList.add('selected')
+})
+```
 
 
 ## From 3.x to 4.0:
