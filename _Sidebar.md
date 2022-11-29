@@ -2,7 +2,7 @@
 * [Install](https://github.com/fiduswriter/Simple-DataTables/wiki/Getting-Started#install)
 * [Manual](https://github.com/fiduswriter/Simple-DataTables/wiki/Getting-Started#browser)
 * [Initialise](https://github.com/fiduswriter/Simple-DataTables/wiki/Getting-Started#initialise)
-* [Updating](https://github.com/fiduswriter/Simple-DataTables/wiki/Updating)
+* [Upgrading](https://github.com/fiduswriter/Simple-DataTables/wiki/Upgrading)
 
 #### Tips
 * [Sorting Datetimes](https://github.com/fiduswriter/Simple-DataTables/wiki/datetime)
