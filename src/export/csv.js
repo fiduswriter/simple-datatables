@@ -8,12 +8,11 @@ import {
  * @param {Object} userOptions User options
  * @return {Boolean}
  */
-export function exportCSV(dataTable, userOptions = {}) {
+export const exportCSV = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
     const headers = dataTable.activeHeadings
     let rows = []
-    const arr = []
     let i
     let x
     let str
@@ -23,7 +22,7 @@ export function exportCSV(dataTable, userOptions = {}) {
         download: true,
         skipColumn: [],
         lineDelimiter: "\n",
-        columnDelimiter: ",",
+        columnDelimiter: ","
     }
 
     // Check for the options object

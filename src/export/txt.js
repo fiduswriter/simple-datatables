@@ -8,12 +8,11 @@ import {
  * @param {Object} userOptions User options
  * @return {Boolean}
  */
-export function exportTXT(dataTable, userOptions = {}) {
+export const exportTXT = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
     const headers = dataTable.activeHeadings
     let rows = []
-    const arr = []
     let i
     let x
     let str
@@ -21,7 +20,7 @@ export function exportTXT(dataTable, userOptions = {}) {
 
     const defaults = {
         download: true,
-        skipColumn: [],
+        skipColumn: []
     }
 
     // Check for the options object

@@ -1,4 +1,5 @@
 import {
+    isJson,
     isObject
 } from "../helpers"
 
@@ -7,7 +8,7 @@ import {
  * @param  {Object} userOptions User options
  * @return {Boolean}
  */
-export function convertJSON(userOptions = {}) {
+export const convertJSON = function(userOptions = {}) {
     let obj = false
     const defaults = {}
 
@@ -43,7 +44,7 @@ export function convertJSON(userOptions = {}) {
                 })
             })
         } else {
-          console.warn("That's not valid JSON!")
+            console.warn("That's not valid JSON!")
         }
 
         if (obj) {

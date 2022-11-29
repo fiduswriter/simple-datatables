@@ -7,7 +7,7 @@ import {
  * @param  {Object} userOptions User options
  * @return {Boolean}
  */
-export function convertCSV(userOptions = {}) {
+export const convertCSV = function(userOptions = {}) {
     let obj = false
     const defaults = {
         lineDelimiter: "\n",

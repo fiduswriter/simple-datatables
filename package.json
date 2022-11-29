@@ -43,6 +43,7 @@
     "@rollup/plugin-node-resolve": "^13.3.0",
     "browserify": "^17.0.0",
     "eslint": "^8.20.0",
+    "pre-commit": "^1.2.2",
     "rollup": "^2.77.0",
     "rollup-plugin-polyfill-node": "^0.10.2",
     "rollup-plugin-terser": "^7.0.2",

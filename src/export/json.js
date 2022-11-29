@@ -8,7 +8,7 @@ import {
  * @param {Object} userOptions User options
  * @return {Boolean}
  */
-export function exportJSON(dataTable, userOptions = {}) {
+export const exportJSON = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
     const headers = dataTable.activeHeadings

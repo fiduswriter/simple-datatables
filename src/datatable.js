@@ -4,7 +4,6 @@ import {dataToTable} from "./table"
 import {defaultConfig} from "./config"
 import {
     isObject,
-    isJson,
     createElement,
     flush,
     button,
