@@ -124,8 +124,7 @@ declare module "simple-datatables"{
          * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/import()
         */
        import(options? : object): boolean;
-        /**NOTE: The print() method has been deprecated and will be removed in v2.0 in favour of the Exportable extension : https://github.com/Mobius1/Exportable.
-         *
+        /** Display printable version.
          *
          * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/print()
          */

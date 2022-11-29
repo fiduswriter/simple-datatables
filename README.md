@@ -95,4 +95,5 @@ const dataTable = new simpleDatatables.DataTable("#myTable", {
 
 ### Upgrading
 
-For upgrading from one major version to another, check the Wiki: 
+For upgrading from one major version to another, check the Wiki:
+https://github.com/fiduswriter/Simple-DataTables/wiki/Upgrading
