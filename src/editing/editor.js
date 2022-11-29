@@ -12,7 +12,7 @@ import {
 /**
  * Main lib
  * @param {Object} dataTable Target dataTable
- * @param {Object} config User config
+ * @param {Object} options User config
  */
 export class Editor {
     constructor(dataTable, options = {}) {
@@ -334,7 +334,7 @@ export class Editor {
         if (!row) {
             row = this.event.target.closest("tr")
             if (row && row.dataIndex !== undefined) {
-                this.dataTable.rows.remove(row.dataIndex)
+                this.dataTable.rows().remove(row.dataIndex)
                 this.closeMenu()
             }
         } else {
@@ -342,7 +342,7 @@ export class Editor {
             if (row instanceof Element && row.nodeName === "TR" && row.dataIndex !== undefined) {
                 row = row.dataIndex
             }
-            this.dataTable.rows.remove(row)
+            this.dataTable.rows().remove(row)
             this.closeMenu()
         }
     }
