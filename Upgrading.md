@@ -51,7 +51,7 @@ dataTable.insert(convertedData)
 
 * The handling of the `datatable.selectrow` event has changed in some cases. If you were doing this:
 
-```
+```js
 import {
   DataTable
 } from "simple-datatables"
@@ -64,7 +64,7 @@ dataTable.on("datatable.selectrow", function({row, event}) {
 
 Do now:
 
-```
+```js
 import {
   DataTable
 } from "simple-datatables"
