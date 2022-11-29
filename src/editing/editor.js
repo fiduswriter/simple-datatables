@@ -255,8 +255,8 @@ export class Editor {
                     class: this.options.classes.row,
                     html: [
                         "<div class='datatable-editor-row'>",
-                        `<label class='${this.options.classes.label}'>${this.dataTable.dom.header.cells[i].content}</label>`,
-                        `<input class='${this.options.classes.input}' value='${cell.innerHTML}' type='text'>`,
+                        `<label class='${this.options.classes.label}'>${this.dataTable.header.cells[i].textContent}</label>`,
+                        `<input class='${this.options.classes.input}' value='${cell.dataset.content || cell.innerHTML}' type='text'>`,
                         "</div>"
                     ].join("")
                 }), form.lastElementChild)

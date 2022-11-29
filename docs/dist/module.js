@@ -2958,8 +2958,6 @@ class Editor {
      * @return {Void}
      */
     saveCell(value, cell) {
-        console.log({value,
-            cell});
         cell = cell || this.data.cell;
         value = value || this.data.input.value;
         const oldData = this.data.content;
@@ -3007,8 +3005,8 @@ class Editor {
                     class: this.options.classes.row,
                     html: [
                         "<div class='datatable-editor-row'>",
-                        `<label class='${this.options.classes.label}'>${this.dataTable.dom.header.cells[i].content}</label>`,
-                        `<input class='${this.options.classes.input}' value='${cell.innerHTML}' type='text'>`,
+                        `<label class='${this.options.classes.label}'>${this.dataTable.header.cells[i].textContent}</label>`,
+                        `<input class='${this.options.classes.input}' value='${cell.dataset.content || cell.innerHTML}' type='text'>`,
                         "</div>"
                     ].join("")
                 }), form.lastElementChild);
@@ -3119,7 +3117,6 @@ class Editor {
      * @return {Void}
      */
     dismiss(event) {
-        console.log('dismiss');
         let valid = true;
         if (this.options.contextMenu) {
             valid = !this.wrapper.contains(event.target);
