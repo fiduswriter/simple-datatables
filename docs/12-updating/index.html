@@ -175,12 +175,12 @@ Replace <i>first</i> match in a specified column.<br/>&nbsp;
         ]
     })
     const sel = document.getElementById('columns')
-    for(let i = 0; i < data.headings.length; i++) {
+    data.headings.forEach((heading, index) => {
         const opt = document.createElement('option')
-        opt.text = `${data.headings[i]} - column[${i}]`
-        opt.value = `${i}`
+        opt.text = `${heading} - column[${index}]`
+        opt.value = `${index}`
         sel.options.add(opt)
-    }
+    })
 
     document.getElementById('update').addEventListener('click', e => {
         const find = document.getElementById('find').value.trim()

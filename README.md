@@ -92,3 +92,7 @@ const dataTable = new simpleDatatables.DataTable("#myTable", {
 	...
 })
 ```
+
+### Upgrading
+
+For upgrading from one major version to another, check the Wiki: 

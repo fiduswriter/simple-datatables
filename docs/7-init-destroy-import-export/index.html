@@ -140,142 +140,142 @@
 
   <!-- Custom Code -->
   <script>
-    function createElement(a, b) {
-      var c = document,
-        d = c.createElement(a);
-      if (b && "object" == typeof b) {
-        var e;
-        for (e in b)
-          if ("html" === e) d.innerHTML = b[e];
-          else if ("text" === e) {
-          var f = c.createTextNode(b[e]);
-          d.appendChild(f);
-        } else d.setAttribute(e, b[e]);
-      }
-      return d;
+    const createElement = (nodeName, attrs) => {
+        const dom = document.createElement(nodeName)
+        if (attrs && "object" == typeof attrs) {
+            for (const attr in attrs) {
+                if ("text" === attr) {
+                    const text = document.createTextNode(attrs[attr])
+                    dom.appendChild(text)
+                } else {
+                    dom.setAttribute(attr, attrs[attr])
+                }
+            }
+        }
+        return dom
     }
-    const table = document.getElementsByTagName("table")[0];
-    const textarea = document.getElementsByTagName("textarea")[0];
-    const div = document.getElementById("data");
-    const btn = document.getElementsByTagName("button")[0];
-    const checkboxes = document.getElementById("columns");
-    const inputs = [], visible = [], hidden = [];
+    const table = document.getElementsByTagName("table")[0]
+    const textarea = document.getElementsByTagName("textarea")[0]
+    const div = document.getElementById("data")
+    const btn = document.getElementsByTagName("button")[0]
+    const checkboxes = document.getElementById("columns")
+    const inputs = [], visible = [], hidden = []
 
     const datatable = new simpleDatatables.DataTable(table, {
       perPage: 5,
-    });
+    })
 
     datatable.on("datatable.init", function() {
       setCheckboxes()
-    });
+    })
 
     function updateColumns() {
       try {
-        datatable.columns.show(visible);
-        datatable.columns.hide(hidden);
+        datatable.columns.show(visible)
+        datatable.columns.hide(hidden)
       } catch(e) {
-        console.log(e);
+        console.log(e)
       }
     }
 
     function setCheckboxes() {
-      inputs = [];
-      visible = [];
-      checkboxes.innerHTML = "";
+      inputs = []
+      visible = []
+      checkboxes.innerHTML = ""
 
       datatable.headings.forEach((heading, i) => {
-        const checkbox = createElement("div", { class: "checkbox" });
-        const input = createElement("input", { type: "checkbox", id: "checkbox-" + i, name: "checkbox" });
-        const label = createElement("label", { for: "checkbox-" + i, text: heading.textContent });
+        const checkbox = createElement("div", { class: "checkbox" })
+        const input = createElement("input", { type: "checkbox", id: "checkbox-" + i, name: "checkbox" })
+        const label = createElement("label", { for: "checkbox-" + i, html: heading.textContent })
 
-        input.idx = i;
+        input.idx = i
 
         if ( datatable.columns.visible(heading.cellIndex) ) {
-          input.checked = true;
-          visible.push(i);
+          input.checked = true
+          visible.push(i)
         } else {
           if ( hidden.indexOf(i) < 0 ) {
-            hidden.push(i);
+            hidden.push(i)
           }
         }
 
         checkbox.appendChild(input)
         checkbox.appendChild(label)
 
-        checkboxes.appendChild(checkbox);
+        checkboxes.appendChild(checkbox)
 
-        inputs.push(input);
-      });
+        inputs.push(input)
+      })
 
       inputs.forEach((input, i) => {
 
           input.onchange = function(e) {
             if ( input.checked ) {
-              hidden.splice(hidden.indexOf(input.idx), 1);
-              visible.push(input.idx);
+              hidden.splice(hidden.indexOf(input.idx), 1)
+              visible.push(input.idx)
             } else {
-              visible.splice(visible.indexOf(input.idx), 1);
-              hidden.push(input.idx);
+              visible.splice(visible.indexOf(input.idx), 1)
+              hidden.push(input.idx)
             }
 
-            updateColumns();
-          };
-      });
+            updateColumns()
+          }
+      })
     }
 
     textarea.addEventListener("input", function(e) {
       if ( this.value.length ) {
-        this.parentNode.classList.remove("error");
+        this.parentNode.classList.remove("error")
       }
     })
 
     document.querySelectorAll(".export").forEach(function(el) {
       el.addEventListener("click", function(e) {
-        const type = el.dataset.type;
+        const type = el.dataset.type
 
         const data = {
           type: type,
           filename: "my-" + type,
-        };
-
-        if ( type === "csv" ) {
-          data.columnDelimiter = "|";
         }
 
-        simpleDatatables.exportData(datatable, data);
-      });
-    });
+        if ( type === "csv" ) {
+          data.columnDelimiter = "|"
+        }
+
+        simpleDatatables.exportData(datatable, data)
+      })
+    })
 
     document.querySelectorAll(".main").forEach(function(el) {
       el.addEventListener("click", e => {
-        datatable[el.id]();
+        datatable[el.id]()
         setTimeout(function() {
-          document.getElementById("hide").classList.toggle("hidden", !datatable.initialized);
-          table.classList.toggle("table", !datatable.initialized);
-        }, 10);
-      });
-    });
+          document.getElementById("hide").classList.toggle("hidden", !datatable.initialized)
+          table.classList.toggle("table", !datatable.initialized)
+        }, 10)
+      })
+    })
 
     document.querySelectorAll(".import").forEach(function(el) {
       el.addEventListener("click", e => {
-        const type = el.dataset.type;
+        const type = el.dataset.type
 
         const data = {
           type: type,
           data: textarea.value
-        };
-
-        textarea.parentNode.classList.remove("error");
-
-        if ( !data.data.length ) {
-          textarea.parentNode.classList.add("error");
-          return false;
         }
 
-        const convertedData = simpleDatatables.convertData(data);
-        datatable.insert(convertedData);
-      });
-    });
+        textarea.parentNode.classList.remove("error")
+
+        if ( !data.data.length ) {
+          textarea.parentNode.classList.add("error")
+          return false
+        }
+
+        const convertedData = simpleDatatables.convertData(data)
+        datatable.insert(convertedData)
+      })
+    })
   </script>
 </body>
 </html>

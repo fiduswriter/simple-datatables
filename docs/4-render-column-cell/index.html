@@ -65,46 +65,46 @@
       [312, 'green tea',  3.00, true,  -1.21],
       [312, 'green tea',  3.00, true,  -1.21],
     ]
-  };
+  }
 
   // Add Icon
   function renderIcon(data, cell, row) {
     if(data == 'latte') {
-      return `🔥 ${data}`;
+      return `🔥 ${data}`
     }
     else {
-      return `🌿 ${data}`;
+      return `🌿 ${data}`
     }
   }
 
   // Price column cell manipulation
   function renderButton(data, cell, row) {
-    return `${data}<button data-row="${row.dataIndex}">Buy Now</button>`;
+    return `${data}<button data-row="${row.dataIndex}">Buy Now</button>`
   }
 
   // Caffeinated column cell manipulation
   function renderYesNo(data, cell, row) {
     if (data == 'true') {
-      return row.classList.add("yes"), `<b>Yes</b>`;
+      return row.classList.add("yes"), `<b>Yes</b>`
     }
     else if (data == 'false') {
-      return row.classList.add("no"), `<b>No</b>`;
+      return row.classList.add("no"), `<b>No</b>`
     }
 
     // Or if you don't need to add class to the "row"
-    // return data == 'true' ? '<b class="yes">Yes</b>' : '<b class="no">No</b>';
+    // return data == 'true' ? '<b class="yes">Yes</b>' : '<b class="no">No</b>'
   }
 
   // numbers
   function renderHighLow(data, cell, row) {
     if (data < 0) {
-      return `<span class="currency currency--loss">${data}</span>`;
+      return `<span class="currency currency--loss">${data}</span>`
     }
     else if (data > 0) {
-      return `<span class="currency currency--profit">${data}</span>`;
+      return `<span class="currency currency--profit">${data}</span>`
     }
     else if (data == 0) {
-      return `<span class="currency currency--zero">${data}</span>`;
+      return `<span class="currency currency--zero">${data}</span>`
     }
   }
 
@@ -118,7 +118,7 @@
       { select: 3, render: renderYesNo },
       { select: 4, render: renderHighLow }
     ]
-  });
+  })
   </script>
 </body>
 </html>
