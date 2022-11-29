@@ -7,8 +7,8 @@
  *
  *
  */
-
+export {DataTable} from "./datatable"
 export {convertCSV, convertJSON} from "./convert"
 export {exportCSV, exportJSON, exportSQL, exportTXT} from "./export"
-export {DataTable} from "./datatable"
 export {createElement, isJson, isObject} from "./helpers"
+export {makeEditable} from "./editing"

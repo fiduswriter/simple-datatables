@@ -9,7 +9,7 @@ const isObject = val => Object.prototype.toString.call(val) === "[object Object]
  * @param  {String}   str
  * @return {Boolean|Array|Object}
  */
-const isJson$1 = str => {
+const isJson = str => {
     let t = !1;
     try {
         t = JSON.parse(str);
@@ -135,560 +135,6 @@ const truncate = (a, b, c, d, ellipsis) => {
 
     return i
 };
-
-/**
- * Convert CSV data to fit the format used in the table.
- * @param  {Object} userOptions User options
- * @return {Boolean}
- */
-function convertCSV(userOptions = {}) {
-    let obj = false;
-    const defaults = {
-        lineDelimiter: "\n",
-        columnDelimiter: ",",
-        removeDoubleQuotes: false
-    };
-
-    // Check for the options object
-    if (!isObject(userOptions)) {
-        return false
-    }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
-    if (options.data.length || isObject(options.data)) {
-        // Import CSV
-        obj = {
-            data: []
-        };
-
-        // Split the string into rows
-        const rows = options.data.split(options.lineDelimiter);
-
-        if (rows.length) {
-
-            if (options.headings) {
-                obj.headings = rows[0].split(options.columnDelimiter);
-                if (options.removeDoubleQuotes) {
-                    obj.headings = obj.headings.map(e => e.trim().replace(/(^"|"$)/g, ""));
-                }
-                rows.shift();
-            }
-
-            rows.forEach((row, i) => {
-                obj.data[i] = [];
-
-                // Split the rows into values
-                const values = row.split(options.columnDelimiter);
-
-                if (values.length) {
-                    values.forEach(value => {
-                        if (options.removeDoubleQuotes) {
-                            value = value.trim().replace(/(^"|"$)/g, "");
-                        }
-                        obj.data[i].push(value);
-                    });
-                }
-            });
-        }
-
-        if (obj) {
-            return obj
-        }
-    }
-
-    return false
-}
-
-/**
- * Convert JSON data to fit the format used in the table.
- * @param  {Object} userOptions User options
- * @return {Boolean}
- */
-function convertJSON(userOptions = {}) {
-    let obj = false;
-    const defaults = {};
-
-    // Check for the options object
-    if (!isObject(userOptions)) {
-        return false
-    }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
-    if (options.data.length || isObject(options.data)) {
-        // Import CSV
-        const json = isJson(options.data);
-
-        // Valid JSON string
-        if (json) {
-            obj = {
-                headings: [],
-                data: []
-            };
-
-            json.forEach((data, i) => {
-                obj.data[i] = [];
-                Object.entries(data).forEach(([column, value]) => {
-                    if (!obj.headings.includes(column)) {
-                        obj.headings.push(column);
-                    }
-
-                    obj.data[i].push(value);
-                });
-            });
-        } else {
-          console.warn("That's not valid JSON!");
-        }
-
-        if (obj) {
-            return obj
-        }
-    }
-
-    return false
-}
-
-/**
- * Export table to CSV
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
- */
-function exportCSV(dataTable, userOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
-
-    const defaults = {
-        download: true,
-        skipColumn: [],
-        lineDelimiter: "\n",
-        columnDelimiter: ",",
-    };
-
-    // Check for the options object
-    if (!isObject(userOptions)) {
-        return false
-    }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
-    // Include headings
-    rows[0] = dataTable.header;
-
-    // Selection or whole table
-    if (options.selection) {
-        // Page number
-        if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
-        } else if (Array.isArray(options.selection)) {
-            // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
-            }
-        }
-    } else {
-        rows = rows.concat(dataTable.activeRows);
-    }
-
-    // Only proceed if we have data
-    if (rows.length) {
-        str = "";
-
-        for (i = 0; i < rows.length; i++) {
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    let text = rows[i].cells[x].textContent;
-                    text = text.trim();
-                    text = text.replace(/\s{2,}/g, " ");
-                    text = text.replace(/\n/g, "  ");
-                    text = text.replace(/"/g, "\"\"");
-                    //have to manually encode "#" as encodeURI leaves it as is.
-                    text = text.replace(/#/g, "%23");
-                    if (text.includes(","))
-                        text = `"${text}"`;
-
-
-                    str += text + options.columnDelimiter;
-                }
-            }
-            // Remove trailing column delimiter
-            str = str.trim().substring(0, str.length - 1);
-
-            // Apply line delimiter
-            str += options.lineDelimiter;
-        }
-
-        // Remove trailing line delimiter
-        str = str.trim().substring(0, str.length - 1);
-
-        // Download
-        if (options.download) {
-            // Create a link to trigger the download
-            link = document.createElement("a");
-            link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`);
-            link.download = `${options.filename || "datatable_export"}.csv`;
-
-            // Append the link
-            document.body.appendChild(link);
-
-            // Trigger the download
-            link.click();
-
-            // Remove the link
-            document.body.removeChild(link);
-        }
-
-        return str
-    }
-
-    return false
-}
-
-/**
- * Export table to JSON
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
- */
-function exportJSON(dataTable, userOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    const arr = [];
-    let i;
-    let x;
-    let str;
-    let link;
-
-    const defaults = {
-        download: true,
-        skipColumn: [],
-        replacer: null,
-        space: 4
-    };
-
-    // Check for the options object
-    if (!isObject(userOptions)) {
-        return false
-    }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
-
-    // Selection or whole table
-    if (options.selection) {
-        // Page number
-        if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
-        } else if (Array.isArray(options.selection)) {
-            // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
-            }
-        }
-    } else {
-        rows = rows.concat(dataTable.activeRows);
-    }
-
-    // Only proceed if we have data
-    if (rows.length) {
-        // Iterate rows
-        for (x = 0; x < rows.length; x++) {
-            arr[x] = arr[x] || {};
-            // Iterate columns
-            for (i = 0; i < headers.length; i++) {
-                // Check for column skip and column visibility
-                if (
-                    !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                    dataTable.columns.visible(headers[i].originalCellIndex)
-                ) {
-                    arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
-                }
-            }
-        }
-
-        // Convert the array of objects to JSON string
-        str = JSON.stringify(arr, options.replacer, options.space);
-
-        // Download
-        if (options.download) {
-            // Create a link to trigger the download
-            link = document.createElement("a");
-            link.href = encodeURI(`data:application/json;charset=utf-8,${str}`);
-            link.download = `${options.filename || "datatable_export"}.json`;
-
-            // Append the link
-            document.body.appendChild(link);
-
-            // Trigger the download
-            link.click();
-
-            // Remove the link
-            document.body.removeChild(link);
-        }
-
-        return str
-    }
-
-    return false
-}
-
-/**
- * Export table to SQL
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
- */
-function exportSQL(dataTable, userOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
-
-    const defaults = {
-        download: true,
-        skipColumn: [],
-        tableName: "myTable",
-    };
-
-    // Check for the options object
-    if (!isObject(userOptions)) {
-        return false
-    }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
-    // Selection or whole table
-    if (options.selection) {
-        // Page number
-        if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
-        } else if (Array.isArray(options.selection)) {
-            // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
-            }
-        }
-    } else {
-        rows = rows.concat(dataTable.activeRows);
-    }
-
-    // Only proceed if we have data
-    if (rows.length) {
-        // Begin INSERT statement
-        str = `INSERT INTO \`${options.tableName}\` (`;
-
-        // Convert table headings to column names
-        for (i = 0; i < headers.length; i++) {
-            // Check for column skip and column visibility
-            if (
-                !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                dataTable.columns.visible(headers[i].originalCellIndex)
-            ) {
-                str += `\`${headers[i].textContent}\`,`;
-            }
-        }
-
-        // Remove trailing comma
-        str = str.trim().substring(0, str.length - 1);
-
-        // Begin VALUES
-        str += ") VALUES ";
-
-        // Iterate rows and convert cell data to column values
-        for (i = 0; i < rows.length; i++) {
-            str += "(";
-
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and column visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    str += `"${rows[i].cells[x].textContent}",`;
-                }
-            }
-
-            // Remove trailing comma
-            str = str.trim().substring(0, str.length - 1);
-
-            // end VALUES
-            str += "),";
-        }
-
-        // Remove trailing comma
-        str = str.trim().substring(0, str.length - 1);
-
-        // Add trailing colon
-        str += ";";
-
-        if (options.download) {
-            str = `data:application/sql;charset=utf-8,${str}`;
-        }
-
-        // Download
-        if (options.download) {
-            // Create a link to trigger the download
-            link = document.createElement("a");
-            link.href = encodeURI(str);
-            link.download = `${options.filename || "datatable_export"}.sql`;
-
-            // Append the link
-            document.body.appendChild(link);
-
-            // Trigger the download
-            link.click();
-
-            // Remove the link
-            document.body.removeChild(link);
-        }
-
-        return str
-    }
-
-    return false
-}
-
-/**
- * Export table to TXT
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
- */
-function exportTXT(dataTable, userOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
-
-    const defaults = {
-        download: true,
-        skipColumn: [],
-    };
-
-    // Check for the options object
-    if (!isObject(userOptions)) {
-        return false
-    }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
-    // Include headings
-    rows[0] = dataTable.header;
-
-    // Selection or whole table
-    if (options.selection) {
-        // Page number
-        if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
-        } else if (Array.isArray(options.selection)) {
-            // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
-            }
-        }
-    } else {
-        rows = rows.concat(dataTable.activeRows);
-    }
-
-    // Only proceed if we have data
-    if (rows.length) {
-        str = "";
-
-        for (i = 0; i < rows.length; i++) {
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    let text = rows[i].cells[x].textContent;
-                    text = text.trim();
-                    text = text.replace(/\s{2,}/g, " ");
-                    text = text.replace(/\n/g, "  ");
-                    text = text.replace(/"/g, "\"\"");
-                    //have to manually encode "#" as encodeURI leaves it as is.
-                    text = text.replace(/#/g, "%23");
-                    if (text.includes(","))
-                        text = `"${text}"`;
-
-
-                    str += text + options.columnDelimiter;
-                }
-            }
-            // Remove trailing column delimiter
-            str = str.trim().substring(0, str.length - 1);
-
-            // Apply line delimiter
-            str += options.lineDelimiter;
-        }
-
-        // Remove trailing line delimiter
-        str = str.trim().substring(0, str.length - 1);
-
-        if (options.download) {
-            str = `data:text/csv;charset=utf-8,${str}`;
-        }
-        // Download
-        if (options.download) {
-            // Create a link to trigger the download
-            link = document.createElement("a");
-            link.href = encodeURI(str);
-            link.download = `${options.filename || "datatable_export"}.txt`;
-
-            // Append the link
-            document.body.appendChild(link);
-
-            // Trigger the download
-            link.click();
-
-            // Remove the link
-            document.body.removeChild(link);
-        }
-
-        return str
-    }
-
-    return false
-}
 
 /**
  * Rows API
@@ -1439,7 +885,7 @@ const dataToTable = function (data) {
  * Default configuration
  * @typ {Object}
  */
-const defaultConfig = {
+const defaultConfig$1 = {
     sortable: true,
     searchable: true,
 
@@ -1494,14 +940,14 @@ class DataTable {
 
         // user options
         this.options = {
-            ...defaultConfig,
+            ...defaultConfig$1,
             ...options,
             layout: {
-                ...defaultConfig.layout,
+                ...defaultConfig$1.layout,
                 ...options.layout
             },
             labels: {
-                ...defaultConfig.labels,
+                ...defaultConfig$1.labels,
                 ...options.labels
             }
         };
@@ -1545,8 +991,6 @@ class DataTable {
 
         this.dom = dom;
 
-        this.table = this.dom; // For compatibility. Remove in version 4
-
         this.listeners = {
             onResize: event => this.onResize(event)
         };
@@ -1578,19 +1022,6 @@ class DataTable {
         setTimeout(() => {
             this.emit("datatable.init");
             this.initialized = true;
-
-            if (this.options.plugins) {
-                Object.entries(this.options.plugins).forEach(([plugin, options]) => {
-                    if (this[plugin] && typeof this[plugin] === "function") {
-                        this[plugin] = this[plugin](options, {createElement});
-
-                        // Init plugin
-                        if (options.enabled && this[plugin].init && typeof this[plugin].init === "function") {
-                            this[plugin].init();
-                        }
-                    }
-                });
-            }
         }, 10);
     }
 
@@ -2698,6 +2129,1066 @@ class DataTable {
     }
 }
 
+/**
+ * Convert CSV data to fit the format used in the table.
+ * @param  {Object} userOptions User options
+ * @return {Boolean}
+ */
+const convertCSV = function(userOptions = {}) {
+    let obj = false;
+    const defaults = {
+        lineDelimiter: "\n",
+        columnDelimiter: ",",
+        removeDoubleQuotes: false
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    if (options.data.length || isObject(options.data)) {
+        // Import CSV
+        obj = {
+            data: []
+        };
+
+        // Split the string into rows
+        const rows = options.data.split(options.lineDelimiter);
+
+        if (rows.length) {
+
+            if (options.headings) {
+                obj.headings = rows[0].split(options.columnDelimiter);
+                if (options.removeDoubleQuotes) {
+                    obj.headings = obj.headings.map(e => e.trim().replace(/(^"|"$)/g, ""));
+                }
+                rows.shift();
+            }
+
+            rows.forEach((row, i) => {
+                obj.data[i] = [];
+
+                // Split the rows into values
+                const values = row.split(options.columnDelimiter);
+
+                if (values.length) {
+                    values.forEach(value => {
+                        if (options.removeDoubleQuotes) {
+                            value = value.trim().replace(/(^"|"$)/g, "");
+                        }
+                        obj.data[i].push(value);
+                    });
+                }
+            });
+        }
+
+        if (obj) {
+            return obj
+        }
+    }
+
+    return false
+};
+
+/**
+ * Convert JSON data to fit the format used in the table.
+ * @param  {Object} userOptions User options
+ * @return {Boolean}
+ */
+const convertJSON = function(userOptions = {}) {
+    let obj = false;
+    const defaults = {};
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    if (options.data.length || isObject(options.data)) {
+        // Import CSV
+        const json = isJson(options.data);
+
+        // Valid JSON string
+        if (json) {
+            obj = {
+                headings: [],
+                data: []
+            };
+
+            json.forEach((data, i) => {
+                obj.data[i] = [];
+                Object.entries(data).forEach(([column, value]) => {
+                    if (!obj.headings.includes(column)) {
+                        obj.headings.push(column);
+                    }
+
+                    obj.data[i].push(value);
+                });
+            });
+        } else {
+            console.warn("That's not valid JSON!");
+        }
+
+        if (obj) {
+            return obj
+        }
+    }
+
+    return false
+};
+
+/**
+ * Export table to CSV
+ * @param {DataTable} dataTable DataTable instance.
+ * @param {Object} userOptions User options
+ * @return {Boolean}
+ */
+const exportCSV = function(dataTable, userOptions = {}) {
+    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+
+    const headers = dataTable.activeHeadings;
+    let rows = [];
+    let i;
+    let x;
+    let str;
+    let link;
+
+    const defaults = {
+        download: true,
+        skipColumn: [],
+        lineDelimiter: "\n",
+        columnDelimiter: ","
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    // Include headings
+    rows[0] = dataTable.header;
+
+    // Selection or whole table
+    if (options.selection) {
+        // Page number
+        if (!isNaN(options.selection)) {
+            rows = rows.concat(dataTable.pages[options.selection - 1]);
+        } else if (Array.isArray(options.selection)) {
+            // Array of page numbers
+            for (i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            }
+        }
+    } else {
+        rows = rows.concat(dataTable.activeRows);
+    }
+
+    // Only proceed if we have data
+    if (rows.length) {
+        str = "";
+
+        for (i = 0; i < rows.length; i++) {
+            for (x = 0; x < rows[i].cells.length; x++) {
+                // Check for column skip and visibility
+                if (
+                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                    dataTable.columns.visible(headers[x].originalCellIndex)
+                ) {
+                    let text = rows[i].cells[x].textContent;
+                    text = text.trim();
+                    text = text.replace(/\s{2,}/g, " ");
+                    text = text.replace(/\n/g, "  ");
+                    text = text.replace(/"/g, "\"\"");
+                    //have to manually encode "#" as encodeURI leaves it as is.
+                    text = text.replace(/#/g, "%23");
+                    if (text.includes(","))
+                        text = `"${text}"`;
+
+
+                    str += text + options.columnDelimiter;
+                }
+            }
+            // Remove trailing column delimiter
+            str = str.trim().substring(0, str.length - 1);
+
+            // Apply line delimiter
+            str += options.lineDelimiter;
+        }
+
+        // Remove trailing line delimiter
+        str = str.trim().substring(0, str.length - 1);
+
+        // Download
+        if (options.download) {
+            // Create a link to trigger the download
+            link = document.createElement("a");
+            link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`);
+            link.download = `${options.filename || "datatable_export"}.csv`;
+
+            // Append the link
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link
+            document.body.removeChild(link);
+        }
+
+        return str
+    }
+
+    return false
+};
+
+/**
+ * Export table to JSON
+ * @param {DataTable} dataTable DataTable instance.
+ * @param {Object} userOptions User options
+ * @return {Boolean}
+ */
+const exportJSON = function(dataTable, userOptions = {}) {
+    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+
+    const headers = dataTable.activeHeadings;
+    let rows = [];
+    const arr = [];
+    let i;
+    let x;
+    let str;
+    let link;
+
+    const defaults = {
+        download: true,
+        skipColumn: [],
+        replacer: null,
+        space: 4
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+
+    // Selection or whole table
+    if (options.selection) {
+        // Page number
+        if (!isNaN(options.selection)) {
+            rows = rows.concat(dataTable.pages[options.selection - 1]);
+        } else if (Array.isArray(options.selection)) {
+            // Array of page numbers
+            for (i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            }
+        }
+    } else {
+        rows = rows.concat(dataTable.activeRows);
+    }
+
+    // Only proceed if we have data
+    if (rows.length) {
+        // Iterate rows
+        for (x = 0; x < rows.length; x++) {
+            arr[x] = arr[x] || {};
+            // Iterate columns
+            for (i = 0; i < headers.length; i++) {
+                // Check for column skip and column visibility
+                if (
+                    !options.skipColumn.includes(headers[i].originalCellIndex) &&
+                    dataTable.columns.visible(headers[i].originalCellIndex)
+                ) {
+                    arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
+                }
+            }
+        }
+
+        // Convert the array of objects to JSON string
+        str = JSON.stringify(arr, options.replacer, options.space);
+
+        // Download
+        if (options.download) {
+            // Create a link to trigger the download
+            link = document.createElement("a");
+            link.href = encodeURI(`data:application/json;charset=utf-8,${str}`);
+            link.download = `${options.filename || "datatable_export"}.json`;
+
+            // Append the link
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link
+            document.body.removeChild(link);
+        }
+
+        return str
+    }
+
+    return false
+};
+
+/**
+ * Export table to SQL
+ * @param {DataTable} dataTable DataTable instance.
+ * @param {Object} userOptions User options
+ * @return {Boolean}
+ */
+const exportSQL = function(dataTable, userOptions = {}) {
+    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+
+    const headers = dataTable.activeHeadings;
+    let rows = [];
+    let i;
+    let x;
+    let str;
+    let link;
+
+    const defaults = {
+        download: true,
+        skipColumn: [],
+        tableName: "myTable"
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    // Selection or whole table
+    if (options.selection) {
+        // Page number
+        if (!isNaN(options.selection)) {
+            rows = rows.concat(dataTable.pages[options.selection - 1]);
+        } else if (Array.isArray(options.selection)) {
+            // Array of page numbers
+            for (i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            }
+        }
+    } else {
+        rows = rows.concat(dataTable.activeRows);
+    }
+
+    // Only proceed if we have data
+    if (rows.length) {
+        // Begin INSERT statement
+        str = `INSERT INTO \`${options.tableName}\` (`;
+
+        // Convert table headings to column names
+        for (i = 0; i < headers.length; i++) {
+            // Check for column skip and column visibility
+            if (
+                !options.skipColumn.includes(headers[i].originalCellIndex) &&
+                dataTable.columns.visible(headers[i].originalCellIndex)
+            ) {
+                str += `\`${headers[i].textContent}\`,`;
+            }
+        }
+
+        // Remove trailing comma
+        str = str.trim().substring(0, str.length - 1);
+
+        // Begin VALUES
+        str += ") VALUES ";
+
+        // Iterate rows and convert cell data to column values
+        for (i = 0; i < rows.length; i++) {
+            str += "(";
+
+            for (x = 0; x < rows[i].cells.length; x++) {
+                // Check for column skip and column visibility
+                if (
+                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                    dataTable.columns.visible(headers[x].originalCellIndex)
+                ) {
+                    str += `"${rows[i].cells[x].textContent}",`;
+                }
+            }
+
+            // Remove trailing comma
+            str = str.trim().substring(0, str.length - 1);
+
+            // end VALUES
+            str += "),";
+        }
+
+        // Remove trailing comma
+        str = str.trim().substring(0, str.length - 1);
+
+        // Add trailing colon
+        str += ";";
+
+        if (options.download) {
+            str = `data:application/sql;charset=utf-8,${str}`;
+        }
+
+        // Download
+        if (options.download) {
+            // Create a link to trigger the download
+            link = document.createElement("a");
+            link.href = encodeURI(str);
+            link.download = `${options.filename || "datatable_export"}.sql`;
+
+            // Append the link
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link
+            document.body.removeChild(link);
+        }
+
+        return str
+    }
+
+    return false
+};
+
+/**
+ * Export table to TXT
+ * @param {DataTable} dataTable DataTable instance.
+ * @param {Object} userOptions User options
+ * @return {Boolean}
+ */
+const exportTXT = function(dataTable, userOptions = {}) {
+    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+
+    const headers = dataTable.activeHeadings;
+    let rows = [];
+    let i;
+    let x;
+    let str;
+    let link;
+
+    const defaults = {
+        download: true,
+        skipColumn: []
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    // Include headings
+    rows[0] = dataTable.header;
+
+    // Selection or whole table
+    if (options.selection) {
+        // Page number
+        if (!isNaN(options.selection)) {
+            rows = rows.concat(dataTable.pages[options.selection - 1]);
+        } else if (Array.isArray(options.selection)) {
+            // Array of page numbers
+            for (i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            }
+        }
+    } else {
+        rows = rows.concat(dataTable.activeRows);
+    }
+
+    // Only proceed if we have data
+    if (rows.length) {
+        str = "";
+
+        for (i = 0; i < rows.length; i++) {
+            for (x = 0; x < rows[i].cells.length; x++) {
+                // Check for column skip and visibility
+                if (
+                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                    dataTable.columns.visible(headers[x].originalCellIndex)
+                ) {
+                    let text = rows[i].cells[x].textContent;
+                    text = text.trim();
+                    text = text.replace(/\s{2,}/g, " ");
+                    text = text.replace(/\n/g, "  ");
+                    text = text.replace(/"/g, "\"\"");
+                    //have to manually encode "#" as encodeURI leaves it as is.
+                    text = text.replace(/#/g, "%23");
+                    if (text.includes(","))
+                        text = `"${text}"`;
+
+
+                    str += text + options.columnDelimiter;
+                }
+            }
+            // Remove trailing column delimiter
+            str = str.trim().substring(0, str.length - 1);
+
+            // Apply line delimiter
+            str += options.lineDelimiter;
+        }
+
+        // Remove trailing line delimiter
+        str = str.trim().substring(0, str.length - 1);
+
+        if (options.download) {
+            str = `data:text/csv;charset=utf-8,${str}`;
+        }
+        // Download
+        if (options.download) {
+            // Create a link to trigger the download
+            link = document.createElement("a");
+            link.href = encodeURI(str);
+            link.download = `${options.filename || "datatable_export"}.txt`;
+
+            // Append the link
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link
+            document.body.removeChild(link);
+        }
+
+        return str
+    }
+
+    return false
+};
+
+/**
+* Default config
+* @type {Object}
+*/
+const defaultConfig = {
+    classes: {
+        row: "dt-editor-row",
+        form: "dt-editor-form",
+        item: "dt-editor-item",
+        menu: "dt-editor-menu",
+        save: "dt-editor-save",
+        block: "dt-editor-block",
+        close: "dt-editor-close",
+        inner: "dt-editor-inner",
+        input: "dt-editor-input",
+        label: "dt-editor-label",
+        modal: "dt-editor-modal",
+        action: "dt-editor-action",
+        header: "dt-editor-header",
+        wrapper: "dt-editor-wrapper",
+        editable: "dt-editor-editable",
+        container: "dt-editor-container",
+        separator: "dt-editor-separator"
+    },
+
+    labels: {
+        editCell: "Edit Cell",
+        editRow: "Edit Row",
+        removeRow: "Remove Row",
+        reallyRemove: "Are you sure?"
+    },
+
+    // include hidden columns in the editor
+    hiddenColumns: false,
+
+    // enable th context menu
+    contextMenu: true,
+
+    clickEvent: "dblclick",
+
+    // set the context menu items
+    menuItems: [
+        {
+            text: editor => editor.options.labels.editCell,
+            action: (editor, _event) => editor.editCell()
+        },
+        {
+            text: editor => editor.options.labels.editRow,
+            action: (editor, _event) => editor.editRow()
+        },
+        {
+            separator: true
+        },
+        {
+            text: editor => editor.options.labels.removeRow,
+            action: (editor, _event) => {
+                if (confirm(editor.options.labels.reallyRemove)) {
+                    editor.removeRow();
+                }
+            }
+        }
+    ]
+};
+
+// Source: https://www.freecodecamp.org/news/javascript-debounce-example/
+
+const debounce = function(func, timeout = 300) {
+    let timer;
+    return (...args) => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            func.apply(this, args);
+        }, timeout);
+    }
+};
+
+/**
+ * Main lib
+ * @param {Object} dataTable Target dataTable
+ * @param {Object} config User config
+ */
+class Editor {
+    constructor(dataTable, options = {}) {
+        this.dataTable = dataTable;
+        this.options = {
+            ...defaultConfig,
+            ...options
+        };
+    }
+
+    /**
+     * Init instance
+     * @return {Void}
+     */
+    init() {
+        if (this.initialized) {
+            return
+        }
+        this.dataTable.wrapper.classList.add(this.options.classes.editable);
+        if (this.options.contextMenu) {
+            this.container = createElement("div", {
+                id: this.options.classes.container
+            });
+            this.wrapper = createElement("div", {
+                class: this.options.classes.wrapper
+            });
+            this.menu = createElement("ul", {
+                class: this.options.classes.menu
+            });
+            if (this.options.menuItems && this.options.menuItems.length) {
+                this.options.menuItems.forEach(item => {
+                    const li = createElement("li", {
+                        class: item.separator ? this.options.classes.separator : this.options.classes.item
+                    });
+                    if (!item.separator) {
+                        const a = createElement("a", {
+                            class: this.options.classes.action,
+                            href: item.url || "#",
+                            html: typeof item.text === "function" ? item.text(this) : item.text
+                        });
+                        li.appendChild(a);
+                        if (item.action && typeof item.action === "function") {
+                            a.addEventListener("click", event => {
+                                event.preventDefault();
+                                item.action(this, event);
+                            });
+                        }
+                    }
+                    this.menu.appendChild(li);
+                });
+            }
+            this.wrapper.appendChild(this.menu);
+            this.container.appendChild(this.wrapper);
+            this.update();
+        }
+        this.data = {};
+        this.closed = true;
+        this.editing = false;
+        this.editingRow = false;
+        this.editingCell = false;
+        this.bindEvents();
+        setTimeout(() => {
+            this.initialized = true;
+            this.dataTable.emit("editable.init");
+        }, 10);
+    }
+
+    /**
+     * Bind events to DOM
+     * @return {Void}
+     */
+    bindEvents() {
+        this.events = {
+            context: this.context.bind(this),
+            update: this.update.bind(this),
+            dismiss: this.dismiss.bind(this),
+            keydown: this.keydown.bind(this),
+            click: this.click.bind(this)
+        };
+        // listen for click / double-click
+        this.dataTable.body.addEventListener(this.options.clickEvent, this.events.click);
+        // listen for click anywhere but the menu
+        document.addEventListener("click", this.events.dismiss);
+        // listen for right-click
+        document.addEventListener("keydown", this.events.keydown);
+        if (this.options.contextMenu) {
+            // listen for right-click
+
+            this.dataTable.body.addEventListener("contextmenu", this.events.context);
+            // reset
+            this.events.reset = debounce(this.events.update, 50);
+            window.addEventListener("resize", this.events.reset);
+            window.addEventListener("scroll", this.events.reset);
+        }
+    }
+
+    /**
+     * contextmenu listener
+     * @param  {Object} event Event
+     * @return {Void}
+     */
+    context(event) {
+        this.event = event;
+        const valid = this.dataTable.body.contains(event.target);
+        if (this.options.contextMenu && !this.disabled && valid) {
+            event.preventDefault();
+            // get the mouse position
+            let x = event.pageX;
+            let y = event.pageY;
+            // check if we're near the right edge of window
+            if (x > this.limits.x) {
+                x -= this.rect.width;
+            }
+            // check if we're near the bottom edge of window
+            if (y > this.limits.y) {
+                y -= this.rect.height;
+            }
+            this.wrapper.style.top = `${y}px`;
+            this.wrapper.style.left = `${x}px`;
+            this.openMenu();
+            this.update();
+        }
+    }
+
+    /**
+     * dblclick listener
+     * @param  {Object} event Event
+     * @return {Void}
+     */
+    click(event) {
+        if (!this.editing) {
+            const cell = event.target.closest("td");
+            if (cell) {
+                this.editCell(cell);
+                event.preventDefault();
+            }
+        }
+    }
+
+    /**
+     * keydown listener
+     * @param  {Object} event Event
+     * @return {Void}
+     */
+    keydown(event) {
+        if (this.editing && this.data) {
+            if (event.keyCode === 13) {
+                // Enter key saves
+                if (this.editingCell) {
+                    this.saveCell();
+                } else if (this.editingRow) {
+                    this.saveRow();
+                }
+            } else if (event.keyCode === 27) {
+                // Escape key reverts
+                this.saveCell(this.data.content);
+            }
+        }
+    }
+
+    /**
+     * Edit cell
+     * @param  {Object} cell    The HTMLTableCellElement
+     * @return {Void}
+     */
+    editCell(cell) {
+        const row = this.dataTable.body.rows[cell.parentNode.dataIndex];
+        cell = row.cells[cell.cellIndex];
+        this.data = {
+            cell,
+            content: cell.dataset.content || cell.innerHTML,
+            input: createElement("input", {
+                type: "text",
+                value: cell.dataset.content || cell.innerHTML,
+                class: this.options.classes.input
+            })
+        };
+        cell.innerHTML = "";
+        cell.appendChild(this.data.input);
+        setTimeout(() => {
+            this.data.input.focus();
+            this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length;
+            this.editing = true;
+            this.editingCell = true;
+            this.closeMenu();
+        }, 10);
+    }
+
+    /**
+     * Save edited cell
+     * @param  {Object} row    The HTMLTableCellElement
+     * @param  {String} value   Cell content
+     * @return {Void}
+     */
+    saveCell(value, cell) {
+        console.log({value,
+            cell});
+        cell = cell || this.data.cell;
+        value = value || this.data.input.value;
+        const oldData = this.data.content;
+        // Set the cell content
+        cell.innerHTML = value.trim();
+        this.data = {};
+        this.editing = this.editingCell = false;
+        this.dataTable.emit("editable.save.cell", value, oldData, cell);
+    }
+
+    /**
+     * Edit row
+     * @param  {Object} cell    The HTMLTableRowElement
+     * @return {Void}
+     */
+    editRow(row) {
+        row = row || this.event.target.closest("tr");
+        if (row.nodeName !== "TR" || this.editing) return
+        row = this.dataTable.dom.rows[row.dataIndex];
+        const template = [
+            `<div class='${this.options.classes.inner}'>`,
+            `<div class='${this.options.classes.header}'>`,
+            "<h4>Editing row</h4>",
+            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            " </div>",
+            `<div class='${this.options.classes.block}'>`,
+            `<form class='${this.options.classes.form}'>`,
+            `<div class='${this.options.classes.row}'>`,
+            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            "</div>",
+            "</form>",
+            "</div>",
+            "</div>"
+        ].join("");
+        const modal = createElement("div", {
+            class: this.options.classes.modal,
+            html: template
+        });
+        const inner = modal.firstElementChild;
+        const form = inner.lastElementChild.firstElementChild;
+        // Add the inputs for each cell
+        Array.from(row.cells).forEach((cell, i) => {
+            if (!cell.hidden || (cell.hidden && this.options.hiddenColumns)) {
+                form.insertBefore(createElement("div", {
+                    class: this.options.classes.row,
+                    html: [
+                        "<div class='datatable-editor-row'>",
+                        `<label class='${this.options.classes.label}'>${this.dataTable.dom.header.cells[i].content}</label>`,
+                        `<input class='${this.options.classes.input}' value='${cell.innerHTML}' type='text'>`,
+                        "</div>"
+                    ].join("")
+                }), form.lastElementChild);
+            }
+        });
+        this.modal = modal;
+        this.openModal();
+        // Grab the inputs
+        const inputs = Array.from(form.elements);
+        // Remove save button
+        inputs.pop();
+        this.data = {
+            row,
+            inputs
+        };
+        this.editing = true;
+        this.editingRow = true;
+        // Close / save
+        modal.addEventListener("click", event => {
+            if (event.target.hasAttribute("data-editor-close")) { // close button
+                this.closeModal();
+            } else if (event.target.hasAttribute("data-editor-save")) { // save button
+                // Save
+                this.saveRow();
+            }
+        });
+        this.closeMenu();
+    }
+
+    /**
+     * Save edited row
+     * @param  {Object} row    The HTMLTableRowElement
+     * @param  {Array} data   Cell data
+     * @return {Void}
+     */
+    saveRow(data, row) {
+        data = data || this.data.inputs.map(input => input.value.trim());
+        row = row || this.data.row;
+        // Store the old data for the emitter
+        const oldData = row.cells.map(cell => cell.innerHTML);
+        row.cells.forEach((cell, i) => {
+            cell.innerHTML = data[i];
+        });
+        this.closeModal();
+        this.dataTable.emit("editable.save.row", data, oldData, row);
+    }
+
+    /**
+     * Open the row editor modal
+     * @return {Void}
+     */
+    openModal() {
+        if (!this.editing && this.modal) {
+            document.body.appendChild(this.modal);
+        }
+    }
+
+    /**
+     * Close the row editor modal
+     * @return {Void}
+     */
+    closeModal() {
+        if (this.editing && this.modal) {
+            document.body.removeChild(this.modal);
+            this.modal = this.editing = this.editingRow = false;
+        }
+    }
+
+    /**
+     * Remove a row
+     * @param  {Number|Object} row The HTMLTableRowElement or dataIndex property
+     * @return {Void}
+     */
+    removeRow(row) {
+        if (!row) {
+            row = this.event.target.closest("tr");
+            if (row && row.dataIndex !== undefined) {
+                this.dataTable.rows().remove(row.dataIndex);
+                this.closeMenu();
+            }
+        } else {
+            // User passed a HTMLTableRowElement
+            if (row instanceof Element && row.nodeName === "TR" && row.dataIndex !== undefined) {
+                row = row.dataIndex;
+            }
+            this.dataTable.rows().remove(row);
+            this.closeMenu();
+        }
+    }
+
+    /**
+     * Update context menu position
+     * @return {Void}
+     */
+    update() {
+        const scrollX = window.scrollX || window.pageXOffset;
+        const scrollY = window.scrollY || window.pageYOffset;
+        this.rect = this.wrapper.getBoundingClientRect();
+        this.limits = {
+            x: window.innerWidth + scrollX - this.rect.width,
+            y: window.innerHeight + scrollY - this.rect.height
+        };
+    }
+
+    /**
+     * Dismiss the context menu
+     * @param  {Object} event Event
+     * @return {Void}
+     */
+    dismiss(event) {
+        console.log('dismiss');
+        let valid = true;
+        if (this.options.contextMenu) {
+            valid = !this.wrapper.contains(event.target);
+            if (this.editing) {
+                valid = !this.wrapper.contains(event.target) && event.target !== this.data.input;
+            }
+        }
+        if (valid) {
+            if (this.editingCell) {
+                // Revert
+                this.saveCell(this.data.content);
+            }
+            this.closeMenu();
+        }
+    }
+
+    /**
+     * Open the context menu
+     * @return {Void}
+     */
+    openMenu() {
+        if (this.options.contextMenu) {
+            document.body.appendChild(this.container);
+            this.closed = false;
+            this.dataTable.emit("editable.context.open");
+        }
+    }
+
+    /**
+     * Close the context menu
+     * @return {Void}
+     */
+    closeMenu() {
+        if (this.options.contextMenu && !this.closed) {
+            this.closed = true;
+            document.body.removeChild(this.container);
+            this.dataTable.emit("editable.context.close");
+        }
+    }
+
+    /**
+     * Destroy the instance
+     * @return {Void}
+     */
+    destroy() {
+        this.dataTable.body.removeEventListener(this.options.clickEvent, this.events.click);
+        this.dataTable.body.removeEventListener("contextmenu", this.events.context);
+        document.removeEventListener("click", this.events.dismiss);
+        document.removeEventListener("keydown", this.events.keydown);
+        window.removeEventListener("resize", this.events.reset);
+        window.removeEventListener("scroll", this.events.reset);
+        if (document.body.contains(this.container)) {
+            document.body.removeChild(this.container);
+        }
+        this.initialized = false;
+    }
+}
+
+const makeEditable = function(dataTable, options = {}) {
+    const editor = new Editor(dataTable, options);
+    if (dataTable.initialized) {
+        editor.init();
+    } else {
+        dataTable.on("datatable.init", () => editor.init());
+    }
+
+    return editor
+};
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 var dayjs_min = {exports: {}};
@@ -2758,5 +3249,5 @@ var date = /*#__PURE__*/Object.freeze({
     parseDate: parseDate
 });
 
-export { DataTable, convertCSV, convertJSON, createElement, exportCSV, exportJSON, exportSQL, exportTXT, isJson$1 as isJson, isObject };
+export { DataTable, convertCSV, convertJSON, createElement, exportCSV, exportJSON, exportSQL, exportTXT, isJson, isObject, makeEditable };
 //# sourceMappingURL=module.js.map

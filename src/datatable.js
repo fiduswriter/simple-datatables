@@ -69,8 +69,6 @@ export class DataTable {
 
         this.dom = dom
 
-        this.table = this.dom // For compatibility. Remove in version 4
-
         this.listeners = {
             onResize: event => this.onResize(event)
         }
@@ -102,19 +100,6 @@ export class DataTable {
         setTimeout(() => {
             this.emit("datatable.init")
             this.initialized = true
-
-            if (this.options.plugins) {
-                Object.entries(this.options.plugins).forEach(([plugin, options]) => {
-                    if (this[plugin] && typeof this[plugin] === "function") {
-                        this[plugin] = this[plugin](options, {createElement})
-
-                        // Init plugin
-                        if (options.enabled && this[plugin].init && typeof this[plugin].init === "function") {
-                            this[plugin].init()
-                        }
-                    }
-                })
-            }
         }, 10)
     }
 
