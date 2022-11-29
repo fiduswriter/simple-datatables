@@ -2727,11 +2727,17 @@ const defaultConfig = {
     menuItems: [
         {
             text: editor => editor.options.labels.editCell,
-            action: (editor, _event) => editor.editCell()
+            action: (editor, _event) => {
+                const cell = editor.event.target.closest("td");
+                return editor.editCell(cell)
+            }
         },
         {
             text: editor => editor.options.labels.editRow,
-            action: (editor, _event) => editor.editRow()
+            action: (editor, _event) => {
+                const row = editor.event.target.closest("tr");
+                return editor.editRow(row)
+            }
         },
         {
             separator: true
@@ -2740,7 +2746,8 @@ const defaultConfig = {
             text: editor => editor.options.labels.removeRow,
             action: (editor, _event) => {
                 if (confirm(editor.options.labels.reallyRemove)) {
-                    editor.removeRow();
+                    const row = editor.event.target.closest("tr");
+                    editor.removeRow(row);
                 }
             }
         }
@@ -3084,7 +3091,7 @@ class Editor {
         if (!row) {
             row = this.event.target.closest("tr");
             if (row && row.dataIndex !== undefined) {
-                this.dataTable.rows().remove(row.dataIndex);
+                this.dataTable.rows.remove(row.dataIndex);
                 this.closeMenu();
             }
         } else {
@@ -3092,7 +3099,7 @@ class Editor {
             if (row instanceof Element && row.nodeName === "TR" && row.dataIndex !== undefined) {
                 row = row.dataIndex;
             }
-            this.dataTable.rows().remove(row);
+            this.dataTable.rows.remove(row);
             this.closeMenu();
         }
     }

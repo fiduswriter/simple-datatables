@@ -141,23 +141,26 @@
 				menuItems: [
 					{
 						text: "<span class='mdi mdi-lead-pencil'></span> Edit Cell",
-						action: (editor) => {
-							editor.editCell();
-						}
+						action: (editor, _event) => {
+			                const cell = editor.event.target.closest("td")
+			                return editor.editCell(cell)
+			            }
 					},
 					{
 						text: "<span class='mdi mdi-lead-pencil'></span> Edit Row",
-						action: (editor) => {
-							editor.editRow()
-						}
+						action: (editor, _event) => {
+			                const row = editor.event.target.closest("tr")
+			                return editor.editRow(row)
+			            }
 					},
 					{
 						separator: true
 					},
 					{
 						text: "<span class='mdi mdi-delete'></span> Remove",
-						action: (editor) => {
+						action: (editor, _event) => {
 							if ( confirm("Are you sure?") ) {
+								const row = editor.event.target.closest("tr")
 								editor.removeRow()
 							}
 						}
