@@ -9,7 +9,7 @@ const isObject = val => Object.prototype.toString.call(val) === "[object Object]
  * @param  {String}   str
  * @return {Boolean|Array|Object}
  */
-const isJson = str => {
+const isJson$1 = str => {
     let t = !1;
     try {
         t = JSON.parse(str);
@@ -135,6 +135,560 @@ const truncate = (a, b, c, d, ellipsis) => {
 
     return i
 };
+
+/**
+ * Convert CSV data to fit the format used in the table.
+ * @param  {Object} userOptions User options
+ * @return {Boolean}
+ */
+function convertCSV(userOptions = {}) {
+    let obj = false;
+    const defaults = {
+        lineDelimiter: "\n",
+        columnDelimiter: ",",
+        removeDoubleQuotes: false
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    if (options.data.length || isObject(options.data)) {
+        // Import CSV
+        obj = {
+            data: []
+        };
+
+        // Split the string into rows
+        const rows = options.data.split(options.lineDelimiter);
+
+        if (rows.length) {
+
+            if (options.headings) {
+                obj.headings = rows[0].split(options.columnDelimiter);
+                if (options.removeDoubleQuotes) {
+                    obj.headings = obj.headings.map(e => e.trim().replace(/(^"|"$)/g, ""));
+                }
+                rows.shift();
+            }
+
+            rows.forEach((row, i) => {
+                obj.data[i] = [];
+
+                // Split the rows into values
+                const values = row.split(options.columnDelimiter);
+
+                if (values.length) {
+                    values.forEach(value => {
+                        if (options.removeDoubleQuotes) {
+                            value = value.trim().replace(/(^"|"$)/g, "");
+                        }
+                        obj.data[i].push(value);
+                    });
+                }
+            });
+        }
+
+        if (obj) {
+            return obj
+        }
+    }
+
+    return false
+}
+
+/**
+ * Convert JSON data to fit the format used in the table.
+ * @param  {Object} userOptions User options
+ * @return {Boolean}
+ */
+function convertJSON(userOptions = {}) {
+    let obj = false;
+    const defaults = {};
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    if (options.data.length || isObject(options.data)) {
+        // Import CSV
+        const json = isJson(options.data);
+
+        // Valid JSON string
+        if (json) {
+            obj = {
+                headings: [],
+                data: []
+            };
+
+            json.forEach((data, i) => {
+                obj.data[i] = [];
+                Object.entries(data).forEach(([column, value]) => {
+                    if (!obj.headings.includes(column)) {
+                        obj.headings.push(column);
+                    }
+
+                    obj.data[i].push(value);
+                });
+            });
+        } else {
+          console.warn("That's not valid JSON!");
+        }
+
+        if (obj) {
+            return obj
+        }
+    }
+
+    return false
+}
+
+/**
+ * Export table to CSV
+ * @param {DataTable} dataTable DataTable instance.
+ * @param {Object} userOptions User options
+ * @return {Boolean}
+ */
+function exportCSV(dataTable, userOptions = {}) {
+    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+
+    const headers = dataTable.activeHeadings;
+    let rows = [];
+    let i;
+    let x;
+    let str;
+    let link;
+
+    const defaults = {
+        download: true,
+        skipColumn: [],
+        lineDelimiter: "\n",
+        columnDelimiter: ",",
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    // Include headings
+    rows[0] = dataTable.header;
+
+    // Selection or whole table
+    if (options.selection) {
+        // Page number
+        if (!isNaN(options.selection)) {
+            rows = rows.concat(dataTable.pages[options.selection - 1]);
+        } else if (Array.isArray(options.selection)) {
+            // Array of page numbers
+            for (i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            }
+        }
+    } else {
+        rows = rows.concat(dataTable.activeRows);
+    }
+
+    // Only proceed if we have data
+    if (rows.length) {
+        str = "";
+
+        for (i = 0; i < rows.length; i++) {
+            for (x = 0; x < rows[i].cells.length; x++) {
+                // Check for column skip and visibility
+                if (
+                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                    dataTable.columns.visible(headers[x].originalCellIndex)
+                ) {
+                    let text = rows[i].cells[x].textContent;
+                    text = text.trim();
+                    text = text.replace(/\s{2,}/g, " ");
+                    text = text.replace(/\n/g, "  ");
+                    text = text.replace(/"/g, "\"\"");
+                    //have to manually encode "#" as encodeURI leaves it as is.
+                    text = text.replace(/#/g, "%23");
+                    if (text.includes(","))
+                        text = `"${text}"`;
+
+
+                    str += text + options.columnDelimiter;
+                }
+            }
+            // Remove trailing column delimiter
+            str = str.trim().substring(0, str.length - 1);
+
+            // Apply line delimiter
+            str += options.lineDelimiter;
+        }
+
+        // Remove trailing line delimiter
+        str = str.trim().substring(0, str.length - 1);
+
+        // Download
+        if (options.download) {
+            // Create a link to trigger the download
+            link = document.createElement("a");
+            link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`);
+            link.download = `${options.filename || "datatable_export"}.csv`;
+
+            // Append the link
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link
+            document.body.removeChild(link);
+        }
+
+        return str
+    }
+
+    return false
+}
+
+/**
+ * Export table to JSON
+ * @param {DataTable} dataTable DataTable instance.
+ * @param {Object} userOptions User options
+ * @return {Boolean}
+ */
+function exportJSON(dataTable, userOptions = {}) {
+    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+
+    const headers = dataTable.activeHeadings;
+    let rows = [];
+    const arr = [];
+    let i;
+    let x;
+    let str;
+    let link;
+
+    const defaults = {
+        download: true,
+        skipColumn: [],
+        replacer: null,
+        space: 4
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+
+    // Selection or whole table
+    if (options.selection) {
+        // Page number
+        if (!isNaN(options.selection)) {
+            rows = rows.concat(dataTable.pages[options.selection - 1]);
+        } else if (Array.isArray(options.selection)) {
+            // Array of page numbers
+            for (i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            }
+        }
+    } else {
+        rows = rows.concat(dataTable.activeRows);
+    }
+
+    // Only proceed if we have data
+    if (rows.length) {
+        // Iterate rows
+        for (x = 0; x < rows.length; x++) {
+            arr[x] = arr[x] || {};
+            // Iterate columns
+            for (i = 0; i < headers.length; i++) {
+                // Check for column skip and column visibility
+                if (
+                    !options.skipColumn.includes(headers[i].originalCellIndex) &&
+                    dataTable.columns.visible(headers[i].originalCellIndex)
+                ) {
+                    arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
+                }
+            }
+        }
+
+        // Convert the array of objects to JSON string
+        str = JSON.stringify(arr, options.replacer, options.space);
+
+        // Download
+        if (options.download) {
+            // Create a link to trigger the download
+            link = document.createElement("a");
+            link.href = encodeURI(`data:application/json;charset=utf-8,${str}`);
+            link.download = `${options.filename || "datatable_export"}.json`;
+
+            // Append the link
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link
+            document.body.removeChild(link);
+        }
+
+        return str
+    }
+
+    return false
+}
+
+/**
+ * Export table to SQL
+ * @param {DataTable} dataTable DataTable instance.
+ * @param {Object} userOptions User options
+ * @return {Boolean}
+ */
+function exportSQL(dataTable, userOptions = {}) {
+    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+
+    const headers = dataTable.activeHeadings;
+    let rows = [];
+    let i;
+    let x;
+    let str;
+    let link;
+
+    const defaults = {
+        download: true,
+        skipColumn: [],
+        tableName: "myTable",
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    // Selection or whole table
+    if (options.selection) {
+        // Page number
+        if (!isNaN(options.selection)) {
+            rows = rows.concat(dataTable.pages[options.selection - 1]);
+        } else if (Array.isArray(options.selection)) {
+            // Array of page numbers
+            for (i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            }
+        }
+    } else {
+        rows = rows.concat(dataTable.activeRows);
+    }
+
+    // Only proceed if we have data
+    if (rows.length) {
+        // Begin INSERT statement
+        str = `INSERT INTO \`${options.tableName}\` (`;
+
+        // Convert table headings to column names
+        for (i = 0; i < headers.length; i++) {
+            // Check for column skip and column visibility
+            if (
+                !options.skipColumn.includes(headers[i].originalCellIndex) &&
+                dataTable.columns.visible(headers[i].originalCellIndex)
+            ) {
+                str += `\`${headers[i].textContent}\`,`;
+            }
+        }
+
+        // Remove trailing comma
+        str = str.trim().substring(0, str.length - 1);
+
+        // Begin VALUES
+        str += ") VALUES ";
+
+        // Iterate rows and convert cell data to column values
+        for (i = 0; i < rows.length; i++) {
+            str += "(";
+
+            for (x = 0; x < rows[i].cells.length; x++) {
+                // Check for column skip and column visibility
+                if (
+                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                    dataTable.columns.visible(headers[x].originalCellIndex)
+                ) {
+                    str += `"${rows[i].cells[x].textContent}",`;
+                }
+            }
+
+            // Remove trailing comma
+            str = str.trim().substring(0, str.length - 1);
+
+            // end VALUES
+            str += "),";
+        }
+
+        // Remove trailing comma
+        str = str.trim().substring(0, str.length - 1);
+
+        // Add trailing colon
+        str += ";";
+
+        if (options.download) {
+            str = `data:application/sql;charset=utf-8,${str}`;
+        }
+
+        // Download
+        if (options.download) {
+            // Create a link to trigger the download
+            link = document.createElement("a");
+            link.href = encodeURI(str);
+            link.download = `${options.filename || "datatable_export"}.sql`;
+
+            // Append the link
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link
+            document.body.removeChild(link);
+        }
+
+        return str
+    }
+
+    return false
+}
+
+/**
+ * Export table to TXT
+ * @param {DataTable} dataTable DataTable instance.
+ * @param {Object} userOptions User options
+ * @return {Boolean}
+ */
+function exportTXT(dataTable, userOptions = {}) {
+    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+
+    const headers = dataTable.activeHeadings;
+    let rows = [];
+    let i;
+    let x;
+    let str;
+    let link;
+
+    const defaults = {
+        download: true,
+        skipColumn: [],
+    };
+
+    // Check for the options object
+    if (!isObject(userOptions)) {
+        return false
+    }
+
+    const options = {
+        ...defaults,
+        ...userOptions
+    };
+
+    // Include headings
+    rows[0] = dataTable.header;
+
+    // Selection or whole table
+    if (options.selection) {
+        // Page number
+        if (!isNaN(options.selection)) {
+            rows = rows.concat(dataTable.pages[options.selection - 1]);
+        } else if (Array.isArray(options.selection)) {
+            // Array of page numbers
+            for (i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            }
+        }
+    } else {
+        rows = rows.concat(dataTable.activeRows);
+    }
+
+    // Only proceed if we have data
+    if (rows.length) {
+        str = "";
+
+        for (i = 0; i < rows.length; i++) {
+            for (x = 0; x < rows[i].cells.length; x++) {
+                // Check for column skip and visibility
+                if (
+                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
+                    dataTable.columns.visible(headers[x].originalCellIndex)
+                ) {
+                    let text = rows[i].cells[x].textContent;
+                    text = text.trim();
+                    text = text.replace(/\s{2,}/g, " ");
+                    text = text.replace(/\n/g, "  ");
+                    text = text.replace(/"/g, "\"\"");
+                    //have to manually encode "#" as encodeURI leaves it as is.
+                    text = text.replace(/#/g, "%23");
+                    if (text.includes(","))
+                        text = `"${text}"`;
+
+
+                    str += text + options.columnDelimiter;
+                }
+            }
+            // Remove trailing column delimiter
+            str = str.trim().substring(0, str.length - 1);
+
+            // Apply line delimiter
+            str += options.lineDelimiter;
+        }
+
+        // Remove trailing line delimiter
+        str = str.trim().substring(0, str.length - 1);
+
+        if (options.download) {
+            str = `data:text/csv;charset=utf-8,${str}`;
+        }
+        // Download
+        if (options.download) {
+            // Create a link to trigger the download
+            link = document.createElement("a");
+            link.href = encodeURI(str);
+            link.download = `${options.filename || "datatable_export"}.txt`;
+
+            // Append the link
+            document.body.appendChild(link);
+
+            // Trigger the download
+            link.click();
+
+            // Remove the link
+            document.body.removeChild(link);
+        }
+
+        return str
+    }
+
+    return false
+}
 
 /**
  * Rows API
@@ -2032,311 +2586,6 @@ class DataTable {
     }
 
     /**
-     * Export table to various formats (csv, txt or sql)
-     * @param  {Object} userOptions User options
-     * @return {Boolean}
-     */
-    export(userOptions) {
-        if (!this.hasHeadings && !this.hasRows) return false
-
-        const headers = this.activeHeadings;
-        let rows = [];
-        const arr = [];
-        let i;
-        let x;
-        let str;
-        let link;
-
-        const defaults = {
-            download: true,
-            skipColumn: [],
-
-            // csv
-            lineDelimiter: "\n",
-            columnDelimiter: ",",
-
-            // sql
-            tableName: "myTable",
-
-            // json
-            replacer: null,
-            space: 4
-        };
-
-        // Check for the options object
-        if (!isObject(userOptions)) {
-            return false
-        }
-
-        const options = {
-            ...defaults,
-            ...userOptions
-        };
-
-        if (options.type) {
-            if (options.type === "txt" || options.type === "csv") {
-                // Include headings
-                rows[0] = this.header;
-            }
-
-            // Selection or whole table
-            if (options.selection) {
-                // Page number
-                if (!isNaN(options.selection)) {
-                    rows = rows.concat(this.pages[options.selection - 1]);
-                } else if (Array.isArray(options.selection)) {
-                    // Array of page numbers
-                    for (i = 0; i < options.selection.length; i++) {
-                        rows = rows.concat(this.pages[options.selection[i] - 1]);
-                    }
-                }
-            } else {
-                rows = rows.concat(this.activeRows);
-            }
-
-            // Only proceed if we have data
-            if (rows.length) {
-                if (options.type === "txt" || options.type === "csv") {
-                    str = "";
-
-                    for (i = 0; i < rows.length; i++) {
-                        for (x = 0; x < rows[i].cells.length; x++) {
-                            // Check for column skip and visibility
-                            if (
-                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                                this.columns.visible(headers[x].originalCellIndex)
-                            ) {
-                                let text = rows[i].cells[x].textContent;
-                                text = text.trim();
-                                text = text.replace(/\s{2,}/g, " ");
-                                text = text.replace(/\n/g, "  ");
-                                text = text.replace(/"/g, "\"\"");
-                                //have to manually encode "#" as encodeURI leaves it as is.
-                                text = text.replace(/#/g, "%23");
-                                if (text.includes(","))
-                                    text = `"${text}"`;
-
-
-                                str += text + options.columnDelimiter;
-                            }
-                        }
-                        // Remove trailing column delimiter
-                        str = str.trim().substring(0, str.length - 1);
-
-                        // Apply line delimiter
-                        str += options.lineDelimiter;
-                    }
-
-                    // Remove trailing line delimiter
-                    str = str.trim().substring(0, str.length - 1);
-
-                    if (options.download) {
-                        str = `data:text/csv;charset=utf-8,${str}`;
-                    }
-                } else if (options.type === "sql") {
-                    // Begin INSERT statement
-                    str = `INSERT INTO \`${options.tableName}\` (`;
-
-                    // Convert table headings to column names
-                    for (i = 0; i < headers.length; i++) {
-                        // Check for column skip and column visibility
-                        if (
-                            !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                            this.columns.visible(headers[i].originalCellIndex)
-                        ) {
-                            str += `\`${headers[i].textContent}\`,`;
-                        }
-                    }
-
-                    // Remove trailing comma
-                    str = str.trim().substring(0, str.length - 1);
-
-                    // Begin VALUES
-                    str += ") VALUES ";
-
-                    // Iterate rows and convert cell data to column values
-                    for (i = 0; i < rows.length; i++) {
-                        str += "(";
-
-                        for (x = 0; x < rows[i].cells.length; x++) {
-                            // Check for column skip and column visibility
-                            if (
-                                !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                                this.columns.visible(headers[x].originalCellIndex)
-                            ) {
-                                str += `"${rows[i].cells[x].textContent}",`;
-                            }
-                        }
-
-                        // Remove trailing comma
-                        str = str.trim().substring(0, str.length - 1);
-
-                        // end VALUES
-                        str += "),";
-                    }
-
-                    // Remove trailing comma
-                    str = str.trim().substring(0, str.length - 1);
-
-                    // Add trailing colon
-                    str += ";";
-
-                    if (options.download) {
-                        str = `data:application/sql;charset=utf-8,${str}`;
-                    }
-                } else if (options.type === "json") {
-                    // Iterate rows
-                    for (x = 0; x < rows.length; x++) {
-                        arr[x] = arr[x] || {};
-                        // Iterate columns
-                        for (i = 0; i < headers.length; i++) {
-                            // Check for column skip and column visibility
-                            if (
-                                !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                                this.columns.visible(headers[i].originalCellIndex)
-                            ) {
-                                arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
-                            }
-                        }
-                    }
-
-                    // Convert the array of objects to JSON string
-                    str = JSON.stringify(arr, options.replacer, options.space);
-
-                    if (options.download) {
-                        str = `data:application/json;charset=utf-8,${str}`;
-                    }
-                }
-
-                // Download
-                if (options.download) {
-                    // Filename
-                    options.filename = options.filename || "datatable_export";
-                    options.filename += `.${options.type}`;
-
-                    str = encodeURI(str);
-
-                    // Create a link to trigger the download
-                    link = document.createElement("a");
-                    link.href = str;
-                    link.download = options.filename;
-
-                    // Append the link
-                    document.body.appendChild(link);
-
-                    // Trigger the download
-                    link.click();
-
-                    // Remove the link
-                    document.body.removeChild(link);
-                }
-
-                return str
-            }
-        }
-
-        return false
-    }
-
-    /**
-     * Import data to the table
-     * @param  {Object} userOptions User options
-     * @return {Boolean}
-     */
-    import(userOptions) {
-        let obj = false;
-        const defaults = {
-            // csv
-            lineDelimiter: "\n",
-            columnDelimiter: ",",
-            removeDoubleQuotes: false
-        };
-
-        // Check for the options object
-        if (!isObject(userOptions)) {
-            return false
-        }
-
-        const options = {
-            ...defaults,
-            ...userOptions
-        };
-
-        if (options.data.length || isObject(options.data)) {
-            // Import CSV
-            if (options.type === "csv") {
-                obj = {
-                    data: []
-                };
-
-                // Split the string into rows
-                const rows = options.data.split(options.lineDelimiter);
-
-                if (rows.length) {
-
-                    if (options.headings) {
-                        obj.headings = rows[0].split(options.columnDelimiter);
-                        if (options.removeDoubleQuotes) {
-                            obj.headings = obj.headings.map(e => e.trim().replace(/(^"|"$)/g, ""));
-                        }
-                        rows.shift();
-                    }
-
-                    rows.forEach((row, i) => {
-                        obj.data[i] = [];
-
-                        // Split the rows into values
-                        const values = row.split(options.columnDelimiter);
-
-                        if (values.length) {
-                            values.forEach(value => {
-                                if (options.removeDoubleQuotes) {
-                                    value = value.trim().replace(/(^"|"$)/g, "");
-                                }
-                                obj.data[i].push(value);
-                            });
-                        }
-                    });
-                }
-            } else if (options.type === "json") {
-                const json = isJson(options.data);
-
-                // Valid JSON string
-                if (json) {
-                    obj = {
-                        headings: [],
-                        data: []
-                    };
-
-                    json.forEach((data, i) => {
-                        obj.data[i] = [];
-                        Object.entries(data).forEach(([column, value]) => {
-                            if (!obj.headings.includes(column)) {
-                                obj.headings.push(column);
-                            }
-
-                            obj.data[i].push(value);
-                        });
-                    });
-                } //else {
-                // console.warn("That's not valid JSON!")
-                //}
-            }
-
-            if (isObject(options.data)) {
-                obj = options.data;
-            }
-
-            if (obj) {
-                // Add the rows
-                this.insert(obj);
-            }
-        }
-
-        return false
-    }
-
-    /**
      * Print the table
      * @return {void}
      */
@@ -2509,5 +2758,5 @@ var date = /*#__PURE__*/Object.freeze({
     parseDate: parseDate
 });
 
-export { DataTable };
+export { DataTable, convertCSV, convertJSON, createElement, exportCSV, exportJSON, exportSQL, exportTXT, isJson$1 as isJson, isObject };
 //# sourceMappingURL=module.js.map

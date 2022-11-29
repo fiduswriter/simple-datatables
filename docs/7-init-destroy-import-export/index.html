@@ -137,10 +137,23 @@
 
   <!-- CDN -->
   <script src="../dist/umd.js"></script>
-  <script src="utils.js"></script>
 
   <!-- Custom Code -->
   <script>
+    function createElement(a, b) {
+      var c = document,
+        d = c.createElement(a);
+      if (b && "object" == typeof b) {
+        var e;
+        for (e in b)
+          if ("html" === e) d.innerHTML = b[e];
+          else if ("text" === e) {
+          var f = c.createTextNode(b[e]);
+          d.appendChild(f);
+        } else d.setAttribute(e, b[e]);
+      }
+      return d;
+    }
     const table = document.getElementsByTagName("table")[0];
     const textarea = document.getElementsByTagName("textarea")[0];
     const div = document.getElementById("data");
@@ -170,10 +183,10 @@
       visible = [];
       checkboxes.innerHTML = "";
 
-      util.each(datatable.headings, function(i, heading) {
-        const checkbox = util.createElement("div", { class: "checkbox" });
-        const input = util.createElement("input", { type: "checkbox", id: "checkbox-" + i, name: "checkbox" });
-        const label = util.createElement("label", { for: "checkbox-" + i, text: heading.textContent });
+      datatable.headings.forEach((heading, i) => {
+        const checkbox = createElement("div", { class: "checkbox" });
+        const input = createElement("input", { type: "checkbox", id: "checkbox-" + i, name: "checkbox" });
+        const label = createElement("label", { for: "checkbox-" + i, text: heading.textContent });
 
         input.idx = i;
 
@@ -194,7 +207,7 @@
         inputs.push(input);
       });
 
-      util.each(inputs, function(i, input) {
+      inputs.forEach((input, i) => {
 
           input.onchange = function(e) {
             if ( input.checked ) {
@@ -229,7 +242,7 @@
           data.columnDelimiter = "|";
         }
 
-        datatable.export(data);
+        simpleDatatables.exportData(datatable, data);
       });
     });
 
@@ -259,8 +272,8 @@
           return false;
         }
 
-
-        datatable.import(data);
+        const convertedData = simpleDatatables.convertData(data);
+        datatable.insert(convertedData);
       });
     });
   </script>

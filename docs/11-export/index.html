@@ -132,38 +132,100 @@
   <button class="sql">Export SQL</button>
   <button class="txt">Export TXT</button>
   <button class="json">Export JSON</button>
+  <button class="custom">Export Custom</button>
 
   <script type="module">
-    import {DataTable} from "../dist/module.js"
+    import {DataTable, isObject, exportJSON, exportCSV, exportTXT, exportSQL} from "../dist/module.js"
+
+    function exportCustomCSV(dataTable, userOptions = {}) {
+      // A modified CSV export that includes a row of minuses at the start and end.
+      const clonedUserOptions = Object.assign({}, userOptions)
+      clonedUserOptions.download = false
+      const csv = exportCSV(dataTable, clonedUserOptions)
+
+      // If CSV didn't work, exit.
+      if (!csv) {
+        return false
+      }
+
+      const defaults = {
+        download: true,
+        lineDelimiter: "\n",
+        columnDelimiter: ";",
+      }
+
+      const options = {
+        ...defaults,
+        ...clonedUserOptions
+      }
+
+      const separatorRow = Array(dataTable.activeHeadings.length).fill('-').join(options.columnDelimiter)
+      const str = `${separatorRow}${options.lineDelimiter}${csv}${options.lineDelimiter}${separatorRow}`
+
+      if (options.download) {
+        // Create a link to trigger the download
+        link = document.createElement("a")
+        link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`)
+        link.download = `${options.filename || "datatable_export"}.txt`
+
+        // Append the link
+        document.body.appendChild(link)
+
+        // Trigger the download
+        link.click()
+
+        // Remove the link
+        document.body.removeChild(link)
+      }
+
+      return str
+    }
+
     const table = new DataTable("table")
     document.querySelector("button.csv").addEventListener("click", () => {
-        table.export({
-            type:"csv",
-            download: true,
-            lineDelimiter: "\n\n",
-            columnDelimiter: ";"
-        })
+      exportCSV(
+        table,
+        {
+          download: true,
+          lineDelimiter: "\n\n",
+          columnDelimiter: ";"
+        }
+      )
     })
     document.querySelector("button.sql").addEventListener("click", () => {
-        table.export({
-            type:"sql",
-            download: true,
-            tableName: "export_table"
-        })
+      exportSQL(
+        table,
+        {
+          download: true,
+          tableName: "export_table"
+        }
+      )
     })
     document.querySelector("button.txt").addEventListener("click", () => {
-        table.export({
-            type:"txt",
-            download: true,
-        })
+      exportTXT(
+        table,
+        {
+          download: true,
+        }
+      )
     })
     document.querySelector("button.json").addEventListener("click", () => {
-        table.export({
-            type:"json",
-            download: true,
-            escapeHTML: true,
-            space: 3
-        })
+      exportJSON(
+        table,
+        {
+          download: true,
+          escapeHTML: true,
+          space: 3
+        }
+      )
+    })
+    document.querySelector("button.custom").addEventListener("click", () => {
+      exportCustomCSV(
+        table,
+        {
+          download: true
+        }
+      )
     })
   </script>
 </body>
