@@ -232,7 +232,7 @@ export class Editor {
      */
     editRow(row) {
         row = row || this.event.target.closest("tr")
-        if (row.nodeName !== "TR" || this.editing) return
+        if (!row || row.nodeName !== "TR" || this.editing) return
         row = this.dataTable.dom.rows[row.dataIndex]
         const template = [
             `<div class='${this.options.classes.inner}'>`,
