@@ -102,7 +102,7 @@ export class Rows {
                 dt.data.splice(row, 1)
             })
         } else if (select == "all") {
-            dt.data = [];
+            dt.data = []
         } else {
             dt.data.splice(select, 1)
         }

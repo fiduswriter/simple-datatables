@@ -280,7 +280,7 @@ export class Columns {
 
             dt.filterState[column] = (
                 function() {
-                    let i = 0;
+                    let i = 0
                     return () => filters[i++ % (filters.length)]
                 }()
             )
@@ -293,7 +293,7 @@ export class Columns {
             const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText
 
             // If the filter is a function, call it, if it is a string, compare it
-            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter;
+            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter
         })
 
         dt.data = filteredRows
@@ -331,7 +331,7 @@ export class Columns {
               dt.options.filters[dt.headings[column].textContent]
         if ( filterTerms && filterTerms.length !== 0 ) {
             this.filter(column, dir, init, filterTerms)
-            return;
+            return
         }
 
         dt.sorting = true

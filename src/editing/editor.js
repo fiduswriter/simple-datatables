@@ -180,8 +180,8 @@ export class Editor {
      */
     editCell(cell) {
         if (this.options.excludeColumns.includes(cell.cellIndex)) {
-          this.closeMenu()
-          return;
+            this.closeMenu()
+            return
         }
         const row = this.dataTable.body.rows[cell.parentNode.dataIndex]
         cell = row.cells[cell.cellIndex]

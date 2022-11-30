@@ -1,4 +1,15 @@
 module.exports = {
+    "plugins": [
+        "html",
+        "@html-eslint"
+    ],
+    "overrides": [
+        {
+            "files": ["*.html"],
+            "parser": "@html-eslint/parser",
+            "extends": ["plugin:@html-eslint/recommended"],
+        }
+    ],
     "env": {
         "browser": true,
         "es6": true
@@ -95,7 +106,7 @@ module.exports = {
             "beside"
         ],
         "indent": "error",
-        "indent-legacy": "error",
+        "indent-legacy": "off",
         "init-declarations": "off",
         "jsx-quotes": "error",
         "key-spacing": "error",
@@ -135,12 +146,12 @@ module.exports = {
         "new-parens": "error",
         "newline-after-var": "off",
         "newline-before-return": "off",
-        "newline-per-chained-call": "error",
+        "newline-per-chained-call": "off",
         "no-alert": "off",
         "no-array-constructor": "error",
         "no-async-promise-executor": "error",
         "no-await-in-loop": "error",
-        "no-bitwise": "error",
+        "no-bitwise": "off",
         "no-buffer-constructor": "error",
         "no-caller": "error",
         "no-catch-shadow": "error",
@@ -184,7 +195,7 @@ module.exports = {
         "no-negated-condition": "off",
         "no-negated-in-lhs": "error",
         "no-nested-ternary": "error",
-        "no-new": "error",
+        "no-new": "off",
         "no-new-func": "error",
         "no-new-object": "error",
         "no-new-require": "error",
@@ -276,7 +287,7 @@ module.exports = {
         "require-jsdoc": "error",
         "require-unicode-regexp": "off",
         "rest-spread-spacing": "error",
-        "semi": "off",
+        "semi": ["error", "never"],
         "semi-spacing": [
             "error",
             {

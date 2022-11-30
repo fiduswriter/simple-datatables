@@ -1,119 +1,97 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-  <title>Column Manipulation</title>
-
-  <!-- DataTable Styles -->
-  <link rel="stylesheet" href="../dist/css/style.css">
-
-  <!-- Demo Styles -->
-  <link rel="stylesheet" href="../demo.css">
-</head>
-<body>
-  <h1>Column Manipulation</h1>
-  <table class="table"></table>
-
-  <!-- Custom Code -->
-  <script type="module">
-    import {DataTable} from "../dist/module.js"
-    const columnData = [{
-      // Select the first column ...
-      select: 0,
-
-      // ...add a random number (age) to the cells
-      render: data => `${data} (${(~~(Math.random() * (70 - 18) + 18))})`
-    }, {
-      // select the fourth column ...
-      select: 3,
-
-      // ... let the instance know we have datetimes in it ...
-      type: "date",
-
-      // ... pass the correct datetime format ...
-      format: "YYYY/DD/MM",
-
-      // ... sort it ...
-      sort: "desc",
-    }]
-
-    // Customise our labels
-    const labelData = {
-      placeholder: "Search students...",
-      perPage: "Show {select} students per page",
-      noRows: "No students to display",
-      info: "Showing {start} to {end} of {rows} students (Page {page} of {pages} pages)"
-    }
-
-    // Instantiate
-    fetch("datatable.json").then(
-      response => response.json()
-    ).then(data => {
-      const datatable = new DataTable("table", {
-        data: {
-          headings: Object.keys(data[0]),
-          data: data.map(item => Object.values(item))
-        },
-        columns: columnData,
-        labels: labelData
-      })
-
-      // Wait for the instance to finish rendering
-      // and add a new column
-      datatable.on("datatable.init", () => {
-
-        fetch("datatable.column.json").then(response => response.json())
-          .then(column => {
-
-            // Render a button
-            column.render =  (data, cell, row) => {
-              // the dataIndex property is the correct index of the row in the data array, not the rowIndex
-              // which will be -1 if not rendered or wrong if the we're not on page 1
-              return data + `<button type='button' data-id='${row.dataIndex}' class='btn btn-sm btn-primary pull-right notify'>Click Me</button>`
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+        <title>Column Manipulation</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+    </head>
+    <body>
+        <h1>Column Manipulation</h1>
+        <table class="table"></table>
+        <!-- Custom Code -->
+        <script type="module">
+            import {
+                DataTable
+            } from "../dist/module.js"
+            const columnData = [
+                {
+                // Select the first column ...
+                    select: 0,
+                    // ...add a random number (age) to the cells
+                    render: data => `${data} (${(Math.floor(Math.random() * (70-18))+18)})`
+                }, {
+                // select the fourth column ...
+                    select: 3,
+                    // ... let the instance know we have datetimes in it ...
+                    type: "date",
+                    // ... pass the correct datetime format ...
+                    format: "YYYY/DD/MM",
+                    // ... sort it ...
+                    sort: "desc"
+                }
+            ]
+            // Customise our labels
+            const labelData = {
+                placeholder: "Search students...",
+                perPage: "Show {select} students per page",
+                noRows: "No students to display",
+                info: "Showing {start} to {end} of {rows} students (Page {page} of {pages} pages)"
             }
-
-            datatable.columns.add(column)
-          })
-      })
-
-      datatable.body.addEventListener("click", e => {
-
-        if (e.target.nodeName === "BUTTON") {
-
-          const index = parseInt(e.target.getAttribute("data-id"), 10)
-          const row = datatable.activeRows[index]
-          let message = [
-            "This is row ",
-            (row.rowIndex),
-            " of ",
-            datatable.options.perPage,
-            " rendered rows and row ",
-            (index + 1),
-            " of ",
-            datatable.data.length,
-            " total rows."
-          ]
-
-          const data = [].slice.call(row.cells).map(cell => cell.data)
-
-          message = message.join("")
-
-          message = message + "\n\nThe row data is:\n" + JSON.stringify(data)
-
-          alert(message)
-        }
-      })
-
-      datatable.on("datatable.sort", () => {
-        // Update the ids on the buttons
-        datatable.activeRows.forEach(row => {
-          row.cells[row.cells.length - 1].lastElementChild.setAttribute("data-id", row.dataIndex)
-        })
-      })
-
-    })
-  </script>
-</body>
+            // Instantiate
+            fetch("datatable.json").then(
+                response => response.json()
+            ).then(
+                data => {
+                    const datatable = new DataTable("table", {
+                        data: {
+                            headings: Object.keys(data[0]),
+                            data: data.map(item => Object.values(item))
+                        },
+                        columns: columnData,
+                        labels: labelData
+                    })
+                    // Wait for the instance to finish rendering
+                    // and add a new column
+                    datatable.on("datatable.init", () => {
+                        fetch("datatable.column.json").then(response => response.json())
+                            .then(column => {
+                                // Render a button
+                                column.render = (data, cell, row) => `${data}<button type='button' data-id='${row.dataIndex}' class='btn btn-sm btn-primary pull-right notify'>Click Me</button>`
+                                // the dataIndex property is the correct index of the row in the data array, not the rowIndex
+                                // which will be -1 if not rendered or wrong if the we're not on page 1
+                                datatable.columns.add(column)
+                            })
+                    })
+                    datatable.body.addEventListener("click", e => {
+                        if (e.target.nodeName === "BUTTON") {
+                            const index = parseInt(e.target.getAttribute("data-id"), 10)
+                            const row = datatable.activeRows[index]
+                            let message = [
+                                "This is row ",
+                                (row.rowIndex), " of ",
+                                datatable.options.perPage, " rendered rows and row ",
+                                (index + 1), " of ",
+                                datatable.data.length, " total rows."
+                            ]
+                            const data = [].slice.call(row.cells).map(cell => cell.data)
+                            message = message.join("")
+                            message = `${message}\n\nThe row data is:\n${JSON.stringify(data)}`
+                            alert(message)
+                        }
+                    })
+                    datatable.on("datatable.sort", () => {
+                    // Update the ids on the buttons
+                        datatable.activeRows.forEach(row => {
+                            row.cells[row.cells.length - 1].lastElementChild.setAttribute("data-id", row.dataIndex)
+                        })
+                    })
+                }
+            )
+        </script>
+    </body>
 </html>

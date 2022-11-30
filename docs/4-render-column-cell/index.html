@@ -1,124 +1,144 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-  <title>Render Column Cells</title>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+        <title>Render Column Cells</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+        <!-- Custom Styles -->
+        <style>
+            tr.yes .icon {
+                color: red;
+            }
 
-  <!-- DataTable Styles -->
-  <link rel="stylesheet" href="../dist/css/style.css">
+            tr.no .icon {
+                color: limegreen;
+            }
 
-  <!-- Demo Styles -->
-  <link rel="stylesheet" href="../demo.css">
+            tr.yes b {
+                color: limegreen;
+            }
 
-  <!-- Custom Styles -->
-  <style>
-    tr.yes .icon 	{ color: red; }
-    tr.no .icon 	{ color: limegreen; }
-    tr.yes b  { color: limegreen; }
-    tr.no b 	{ color: red; }
+            tr.no b {
+                color: red;
+            }
 
-    .currency {  }
-    .currency:before { content: "$" }
+            .currency {}
 
-    .currency--profit { color: limegreen; }
-    .currency--loss 	{ color: red; }
-    .currency--zero 	{ color: gray; }
-  </style>
-</head>
-<body>
-  <h1>Render Column Cells</h1>
-  <table id="drinks"></table>
+            .currency:before {
+                content: "$"
+            }
 
-  <!-- CDN -->
-  <script src="../dist/umd.js"></script>
+            .currency--profit {
+                color: limegreen;
+            }
 
-  <!-- Custom Code -->
-  <script>
-  const data = {
-    headings: ['ID', 'Drink', 'Price', 'Caffeinated', 'Profit'],
-    data: [
-      [574, 'latte',      4.00, false, 0.00],
-      [984, 'herbal tea', 3.00, false, 0.56],
-      [312, 'green tea',  3.00, true,  1.72],
-      [312, 'latte',  		3.00, true,  -1.21],
-      [312, 'green tea',  3.00, false, 0.00],
-      [312, 'green tea',  3.00, false, 0.00],
-      [312, 'green tea',  3.00, true,  1.72],
-      [312, 'latte',  		3.00, true,  1.72],
-      [312, 'green tea',  3.00, true,  -1.21],
-      [312, 'green tea',  3.00, false, 0.00],
-      [312, 'green tea',  3.00, true,  1.72],
-      [312, 'green tea',  3.00, true,  1.72],
-      [312, 'latte',  		3.00, false, 0.00],
-      [312, 'latte',  		3.00, true,  1.72],
-      [312, 'green tea',  3.00, false, 0.00],
-      [312, 'green tea',  3.00, true,  1.72],
-      [312, 'latte',  		3.00, false, 0.00],
-      [312, 'latte',  		3.00, true,  -1.21],
-      [312, 'latte',  		3.00, true,  1.72],
-      [312, 'latte',  		3.00, false, 0.00],
-      [312, 'latte',  		3.00, false, 0.00],
-      [312, 'latte',  		3.00, true,  1.72],
-      [312, 'green tea',  3.00, true,  -1.21],
-      [312, 'green tea',  3.00, true,  -1.21],
-      [312, 'green tea',  3.00, true,  -1.21],
+            .currency--loss {
+                color: red;
+            }
+
+            .currency--zero {
+                color: gray;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Render Column Cells</h1>
+        <table id="drinks"></table>
+        <!-- CDN -->
+        <script src="../dist/umd.js"></script>
+        <!-- Custom Code -->
+        <script>
+            const data = {
+                headings: ["ID", "Drink", "Price", "Caffeinated", "Profit"],
+                data: [
+                    [574, "latte", 4.00, false, 0.00],
+                    [984, "herbal tea", 3.00, false, 0.56],
+                    [312, "green tea", 3.00, true, 1.72],
+                    [312, "latte", 3.00, true, -1.21],
+                    [312, "green tea", 3.00, false, 0.00],
+                    [312, "green tea", 3.00, false, 0.00],
+                    [312, "green tea", 3.00, true, 1.72],
+                    [312, "latte", 3.00, true, 1.72],
+                    [312, "green tea", 3.00, true, -1.21],
+                    [312, "green tea", 3.00, false, 0.00],
+                    [312, "green tea", 3.00, true, 1.72],
+                    [312, "green tea", 3.00, true, 1.72],
+                    [312, "latte", 3.00, false, 0.00],
+                    [312, "latte", 3.00, true, 1.72],
+                    [312, "green tea", 3.00, false, 0.00],
+                    [312, "green tea", 3.00, true, 1.72],
+                    [312, "latte", 3.00, false, 0.00],
+                    [312, "latte", 3.00, true, -1.21],
+                    [312, "latte", 3.00, true, 1.72],
+                    [312, "latte", 3.00, false, 0.00],
+                    [312, "latte", 3.00, false, 0.00],
+                    [312, "latte", 3.00, true, 1.72],
+                    [312, "green tea", 3.00, true, -1.21],
+                    [312, "green tea", 3.00, true, -1.21],
+                    [312, "green tea", 3.00, true, -1.21]
+                ]
+            }
+            // Add Icon
+            const renderIcon = function(data, _cell, _row) {
+                if (data == "latte") {
+                    return `🔥 ${data}`
+                }
+                return `🌿 ${data}`
+            }
+            // Price column cell manipulation
+            const renderButton = function(data, _cell, row) {
+                return `${data}<button data-row="${row.dataIndex}">Buy Now</button>`
+            }
+            // Caffeinated column cell manipulation
+            const renderYesNo = function(data, _cell, row) {
+                if (data == "true") {
+                    row.classList.add("yes")
+                    return "<b> Yes </b>"
+                } else if (data == "false") {
+                    row.classList.add("no")
+                    return "<b> No </b>"
+                }
+                // Or if you don't need to add class to the "row"
+                // return data == 'true' ? '< b class = "yes" > Yes < /b>' : ' < b class = "no" > No < /b>'
+            }
+
+            // numbers
+            const renderHighLow = function(data, _cell, _row) {
+                if (data < 0) {
+                    return `<span class="currency currency--loss">${data}</span>`
+                } else if (data > 0) {
+                    return `<span class="currency currency--profit">${data}</span>`
+                } else if (data == 0) {
+                    return `<span class="currency currency--zero">${data}</span>`
+                }
+            }
+            new window.simpleDatatables.DataTable("#drinks", {
+                data,
+                perPage: 25,
+                columns: [
+        {
+                        select: 0,
+                        hidden: true
+                    }, {
+                        select: 1,
+                        render: renderIcon
+                    }, {
+                        select: 2,
+                        render: renderButton
+                    }, {
+                        select: 3,
+                        render: renderYesNo
+                    }, {
+                        select: 4,
+                        render: renderHighLow
+                    }
     ]
-  }
-
-  // Add Icon
-  function renderIcon(data, cell, row) {
-    if(data == 'latte') {
-      return `🔥 ${data}`
-    }
-    else {
-      return `🌿 ${data}`
-    }
-  }
-
-  // Price column cell manipulation
-  function renderButton(data, cell, row) {
-    return `${data}<button data-row="${row.dataIndex}">Buy Now</button>`
-  }
-
-  // Caffeinated column cell manipulation
-  function renderYesNo(data, cell, row) {
-    if (data == 'true') {
-      return row.classList.add("yes"), `<b>Yes</b>`
-    }
-    else if (data == 'false') {
-      return row.classList.add("no"), `<b>No</b>`
-    }
-
-    // Or if you don't need to add class to the "row"
-    // return data == 'true' ? '<b class="yes">Yes</b>' : '<b class="no">No</b>'
-  }
-
-  // numbers
-  function renderHighLow(data, cell, row) {
-    if (data < 0) {
-      return `<span class="currency currency--loss">${data}</span>`
-    }
-    else if (data > 0) {
-      return `<span class="currency currency--profit">${data}</span>`
-    }
-    else if (data == 0) {
-      return `<span class="currency currency--zero">${data}</span>`
-    }
-  }
-
-  const dataTable = new simpleDatatables.DataTable("#drinks", {
-    data: data,
-    perPage: 25,
-    columns: [
-      { select: 0, hidden: true },
-      { select: 1, render: renderIcon },
-      { select: 2, render: renderButton },
-      { select: 3, render: renderYesNo },
-      { select: 4, render: renderHighLow }
-    ]
-  })
-  </script>
-</body>
+            })
+        </script>
+    </body>
 </html>
