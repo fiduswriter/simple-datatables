@@ -33,26 +33,24 @@ export const defaultConfig = {
     // include hidden columns in the editor
     hiddenColumns: false,
 
-    // enable th context menu
+    // enable thw context menu
     contextMenu: true,
 
+    // event to start editing
     clickEvent: "dblclick",
+
+    // indexes of columns not to be edited
+    excludeColumns: [],
 
     // set the context menu items
     menuItems: [
         {
             text: editor => editor.options.labels.editCell,
-            action: (editor, _event) => {
-                const cell = editor.event.target.closest("td")
-                return editor.editCell(cell)
-            }
+            action: (editor, _event) => editor.editCell()
         },
         {
             text: editor => editor.options.labels.editRow,
-            action: (editor, _event) => {
-                const row = editor.event.target.closest("tr")
-                return editor.editRow(row)
-            }
+            action: (editor, _event) => editor.editRow()
         },
         {
             separator: true
@@ -61,8 +59,7 @@ export const defaultConfig = {
             text: editor => editor.options.labels.removeRow,
             action: (editor, _event) => {
                 if (confirm(editor.options.labels.reallyRemove)) {
-                    const row = editor.event.target.closest("tr")
-                    editor.removeRow(row)
+                    editor.removeRow()
                 }
             }
         }
