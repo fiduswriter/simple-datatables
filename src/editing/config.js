@@ -33,10 +33,14 @@ export const defaultConfig = {
     // include hidden columns in the editor
     hiddenColumns: false,
 
-    // enable th context menu
+    // enable the context menu
     contextMenu: true,
 
+    // event to start editing
     clickEvent: "dblclick",
+
+    // indexes of columns not to be edited
+    excludeColumns: [],
 
     // set the context menu items
     menuItems: [

@@ -540,8 +540,8 @@ export class DataTable {
         }, false)
 
         if (this.options.rowNavigation) {
-            this.table.addEventListener("keydown", event => {
-                if (event.keyCode === 38) {
+            this.body.addEventListener("keydown", event => {
+                if (event.key === "ArrowUp") {
                     if (this.rows.cursor.previousElementSibling) {
                         this.rows.setCursor(this.rows.cursor.previousElementSibling)
                         event.preventDefault()
@@ -549,7 +549,7 @@ export class DataTable {
                     } else if (!this.onFirstPage) {
                         this.page(this.currentPage-1, true)
                     }
-                } else if (event.keyCode === 40) {
+                } else if (event.key === "ArrowDown") {
                     if (this.rows.cursor.nextElementSibling) {
                         this.rows.setCursor(this.rows.cursor.nextElementSibling)
                         event.preventDefault()
@@ -557,12 +557,12 @@ export class DataTable {
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1)
                     }
-                } else if ([13, 32].includes(event.keyCode)) {
+                } else if (["Enter", "Space"].includes(event.key)) {
                     this.emit("datatable.selectrow", this.rows.cursor, event)
                 }
             })
             this.body.addEventListener("mousedown", event => {
-                if (this.table.matches(":focus")) {
+                if (this.body.matches(":focus")) {
                     const row = Array.from(this.body.rows).find(row => row.contains(event.target))
                     this.emit("datatable.selectrow", row, event)
                 }
