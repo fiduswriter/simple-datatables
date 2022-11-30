@@ -143,7 +143,10 @@ export class Editor {
      * @return {Void}
      */
     click(event) {
-        if (!this.editing) {
+        if (this.editing && this.data && this.editingCell) {
+            this.saveCell()
+        }
+        else if (!this.editing) {
             const cell = event.target.closest("td")
             if (cell) {
                 this.editCell(cell)
@@ -392,6 +395,9 @@ export class Editor {
      * @return {Void}
      */
     openMenu() {
+        if (this.editing && this.data && this.editingCell) {
+            this.saveCell()
+        }
         if (this.options.contextMenu) {
             document.body.appendChild(this.container)
             this.closed = false
