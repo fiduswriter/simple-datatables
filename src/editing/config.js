@@ -4,23 +4,23 @@
 */
 export const defaultConfig = {
     classes: {
-        row: "dt-editor-row",
-        form: "dt-editor-form",
-        item: "dt-editor-item",
-        menu: "dt-editor-menu",
-        save: "dt-editor-save",
-        block: "dt-editor-block",
-        close: "dt-editor-close",
-        inner: "dt-editor-inner",
-        input: "dt-editor-input",
-        label: "dt-editor-label",
-        modal: "dt-editor-modal",
-        action: "dt-editor-action",
-        header: "dt-editor-header",
-        wrapper: "dt-editor-wrapper",
-        editable: "dt-editor-editable",
-        container: "dt-editor-container",
-        separator: "dt-editor-separator"
+        row: "dataTable-editor-row",
+        form: "dataTable-editor-form",
+        item: "dataTable-editor-item",
+        menu: "dataTable-editor-menu",
+        save: "dataTable-editor-save",
+        block: "dataTable-editor-block",
+        close: "dataTable-editor-close",
+        inner: "dataTable-editor-inner",
+        input: "dataTable-editor-input",
+        label: "dataTable-editor-label",
+        modal: "dataTable-editor-modal",
+        action: "dataTable-editor-action",
+        header: "dataTable-editor-header",
+        wrapper: "dataTable-editor-wrapper",
+        editable: "dataTable-editor-editable",
+        container: "dataTable-editor-container",
+        separator: "dataTable-editor-separator"
     },
 
     labels: {
