@@ -239,9 +239,10 @@ export class Editor {
      * @return {Void}
      */
     editRow(row) {
+        const rowIndex = row.dataIndex + 1
         row = row || this.event.target.closest("tr")
         if (!row || row.nodeName !== "TR" || this.editing) return
-        row = this.dataTable.dom.rows[row.dataIndex]
+        row = this.dataTable.dom.rows[rowIndex];
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
