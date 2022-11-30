@@ -145,7 +145,7 @@ export class Editor {
     click(event) {
         if (!this.editing) {
             const cell = event.target.closest("td")
-            if (cell && !this.options.excludeColumns.includes(cell.cellIndex)) {
+            if (cell) {
                 this.editCell(cell)
                 event.preventDefault()
             }
@@ -179,6 +179,10 @@ export class Editor {
      * @return {Void}
      */
     editCell(cell) {
+        if (this.options.excludeColumns.includes(cell.cellIndex)) {
+          this.closeMenu()
+          return;
+        }
         const row = this.dataTable.body.rows[cell.parentNode.dataIndex]
         cell = row.cells[cell.cellIndex]
         this.data = {
