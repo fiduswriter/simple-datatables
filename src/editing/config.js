@@ -33,7 +33,7 @@ export const defaultConfig = {
     // include hidden columns in the editor
     hiddenColumns: false,
 
-    // enable thw context menu
+    // enable the context menu
     contextMenu: true,
 
     // event to start editing
@@ -46,11 +46,17 @@ export const defaultConfig = {
     menuItems: [
         {
             text: editor => editor.options.labels.editCell,
-            action: (editor, _event) => editor.editCell()
+            action: (editor, _event) => {
+                const cell = editor.event.target.closest("td")
+                return editor.editCell(cell)
+            }
         },
         {
             text: editor => editor.options.labels.editRow,
-            action: (editor, _event) => editor.editRow()
+            action: (editor, _event) => {
+                const row = editor.event.target.closest("tr")
+                return editor.editRow(row)
+            }
         },
         {
             separator: true
@@ -59,7 +65,8 @@ export const defaultConfig = {
             text: editor => editor.options.labels.removeRow,
             action: (editor, _event) => {
                 if (confirm(editor.options.labels.reallyRemove)) {
-                    editor.removeRow()
+                    const row = editor.event.target.closest("tr")
+                    editor.removeRow(row)
                 }
             }
         }
