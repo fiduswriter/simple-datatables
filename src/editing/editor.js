@@ -145,7 +145,7 @@ export class Editor {
     click(event) {
         if (!this.editing) {
             const cell = event.target.closest("td")
-            if (cell) {
+            if (cell && !this.options.excludeColumns.includes(cell.cellIndex)) {
                 this.editCell(cell)
                 event.preventDefault()
             }
@@ -159,14 +159,14 @@ export class Editor {
      */
     keydown(event) {
         if (this.editing && this.data) {
-            if (event.keyCode === 13) {
+            if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
                     this.saveCell()
                 } else if (this.editingRow) {
                     this.saveRow()
                 }
-            } else if (event.keyCode === 27) {
+            } else if (event.key === "Escape") {
                 // Escape key reverts
                 this.saveCell(this.data.content)
             }
@@ -250,7 +250,7 @@ export class Editor {
         const form = inner.lastElementChild.firstElementChild
         // Add the inputs for each cell
         Array.from(row.cells).forEach((cell, i) => {
-            if (!cell.hidden || (cell.hidden && this.options.hiddenColumns)) {
+            if ((!cell.hidden || (cell.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 form.insertBefore(createElement("div", {
                     class: this.options.classes.row,
                     html: [
