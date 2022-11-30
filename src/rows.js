@@ -44,9 +44,9 @@ export class Rows {
     }
 
     setCursor(row=false) {
-        if (this.cursor) {
-            this.cursor.classList.remove("dataTable-cursor")
-        }
+        Array.from(this.dt.data).forEach(row => {
+            row.classList.remove("dataTable-cursor")
+        });
         if (row) {
             row.classList.add("dataTable-cursor")
             this.cursor = row
