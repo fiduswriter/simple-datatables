@@ -161,7 +161,15 @@ export class Editor {
      * @return {Void}
      */
     keydown(event) {
-        if (this.editing && this.data) {
+        if (this.modal) {
+            if (event.key === "Escape") { // close button
+                this.closeModal();
+            } else if (event.key === "Enter") { // save button
+                // Save
+                this.saveRow();
+            }
+        }
+        else if (this.editing && this.data) {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
@@ -232,7 +240,7 @@ export class Editor {
      */
     editRow(row) {
         row = row || this.event.target.closest("tr")
-        if (row.nodeName !== "TR" || this.editing) return
+        if (!row || row.nodeName !== "TR" || this.editing) return
         row = this.dataTable.dom.rows[row.dataIndex]
         const template = [
             `<div class='${this.options.classes.inner}'>`,
@@ -261,7 +269,7 @@ export class Editor {
                 form.insertBefore(createElement("div", {
                     class: this.options.classes.row,
                     html: [
-                        "<div class='datatable-editor-row'>",
+                        `<div class='${this.options.classes.row}'>`,
                         `<label class='${this.options.classes.label}'>${this.dataTable.header.cells[i].textContent}</label>`,
                         `<input class='${this.options.classes.input}' value='${cell.dataset.content || cell.innerHTML}' type='text'>`,
                         "</div>"
