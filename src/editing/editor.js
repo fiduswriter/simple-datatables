@@ -161,7 +161,15 @@ export class Editor {
      * @return {Void}
      */
     keydown(event) {
-        if (this.editing && this.data) {
+        if (this.modal) {
+            if (event.key === "Escape") { // close button
+                this.closeModal();
+            } else if (event.key === "Enter") { // save button
+                // Save
+                this.saveRow();
+            }
+        }
+        else if (this.editing && this.data) {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
