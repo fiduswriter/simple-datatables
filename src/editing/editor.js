@@ -392,6 +392,9 @@ export class Editor {
      * @return {Void}
      */
     openMenu() {
+        if (this.editing && this.data && this.editingCell) {
+            this.saveCell()
+        }
         if (this.options.contextMenu) {
             document.body.appendChild(this.container)
             this.closed = false
