@@ -145,8 +145,7 @@ export class Editor {
     click(event) {
         if (this.editing && this.data && this.editingCell) {
             this.saveCell()
-        }
-        else if (!this.editing) {
+        } else if (!this.editing) {
             const cell = event.target.closest("td")
             if (cell) {
                 this.editCell(cell)
@@ -163,13 +162,12 @@ export class Editor {
     keydown(event) {
         if (this.modal) {
             if (event.key === "Escape") { // close button
-                this.closeModal();
+                this.closeModal()
             } else if (event.key === "Enter") { // save button
                 // Save
-                this.saveRow();
+                this.saveRow()
             }
-        }
-        else if (this.editing && this.data) {
+        } else if (this.editing && this.data) {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
@@ -239,10 +237,9 @@ export class Editor {
      * @return {Void}
      */
     editRow(row) {
-        const rowIndex = row.dataIndex + 1
         row = row || this.event.target.closest("tr")
         if (!row || row.nodeName !== "TR" || this.editing) return
-        row = this.dataTable.dom.rows[rowIndex];
+        row = this.dataTable.body.rows[row.dataIndex]
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,

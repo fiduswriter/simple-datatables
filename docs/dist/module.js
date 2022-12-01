@@ -181,9 +181,9 @@ class Rows {
     }
 
     setCursor(row=false) {
-        if (this.cursor) {
-            this.cursor.classList.remove("dataTable-cursor");
-        }
+        Array.from(this.dt.dom.rows).forEach(row => {
+            row.classList.remove("dataTable-cursor");
+        });
         if (row) {
             row.classList.add("dataTable-cursor");
             this.cursor = row;
@@ -612,7 +612,7 @@ class Columns {
             const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText;
 
             // If the filter is a function, call it, if it is a string, compare it
-            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter;
+            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter
         });
 
         dt.data = filteredRows;
@@ -650,7 +650,7 @@ class Columns {
               dt.options.filters[dt.headings[column].textContent];
         if ( filterTerms && filterTerms.length !== 0 ) {
             this.filter(column, dir, init, filterTerms);
-            return;
+            return
         }
 
         dt.sorting = true;
@@ -1462,8 +1462,8 @@ class DataTable {
         }, false);
 
         if (this.options.rowNavigation) {
-            this.table.addEventListener("keydown", event => {
-                if (event.keyCode === 38) {
+            this.body.addEventListener("keydown", event => {
+                if (event.key === "ArrowUp") {
                     if (this.rows.cursor.previousElementSibling) {
                         this.rows.setCursor(this.rows.cursor.previousElementSibling);
                         event.preventDefault();
@@ -1471,7 +1471,7 @@ class DataTable {
                     } else if (!this.onFirstPage) {
                         this.page(this.currentPage-1, true);
                     }
-                } else if (event.keyCode === 40) {
+                } else if (event.key === "ArrowDown") {
                     if (this.rows.cursor.nextElementSibling) {
                         this.rows.setCursor(this.rows.cursor.nextElementSibling);
                         event.preventDefault();
@@ -1479,12 +1479,12 @@ class DataTable {
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1);
                     }
-                } else if ([13, 32].includes(event.keyCode)) {
+                } else if (["Enter", "Space"].includes(event.key)) {
                     this.emit("datatable.selectrow", this.rows.cursor, event);
                 }
             });
             this.body.addEventListener("mousedown", event => {
-                if (this.table.matches(":focus")) {
+                if (this.body.matches(":focus")) {
                     const row = Array.from(this.body.rows).find(row => row.contains(event.target));
                     this.emit("datatable.selectrow", row, event);
                 }
@@ -2689,23 +2689,23 @@ const exportTXT = function(dataTable, userOptions = {}) {
 */
 const defaultConfig = {
     classes: {
-        row: "dt-editor-row",
-        form: "dt-editor-form",
-        item: "dt-editor-item",
-        menu: "dt-editor-menu",
-        save: "dt-editor-save",
-        block: "dt-editor-block",
-        close: "dt-editor-close",
-        inner: "dt-editor-inner",
-        input: "dt-editor-input",
-        label: "dt-editor-label",
-        modal: "dt-editor-modal",
-        action: "dt-editor-action",
-        header: "dt-editor-header",
-        wrapper: "dt-editor-wrapper",
-        editable: "dt-editor-editable",
-        container: "dt-editor-container",
-        separator: "dt-editor-separator"
+        row: "dataTable-editor-row",
+        form: "dataTable-editor-form",
+        item: "dataTable-editor-item",
+        menu: "dataTable-editor-menu",
+        save: "dataTable-editor-save",
+        block: "dataTable-editor-block",
+        close: "dataTable-editor-close",
+        inner: "dataTable-editor-inner",
+        input: "dataTable-editor-input",
+        label: "dataTable-editor-label",
+        modal: "dataTable-editor-modal",
+        action: "dataTable-editor-action",
+        header: "dataTable-editor-header",
+        wrapper: "dataTable-editor-wrapper",
+        editable: "dataTable-editor-editable",
+        container: "dataTable-editor-container",
+        separator: "dataTable-editor-separator"
     },
 
     labels: {
@@ -2718,10 +2718,14 @@ const defaultConfig = {
     // include hidden columns in the editor
     hiddenColumns: false,
 
-    // enable th context menu
+    // enable the context menu
     contextMenu: true,
 
+    // event to start editing
     clickEvent: "dblclick",
+
+    // indexes of columns not to be edited
+    excludeColumns: [],
 
     // set the context menu items
     menuItems: [
@@ -2769,7 +2773,7 @@ const debounce = function(func, timeout = 300) {
 /**
  * Main lib
  * @param {Object} dataTable Target dataTable
- * @param {Object} config User config
+ * @param {Object} options User config
  */
 class Editor {
     constructor(dataTable, options = {}) {
@@ -2900,7 +2904,9 @@ class Editor {
      * @return {Void}
      */
     click(event) {
-        if (!this.editing) {
+        if (this.editing && this.data && this.editingCell) {
+            this.saveCell();
+        } else if (!this.editing) {
             const cell = event.target.closest("td");
             if (cell) {
                 this.editCell(cell);
@@ -2915,15 +2921,22 @@ class Editor {
      * @return {Void}
      */
     keydown(event) {
-        if (this.editing && this.data) {
-            if (event.keyCode === 13) {
+        if (this.modal) {
+            if (event.key === "Escape") { // close button
+                this.closeModal();
+            } else if (event.key === "Enter") { // save button
+                // Save
+                this.saveRow();
+            }
+        } else if (this.editing && this.data) {
+            if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
                     this.saveCell();
                 } else if (this.editingRow) {
                     this.saveRow();
                 }
-            } else if (event.keyCode === 27) {
+            } else if (event.key === "Escape") {
                 // Escape key reverts
                 this.saveCell(this.data.content);
             }
@@ -2936,6 +2949,10 @@ class Editor {
      * @return {Void}
      */
     editCell(cell) {
+        if (this.options.excludeColumns.includes(cell.cellIndex)) {
+            this.closeMenu();
+            return
+        }
         const row = this.dataTable.body.rows[cell.parentNode.dataIndex];
         cell = row.cells[cell.cellIndex];
         this.data = {
@@ -2982,8 +2999,8 @@ class Editor {
      */
     editRow(row) {
         row = row || this.event.target.closest("tr");
-        if (row.nodeName !== "TR" || this.editing) return
-        row = this.dataTable.dom.rows[row.dataIndex];
+        if (!row || row.nodeName !== "TR" || this.editing) return
+        row = this.dataTable.body.rows[row.dataIndex];
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
@@ -3007,11 +3024,11 @@ class Editor {
         const form = inner.lastElementChild.firstElementChild;
         // Add the inputs for each cell
         Array.from(row.cells).forEach((cell, i) => {
-            if (!cell.hidden || (cell.hidden && this.options.hiddenColumns)) {
+            if ((!cell.hidden || (cell.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 form.insertBefore(createElement("div", {
                     class: this.options.classes.row,
                     html: [
-                        "<div class='datatable-editor-row'>",
+                        `<div class='${this.options.classes.row}'>`,
                         `<label class='${this.options.classes.label}'>${this.dataTable.header.cells[i].textContent}</label>`,
                         `<input class='${this.options.classes.input}' value='${cell.dataset.content || cell.innerHTML}' type='text'>`,
                         "</div>"
@@ -3145,6 +3162,9 @@ class Editor {
      * @return {Void}
      */
     openMenu() {
+        if (this.editing && this.data && this.editingCell) {
+            this.saveCell();
+        }
         if (this.options.contextMenu) {
             document.body.appendChild(this.container);
             this.closed = false;
