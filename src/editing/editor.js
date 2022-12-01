@@ -225,7 +225,7 @@ export class Editor {
         value = value || this.data.input.value
         const oldData = this.data.content
         // Set the cell content
-        cell.innerHTML = value.trim()
+        this.dataTable.data[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = value.trim()
         this.data = {}
         this.editing = this.editingCell = false
         this.dataTable.emit("editable.save.cell", value, oldData, cell)
