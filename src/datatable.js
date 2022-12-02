@@ -660,20 +660,6 @@ export class DataTable {
                 })
             })
 
-            if (this.selectedColumns.length) {
-                this.data.forEach(row => {
-                    Array.from(row.cells).forEach((cell, i) => {
-                        if (this.selectedColumns.includes(i)) {
-                            this.columnRenderers.forEach(options => {
-                                if (options.columns.includes(i)) {
-                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
-                                }
-                            })
-                        }
-                    })
-                })
-            }
-
             this.columns.rebuild()
         }
 
