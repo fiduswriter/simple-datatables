@@ -469,6 +469,20 @@ export class Columns {
             }
         })
 
+        if (dt.selectedColumns.length) {
+            dt.data.forEach(row => {
+                Array.from(row.cells).forEach((cell, i) => {
+                    if (dt.selectedColumns.includes(i)) {
+                        dt.columnRenderers.forEach(options => {
+                            if (options.columns.includes(i)) {
+                                dt.data[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
+                            }
+                        })
+                    }
+                })
+            })
+        }
+
         // Loop over the rows and reorder the cells
         dt.data.forEach((row, i) => {
             a = row.cloneNode(false)
