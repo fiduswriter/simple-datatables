@@ -2,7 +2,7 @@
 
 ## From 4.0.x to 5.0:
 
-* To get to the dom of the body table, look at `dataTable.dom` rather than `dataTable.table.
+* To get to the dom of the body table, look at `dataTable.dom` rather than `dataTable.table`.
 
 Instead of:
 
