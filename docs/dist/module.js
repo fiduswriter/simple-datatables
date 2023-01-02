@@ -1498,7 +1498,7 @@ class DataTable {
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1);
                     }
-                } else if (["Enter", "Space"].includes(event.key)) {
+                } else if (["Enter", " "].includes(event.key)) {
                     this.emit("datatable.selectrow", this.rows.cursor, event);
                 }
             });
