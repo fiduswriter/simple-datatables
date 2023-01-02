@@ -44,12 +44,15 @@ export class Rows {
     }
 
     setCursor(row=false) {
+        let oldCursor
         Array.from(this.dt.dom.rows).forEach(row => {
+            oldCursor = row
             row.classList.remove("dataTable-cursor")
         })
         if (row) {
             row.classList.add("dataTable-cursor")
             this.cursor = row
+            this.dt.emit("datatable.cursormove", this.cursor, oldCursor)
         }
     }
 

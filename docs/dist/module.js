@@ -181,12 +181,15 @@ class Rows {
     }
 
     setCursor(row=false) {
+        let oldCursor;
         Array.from(this.dt.dom.rows).forEach(row => {
+            oldCursor = row;
             row.classList.remove("dataTable-cursor");
         });
         if (row) {
             row.classList.add("dataTable-cursor");
             this.cursor = row;
+            this.dt.emit("datatable.cursormove", this.cursor, oldCursor);
         }
     }
 
@@ -787,6 +790,20 @@ class Columns {
                 dt.activeHeadings.push(th);
             }
         });
+
+        if (dt.selectedColumns.length) {
+            dt.data.forEach(row => {
+                Array.from(row.cells).forEach((cell, i) => {
+                    if (dt.selectedColumns.includes(i)) {
+                        dt.columnRenderers.forEach(options => {
+                            if (options.columns.includes(i)) {
+                                dt.data[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row);
+                            }
+                        });
+                    }
+                });
+            });
+        }
 
         // Loop over the rows and reorder the cells
         dt.data.forEach((row, i) => {
@@ -1581,20 +1598,6 @@ class DataTable {
                     cell.data = cell.innerHTML;
                 });
             });
-
-            if (this.selectedColumns.length) {
-                this.data.forEach(row => {
-                    Array.from(row.cells).forEach((cell, i) => {
-                        if (this.selectedColumns.includes(i)) {
-                            this.columnRenderers.forEach(options => {
-                                if (options.columns.includes(i)) {
-                                    cell.innerHTML = options.renderer.call(this, cell.data, cell, row);
-                                }
-                            });
-                        }
-                    });
-                });
-            }
 
             this.columns.rebuild();
         }
@@ -2986,7 +2989,7 @@ class Editor {
         value = value || this.data.input.value;
         const oldData = this.data.content;
         // Set the cell content
-        cell.innerHTML = value.trim();
+        this.dataTable.data[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = value.trim();
         this.data = {};
         this.editing = this.editingCell = false;
         this.dataTable.emit("editable.save.cell", value, oldData, cell);
