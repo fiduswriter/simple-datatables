@@ -189,6 +189,9 @@ class Rows {
         if (row) {
             row.classList.add("dataTable-cursor");
             this.cursor = row;
+            if (this.dt.options.scrollY) {
+              this.cursor.scrollIntoView({block: "nearest"});
+            }
             this.dt.emit("datatable.cursormove", this.cursor, oldCursor);
         }
     }
@@ -1477,9 +1480,8 @@ class DataTable {
                 }
             }
         }, false);
-
         if (this.options.rowNavigation) {
-            this.body.addEventListener("keydown", event => {
+            this.dom.addEventListener("keydown", event => {
                 if (event.key === "ArrowUp") {
                     if (this.rows.cursor.previousElementSibling) {
                         this.rows.setCursor(this.rows.cursor.previousElementSibling);

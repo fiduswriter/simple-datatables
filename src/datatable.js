@@ -538,9 +538,8 @@ export class DataTable {
                 }
             }
         }, false)
-
         if (this.options.rowNavigation) {
-            this.body.addEventListener("keydown", event => {
+            this.dom.addEventListener("keydown", event => {
                 if (event.key === "ArrowUp") {
                     if (this.rows.cursor.previousElementSibling) {
                         this.rows.setCursor(this.rows.cursor.previousElementSibling)

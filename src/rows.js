@@ -52,6 +52,9 @@ export class Rows {
         if (row) {
             row.classList.add("dataTable-cursor")
             this.cursor = row
+            if (this.dt.options.scrollY) {
+              this.cursor.scrollIntoView({block: "nearest"})
+            }
             this.dt.emit("datatable.cursormove", this.cursor, oldCursor)
         }
     }

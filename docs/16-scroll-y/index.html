@@ -4,9 +4,11 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Simple</title>
+        <title>Scroll Y</title>
+
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
+
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
     </head>
@@ -725,27 +727,14 @@
                 </tr>
             </tbody>
         </table>
+
         <script type="module">
-            import {
-                DataTable
-            } from "../dist/module.js"
+            import {DataTable} from "../dist/module.js"
             new DataTable("table", {
-                columns: [
-        {
-                        select: 0,
-                        hidden: true,
-                        render: (data, cell, row) => {
-                            row.dataset.name = data // Will add data to row instead.
-                            return data // Will not be shown as column is hidden.
-                        }
-                    }
-    ],
-                searchable: false,
-                fixedHeight: false,
-                layout: {
-                    top: "",
-                    bottom: ""
-                }
+              paging: false,
+              scrollY: "30vh",
+              rowNavigation: true,
+              tabIndex: 1
             })
         </script>
     </body>
