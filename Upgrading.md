@@ -6,7 +6,7 @@
 
 Instead of:
 
-``````js
+```js
 import {
   DataTable
 } from "simple-datatables"
@@ -16,7 +16,7 @@ dataTable.table.focus()
 
 do now:
 
-``````js
+```js
 import {
   DataTable
 } from "simple-datatables"
