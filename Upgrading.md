@@ -2,6 +2,29 @@
 
 ## From 4.0.x to 5.0:
 
+* To get to the dom of the body table, look at `dataTable.dom` rather than `dataTable.table.
+
+Instead of:
+
+``````js
+import {
+  DataTable
+} from "simple-datatables"
+const dataTable = new DataTable("#myTable")
+dataTable.table.focus()
+```
+
+do now:
+
+``````js
+import {
+  DataTable
+} from "simple-datatables"
+const dataTable = new DataTable("#myTable")
+dataTable.dom.focus()
+```
+
+
 * The functions related to exporting have been moved and are now separate from the main `DataTable`. 
 
 Instead of:
