@@ -109,7 +109,6 @@ export class Columns {
 
     /**
      * Hide columns
-     * @return {Void}
      */
     hide(columns) {
         if (columns.length) {
@@ -127,7 +126,6 @@ export class Columns {
 
     /**
      * Show columns
-     * @return {Void}
      */
     show(columns) {
         if (columns.length) {
@@ -315,7 +313,7 @@ export class Columns {
             return false
         }
 
-        //If there is a filter for this column, apply it instead of sorting
+        // If there is a filter for this column, apply it instead of sorting
         const filterTerms = dt.options.filters &&
               dt.options.filters[dt.headings[column].textContent]
         if ( filterTerms && filterTerms.length !== 0 ) {

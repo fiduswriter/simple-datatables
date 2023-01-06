@@ -58,6 +58,7 @@
     "updates": "^13.1.2"
   },
   "dependencies": {
-    "dayjs": "^1.11.4"
+    "dayjs": "^1.11.4",
+    "diff-dom": "^4.2.8"
   }
 }

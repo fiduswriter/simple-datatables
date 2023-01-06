@@ -1,6 +1,8 @@
+import {DiffDOM, nodeToObj} from "diff-dom"
+
+import {dataToVirtualDOM} from "./virtualdom"
 import {Rows} from "./rows"
 import {Columns} from "./columns"
-import {dataToTable} from "./table"
 import {defaultConfig} from "./config"
 import {
     isObject,
@@ -43,10 +45,19 @@ export class DataTable {
             onResize: event => this.onResize(event)
         }
 
+        this.dd = new DiffDOM()
+
         // Initialize other variables
         this.initialized = false
         this.data = false
+        this.virtualDOM = false
         this.rowData = false
+        this.currentPage = 1
+        this.onFirstPage = true
+
+        this.hiddenColumns = []
+        this.columnRenderers = []
+        this.selectedColumns = []
 
         this.init()
     }
@@ -62,23 +73,23 @@ export class DataTable {
         this.rows = new Rows(this)
         this.columns = new Columns(this)
 
-        // Disable manual sorting if no header is present (#4)
-        if (this.dom.tHead === null && !this.options.data?.headings) {
-            this.options.sortable = false
-        }
+        // // Disable manual sorting if no header is present (#4)
+        // if (this.dom.tHead === null && !this.options.data?.headings) {
+        //     this.options.sortable = false
+        // }
+        //
+        // if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
+        //     throw new Error(
+        //         "You seem to be using the data option, but you've not defined any rows."
+        //     )
+        // }
 
-        if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
-            throw new Error(
-                "You seem to be using the data option, but you've not defined any rows."
-            )
-        }
 
-        this.currentPage = 1
-        this.onFirstPage = true
+        this.data = this.readTableData(this.dom, this.options.data)
 
-        this.hiddenColumns = []
-        this.columnRenderers = []
-        this.selectedColumns = []
+        this.columnSettings = this.readColumnSettings(this.options.columns)
+
+        this.virtualDOM = nodeToObj(this.dom)
 
         this.render()
 
@@ -88,49 +99,122 @@ export class DataTable {
         }, 10)
     }
 
+    readTableData(dom, dataOption) {
+        const data = {
+            data: [],
+            headings: []
+        }
+        if (dataOption?.data) {
+            data.data = dataOption.data
+        } else if (dom.tBodies.length) {
+            data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML,
+                text: cell.innerHTML})))
+        }
+        if (dataOption?.headings) {
+            data.headings = dataOption.headings.map(heading => ({data: heading,
+                sorted: false}))
+        } else if (dom.tHead) {
+            data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(th => {
+                const heading = {data: th.innerHTML,
+                    sorted: false}
+                heading.sortable = th.dataset.sortable !== "false"
+                return heading
+            })
+        } else if (dataOption?.data?.data?.length) {
+            data.headings = dataOption.data.data[0].map(_cell => "")
+        } else if (dom.tBodies.length) {
+            data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(_cell => "")
+        }
+
+        if (data.data.length && data.data[0].length !== data.headings.length) {
+            throw new Error(
+                "Data heading length mismatch."
+            )
+        }
+        console.log({dom,
+            dataOption,
+            data})
+        return data
+    }
+
+    /**
+     * Set up columns
+     */
+    readColumnSettings(columnOptions = []) {
+
+        const columns = []
+        let sort = false
+
+        // Check for the columns option
+
+        columnOptions.forEach(data => {
+
+            // convert single column selection to array
+            const columnSelectors = Array.isArray(data.select) ? data.select : [data.select]
+
+            columnSelectors.forEach(selector => {
+                if (!columns[selector]) {
+                    columns[selector] = {}
+                }
+                const column = columns[selector]
+
+
+                if (data.render) {
+                    column.render = data.render
+                }
+
+                if (data.type) {
+                    column.type = data.type
+                }
+
+                if (data.format) {
+                    column.format = data.format
+                }
+
+                if (data.sortable === false) {
+                    column.notSortable = true
+                }
+
+                if (data.hidden) {
+                    column.hidden = true
+                }
+
+                if (data.sort) {
+                    // We only allow one. The last one will overwrite all other options
+                    sort = {column,
+                        direction: data.sort}
+                }
+
+            })
+
+        })
+
+        return {columns,
+            sort}
+
+    }
+
     /**
      * Render the instance
      */
     render() {
-        let template = ""
 
-        // Convert data to HTML
-        if (this.options.data) {
-            dataToTable.call(this)
-        }
+        const newVirtualDOM = dataToVirtualDOM(this.data, this.columnSettings, this.options.hiddenHeader)
+
+        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
+        console.log({diff,
+            newVirtualDOM,
+            virtualDOM: this.virtualDOM})
+        this.dd.apply(this.dom, diff)
+        this.virtualDOM = newVirtualDOM
 
         // Store references
         this.body = this.dom.tBodies[0]
         this.head = this.dom.tHead
         this.foot = this.dom.tFoot
 
-        if (!this.body) {
-            this.body = createElement("tbody")
-
-            this.dom.appendChild(this.body)
-        }
 
         this.hasRows = this.body.rows.length > 0
-
-        // Make a tHead if there isn't one (fixes #8)
-        if (!this.head) {
-            const h = createElement("thead")
-            const t = createElement("tr")
-
-            if (this.hasRows) {
-                Array.from(this.body.rows[0].cells).forEach(() => {
-                    t.appendChild(createElement("th"))
-                })
-
-                h.appendChild(t)
-            }
-
-            this.head = h
-
-            this.dom.insertBefore(this.head, this.body)
-
-            this.hiddenHeader = this.options.hiddenHeader
-        }
 
         this.headings = []
         this.hasHeadings = this.head.rows.length > 0
@@ -167,6 +251,7 @@ export class DataTable {
         })
 
         // Template for custom layouts
+        let template = ""
         template += "<div class='dataTable-top'>"
         template += this.options.layout.top
         template += "</div>"
@@ -574,17 +659,14 @@ export class DataTable {
 
     /**
      * Set up columns
-     * @return {[type]} [description]
      */
-    setColumns(ajax) {
+    setColumns() {
 
-        if (!ajax) {
-            this.rowData.forEach(row => {
-                Array.from(row.cells).forEach(cell => {
-                    cell.data = cell.innerHTML
-                })
+        this.rowData.forEach(row => {
+            Array.from(row.cells).forEach(cell => {
+                cell.data = cell.innerHTML
             })
-        }
+        })
 
         // Check for the columns option
         if (this.options.columns && this.headings.length) {
@@ -698,7 +780,6 @@ export class DataTable {
 
     /**
      * Sort rows into pages
-     * @return {Number}
      */
     paginate() {
         let rows = this.activeRows
@@ -725,7 +806,6 @@ export class DataTable {
 
     /**
      * Fix column widths
-     * @return {Void}
      */
     fixColumns() {
 
@@ -844,7 +924,6 @@ export class DataTable {
 
     /**
      * Fix the container height
-     * @return {Void}
      */
     fixHeight() {
         if (this.options.fixedHeight) {
@@ -1018,7 +1097,6 @@ export class DataTable {
 
     /**
      * Refresh the instance
-     * @return {void}
      */
     refresh() {
         if (this.options.searchable) {
