@@ -199,7 +199,7 @@ declare module "simple-datatables"{
 
             }
          */
-        render(callback : render):any;
+        render?(callback : render):any;
 
     }
     type render =  (data : string,cell: Object,row:Object,) => void;
