@@ -1,4 +1,4 @@
-New data of many formats can be added at any time with the `insert()` and `import()` methods as well as the `rows` and `columns` API.
+New data of many formats can be added at any time with the `insert()` method as well as the `rows` and `columns` API.
 
 ---
 
@@ -7,7 +7,7 @@ You can quickly add a new row with an `array` of cell data:
 ```javascript
 let newRow = ["Cell 1", "Cell 2", "Cell 3", "Cell 4", ...];
 
-datatable.rowss.add(newRow);
+datatable.rows.add(newRow);
 ```
 
 The `add()` method also accepts a nested `array` for adding multiple rows:
@@ -38,7 +38,7 @@ let newData = {
     ]
 };
 
-// or 
+// or
 
 let newData = [
     {
@@ -82,10 +82,15 @@ Note that while the `key-value` method doesn't require you to order the data cor
 ```
 
 ```javascript
-datatable.import({
-    type: "json",
-    data: // the above JSON string
-});
+import {
+  DataTable,
+  convertJSON
+} from "simple-datatables"
+const dataTable = new DataTable("#myTable")
+const convertedData = convertJSON({
+  data: // the above JSON string
+})
+dataTable.insert(convertedData)
 ```
 
 or `csv` strings:
@@ -100,11 +105,16 @@ Theodore Duran,8971,Dhanbad,1999/04/07
 ```
 
 ```javascript
-datatable.import({
-    type: "csv",
-    data: // the above CSV string,
-    headings: true,
-    columnDelimiter: ",",
-    lineDelimiter: "\n"
-});
+import {
+  DataTable,
+  convertCSV
+} from "simple-datatables"
+const dataTable = new DataTable("#myTable")
+const convertedData = convertJSON({
+  data: // the above CSV string,
+  headings: true,
+  columnDelimiter: ",",
+  lineDelimiter: "\n"
+})
+dataTable.insert(convertedData)
 ```
