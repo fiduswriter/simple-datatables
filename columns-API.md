@@ -16,7 +16,7 @@ You can then chain the following methods.
 
 Sort the selected column. The `column` parameter should be a non-zero-based integer. The `direction` parameter is optional.
 
-Replaces the deprecated [`sortColumn`](https://github.com/fiduswriter/Simple-DataTables/wiki/sortcolumn()) method.
+Replaces the deprecated [`sortColumn`](https://github.com/fiduswriter/simple-datatables/wiki/sortcolumn()) method.
 
 ---
 
