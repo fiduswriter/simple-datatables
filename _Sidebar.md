@@ -81,6 +81,4 @@
 * [setMessage()](https://github.com/fiduswriter/simple-datatables/wiki/setmessage())
 * [destroy()](https://github.com/fiduswriter/simple-datatables/wiki/destroy())
 * [init()](https://github.com/fiduswriter/simple-datatables/wiki/init())
-* [export()](https://github.com/fiduswriter/simple-datatables/wiki/export())
-* [import()](https://github.com/fiduswriter/simple-datatables/wiki/import())
 * [print()](https://github.com/fiduswriter/simple-datatables/wiki/print())
