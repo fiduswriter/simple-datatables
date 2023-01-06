@@ -52,7 +52,7 @@ export class DataTable {
         this.data = false
         this.virtualDOM = false
         this.rowData = false
-        this.currentPage = 1
+        this.currentPage = 0
         this.onFirstPage = true
 
         this.hiddenColumns = []
@@ -200,14 +200,7 @@ export class DataTable {
      */
     render() {
 
-        const newVirtualDOM = dataToVirtualDOM(this.data, this.columnSettings, this.options)
-
-        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
-        console.log({diff,
-            newVirtualDOM,
-            virtualDOM: this.virtualDOM})
-        this.dd.apply(this.dom, diff)
-        this.virtualDOM = newVirtualDOM
+        this.renderTable()
 
         // Store references
         this.body = this.dom.tBodies[0]
@@ -321,7 +314,7 @@ export class DataTable {
         this.activeHeadings = this.headings.slice()
 
         // // Update
-        // this.update()
+        this.update()
         //
         //
         // this.setColumns()
@@ -361,17 +354,27 @@ export class DataTable {
         this.bindEvents()
     }
 
+    renderTable() {
+        const newVirtualDOM = dataToVirtualDOM(
+            this.data.headings,
+            this.currentPage ? this.pages[this.currentPage - 1] : this.data.data,
+            this.columnSettings,
+            this.options
+        )
+
+        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
+        console.log({diff,
+            newVirtualDOM,
+            virtualDOM: this.virtualDOM})
+        this.dd.apply(this.dom, diff)
+        this.virtualDOM = newVirtualDOM
+    }
+
     /**
      * Render the page
      * @return {Void}
      */
     renderPage(lastRowCursor=false) {
-        if (this.hasHeadings) {
-            flush(this.header)
-
-            this.activeHeadings.forEach(th => this.header.appendChild(th))
-        }
-
 
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
@@ -379,12 +382,10 @@ export class DataTable {
             }
 
             // Use a fragment to limit touching the DOM
-            const index = this.currentPage - 1
 
-            const frag = document.createDocumentFragment()
-            this.pages[index].forEach(row => frag.appendChild(this.rows.render(row)))
 
-            this.clear(frag)
+            this.renderTable()
+
 
             this.onFirstPage = this.currentPage === 1
             this.onLastPage = this.currentPage === this.lastPage
@@ -402,6 +403,8 @@ export class DataTable {
         if (this.totalPages) {
             current = this.currentPage - 1
             f = current * this.options.perPage
+            console.log({current,
+                pages: this.pages})
             t = f + this.pages[current].length
             f = f + 1
             items = this.searching ? this.searchData.length : this.rowData.length
@@ -754,28 +757,27 @@ export class DataTable {
         this.emit("datatable.update")
     }
 
-    /**
-     * Sort rows into pages
-     */
     paginate() {
-        let rows = this.activeRows
+        let rows = this.data.data
 
         if (this.searching) {
             rows = []
 
-            this.searchData.forEach(index => rows.push(this.activeRows[index]))
+            this.searchData.forEach(index => rows.push(this.data.data[index]))
         }
 
         if (this.options.paging) {
             // Check for hidden columns
             this.pages = rows
-                .map((tr, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .map((row, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
                 .filter(page => page)
         } else {
             this.pages = [rows]
         }
 
         this.totalPages = this.lastPage = this.pages.length
+
+        this.currentPage = 1
 
         return this.totalPages
     }
@@ -929,9 +931,7 @@ export class DataTable {
             return false
         }
 
-        this.clear()
-
-        this.rowData.forEach((row, idx) => {
+        this.data.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
@@ -940,9 +940,9 @@ export class DataTable {
                 let cell = null
                 let content = null
 
-                for (let x = 0; x < row.cells.length; x++) {
-                    cell = row.cells[x]
-                    content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.textContent
+                for (let x = 0; x < row.length; x++) {
+                    cell = row[x]
+                    content = cell.data
 
                     if (
                         content.toLowerCase().includes(word) &&
@@ -957,10 +957,7 @@ export class DataTable {
             }, true)
 
             if (doesQueryMatch && !inArray) {
-                row.searchIndex = idx
                 this.searchData.push(idx)
-            } else {
-                row.searchIndex = null
             }
         })
 
@@ -1087,29 +1084,6 @@ export class DataTable {
     }
 
     /**
-     * Truncate the table
-     */
-    clear(html) {
-        if (this.body) {
-            flush(this.body)
-        }
-
-        let parent = this.body
-        if (!this.body) {
-            parent = this.dom
-        }
-
-        if (html) {
-            if (typeof html === "string") {
-                const frag = document.createDocumentFragment()
-                frag.innerHTML = html
-            }
-
-            parent.appendChild(html)
-        }
-    }
-
-    /**
      * Print the table
      * @return {void}
      */
@@ -1163,7 +1137,7 @@ export class DataTable {
         let colspan = 1
 
         if (this.hasRows) {
-            colspan = this.rowData[0].cells.length
+            colspan = this.data.data[0].length
         } else if (this.activeHeadings.length) {
             colspan = this.activeHeadings.length
         }
@@ -1176,11 +1150,39 @@ export class DataTable {
         this.totalPages = 0
         this.renderPager()
 
-        this.clear(
-            createElement("tr", {
-                html: `<td class="dataTables-empty" colspan="${colspan}">${message}</td>`
-            })
-        )
+        const newVirtualDOM = structuredClone(this.virtualDOM)
+
+        const tbody = newVirtualDOM.childNodes.find(node => node.nodeName === "TBODY")
+
+        tbody.childNodes = [
+            {
+                nodeName: "TR",
+                childNodes: [
+                    {
+                        nodeName: "TD",
+                        attributes: {
+                            class: "dataTables-empty",
+                            colspan
+                        },
+                        childNodes: [
+                            {
+                                nodeName: "#text",
+                                data: message
+                            }
+                        ]
+                    }
+                ]
+            }
+        ]
+
+
+        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
+        console.log({diff,
+            newVirtualDOM,
+            virtualDOM: this.virtualDOM})
+        this.dd.apply(this.dom, diff)
+        this.virtualDOM = newVirtualDOM
+
     }
 
     /**

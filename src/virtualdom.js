@@ -1,4 +1,4 @@
-export const dataToVirtualDOM = (data, columnSettings, {hiddenHeader, header, footer, sortable}) => {
+export const dataToVirtualDOM = (headings, rows, columnSettings, {hiddenHeader, header, footer, sortable}) => {
 
     const table = {
         nodeName: "TABLE",
@@ -8,7 +8,7 @@ export const dataToVirtualDOM = (data, columnSettings, {hiddenHeader, header, fo
         childNodes: [
             {
                 nodeName: "TBODY",
-                childNodes: data.data.map(
+                childNodes: rows.map(
                     row => ({
                         nodeName: "TR",
                         childNodes: row.map(
@@ -37,7 +37,7 @@ export const dataToVirtualDOM = (data, columnSettings, {hiddenHeader, header, fo
     if (header || footer) {
         const headerRow = {
             nodeName: "TR",
-            childNodes: data.headings.map(
+            childNodes: headings.map(
                 (heading, index) => {
                     const column = columnSettings.columns[index] || {}
                     if (column.hidden) {
