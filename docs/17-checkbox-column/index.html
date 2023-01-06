@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+        <title>Checkbox column</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+    </head>
+    <body>
+        <h1>Checkbox column</h1>
+        <table class="table"></table>
+        <!-- Custom Code -->
+        <script type="module">
+            import {
+                DataTable
+            } from "../dist/module.js"
+            // Instantiate
+            fetch("datatable.json").then(
+                response => response.json()
+            ).then(
+                data => {
+                    const datatable = new DataTable("table", {
+                        data: {
+                            headings: ["Checked"].concat(Object.keys(data[0])),
+                            data: data.map(item => [false].concat(Object.values(item)))
+                        },
+                        columns: [
+                            {
+                                select: 0,
+                                render: value => `<input type="checkbox" ${value=== "true" ? "checked": ""}>`
+                            },
+                            {
+                                select: 1,
+                                render: (value, td, tr) => {
+                                    tr.dataset.name = value
+                                    return value
+                                }
+                            }
+                        ]
+                    })
+                    datatable.body.addEventListener("click", e => {
+                        if (e.target.matches("input[type=checkbox]")) {
+                            const name = e.target.parentElement.parentElement.dataset.name
+                            const checked = e.target.checked
+                            alert(`${name} has been ${checked ? "checked" : "unchecked"}.`)
+                        }
+                    })
+                }
+            )
+        </script>
+    </body>
+</html>

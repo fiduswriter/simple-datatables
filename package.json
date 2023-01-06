@@ -9,6 +9,7 @@
   "scripts": {
     "test": "npm run lint",
     "lint": "eslint src/ docs/",
+    "pre-commit": "eslint --fix src/ docs/",
     "build": "npm run build_js && npm run build_js_umd && npm run build_css && npm run build_docs",
     "build_js": "rollup -c",
     "build_js_umd": "browserify dist/index.js --standalone simpleDatatables -o dist/umd/simple-datatables.js",
@@ -18,6 +19,9 @@
     "postbuild_docs": "cp -r dist/umd/simple-datatables.js docs/dist/umd.js",
     "prepare": "npm run build"
   },
+  "pre-commit": [
+      "pre-commit"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/fiduswriter/Simple-DataTables.git"
