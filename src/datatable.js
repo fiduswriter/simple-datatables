@@ -105,7 +105,8 @@ export class DataTable {
             headings: []
         }
         if (dataOption?.data) {
-            data.data = dataOption.data
+            data.data = dataOption.data.map(row => row.map(cell => ({data: cell,
+                text: cell})))
         } else if (dom.tBodies.length) {
             data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML,
                 text: cell.innerHTML})))
@@ -199,7 +200,7 @@ export class DataTable {
      */
     render() {
 
-        const newVirtualDOM = dataToVirtualDOM(this.data, this.columnSettings, this.options.hiddenHeader)
+        const newVirtualDOM = dataToVirtualDOM(this.data, this.columnSettings, this.options)
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
         console.log({diff,
@@ -211,8 +212,6 @@ export class DataTable {
         // Store references
         this.body = this.dom.tBodies[0]
         this.head = this.dom.tHead
-        this.foot = this.dom.tFoot
-
 
         this.hasRows = this.body.rows.length > 0
 
@@ -222,27 +221,6 @@ export class DataTable {
         if (this.hasHeadings) {
             this.header = this.head.rows[0]
             this.headings = [].slice.call(this.header.cells)
-        }
-
-        // Header
-        if (!this.options.header) {
-            if (this.head) {
-                this.dom.removeChild(this.dom.tHead)
-            }
-        }
-
-        // Footer
-        if (this.options.footer) {
-            if (this.head && !this.foot) {
-                this.foot = createElement("tfoot", {
-                    html: this.head.innerHTML
-                })
-                this.dom.appendChild(this.foot)
-            }
-        } else {
-            if (this.foot) {
-                this.dom.removeChild(this.dom.tFoot)
-            }
         }
 
         // Build
@@ -305,13 +283,11 @@ export class DataTable {
             template = template.replace("{search}", "")
         }
 
-        if (this.hasHeadings) {
-            // Sortable
-            this.renderHeader()
-        }
+        // if (this.hasHeadings) {
+        //     // Sortable
+        //     this.renderHeader()
+        // }
 
-        // Add table class
-        this.dom.classList.add("dataTable-table")
 
         // Paginator
         const paginatorWrapper = createElement("nav", {
@@ -344,18 +320,18 @@ export class DataTable {
         this.activeRows = this.rowData.slice()
         this.activeHeadings = this.headings.slice()
 
-        // Update
-        this.update()
-
-
-        this.setColumns()
-
-
-        // Fix height
-        this.fixHeight()
-
-        // Fix columns
-        this.fixColumns()
+        // // Update
+        // this.update()
+        //
+        //
+        // this.setColumns()
+        //
+        //
+        // // Fix height
+        // this.fixHeight()
+        //
+        // // Fix columns
+        // this.fixColumns()
 
         // Class names
         if (!this.options.header) {

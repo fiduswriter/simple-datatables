@@ -2115,64 +2115,19 @@ class DiffDOM {
     }
 }
 
-const dataToVirtualDOM = (data, columnSettings, hiddenHeader) => {
-    return {
-        nodeName: 'TABLE',
+const dataToVirtualDOM = (data, columnSettings, {hiddenHeader, header, footer, sortable}) => {
+
+    const table = {
+        nodeName: "TABLE",
         attributes: {
-            class: 'dataTable-table'
+            class: "dataTable-table"
         },
         childNodes: [
             {
-                nodeName: 'THEAD',
-                childNodes: [{
-                    nodeName: 'TR',
-                    childNodes: data.headings.map(
-                        (heading, index) => {
-                            const column = columnSettings.columns[index] || {};
-                            if (column.hidden) {
-                                return false
-                            }
-                            return {
-                                nodeName: 'TH',
-                                attributes: column.notSortable ?
-                                            {}
-                                            :
-                                            {
-                                                'data-sortable': true
-                                            },
-                                childNodes: [
-                                    hiddenHeader ?
-                                    {nodeName: '#text', data: ''} :
-                                    column.notSortable ?
-                                    {
-                                        nodeName: '#text',
-                                        data: heading.data
-                                    }
-                                    :
-                                    {
-                                        nodeName: 'a',
-                                        attributes: {
-                                            href: '#',
-                                            class: "dataTable-sorter"
-                                        },
-                                        childNodes : [
-                                            {
-                                                nodeName: '#text',
-                                                data: heading.data
-                                            }
-                                        ]
-                                    }
-                                ]
-                            }
-                        }
-                    ).filter(column => column)
-                }]
-            },
-            {
-                nodeName: 'TBODY',
+                nodeName: "TBODY",
                 childNodes: data.data.map(
                     row => ({
-                        nodeName: 'TR',
+                        nodeName: "TR",
                         childNodes: row.map(
                             (cell, index) => {
                                 const column = columnSettings.columns[index] || {};
@@ -2180,11 +2135,13 @@ const dataToVirtualDOM = (data, columnSettings, hiddenHeader) => {
                                     return false
                                 }
                                 return {
-                                    nodeName: 'TD',
-                                    childNodes: [{
-                                        nodeName: '#text',
-                                        data: column.render ? column.render(cell.data) : cell.text
-                                    }]
+                                    nodeName: "TD",
+                                    childNodes: [
+                                        {
+                                            nodeName: "#text",
+                                            data: column.render ? column.render(cell.data) : cell.text
+                                        }
+                                    ]
                                 }
                             }
                         ).filter(column => column)
@@ -2192,7 +2149,69 @@ const dataToVirtualDOM = (data, columnSettings, hiddenHeader) => {
                 )
             }
         ]
+    };
+
+    if (header || footer) {
+        const headerRow = {
+            nodeName: "TR",
+            childNodes: data.headings.map(
+                (heading, index) => {
+                    const column = columnSettings.columns[index] || {};
+                    if (column.hidden) {
+                        return false
+                    }
+                    return {
+                        nodeName: "TH",
+                        attributes: column.notSortable || !sortable ?
+                            {} :
+                            {
+                                "data-sortable": true
+                            },
+                        childNodes: [
+                            hiddenHeader ?
+                                {nodeName: "#text",
+                                    data: ""} :
+                                column.notSortable  || !sortable ?
+                                    {
+                                        nodeName: "#text",
+                                        data: heading.data
+                                    } :
+                                    {
+                                        nodeName: "a",
+                                        attributes: {
+                                            href: "#",
+                                            class: "dataTable-sorter"
+                                        },
+                                        childNodes: [
+                                            {
+                                                nodeName: "#text",
+                                                data: heading.data
+                                            }
+                                        ]
+                                    }
+                        ]
+                    }
+                }
+            ).filter(column => column)
+        };
+
+        if (header) {
+            table.childNodes.unshift({
+                nodeName: "THEAD",
+                childNodes: [headerRow]
+            });
+        }
+        if (footer) {
+            const footerRow = header ? structuredClone(headerRow) : headerRow;
+            table.childNodes.push({
+                nodeName: "TFOOT",
+                childNodes: [footerRow]
+            });
+        }
+
     }
+
+    return table
 };
 
 /**
@@ -3113,17 +3132,16 @@ class DataTable {
         this.rows = new Rows(this);
         this.columns = new Columns(this);
 
-        // Disable manual sorting if no header is present (#4)
-        if (this.dom.tHead === null && !this.options.data?.headings) {
-            this.options.sortable = false;
-        }
-
-        if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
-            throw new Error(
-                "You seem to be using the data option, but you've not defined any rows."
-            )
-        }
-
+        // // Disable manual sorting if no header is present (#4)
+        // if (this.dom.tHead === null && !this.options.data?.headings) {
+        //     this.options.sortable = false
+        // }
+        //
+        // if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
+        //     throw new Error(
+        //         "You seem to be using the data option, but you've not defined any rows."
+        //     )
+        // }
 
 
         this.data = this.readTableData(this.dom, this.options.data);
@@ -3146,16 +3164,19 @@ class DataTable {
             headings: []
         };
         if (dataOption?.data) {
-            data.data = dataOption.data;
+            data.data = dataOption.data.map(row => row.map(cell => ({data: cell, text: cell})));
         } else if (dom.tBodies.length) {
-            data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML, text: cell.innerHTML})));
+            data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML,
+                text: cell.innerHTML})));
         }
         if (dataOption?.headings) {
-            data.headings = dataOption.headings.map(heading => ({data: heading, sorted: false}));
+            data.headings = dataOption.headings.map(heading => ({data: heading,
+                sorted: false}));
         } else if (dom.tHead) {
-            data.headings = Array.from(dom.tHead.querySelectorAll('th')).map(th => {
-                const heading = {data: th.innerHTML, sorted: false};
-                heading.sortable = th.dataset.sortable === "false" ? false : true;
+            data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(th => {
+                const heading = {data: th.innerHTML,
+                    sorted: false};
+                heading.sortable = th.dataset.sortable !== "false";
                 return heading
             });
         } else if (dataOption?.data?.data?.length) {
@@ -3169,7 +3190,9 @@ class DataTable {
                 "Data heading length mismatch."
             )
         }
-        console.log({dom, dataOption, data});
+        console.log({dom,
+            dataOption,
+            data});
         return data
     }
 
@@ -3217,14 +3240,16 @@ class DataTable {
 
                 if (data.sort) {
                     // We only allow one. The last one will overwrite all other options
-                    sort = {column, direction: data.sort};
+                    sort = {column,
+                        direction: data.sort};
                 }
 
             });
 
         });
 
-        return {columns, sort}
+        return {columns,
+            sort}
 
     }
 
@@ -3233,13 +3258,165 @@ class DataTable {
      */
     render() {
 
-        const newVirtualDOM = dataToVirtualDOM(this.data, this.columnSettings, this.options.hiddenHeader);
+        const newVirtualDOM = dataToVirtualDOM(this.data, this.columnSettings, this.options);
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
-        console.log({diff, newVirtualDOM, virtualDOM: this.virtualDOM});
+        console.log({diff,
+            newVirtualDOM,
+            virtualDOM: this.virtualDOM});
         this.dd.apply(this.dom, diff);
         this.virtualDOM = newVirtualDOM;
-        return
+
+        // Store references
+        this.body = this.dom.tBodies[0];
+        this.head = this.dom.tHead;
+
+        this.hasRows = this.body.rows.length > 0;
+
+        this.headings = [];
+        this.hasHeadings = this.head.rows.length > 0;
+
+        if (this.hasHeadings) {
+            this.header = this.head.rows[0];
+            this.headings = [].slice.call(this.header.cells);
+        }
+
+        // Build
+        this.wrapper = createElement("div", {
+            class: "dataTable-wrapper dataTable-loading"
+        });
+
+        // Template for custom layouts
+        let template = "";
+        template += "<div class='dataTable-top'>";
+        template += this.options.layout.top;
+        template += "</div>";
+        if (this.options.scrollY.length) {
+            template += `<div class='dataTable-container' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`;
+        } else {
+            template += "<div class='dataTable-container'></div>";
+        }
+        template += "<div class='dataTable-bottom'>";
+        template += this.options.layout.bottom;
+        template += "</div>";
+
+        // Info placement
+        template = template.replace("{info}", this.options.paging ? "<div class='dataTable-info'></div>" : "");
+
+        // Per Page Select
+        if (this.options.paging && this.options.perPageSelect) {
+            let wrap = "<div class='dataTable-dropdown'><label>";
+            wrap += this.options.labels.perPage;
+            wrap += "</label></div>";
+
+            // Create the select
+            const select = createElement("select", {
+                class: "dataTable-selector"
+            });
+
+            // Create the options
+            this.options.perPageSelect.forEach(val => {
+                const selected = val === this.options.perPage;
+                const option = new Option(val, val, selected, selected);
+                select.add(option);
+            });
+
+            // Custom label
+            wrap = wrap.replace("{select}", select.outerHTML);
+
+            // Selector placement
+            template = template.replace("{select}", wrap);
+        } else {
+            template = template.replace("{select}", "");
+        }
+
+        // Searchable
+        if (this.options.searchable) {
+            const form =
+                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${this.options.labels.placeholder}' type='text'></div>`;
+
+            // Search input placement
+            template = template.replace("{search}", form);
+        } else {
+            template = template.replace("{search}", "");
+        }
+
+        // if (this.hasHeadings) {
+        //     // Sortable
+        //     this.renderHeader()
+        // }
+
+
+        // Paginator
+        const paginatorWrapper = createElement("nav", {
+            class: "dataTable-pagination"
+        });
+        const paginator = createElement("ul", {
+            class: "dataTable-pagination-list"
+        });
+        paginatorWrapper.appendChild(paginator);
+
+        // Pager(s) placement
+        template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML);
+        this.wrapper.innerHTML = template;
+
+        this.container = this.wrapper.querySelector(".dataTable-container");
+
+        this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination-list");
+
+        this.label = this.wrapper.querySelector(".dataTable-info");
+
+        // Insert in to DOM tree
+        this.dom.parentNode.replaceChild(this.wrapper, this.dom);
+        this.container.appendChild(this.dom);
+
+        // Store the table dimensions
+        this.rect = this.dom.getBoundingClientRect();
+
+        // Convert rows to array for processing
+        this.rowData = Array.from(this.body.rows);
+        this.activeRows = this.rowData.slice();
+        this.activeHeadings = this.headings.slice();
+
+        // // Update
+        // this.update()
+        //
+        //
+        // this.setColumns()
+        //
+        //
+        // // Fix height
+        // this.fixHeight()
+        //
+        // // Fix columns
+        // this.fixColumns()
+
+        // Class names
+        if (!this.options.header) {
+            this.wrapper.classList.add("no-header");
+        }
+
+        if (!this.options.footer) {
+            this.wrapper.classList.add("no-footer");
+        }
+
+        if (this.options.sortable) {
+            this.wrapper.classList.add("sortable");
+        }
+
+        if (this.options.searchable) {
+            this.wrapper.classList.add("searchable");
+        }
+
+        if (this.options.fixedHeight) {
+            this.wrapper.classList.add("fixed-height");
+        }
+
+        if (this.options.fixedColumns) {
+            this.wrapper.classList.add("fixed-columns");
+        }
+
+        this.bindEvents();
     }
 
     /**
