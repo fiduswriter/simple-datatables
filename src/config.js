@@ -1,10 +1,10 @@
 /**
  * Default configuration
- * @typ {Object}
  */
 export const defaultConfig = {
     sortable: true,
     searchable: true,
+    destroyable: true,
 
     // Pagination
     paging: true,

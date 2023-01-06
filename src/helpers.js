@@ -1,13 +1,10 @@
 /**
  * Check is item is object
- * @return {Boolean}
  */
 export const isObject = val => Object.prototype.toString.call(val) === "[object Object]"
 
 /**
  * Check for valid JSON string
- * @param  {String}   str
- * @return {Boolean|Array|Object}
  */
 export const isJson = str => {
     let t = !1
@@ -21,9 +18,6 @@ export const isJson = str => {
 
 /**
  * Create DOM element node
- * @param  {String}   nodeName nodeName
- * @param  {Object}   attrs properties and attributes
- * @return {Object}
  */
 export const createElement = (nodeName, attrs) => {
     const dom = document.createElement(nodeName)
@@ -49,10 +43,6 @@ export const flush = el => {
 
 /**
  * Create button helper
- * @param  {String}   class
- * @param  {Number}   page
- * @param  {String}   text
- * @return {Object}
  */
 export const button = (className, page, text) => createElement(
     "li",

@@ -14,7 +14,7 @@ import {
 export class DataTable {
     constructor(table, options = {}) {
 
-        const dom = typeof table === "string" ? document.querySelector(table) : table
+        this.dom = typeof table === "string" ? document.querySelector(table) : table
 
         // user options
         this.options = {
@@ -30,63 +30,48 @@ export class DataTable {
             }
         }
 
-        this.rows = new Rows(this)
-        this.columns = new Columns(this)
-
-        this.initialized = false
-
-        this.initialLayout = dom.innerHTML
         this.initialSortable = this.options.sortable
+        this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : "" // preserve in case of later destruction
 
         if (this.options.tabIndex) {
-            dom.tabIndex = this.options.tabIndex
-        } else if (this.options.rowNavigation && dom.tabIndex === -1) {
-            dom.tabIndex = 0
+            this.dom.tabIndex = this.options.tabIndex
+        } else if (this.options.rowNavigation && this.dom.tabIndex === -1) {
+            this.dom.tabIndex = 0
         }
-
-        // Disable manual sorting if no header is present (#4)
-        if (!this.options.header) {
-            this.options.sortable = false
-        }
-
-        if (dom.tHead === null) {
-            if (!this.options.data ||
-                (this.options.data && !this.options.data.headings)
-            ) {
-                this.options.sortable = false
-            }
-        }
-
-        if (dom.tBodies.length && !dom.tBodies[0].rows.length) {
-            if (this.options.data) {
-                if (!this.options.data.data) {
-                    throw new Error(
-                        "You seem to be using the data option, but you've not defined any rows."
-                    )
-                }
-            }
-        }
-
-        this.dom = dom
 
         this.listeners = {
             onResize: event => this.onResize(event)
         }
+
+        // Initialize other variables
+        this.initialized = false
+        this.data = false
+        this.rowData = false
 
         this.init()
     }
 
     /**
      * Initialize the instance
-     * @param  {Object} options
-     * @return {Void}
      */
-    init(options) {
+    init() {
         if (this.initialized || this.dom.classList.contains("dataTable-table")) {
             return false
         }
 
-        Object.assign(this.options, options || {})
+        this.rows = new Rows(this)
+        this.columns = new Columns(this)
+
+        // Disable manual sorting if no header is present (#4)
+        if (this.dom.tHead === null && !this.options.data?.headings) {
+            this.options.sortable = false
+        }
+
+        if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
+            throw new Error(
+                "You seem to be using the data option, but you've not defined any rows."
+            )
+        }
 
         this.currentPage = 1
         this.onFirstPage = true
@@ -105,8 +90,6 @@ export class DataTable {
 
     /**
      * Render the instance
-     * @param  {String} type
-     * @return {Void}
      */
     render() {
         let template = ""
@@ -272,8 +255,8 @@ export class DataTable {
         this.rect = this.dom.getBoundingClientRect()
 
         // Convert rows to array for processing
-        this.data = Array.from(this.body.rows)
-        this.activeRows = this.data.slice()
+        this.rowData = Array.from(this.body.rows)
+        this.activeRows = this.rowData.slice()
         this.activeHeadings = this.headings.slice()
 
         // Update
@@ -360,7 +343,7 @@ export class DataTable {
             f = current * this.options.perPage
             t = f + this.pages[current].length
             f = f + 1
-            items = this.searching ? this.searchData.length : this.data.length
+            items = this.searching ? this.searchData.length : this.rowData.length
         }
 
         if (this.label && this.options.labels.info.length) {
@@ -596,7 +579,7 @@ export class DataTable {
     setColumns(ajax) {
 
         if (!ajax) {
-            this.data.forEach(row => {
+            this.rowData.forEach(row => {
                 Array.from(row.cells).forEach(cell => {
                     cell.data = cell.innerHTML
                 })
@@ -652,7 +635,7 @@ export class DataTable {
         }
 
         if (this.hasRows) {
-            this.data.forEach((row, i) => {
+            this.rowData.forEach((row, i) => {
                 row.dataIndex = i
                 Array.from(row.cells).forEach(cell => {
                     cell.data = cell.innerHTML
@@ -670,7 +653,10 @@ export class DataTable {
      * @return {void}
      */
     destroy() {
-        this.dom.innerHTML = this.initialLayout
+        if (!this.options.destroyable) {
+            return
+        }
+        this.dom.innerHTML = this.initialInnerHTML
 
         // Remove the className
         this.dom.classList.remove("dataTable-table")
@@ -843,7 +829,7 @@ export class DataTable {
                     this.columnWidths[i] = ow
                 })
 
-                this.data.forEach(row => {
+                this.rowData.forEach(row => {
                     Array.from(row.cells).forEach((cell, i) => {
                         if (this.columns.visible(cell.cellIndex))
                             cell.style.width = `${widths[i]}%`
@@ -870,8 +856,6 @@ export class DataTable {
 
     /**
      * Perform a search of the data set
-     * @param  {string} query
-     * @return {void}
      */
     search(query) {
         if (!this.hasRows) return false
@@ -892,7 +876,7 @@ export class DataTable {
 
         this.clear()
 
-        this.data.forEach((row, idx) => {
+        this.rowData.forEach((row, idx) => {
             const inArray = this.searchData.includes(row)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
@@ -940,8 +924,6 @@ export class DataTable {
 
     /**
      * Change page
-     * @param  {int} page
-     * @return {void}
      */
     page(page, lastRowCursor=false) {
         // We don't want to load the current page again.
@@ -965,9 +947,6 @@ export class DataTable {
 
     /**
      * Sort by column
-     * @param  {int} column - The column no.
-     * @param  {string} direction - asc or desc
-     * @return {void}
      */
     sortColumn(column, direction) {
         // Use columns API until sortColumn method is removed
@@ -976,7 +955,6 @@ export class DataTable {
 
     /**
      * Add new row data
-     * @param {object} data
      */
     insert(data) {
         let rows = []
@@ -1056,8 +1034,6 @@ export class DataTable {
 
     /**
      * Truncate the table
-     * @param  {mixes} html - HTML string or HTMLElement
-     * @return {void}
      */
     clear(html) {
         if (this.body) {
@@ -1128,13 +1104,12 @@ export class DataTable {
 
     /**
      * Show a message in the table
-     * @param {string} message
      */
     setMessage(message) {
         let colspan = 1
 
         if (this.hasRows) {
-            colspan = this.data[0].cells.length
+            colspan = this.rowData[0].cells.length
         } else if (this.activeHeadings.length) {
             colspan = this.activeHeadings.length
         }
@@ -1156,9 +1131,6 @@ export class DataTable {
 
     /**
      * Add custom event listener
-     * @param  {String} event
-     * @param  {Function} callback
-     * @return {Void}
      */
     on(event, callback) {
         this.events = this.events || {}
@@ -1168,9 +1140,6 @@ export class DataTable {
 
     /**
      * Remove custom event listener
-     * @param  {String} event
-     * @param  {Function} callback
-     * @return {Void}
      */
     off(event, callback) {
         this.events = this.events || {}
@@ -1180,8 +1149,6 @@ export class DataTable {
 
     /**
      * Fire custom event
-     * @param  {String} event
-     * @return {Void}
      */
     emit(event) {
         this.events = this.events || {}

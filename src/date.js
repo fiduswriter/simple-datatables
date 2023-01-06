@@ -5,9 +5,6 @@ dayjs.extend(customParseFormat)
 
 /**
  * Use dayjs to parse cell contents for sorting
- * @param  {String} content     The datetime string to parse
- * @param  {String} format      The format for dayjs to use
- * @return {String|Boolean}     Datatime string or false
  */
 export const parseDate = (content, format) => {
     let date = false

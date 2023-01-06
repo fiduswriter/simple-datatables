@@ -1,13 +1,10 @@
 /**
  * Check is item is object
- * @return {Boolean}
  */
 const isObject = val => Object.prototype.toString.call(val) === "[object Object]";
 
 /**
  * Check for valid JSON string
- * @param  {String}   str
- * @return {Boolean|Array|Object}
  */
 const isJson = str => {
     let t = !1;
@@ -21,9 +18,6 @@ const isJson = str => {
 
 /**
  * Create DOM element node
- * @param  {String}   nodeName nodeName
- * @param  {Object}   attrs properties and attributes
- * @return {Object}
  */
 const createElement = (nodeName, attrs) => {
     const dom = document.createElement(nodeName);
@@ -49,10 +43,6 @@ const flush = el => {
 
 /**
  * Create button helper
- * @param  {String}   class
- * @param  {Number}   page
- * @param  {String}   text
- * @return {Object}
  */
 const button = (className, page, text) => createElement(
     "li",
@@ -138,8 +128,6 @@ const truncate = (a, b, c, d, ellipsis) => {
 
 /**
  * Rows API
- * @param {Object} instance DataTable instance
- * @param {Array} rows
  */
 class Rows {
     constructor(dt) {
@@ -150,8 +138,6 @@ class Rows {
 
     /**
      * Build a new row
-     * @param  {Array} row
-     * @return {HTMLElement}
      */
     build(row) {
         const tr = createElement("tr");
@@ -202,7 +188,6 @@ class Rows {
 
     /**
      * Add new row
-     * @param {Array} select
      */
     add(data) {
         if (Array.isArray(data)) {
@@ -210,14 +195,14 @@ class Rows {
             // Check for multiple rows
             if (Array.isArray(data[0])) {
                 data.forEach(row => {
-                    dt.data.push(this.build(row));
+                    dt.rowData.push(this.build(row));
                 });
             } else {
-                dt.data.push(this.build(data));
+                dt.rowData.push(this.build(data));
             }
 
             // We may have added data to an empty table
-            if ( dt.data.length ) {
+            if ( dt.rowData.length ) {
                 dt.hasRows = true;
             }
 
@@ -231,8 +216,6 @@ class Rows {
 
     /**
      * Remove row(s)
-     * @param  {Array|Number} select
-     * @return {Void}
      */
     remove(select) {
         const dt = this.dt;
@@ -242,16 +225,16 @@ class Rows {
             select.sort((a, b) => b - a);
 
             select.forEach(row => {
-                dt.data.splice(row, 1);
+                dt.rowData.splice(row, 1);
             });
         } else if (select == "all") {
-            dt.data = [];
+            dt.rowData = [];
         } else {
-            dt.data.splice(select, 1);
+            dt.rowData.splice(select, 1);
         }
 
         // We may have emptied the table
-        if ( !dt.data.length ) {
+        if ( !dt.rowData.length ) {
             dt.hasRows = false;
         }
 
@@ -264,30 +247,24 @@ class Rows {
      * @return {Void}
      */
     update() {
-        this.dt.data.forEach((row, i) => {
+        this.dt.rowData.forEach((row, i) => {
             row.dataIndex = i;
         });
     }
 
     /**
      * Find index of row by searching for a value in a column
-     * @param  {Number} columnIndex
-     * @param  {String} value
-     * @return {Number}
      */
     findRowIndex(columnIndex, value) {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
-        return this.dt.data.findIndex(
+        return this.dt.rowData.findIndex(
             tr => tr.children[columnIndex].innerText.toLowerCase().includes(String(value).toLowerCase())
         )
     }
 
     /**
      * Find index, row, and column data by searching for a value in a column
-     * @param  {Number} columnIndex
-     * @param  {String} value
-     * @return {Object}
      */
     findRow(columnIndex, value) {
         // get the row index
@@ -301,7 +278,7 @@ class Rows {
             }
         }
         // get the row from data
-        const row = this.dt.data[index];
+        const row = this.dt.rowData[index];
         // return innerHTML of each td
         const cols = [...row.cells].map(r => r.innerHTML);
         // return everything
@@ -314,13 +291,10 @@ class Rows {
 
     /**
      * Update a row with new data
-     * @param  {Number} select
-     * @param  {Array} data
-     * @return {Void}
      */
     updateRow(select, data) {
         const row = this.build(data);
-        this.dt.data.splice(select, 1, row);
+        this.dt.rowData.splice(select, 1, row);
         this.update();
         this.dt.columns.rebuild();
     }
@@ -356,7 +330,6 @@ class Columns {
 
     /**
      * Reorder the columns
-     * @return {Array} columns  Array of ordered column indexes
      */
     order(columns) {
         let a;
@@ -396,7 +369,7 @@ class Columns {
         });
 
         // Order the row cells
-        dt.data.forEach((row, i) => {
+        dt.rowData.forEach((row, i) => {
             c = row.cloneNode(false);
             d = row.cloneNode(false);
 
@@ -426,7 +399,7 @@ class Columns {
         dt.headings = temp[0];
         dt.activeHeadings = temp[1];
 
-        dt.data = temp[2];
+        dt.rowData = temp[2];
         dt.activeRows = temp[3];
 
         // Update
@@ -495,7 +468,6 @@ class Columns {
 
     /**
      * Add a new column
-     * @param {Object} data
      */
     add(data) {
         let td;
@@ -522,7 +494,7 @@ class Columns {
 
         this.dt.headings.push(th);
 
-        this.dt.data.forEach((row, i) => {
+        this.dt.rowData.forEach((row, i) => {
             if (data.data[i]) {
                 td = document.createElement("td");
 
@@ -561,8 +533,6 @@ class Columns {
 
     /**
      * Remove column(s)
-     * @param  {Array|Number} select
-     * @return {Void}
      */
     remove(select) {
         if (Array.isArray(select)) {
@@ -572,7 +542,7 @@ class Columns {
         } else {
             this.dt.headings.splice(select, 1);
 
-            this.dt.data.forEach(row => {
+            this.dt.rowData.forEach(row => {
                 row.removeChild(row.cells[select]);
             });
         }
@@ -582,10 +552,6 @@ class Columns {
 
     /**
      * Filter by column
-     * @param  {int} column - The column no.
-     * @param  {string} dir - asc or desc
-     * @filter {array} filter - optional parameter with a list of strings
-     * @return {void}
      */
     filter(column, dir, init, terms) {
         const dt = this.dt;
@@ -593,7 +559,7 @@ class Columns {
         // Creates a internal state that manages filters if there are none
         if ( !dt.filterState ) {
             dt.filterState = {
-                originalData: dt.data
+                originalData: dt.rowData
             };
         }
 
@@ -621,9 +587,9 @@ class Columns {
             return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter
         });
 
-        dt.data = filteredRows;
+        dt.rowData = filteredRows;
 
-        if (!dt.data.length) {
+        if (!dt.rowData.length) {
             dt.clear();
             dt.hasRows = false;
             dt.setMessage(dt.options.labels.noRows);
@@ -639,9 +605,6 @@ class Columns {
 
     /**
      * Sort by column
-     * @param  {int} column - The column no.
-     * @param  {string} dir - asc or desc
-     * @return {void}
      */
     sort(column, dir, init) {
         const dt = this.dt;
@@ -665,7 +628,7 @@ class Columns {
             dt.emit("datatable.sorting", column, dir);
         }
 
-        let rows = dt.data;
+        let rows = dt.rowData;
         const alpha = [];
         const numeric = [];
         let a = 0;
@@ -748,11 +711,11 @@ class Columns {
             /* Reorder the table */
             rows = top.concat(btm);
 
-            dt.data = [];
+            dt.rowData = [];
             const indexes = [];
 
             rows.forEach((v, i) => {
-                dt.data.push(v.row);
+                dt.rowData.push(v.row);
 
                 if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
                     indexes.push(i);
@@ -795,12 +758,12 @@ class Columns {
         });
 
         if (dt.selectedColumns.length) {
-            dt.data.forEach(row => {
+            dt.rowData.forEach(row => {
                 Array.from(row.cells).forEach((cell, i) => {
                     if (dt.selectedColumns.includes(i)) {
                         dt.columnRenderers.forEach(options => {
                             if (options.columns.includes(i)) {
-                                dt.data[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row);
+                                dt.rowData[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row);
                             }
                         });
                     }
@@ -809,7 +772,7 @@ class Columns {
         }
 
         // Loop over the rows and reorder the cells
-        dt.data.forEach((row, i) => {
+        dt.rowData.forEach((row, i) => {
             a = row.cloneNode(false);
             b = row.cloneNode(false);
 
@@ -837,7 +800,7 @@ class Columns {
             dt.activeRows.push(b);
         });
 
-        dt.data = temp;
+        dt.rowData = temp;
 
         dt.update();
     }
@@ -903,11 +866,11 @@ const dataToTable = function (data) {
 
 /**
  * Default configuration
- * @typ {Object}
  */
 const defaultConfig$1 = {
     sortable: true,
     searchable: true,
+    destroyable: true,
 
     // Pagination
     paging: true,
@@ -956,7 +919,7 @@ const defaultConfig$1 = {
 class DataTable {
     constructor(table, options = {}) {
 
-        const dom = typeof table === "string" ? document.querySelector(table) : table;
+        this.dom = typeof table === "string" ? document.querySelector(table) : table;
 
         // user options
         this.options = {
@@ -972,63 +935,48 @@ class DataTable {
             }
         };
 
-        this.rows = new Rows(this);
-        this.columns = new Columns(this);
-
-        this.initialized = false;
-
-        this.initialLayout = dom.innerHTML;
         this.initialSortable = this.options.sortable;
+        this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : ""; // preserve in case of later destruction
 
         if (this.options.tabIndex) {
-            dom.tabIndex = this.options.tabIndex;
-        } else if (this.options.rowNavigation && dom.tabIndex === -1) {
-            dom.tabIndex = 0;
+            this.dom.tabIndex = this.options.tabIndex;
+        } else if (this.options.rowNavigation && this.dom.tabIndex === -1) {
+            this.dom.tabIndex = 0;
         }
-
-        // Disable manual sorting if no header is present (#4)
-        if (!this.options.header) {
-            this.options.sortable = false;
-        }
-
-        if (dom.tHead === null) {
-            if (!this.options.data ||
-                (this.options.data && !this.options.data.headings)
-            ) {
-                this.options.sortable = false;
-            }
-        }
-
-        if (dom.tBodies.length && !dom.tBodies[0].rows.length) {
-            if (this.options.data) {
-                if (!this.options.data.data) {
-                    throw new Error(
-                        "You seem to be using the data option, but you've not defined any rows."
-                    )
-                }
-            }
-        }
-
-        this.dom = dom;
 
         this.listeners = {
             onResize: event => this.onResize(event)
         };
+
+        // Initialize other variables
+        this.initialized = false;
+        this.data = false;
+        this.rowData = false;
 
         this.init();
     }
 
     /**
      * Initialize the instance
-     * @param  {Object} options
-     * @return {Void}
      */
-    init(options) {
+    init() {
         if (this.initialized || this.dom.classList.contains("dataTable-table")) {
             return false
         }
 
-        Object.assign(this.options, options || {});
+        this.rows = new Rows(this);
+        this.columns = new Columns(this);
+
+        // Disable manual sorting if no header is present (#4)
+        if (this.dom.tHead === null && !this.options.data?.headings) {
+            this.options.sortable = false;
+        }
+
+        if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
+            throw new Error(
+                "You seem to be using the data option, but you've not defined any rows."
+            )
+        }
 
         this.currentPage = 1;
         this.onFirstPage = true;
@@ -1036,6 +984,8 @@ class DataTable {
         this.hiddenColumns = [];
         this.columnRenderers = [];
         this.selectedColumns = [];
+
+        this.readTableData(this.dom, this.options.data);
 
         this.render();
 
@@ -1045,10 +995,37 @@ class DataTable {
         }, 10);
     }
 
+    readTableData(dom, dataOption) {
+        console.log({dom, dataOption});
+        const data = {
+            data: [],
+            headings: []
+        };
+        if (dataOption?.data) {
+            data.data = dataOption.data;
+        } else if (dom.tBodies.length) {
+            data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cell).map(cell => cell.dataset.content || cell.innerHTML));
+        }
+        if (dataOption?.headings) {
+            data.headings = dataOption.headings;
+        } else if (dom.tHead) {
+            data.headings = Array.from(dom.tHead.querySelectorAll('th')).map(th => th.innerHTML);
+        } else if (dataOption?.data?.data?.length) {
+            data.headings = dataOption.data.data[0].map(_cell => "");
+        } else if (dom.tBodies.length) {
+            data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(_cell => "");
+        }
+        if (data.data.length && data.data[0].length !== data.headings.length) {
+            throw new Error(
+                "Data heading length mismatch."
+            )
+        }
+        this.data = data;
+        console.log({data});
+    }
+
     /**
      * Render the instance
-     * @param  {String} type
-     * @return {Void}
      */
     render() {
         let template = "";
@@ -1214,8 +1191,8 @@ class DataTable {
         this.rect = this.dom.getBoundingClientRect();
 
         // Convert rows to array for processing
-        this.data = Array.from(this.body.rows);
-        this.activeRows = this.data.slice();
+        this.rowData = Array.from(this.body.rows);
+        this.activeRows = this.rowData.slice();
         this.activeHeadings = this.headings.slice();
 
         // Update
@@ -1302,7 +1279,7 @@ class DataTable {
             f = current * this.options.perPage;
             t = f + this.pages[current].length;
             f = f + 1;
-            items = this.searching ? this.searchData.length : this.data.length;
+            items = this.searching ? this.searchData.length : this.rowData.length;
         }
 
         if (this.label && this.options.labels.info.length) {
@@ -1538,7 +1515,7 @@ class DataTable {
     setColumns(ajax) {
 
         if (!ajax) {
-            this.data.forEach(row => {
+            this.rowData.forEach(row => {
                 Array.from(row.cells).forEach(cell => {
                     cell.data = cell.innerHTML;
                 });
@@ -1594,7 +1571,7 @@ class DataTable {
         }
 
         if (this.hasRows) {
-            this.data.forEach((row, i) => {
+            this.rowData.forEach((row, i) => {
                 row.dataIndex = i;
                 Array.from(row.cells).forEach(cell => {
                     cell.data = cell.innerHTML;
@@ -1612,7 +1589,10 @@ class DataTable {
      * @return {void}
      */
     destroy() {
-        this.dom.innerHTML = this.initialLayout;
+        if (!this.options.destroyable) {
+            return
+        }
+        this.dom.innerHTML = this.initialInnerHTML;
 
         // Remove the className
         this.dom.classList.remove("dataTable-table");
@@ -1785,7 +1765,7 @@ class DataTable {
                     this.columnWidths[i] = ow;
                 });
 
-                this.data.forEach(row => {
+                this.rowData.forEach(row => {
                     Array.from(row.cells).forEach((cell, i) => {
                         if (this.columns.visible(cell.cellIndex))
                             cell.style.width = `${widths[i]}%`;
@@ -1812,8 +1792,6 @@ class DataTable {
 
     /**
      * Perform a search of the data set
-     * @param  {string} query
-     * @return {void}
      */
     search(query) {
         if (!this.hasRows) return false
@@ -1834,7 +1812,7 @@ class DataTable {
 
         this.clear();
 
-        this.data.forEach((row, idx) => {
+        this.rowData.forEach((row, idx) => {
             const inArray = this.searchData.includes(row);
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
@@ -1882,8 +1860,6 @@ class DataTable {
 
     /**
      * Change page
-     * @param  {int} page
-     * @return {void}
      */
     page(page, lastRowCursor=false) {
         // We don't want to load the current page again.
@@ -1907,9 +1883,6 @@ class DataTable {
 
     /**
      * Sort by column
-     * @param  {int} column - The column no.
-     * @param  {string} direction - asc or desc
-     * @return {void}
      */
     sortColumn(column, direction) {
         // Use columns API until sortColumn method is removed
@@ -1918,7 +1891,6 @@ class DataTable {
 
     /**
      * Add new row data
-     * @param {object} data
      */
     insert(data) {
         let rows = [];
@@ -1998,8 +1970,6 @@ class DataTable {
 
     /**
      * Truncate the table
-     * @param  {mixes} html - HTML string or HTMLElement
-     * @return {void}
      */
     clear(html) {
         if (this.body) {
@@ -2070,13 +2040,12 @@ class DataTable {
 
     /**
      * Show a message in the table
-     * @param {string} message
      */
     setMessage(message) {
         let colspan = 1;
 
         if (this.hasRows) {
-            colspan = this.data[0].cells.length;
+            colspan = this.rowData[0].cells.length;
         } else if (this.activeHeadings.length) {
             colspan = this.activeHeadings.length;
         }
@@ -2098,9 +2067,6 @@ class DataTable {
 
     /**
      * Add custom event listener
-     * @param  {String} event
-     * @param  {Function} callback
-     * @return {Void}
      */
     on(event, callback) {
         this.events = this.events || {};
@@ -2110,9 +2076,6 @@ class DataTable {
 
     /**
      * Remove custom event listener
-     * @param  {String} event
-     * @param  {Function} callback
-     * @return {Void}
      */
     off(event, callback) {
         this.events = this.events || {};
@@ -2122,8 +2085,6 @@ class DataTable {
 
     /**
      * Fire custom event
-     * @param  {String} event
-     * @return {Void}
      */
     emit(event) {
         this.events = this.events || {};
@@ -2255,9 +2216,6 @@ const convertJSON = function(userOptions = {}) {
 
 /**
  * Export table to CSV
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
  */
 const exportCSV = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
@@ -2364,9 +2322,6 @@ const exportCSV = function(dataTable, userOptions = {}) {
 
 /**
  * Export table to JSON
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
  */
 const exportJSON = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
@@ -2457,9 +2412,6 @@ const exportJSON = function(dataTable, userOptions = {}) {
 
 /**
  * Export table to SQL
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
  */
 const exportSQL = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
@@ -2580,9 +2532,6 @@ const exportSQL = function(dataTable, userOptions = {}) {
 
 /**
  * Export table to TXT
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
  */
 const exportTXT = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
@@ -3240,9 +3189,6 @@ dayjs.extend(customParseFormat);
 
 /**
  * Use dayjs to parse cell contents for sorting
- * @param  {String} content     The datetime string to parse
- * @param  {String} format      The format for dayjs to use
- * @return {String|Boolean}     Datatime string or false
  */
 const parseDate = (content, format) => {
     let date = false;

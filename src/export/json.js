@@ -4,9 +4,6 @@ import {
 
 /**
  * Export table to JSON
- * @param {DataTable} dataTable DataTable instance.
- * @param {Object} userOptions User options
- * @return {Boolean}
  */
 export const exportJSON = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false

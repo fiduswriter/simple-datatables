@@ -31,7 +31,6 @@ export class Columns {
 
     /**
      * Reorder the columns
-     * @return {Array} columns  Array of ordered column indexes
      */
     order(columns) {
         let a
@@ -71,7 +70,7 @@ export class Columns {
         })
 
         // Order the row cells
-        dt.data.forEach((row, i) => {
+        dt.rowData.forEach((row, i) => {
             c = row.cloneNode(false)
             d = row.cloneNode(false)
 
@@ -101,7 +100,7 @@ export class Columns {
         dt.headings = temp[0]
         dt.activeHeadings = temp[1]
 
-        dt.data = temp[2]
+        dt.rowData = temp[2]
         dt.activeRows = temp[3]
 
         // Update
@@ -170,7 +169,6 @@ export class Columns {
 
     /**
      * Add a new column
-     * @param {Object} data
      */
     add(data) {
         let td
@@ -197,7 +195,7 @@ export class Columns {
 
         this.dt.headings.push(th)
 
-        this.dt.data.forEach((row, i) => {
+        this.dt.rowData.forEach((row, i) => {
             if (data.data[i]) {
                 td = document.createElement("td")
 
@@ -236,8 +234,6 @@ export class Columns {
 
     /**
      * Remove column(s)
-     * @param  {Array|Number} select
-     * @return {Void}
      */
     remove(select) {
         if (Array.isArray(select)) {
@@ -247,7 +243,7 @@ export class Columns {
         } else {
             this.dt.headings.splice(select, 1)
 
-            this.dt.data.forEach(row => {
+            this.dt.rowData.forEach(row => {
                 row.removeChild(row.cells[select])
             })
         }
@@ -257,10 +253,6 @@ export class Columns {
 
     /**
      * Filter by column
-     * @param  {int} column - The column no.
-     * @param  {string} dir - asc or desc
-     * @filter {array} filter - optional parameter with a list of strings
-     * @return {void}
      */
     filter(column, dir, init, terms) {
         const dt = this.dt
@@ -268,7 +260,7 @@ export class Columns {
         // Creates a internal state that manages filters if there are none
         if ( !dt.filterState ) {
             dt.filterState = {
-                originalData: dt.data
+                originalData: dt.rowData
             }
         }
 
@@ -296,9 +288,9 @@ export class Columns {
             return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter
         })
 
-        dt.data = filteredRows
+        dt.rowData = filteredRows
 
-        if (!dt.data.length) {
+        if (!dt.rowData.length) {
             dt.clear()
             dt.hasRows = false
             dt.setMessage(dt.options.labels.noRows)
@@ -314,9 +306,6 @@ export class Columns {
 
     /**
      * Sort by column
-     * @param  {int} column - The column no.
-     * @param  {string} dir - asc or desc
-     * @return {void}
      */
     sort(column, dir, init) {
         const dt = this.dt
@@ -340,7 +329,7 @@ export class Columns {
             dt.emit("datatable.sorting", column, dir)
         }
 
-        let rows = dt.data
+        let rows = dt.rowData
         const alpha = []
         const numeric = []
         let a = 0
@@ -423,11 +412,11 @@ export class Columns {
             /* Reorder the table */
             rows = top.concat(btm)
 
-            dt.data = []
+            dt.rowData = []
             const indexes = []
 
             rows.forEach((v, i) => {
-                dt.data.push(v.row)
+                dt.rowData.push(v.row)
 
                 if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
                     indexes.push(i)
@@ -470,12 +459,12 @@ export class Columns {
         })
 
         if (dt.selectedColumns.length) {
-            dt.data.forEach(row => {
+            dt.rowData.forEach(row => {
                 Array.from(row.cells).forEach((cell, i) => {
                     if (dt.selectedColumns.includes(i)) {
                         dt.columnRenderers.forEach(options => {
                             if (options.columns.includes(i)) {
-                                dt.data[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
+                                dt.rowData[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
                             }
                         })
                     }
@@ -484,7 +473,7 @@ export class Columns {
         }
 
         // Loop over the rows and reorder the cells
-        dt.data.forEach((row, i) => {
+        dt.rowData.forEach((row, i) => {
             a = row.cloneNode(false)
             b = row.cloneNode(false)
 
@@ -512,7 +501,7 @@ export class Columns {
             dt.activeRows.push(b)
         })
 
-        dt.data = temp
+        dt.rowData = temp
 
         dt.update()
     }
