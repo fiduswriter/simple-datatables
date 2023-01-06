@@ -1,4 +1,4 @@
-name: Simple-DataTables CI
+name: simple-datatables CI
 
 on: [push]
 

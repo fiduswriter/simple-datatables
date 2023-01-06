@@ -24,7 +24,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/fiduswriter/Simple-DataTables.git"
+    "url": "git+https://github.com/fiduswriter/simple-datatables.git"
   },
   "keywords": [
     "DataTable",
@@ -37,9 +37,9 @@
   "author": "Johannes Wilm",
   "license": "LGPL-3.0",
   "bugs": {
-    "url": "https://github.com/fiduswriter/Simple-DataTables/issues"
+    "url": "https://github.com/fiduswriter/simple-datatables/issues"
   },
-  "homepage": "https://github.com/fiduswriter/Simple-DataTables#readme",
+  "homepage": "https://github.com/fiduswriter/simple-datatables#readme",
   "devDependencies": {
     "@babel/core": "^7.18.9",
     "@html-eslint/eslint-plugin": "^0.15.0",

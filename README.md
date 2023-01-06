@@ -1,14 +1,14 @@
-# Simple-DataTables
+# simple-datatables
 
-A lightweight, extendable, dependency-free javascript HTML table plugin. Similar to jQuery DataTables **for use in modern browsers**, but without the jQuery dependency. Note: If you want a version that works in very old browsers (IE, etc.), then head over to https://github.com/fiduswriter/Simple-DataTables-classic .
+A lightweight, extendable, dependency-free javascript HTML table plugin. Similar to jQuery DataTables **for use in modern browsers**, but without the jQuery dependency. Note: If you want a version that works in very old browsers (IE, etc.), then head over to https://github.com/fiduswriter/simple-Datatables-classic .
 
 Based on [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in ES2018.
 
-See the demos [here](https://fiduswriter.github.io/Simple-DataTables/).
+See the demos [here](https://fiduswriter.github.io/simple-datatables/).
 
 # CDN
 
-To use the CDN version of Simple-DataTables use either [https://cdn.jsdelivr.net/npm/simple-datatables@latest](https://cdn.jsdelivr.net/npm/simple-datatables@latest) or [https://unpkg.com/simple-datatables](https://unpkg.com/simple-datatables). You also need to add the CSS styling, so the elements you'll add to html head element can for example be these:
+To use the CDN version of simple-datatables use either [https://cdn.jsdelivr.net/npm/simple-datatables@latest](https://cdn.jsdelivr.net/npm/simple-datatables@latest) or [https://unpkg.com/simple-datatables](https://unpkg.com/simple-datatables). You also need to add the CSS styling, so the elements you'll add to html head element can for example be these:
 
 ```html
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
@@ -34,10 +34,10 @@ LGPL
 * Control column visibility
 * Reorder or swap columns
 * dayjs integration for sorting columns with datetime strings
-* Extentable with custom plugins [See the Simple-DataTables wiki](https://github.com/fiduswriter/Simple-DataTables/wiki/Plugins)
+* Extentable with custom plugins [See the simple-datatables wiki](https://github.com/fiduswriter/simple-datatables/wiki/Plugins)
 
 
-[Simple-DataTables Documentation](https://github.com/fiduswriter/Simple-DataTables/wiki)
+[simple-datatables Documentation](https://github.com/fiduswriter/simple-datatables/wiki)
 
 
 ---
@@ -96,4 +96,4 @@ const dataTable = new simpleDatatables.DataTable("#myTable", {
 ### Upgrading
 
 For upgrading from one major version to another, check the Wiki:
-https://github.com/fiduswriter/Simple-DataTables/wiki/Upgrading
+https://github.com/fiduswriter/simple-datatables/wiki/Upgrading

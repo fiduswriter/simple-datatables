@@ -1,7 +1,7 @@
 declare module "simple-datatables"{
     /**A lightweight, extendable, dependency-free javascript HTML table plugin. Similar to jQuery DataTables for use in modern browsers, but without the jQuery dependency.
      *
-     * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/Getting-Started#browser
+     * Docs :https://github.com/fiduswriter/simple-datatables/wiki/Getting-Started#browser
      */
     class DataTable {
 
@@ -55,15 +55,15 @@ declare module "simple-datatables"{
         input : HTMLInputElement;
         /**Pagination Label Element */
         label : HTMLElement;
-        /**To use the columns API just access the  columns property on the current instance: Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/columns-API */
+        /**To use the columns API just access the  columns property on the current instance: Docs : https://github.com/fiduswriter/simple-datatables/wiki/columns-API */
         columns : Columns;
-        /**To use the rows API just access the rows property on the current instance: Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/rows-API */
+        /**To use the rows API just access the rows property on the current instance: Docs : https://github.com/fiduswriter/simple-datatables/wiki/rows-API */
         rows : Rows;
-        /**Simple-DataTables fires it's own events which you can listen for by utilising the .on() method: Docs: https://github.com/fiduswriter/Simple-DataTables/wiki/on()*/
+        /**simple-datatables fires it's own events which you can listen for by utilising the .on() method: Docs: https://github.com/fiduswriter/simple-datatables/wiki/on()*/
         on(event : tableEvents, func :any):void;
         /**Refreshes the table. This will recount the rows, reset any search and remove any set message, but will not reset any sorting. */
         refresh():void;
-        /**Insert new data in to the table. If you attempt to pass new headings to a table that has headings, they'll be ignored. Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/insert()*/
+        /**Insert new data in to the table. If you attempt to pass new headings to a table that has headings, they'll be ignored. Docs : https://github.com/fiduswriter/simple-datatables/wiki/insert()*/
         insert(data : object[]):void;
         /**Loads a given page. Page number must be an integer. */
         page(number : number):void;
@@ -73,7 +73,7 @@ declare module "simple-datatables"{
          *
          *You can pass an optional object of options to the method if you require new a new config.
          *
-         * Docs: https://github.com/fiduswriter/Simple-DataTables/wiki/init()
+         * Docs: https://github.com/fiduswriter/simple-datatables/wiki/init()
         */
         init(options? : DataTableOptions):void;
         /**Destroy this data table instance*/
@@ -100,7 +100,7 @@ declare module "simple-datatables"{
                 space: 4 // JSON.stringify's space parameter for json type
             };
          *
-            Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/export()
+            Docs : https://github.com/fiduswriter/simple-datatables/wiki/export()
         */
         export(options? : object):boolean;
         /**Import data into the table from json or csv strings.
@@ -121,12 +121,12 @@ declare module "simple-datatables"{
 
             Note that whilst checks are performed for valid json strings, none are present for csv checking so it's up to you to make sure the formatting is correct.
          *
-         * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/import()
+         * Docs :https://github.com/fiduswriter/simple-datatables/wiki/import()
         */
        import(options? : object): boolean;
         /** Display printable version.
          *
-         * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/print()
+         * Docs :https://github.com/fiduswriter/simple-datatables/wiki/print()
          */
         print():void;
 
@@ -211,7 +211,7 @@ declare module "simple-datatables"{
     interface DataTableOptions{
         /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
          *
-         * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/columns
+         * Docs :https://github.com/fiduswriter/simple-datatables/wiki/columns
          */
         columns?:ColumnOption[];
         /**
@@ -219,7 +219,7 @@ declare module "simple-datatables"{
          *
          * You can set both the headings and rows with headings and data properties, respectively. The headings property is optional.
          *
-         * Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/data
+         * Docs : https://github.com/fiduswriter/simple-datatables/wiki/data
          */
         data?:DataOption;
         /**Toggle the skip to first page and skip to last page buttons.
@@ -270,7 +270,7 @@ declare module "simple-datatables"{
                 info: "Showing {start} to {end} of {rows} entries",
             }
          *
-         * Docs : https://github.com/fiduswriter/Simple-DataTables/wiki/labels
+         * Docs : https://github.com/fiduswriter/simple-datatables/wiki/labels
          */
         labels?:LabelsOptions;
         /**
@@ -294,7 +294,7 @@ declare module "simple-datatables"{
          *   Use of the {select} variable depends on the option perPageSelect being enabled and use of the {search} variable depends on the option searchable being enabled. Trying to use these variables while their corresponding options are disabled will result in nothing being inserted.
          *
          *
-         * Docs :https://github.com/fiduswriter/Simple-DataTables/wiki/layout
+         * Docs :https://github.com/fiduswriter/simple-datatables/wiki/layout
          */
         layout?:LayoutOptions;
         /**
@@ -422,7 +422,7 @@ declare module "simple-datatables"{
         bottom?:string;
     }
 
-    /**See list of events here : https://github.com/fiduswriter/Simple-DataTables/wiki/Events */
+    /**See list of events here : https://github.com/fiduswriter/simple-datatables/wiki/Events */
     type tableEvents =
     "datatable.page"
     | "datatable.init"
