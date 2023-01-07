@@ -52,7 +52,6 @@ export class DataTable {
         this.virtualDOM = false
         this.virtualHeaderDOM = false
         this.headerDOM = false
-        this.rowData = false
         this.currentPage = 0
         this.onFirstPage = true
         this.headerTable = false
@@ -305,9 +304,6 @@ export class DataTable {
 
         // Store the table dimensions
         this.rect = this.dom.getBoundingClientRect()
-
-        // Convert rows to array for processing
-        this.rowData = Array.from(this.body.rows)
 
         // // Update
         this.update()
@@ -916,7 +912,8 @@ export class DataTable {
         }
 
         if (rows.length) {
-            rows.forEach(row => this.data.data.push(row.map(cell => ({data: cell, text: cell}))))
+            rows.forEach(row => this.data.data.push(row.map(cell => ({data: cell,
+                text: cell}))))
             this.hasRows = true
         }
 
@@ -991,7 +988,7 @@ export class DataTable {
      */
     setMessage(message) {
         const activeHeadings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeType))?.childNodes
-        let colspan = activeHeadings?.length || 1
+        const colspan = activeHeadings?.length || 1
 
         this.wrapper.classList.add("dataTable-empty")
 
