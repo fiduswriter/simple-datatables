@@ -2115,7 +2115,66 @@ class DiffDOM {
     }
 }
 
-const dataToVirtualDOM = (headings, rows, columnSettings, {hiddenHeader, header, footer, sortable}) => {
+const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader, showHeader}) => {
+    return {
+        nodeName: "TR",
+        childNodes: headings.map(
+            (heading, index) => {
+                const column = columnSettings.columns[index] || {};
+                if (column.hidden) {
+                    return false
+                }
+                const attributes = {};
+                if (!column.notSortable && sortable) {
+                    attributes['data-sortable'] = true;
+                }
+                let style = "";
+                if (columnWidths[index] && !noColumnWidths) {
+                    style += `width: ${columnWidths[index]}%;`;
+                }
+                if (hiddenHeader && !unhideHeader) {
+                    style += "height: 0;";
+                }
+                if (scrollY.length && !unhideHeader) {
+                    style += "padding-bottom: 0;padding-top: 0;border: 0;";
+                }
+
+                if (style.length) {
+                    attributes['style'] = style;
+                }
+                return {
+                    nodeName: "TH",
+                    attributes,
+                    childNodes: [
+                        (hiddenHeader && !unhideHeader) ?
+                            {nodeName: "#text",
+                                data: ""} :
+                            column.notSortable  || !sortable ?
+                                {
+                                    nodeName: "#text",
+                                    data: heading.data
+                                } :
+                                {
+                                    nodeName: "a",
+                                    attributes: {
+                                        href: "#",
+                                        class: "dataTable-sorter"
+                                    },
+                                    childNodes: [
+                                        {
+                                            nodeName: "#text",
+                                            data: heading.data
+                                        }
+                                    ]
+                                }
+                    ]
+                }
+            }
+        ).filter(column => column)
+    }
+};
+
+const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader}) => {
 
     const table = {
         nodeName: "TABLE",
@@ -2134,7 +2193,7 @@ const dataToVirtualDOM = (headings, rows, columnSettings, {hiddenHeader, header,
                                 if (column.hidden) {
                                     return false
                                 }
-                                return {
+                                const node = {
                                     nodeName: "TD",
                                     childNodes: [
                                         {
@@ -2142,7 +2201,13 @@ const dataToVirtualDOM = (headings, rows, columnSettings, {hiddenHeader, header,
                                             data: column.render ? column.render(cell.data) : cell.text
                                         }
                                     ]
+                                };
+                                if (!header && !footer && columnWidths[index] && !noColumnWidths) {
+                                    node.attributes = {
+                                        style: `width: ${columnWidths[index]}%;`
+                                    };
                                 }
+                                return node
                             }
                         ).filter(column => column)
                     })
@@ -2151,51 +2216,10 @@ const dataToVirtualDOM = (headings, rows, columnSettings, {hiddenHeader, header,
         ]
     };
 
-    if (header || footer) {
-        const headerRow = {
-            nodeName: "TR",
-            childNodes: headings.map(
-                (heading, index) => {
-                    const column = columnSettings.columns[index] || {};
-                    if (column.hidden) {
-                        return false
-                    }
-                    return {
-                        nodeName: "TH",
-                        attributes: column.notSortable || !sortable ?
-                            {} :
-                            {
-                                "data-sortable": true
-                            },
-                        childNodes: [
-                            hiddenHeader ?
-                                {nodeName: "#text",
-                                    data: ""} :
-                                column.notSortable  || !sortable ?
-                                    {
-                                        nodeName: "#text",
-                                        data: heading.data
-                                    } :
-                                    {
-                                        nodeName: "a",
-                                        attributes: {
-                                            href: "#",
-                                            class: "dataTable-sorter"
-                                        },
-                                        childNodes: [
-                                            {
-                                                nodeName: "#text",
-                                                data: heading.data
-                                            }
-                                        ]
-                                    }
-                        ]
-                    }
-                }
-            ).filter(column => column)
-        };
+    if (header || footer || showHeader) {
+        const headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader});
 
-        if (header) {
+        if (header || showHeader) {
             table.childNodes.unshift({
                 nodeName: "THEAD",
                 childNodes: [headerRow]
@@ -3110,10 +3134,14 @@ class DataTable {
         this.initialized = false;
         this.data = false;
         this.virtualDOM = false;
+        this.virtualHeaderDOM = false;
+        this.headerDOM = false;
         this.rowData = false;
         this.currentPage = 0;
         this.onFirstPage = true;
+        this.headerTable = false;
 
+        this.columnWidths = [];
         this.hiddenColumns = [];
         this.columnRenderers = [];
         this.selectedColumns = [];
@@ -3383,7 +3411,7 @@ class DataTable {
         // this.fixHeight()
         //
         // // Fix columns
-        // this.fixColumns()
+        this.fixColumns();
 
         // Class names
         if (!this.options.header) {
@@ -3413,12 +3441,14 @@ class DataTable {
         this.bindEvents();
     }
 
-    renderTable() {
+    renderTable(renderOptions={}) {
         const newVirtualDOM = dataToVirtualDOM(
             this.data.headings,
-            this.currentPage ? this.pages[this.currentPage - 1] : this.data.data,
+            this.options.paging && this.currentPage && !renderOptions.noPaging ? this.pages[this.currentPage - 1] : this.data.data,
             this.columnSettings,
-            this.options
+            this.columnWidths,
+            this.options,
+            renderOptions
         );
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
@@ -3434,12 +3464,6 @@ class DataTable {
      * @return {Void}
      */
     renderPage(lastRowCursor=false) {
-        // if (this.hasHeadings) {
-        //     flush(this.header)
-        //
-        //     this.activeHeadings.forEach(th => this.header.appendChild(th))
-        // }
-
 
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
@@ -3468,7 +3492,8 @@ class DataTable {
         if (this.totalPages) {
             current = this.currentPage - 1;
             f = current * this.options.perPage;
-            console.log({current, pages: this.pages});
+            console.log({current,
+                pages: this.pages});
             t = f + this.pages[current].length;
             f = f + 1;
             items = this.searching ? this.searchData.length : this.rowData.length;
@@ -3850,77 +3875,84 @@ class DataTable {
      * Fix column widths
      */
     fixColumns() {
+        const activeHeadings = this.virtualDOM.childNodes.find(node => ['THEAD', 'TFOOT'].includes(node.nodeType));
 
-        if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
-            let cells;
-            let hd = false;
+        if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.childNodes.length) {
+
             this.columnWidths = [];
-
+            const renderOptions = {
+                noPaging: true
+            };
             // If we have headings we need only set the widths on them
             // otherwise we need a temp header and the widths need applying to all cells
-            if (this.dom.tHead) {
+            if (this.options.header || this.options.footer) {
 
                 if (this.options.scrollY.length) {
-                    hd = createElement("thead");
-                    hd.appendChild(createElement("tr"));
-                    hd.style.height = "0px";
-                    if (this.headerTable) {
-                        // move real header back into place
-                        this.dom.tHead = this.headerTable.tHead;
-                    }
+                    renderOptions.unhideHeader = true;
+                }
+                if (this.headerDOM) {
+                    // Remove headerDOM for accurate measurements
+                    this.headerDOM.parentElement.removeChild(this.headerDOM);
                 }
 
                 // Reset widths
-                this.activeHeadings.forEach(cell => {
-                    cell.style.width = "";
-                });
+                renderOptions.noColumnWidths = true;
+                this.renderTable(renderOptions);
 
-                const totalOffsetWidth = this.activeHeadings.reduce(
-                    (total, cell) => total + cell.offsetWidth,
+                const activeDOMHeadings = Array.from(this.dom.querySelector('thead, tfoot')?.firstElementChild?.children || []);
+
+                const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth);
+                const totalOffsetWidth = columnWidths.reduce(
+                    (total, cellWidth) => total + cellWidth,
                     0
                 );
+                this.columnWidths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100);
 
-                this.activeHeadings.forEach((cell, i) => {
-                    const ow = cell.offsetWidth;
-                    const w = ow / totalOffsetWidth * 100;
-                    cell.style.width = `${w}%`;
-                    this.columnWidths[i] = ow;
-                    if (this.options.scrollY.length) {
-                        const th = createElement("th");
-                        hd.firstElementChild.appendChild(th);
-                        th.style.width = `${w}%`;
-                        th.style.paddingTop = "0";
-                        th.style.paddingBottom = "0";
-                        th.style.border = "0";
-                    }
-                });
 
                 if (this.options.scrollY.length) {
                     const container = this.dom.parentElement;
-                    if (!this.headerTable) {
-                        this.headerTable = createElement("table", {
-                            class: "dataTable-table"
-                        });
-                        const headercontainer = createElement("div", {
-                            class: "dataTable-headercontainer"
-                        });
-                        headercontainer.appendChild(this.headerTable);
-                        container.parentElement.insertBefore(headercontainer, container);
-                    }
-                    const thd = this.dom.tHead;
-                    this.dom.replaceChild(hd, thd);
-                    this.headerTable.tHead = thd;
+                    if (!this.headerDOM) {
+                        this.headerDOM = document.createElement('div');
+                        this.virtualHeaderDOM = {
+                            nodeType: 'DIV'
+                        };
 
-                    // Compensate for scrollbars.
-                    this.headerTable.parentElement.style.paddingRight = `${
-                        this.headerTable.clientWidth -
-                        this.dom.clientWidth +
-                        parseInt(
-                            this.headerTable.parentElement.style.paddingRight ||
-                            "0",
-                            10
-                        )
-                    }px`;
+                    }
+                    container.parentElement.insertBefore(this.headerDOM, container);
+                    const newVirtualHeaderDOM = {
+                        nodeType: 'DIV',
+                        attributes: {
+                            class: "dataTable-headercontainer"
+                        },
+                        childNodes: [{
+                            nodeType: "TABLE",
+                            attributes: {
+                                class: "dataTable-table"
+                            },
+                            childNodes: [
+                                {
+                                    nodeType: 'THEAD',
+                                    childNodes: [{
+                                        nodeType: 'TR',
+                                        childNodes: [headingsToVirtualHeaderRowDOM()]
+                                    }]
+                                }
+                            ]
+                        }]
+                    };
+                    const diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
+                    this.dd.apply(this.headerDOM, diff);
+                    this.virtualHeaderDOM = newVirtualHeaderDOM;
+
+                    // Compensate for scrollbars
+                    const paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth;
+                    if (paddingRight) {
+                        const paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM);
+                        paddedVirtualHeaderDOM.attributes.style = `padding-right: ${paddingRight}px;`;
+                        const diff = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM);
+                        this.dd.apply(this.headerDOM, diff);
+                        this.virtualHeaderDOM = paddedVirtualHeaderDOM;
+                    }
 
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
@@ -3929,38 +3961,20 @@ class DataTable {
                 }
 
             } else {
-                cells = [];
+                renderOptions.showHeader = true;
+                this.renderTable(renderOptions);
 
-                // Make temperary headings
-                hd = createElement("thead");
-                const r = createElement("tr");
-                Array.from(this.dom.tBodies[0].rows[0].cells).forEach(() => {
-                    const th = createElement("th");
-                    r.appendChild(th);
-                    cells.push(th);
-                });
+                const activeDOMHeadings = Array.from(this.dom.querySelector('thead, tfoot')?.firstElementChild?.children || []);
 
-                hd.appendChild(r);
-                this.dom.insertBefore(hd, this.body);
-
-                const widths = [];
-                cells.forEach((cell, i) => {
-                    const ow = cell.offsetWidth;
-                    const w = ow / this.rect.width * 100;
-                    widths.push(w);
-                    this.columnWidths[i] = ow;
-                });
-
-                this.rowData.forEach(row => {
-                    Array.from(row.cells).forEach((cell, i) => {
-                        if (this.columns.visible(cell.cellIndex))
-                            cell.style.width = `${widths[i]}%`;
-                    });
-                });
-
-                // Discard the temp header
-                this.dom.removeChild(hd);
+                const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth);
+                const totalOffsetWidth = columnWidths.reduce(
+                    (total, cellWidth) => total + cellWidth,
+                    0
+                );
+                this.columnWidths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100);
             }
+            // render table without options for measurements
+            this.renderTable();
         }
     }
 
@@ -4218,23 +4232,26 @@ class DataTable {
 
         const tbody = newVirtualDOM.childNodes.find(node => node.nodeName === "TBODY");
 
-        tbody.childNodes = [{
-            nodeName: 'TR',
-            childNodes: [{
-                nodeName: 'TD',
-                attributes: {
-                    class: 'dataTables-empty',
-                    colspan
-                },
+        tbody.childNodes = [
+            {
+                nodeName: "TR",
                 childNodes: [
                     {
-                        nodeName: '#text',
-                        data: message
+                        nodeName: "TD",
+                        attributes: {
+                            class: "dataTables-empty",
+                            colspan
+                        },
+                        childNodes: [
+                            {
+                                nodeName: "#text",
+                                data: message
+                            }
+                        ]
                     }
                 ]
-            }]
-        }];
-
+            }
+        ];
 
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
