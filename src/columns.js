@@ -83,10 +83,10 @@ export class Columns {
      * Add a new column
      */
     add(data) {
-        const newColumnSelector = this.td.data.heading.length
+        const newColumnSelector = this.td.data.headings.length
         this.td.data.heading = this.td.data.heading.concat([{data: data.heading}])
         this.td.data.data = this.td.data.data.map(
-            (row, index) => row.concat([data.data[index].map((cell, index) => readDataCell(cell, this.td.columnSettings[index]))])
+            (row, index) => row.concat([data.data[index].map(cell => readDataCell(cell, data))])
         )
         if (data.type || data.format || data.sortable || data.render) {
             const columnSettings = this.td.columnSettings.columns[newColumnSelector] = {}
@@ -209,9 +209,11 @@ export class Columns {
 
         this.dt.data.headings[column].sorted = dir
 
-        this.dt.update()
+        this.dt.update(!init)
 
         if (!init) {
+            this.dt.columnSettings.sort = {column,
+                dir}
             this.dt.emit("datatable.sort", column, dir)
         }
     }

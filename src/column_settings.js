@@ -43,8 +43,8 @@ export const readColumnSettings = (columnOptions = []) => {
 
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
-                sort = {column,
-                    direction: data.sort}
+                sort = {column: selector,
+                    dir: data.sort}
             }
 
         })

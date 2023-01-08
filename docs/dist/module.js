@@ -2125,7 +2125,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
             }
             const attributes = {};
             if (!column.notSortable && sortable) {
-                attributes["data-sortable"] = true;
+                attributes["data-sortable"] = "true";
             }
             if (heading.sorted) {
                 attributes.class = heading.sorted;
@@ -2134,9 +2134,6 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
             let style = "";
             if (columnWidths[index] && !noColumnWidths) {
                 style += `width: ${columnWidths[index]}%;`;
-            }
-            if (hiddenHeader && !unhideHeader) {
-                style += "height: 0;";
             }
             if (scrollY.length && !unhideHeader) {
                 style += "padding-bottom: 0;padding-top: 0;border: 0;";
@@ -2149,7 +2146,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
                 nodeName: "TH",
                 attributes,
                 childNodes: [
-                    (hiddenHeader && !unhideHeader) ?
+                    ((hiddenHeader || scrollY.length) && !unhideHeader) ?
                         {nodeName: "#text",
                             data: ""} :
                         column.notSortable || !sortable ?
@@ -2176,7 +2173,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
     ).filter(column => column)
 });
 
-const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender}, {noColumnWidths, unhideHeader, showHeader}) => {
+const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, showHeader}) => {
     const table = {
         nodeName: "TABLE",
         attributes: {
@@ -2243,19 +2240,31 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
             unhideHeader});
 
         if (header || showHeader) {
-            table.childNodes.unshift({
+            const thead = {
                 nodeName: "THEAD",
                 childNodes: [headerRow]
-            });
+            };
+            if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+                thead.attributes = {style: "height: 0px;"};
+            }
+            table.childNodes.unshift(thead);
         }
         if (footer) {
             const footerRow = header ? structuredClone(headerRow) : headerRow;
-            table.childNodes.push({
+            const tfoot = {
                 nodeName: "TFOOT",
                 childNodes: [footerRow]
-            });
+            };
+            if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+                tfoot.attributes = {style: "height: 0px;"};
+            }
+            table.childNodes.push(tfoot);
         }
 
+    }
+
+    if (tabIndex !== false) {
+        table.attributes.tabindex = String(tabIndex);
     }
 
     return table
@@ -2306,8 +2315,8 @@ const readColumnSettings = (columnOptions = []) => {
 
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
-                sort = {column,
-                    direction: data.sort};
+                sort = {column: selector,
+                    dir: data.sort};
             }
 
         });
@@ -2378,7 +2387,6 @@ const readDataCell = (cell, columnSettings = {}) => {
     const cellData = {
         data: cell
     };
-    console.log({columnSettings});
     if (columnSettings.type === "date" && columnSettings.format) {
         cellData.order = parseDate(cell, columnSettings.format);
     }
@@ -2422,7 +2430,6 @@ const readTableData = (dataOption, dom=false, columnSettings) => {
             "Data heading length mismatch."
         )
     }
-    console.log({data});
     return data
 };
 
@@ -2436,20 +2443,20 @@ class Rows {
         this.cursor = false;
     }
 
-    setCursor(row=false) {
+    setCursor(index=false) {
+        if (index === this.cursor) {
+            return
+        }
         const oldCursor = this.cursor;
-        this.cursor = row;
-        this.dt.update();
-        if (row) {
-            if (this.dt.options.scrollY) {
-                const cursorDOM = this.dt.dom.querySelector("dataTable-cursor");
-                if (cursorDOM) {
-                    cursorDOM.scrollIntoView({block: "nearest"});
-                }
+        this.cursor = index;
+        this.dt.renderTable();
+        if (index !== false && this.dt.options.scrollY) {
+            const cursorDOM = this.dt.dom.querySelector("tr.dataTable-cursor");
+            if (cursorDOM) {
+                cursorDOM.scrollIntoView({block: "nearest"});
             }
         }
         this.dt.emit("datatable.cursormove", this.cursor, oldCursor);
-
     }
 
     /**
@@ -2457,8 +2464,8 @@ class Rows {
      */
     add(data) {
         const row = data.map((cell, index) => {
-            this.dt.columnSettings.columns[index] || {};
-            return ({data: cell})
+            const columnSettings = this.dt.columnSettings.columns[index] || {};
+            return readDataCell(cell, columnSettings)
         });
         this.dt.data.data.push(row);
 
@@ -2530,8 +2537,8 @@ class Rows {
      */
     updateRow(select, data) {
         const row = data.map((cell, index) => {
-            this.dt.columnSettings.columns[index] || {};
-            return ({data: cell})
+            const columnSettings = this.dt.columnSettings.columns[index] || {};
+            return readDataCell(cell, columnSettings)
         });
         this.dt.data.data.splice(select, 1, row);
 
@@ -2622,12 +2629,10 @@ class Columns {
      * Add a new column
      */
     add(data) {
-        const newColumnSelector = this.td.data.heading.length;
+        const newColumnSelector = this.td.data.headings.length;
         this.td.data.heading = this.td.data.heading.concat([{data: data.heading}]);
         this.td.data.data = this.td.data.data.map(
-            (row, index) => row.concat([
-                data.data[index].map(cell => ({data: cell}))
-            ])
+            (row, index) => row.concat([data.data[index].map(cell => readDataCell(cell, data))])
         );
         if (data.type || data.format || data.sortable || data.render) {
             const columnSettings = this.td.columnSettings.columns[newColumnSelector] = {};
@@ -2712,7 +2717,6 @@ class Columns {
      * Sort by column
      */
     sort(column, dir, init) {
-        // TODO: add date sorting
 
         // If there is a filter for this column, apply it instead of sorting
         if (this.dt.columnSettings.columns[column]?.filter?.length) {
@@ -2751,9 +2755,10 @@ class Columns {
 
         this.dt.data.headings[column].sorted = dir;
 
-        this.dt.update();
+        this.dt.update(!init);
 
         if (!init) {
+            this.dt.columnSettings.sort = {column, dir};
             this.dt.emit("datatable.sort", column, dir);
         }
     }
@@ -3003,14 +3008,6 @@ class DataTable {
      */
     render() {
 
-        // Store references
-        this.bodyDOM = this.dom.tBodies[0];
-        this.head = this.dom.tHead;
-
-        if (this.hasHeadings) {
-            this.header = this.head.rows[0];
-        }
-
         // Build
         this.wrapper = createElement("div", {
             class: "dataTable-wrapper dataTable-loading"
@@ -3103,8 +3100,7 @@ class DataTable {
         // // Fix height
         this.fixHeight();
         //
-        // // Fix columns
-        this.fixColumns();
+
 
         // Class names
         if (!this.options.header) {
@@ -3132,6 +3128,13 @@ class DataTable {
         }
 
         this.bindEvents();
+
+        if (this.columnSettings.sort) {
+            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true);
+        }
+
+        // // Fix columns
+        this.fixColumns();
     }
 
     renderTable(renderOptions={}) {
@@ -3149,9 +3152,6 @@ class DataTable {
         );
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
-        console.log({diff,
-            newVirtualDOM,
-            virtualDOM: this.virtualDOM});
         this.dd.apply(this.dom, diff);
         this.virtualDOM = newVirtualDOM;
     }
@@ -3161,7 +3161,6 @@ class DataTable {
      * @return {Void}
      */
     renderPage(renderTable=true, lastRowCursor=false) {
-
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
                 this.currentPage = 1;
@@ -3213,9 +3212,9 @@ class DataTable {
             if (!this.rows.cursor || !this.pages[this.currentPage-1].find(page => page.index === this.rows.cursor)) {
                 const rows = this.pages[this.currentPage-1];
                 if (lastRowCursor) {
-                    this.rows.setCursor(rows[rows.length-1]);
+                    this.rows.setCursor(rows[rows.length-1].index);
                 } else {
-                    this.rows.setCursor(rows[0]);
+                    this.rows.setCursor(rows[0].index);
                 }
 
             }
@@ -3335,18 +3334,36 @@ class DataTable {
         if (this.options.rowNavigation) {
             this.dom.addEventListener("keydown", event => {
                 if (event.key === "ArrowUp") {
-                    if (this.rows.cursor.previousElementSibling) {
-                        this.rows.setCursor(this.rows.cursor.previousElementSibling);
-                        event.preventDefault();
-                        event.stopPropagation();
+                    event.preventDefault();
+                    event.stopPropagation();
+                    let lastRow;
+                    this.pages[this.currentPage-1].find(row => {
+                        if (row.index===this.rows.cursor) {
+                            return true
+                        }
+                        lastRow = row;
+                        return false
+                    });
+                    if (lastRow) {
+                        this.rows.setCursor(lastRow.index);
                     } else if (!this.onFirstPage) {
                         this.page(this.currentPage-1, {lastRowCursor: true});
                     }
                 } else if (event.key === "ArrowDown") {
-                    if (this.rows.cursor.nextElementSibling) {
-                        this.rows.setCursor(this.rows.cursor.nextElementSibling);
-                        event.preventDefault();
-                        event.stopPropagation();
+                    event.preventDefault();
+                    event.stopPropagation();
+                    let foundRow;
+                    const nextRow = this.pages[this.currentPage-1].find(row => {
+                        if (foundRow) {
+                            return true
+                        }
+                        if (row.index===this.rows.cursor) {
+                            foundRow = true;
+                        }
+                        return false
+                    });
+                    if (nextRow) {
+                        this.rows.setCursor(nextRow.index);
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1);
                     }
@@ -3354,16 +3371,16 @@ class DataTable {
                     this.emit("datatable.selectrow", this.rows.cursor, event);
                 }
             });
-            this.bodyDOM.addEventListener("mousedown", event => {
-                if (this.bodyDOM.matches(":focus")) {
-                    const row = Array.from(this.bodyDOM.rows).find(row => row.contains(event.target));
+            this.dom.addEventListener("mousedown", event => {
+                if (this.dom.matches(":focus")) {
+                    const row = Array.from(this.dom.querySelectorAll('body tr')).find(row => row.contains(event.target));
                     this.emit("datatable.selectrow", row, event);
                 }
 
             });
         } else {
-            this.bodyDOM.addEventListener("mousedown", event => {
-                const row = Array.from(this.bodyDOM.rows).find(row => row.contains(event.target));
+            this.dom.addEventListener("mousedown", event => {
+                const row = Array.from(this.dom.querySelectorAll('body tr')).find(row => row.contains(event.target));
                 this.emit("datatable.selectrow", row, event);
             });
         }
@@ -3422,8 +3439,6 @@ class DataTable {
             this.links[i] = button(i === 0 ? "active" : "", num, num);
         }
 
-        this.sorting = false;
-
         this.renderPager();
 
         this.emit("datatable.update");
@@ -3444,7 +3459,7 @@ class DataTable {
             this.filterStates.forEach(
                 filterState => {
                     rows = rows.filter(
-                        row => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column]) : row.row[filterState.column] === filterState.state
+                        row => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
                     );
                 }
             );
@@ -3507,32 +3522,30 @@ class DataTable {
                     if (!this.headerDOM) {
                         this.headerDOM = document.createElement("div");
                         this.virtualHeaderDOM = {
-                            nodeType: "DIV"
+                            nodeName: "DIV"
                         };
 
                     }
                     container.parentElement.insertBefore(this.headerDOM, container);
                     const newVirtualHeaderDOM = {
-                        nodeType: "DIV",
+                        nodeName: "DIV",
                         attributes: {
                             class: "dataTable-headercontainer"
                         },
                         childNodes: [
                             {
-                                nodeType: "TABLE",
+                                nodeName: "TABLE",
                                 attributes: {
                                     class: "dataTable-table"
                                 },
                                 childNodes: [
                                     {
-                                        nodeType: "THEAD",
-                                        childNodes: [
-                                            {
-                                                nodeType: "TR",
-                                                childNodes: [headingsToVirtualHeaderRowDOM()]
-                                            }
-                                        ]
+                                        nodeName: "THEAD",
+                                        childNodes: [headingsToVirtualHeaderRowDOM(
+                                                    this.data.headings, this.columnSettings, this.columnWidths, this.options, {unhideHeader: true})]
+
                                     }
+
                                 ]
                             }
                         ]
@@ -3653,7 +3666,7 @@ class DataTable {
      */
     page(page, lastRowCursor = false) {
         // We don't want to load the current page again.
-        if (page == this.currentPage) {
+        if (page === this.currentPage) {
             return false
         }
 
@@ -3689,11 +3702,12 @@ class DataTable {
                 rows = data.data;
             }
         } else if (Array.isArray(data)) {
+            const headings = this.data.headings.map(heading => heading.data);
             data.forEach(row => {
                 const r = [];
                 Object.entries(row).forEach(([heading, cell]) => {
 
-                    const index = this.data.headings.indexOf(heading);
+                    const index = headings.indexOf(heading);
 
                     if (index > -1) {
                         r[index] = cell;
@@ -3704,11 +3718,16 @@ class DataTable {
         }
 
         if (rows.length) {
-            rows.forEach(row => this.data.data.push(row.map(cell => ({data: cell}))));
+            rows.forEach(row => this.data.data.push(row.map((cell, index) => readDataCell(cell, this.columnSettings.columns[index]))));
             this.hasRows = true;
         }
 
-        this.update(false);
+
+        if (this.columnSettings.sort) {
+            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true);
+        } else {
+            this.update(false);
+        }
         this.fixColumns();
     }
 
@@ -3732,7 +3751,7 @@ class DataTable {
      * @return {void}
      */
     print() {
-        const headings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeType))?.childNodes;
+        const headings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeName))?.childNodes;
         const rows = this.data.data;
         const table = createElement("table");
         const thead = createElement("thead");

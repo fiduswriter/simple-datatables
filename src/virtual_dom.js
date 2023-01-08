@@ -8,7 +8,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
             }
             const attributes = {}
             if (!column.notSortable && sortable) {
-                attributes["data-sortable"] = true
+                attributes["data-sortable"] = "true"
             }
             if (heading.sorted) {
                 attributes.class = heading.sorted
@@ -17,9 +17,6 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
             let style = ""
             if (columnWidths[index] && !noColumnWidths) {
                 style += `width: ${columnWidths[index]}%;`
-            }
-            if (hiddenHeader && !unhideHeader) {
-                style += "height: 0;"
             }
             if (scrollY.length && !unhideHeader) {
                 style += "padding-bottom: 0;padding-top: 0;border: 0;"
@@ -32,7 +29,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
                 nodeName: "TH",
                 attributes,
                 childNodes: [
-                    (hiddenHeader && !unhideHeader) ?
+                    ((hiddenHeader || scrollY.length) && !unhideHeader) ?
                         {nodeName: "#text",
                             data: ""} :
                         column.notSortable || !sortable ?
@@ -59,7 +56,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
     ).filter(column => column)
 })
 
-export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender}, {noColumnWidths, unhideHeader, showHeader}) => {
+export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, showHeader}) => {
     const table = {
         nodeName: "TABLE",
         attributes: {
@@ -126,19 +123,31 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
             unhideHeader})
 
         if (header || showHeader) {
-            table.childNodes.unshift({
+            const thead = {
                 nodeName: "THEAD",
                 childNodes: [headerRow]
-            })
+            }
+            if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+                thead.attributes = {style: "height: 0px;"}
+            }
+            table.childNodes.unshift(thead)
         }
         if (footer) {
             const footerRow = header ? structuredClone(headerRow) : headerRow
-            table.childNodes.push({
+            const tfoot = {
                 nodeName: "TFOOT",
                 childNodes: [footerRow]
-            })
+            }
+            if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+                tfoot.attributes = {style: "height: 0px;"}
+            }
+            table.childNodes.push(tfoot)
         }
 
+    }
+
+    if (tabIndex !== false) {
+        table.attributes.tabindex = String(tabIndex)
     }
 
     return table

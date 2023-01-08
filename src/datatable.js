@@ -109,14 +109,6 @@ export class DataTable {
      */
     render() {
 
-        // Store references
-        this.bodyDOM = this.dom.tBodies[0]
-        this.head = this.dom.tHead
-
-        if (this.hasHeadings) {
-            this.header = this.head.rows[0]
-        }
-
         // Build
         this.wrapper = createElement("div", {
             class: "dataTable-wrapper dataTable-loading"
@@ -209,8 +201,7 @@ export class DataTable {
         // // Fix height
         this.fixHeight()
         //
-        // // Fix columns
-        this.fixColumns()
+
 
         // Class names
         if (!this.options.header) {
@@ -238,6 +229,13 @@ export class DataTable {
         }
 
         this.bindEvents()
+
+        if (this.columnSettings.sort) {
+            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true)
+        }
+
+        // // Fix columns
+        this.fixColumns()
     }
 
     renderTable(renderOptions={}) {
@@ -264,7 +262,6 @@ export class DataTable {
      * @return {Void}
      */
     renderPage(renderTable=true, lastRowCursor=false) {
-
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
                 this.currentPage = 1
@@ -316,9 +313,9 @@ export class DataTable {
             if (!this.rows.cursor || !this.pages[this.currentPage-1].find(page => page.index === this.rows.cursor)) {
                 const rows = this.pages[this.currentPage-1]
                 if (lastRowCursor) {
-                    this.rows.setCursor(rows[rows.length-1])
+                    this.rows.setCursor(rows[rows.length-1].index)
                 } else {
-                    this.rows.setCursor(rows[0])
+                    this.rows.setCursor(rows[0].index)
                 }
 
             }
@@ -438,18 +435,36 @@ export class DataTable {
         if (this.options.rowNavigation) {
             this.dom.addEventListener("keydown", event => {
                 if (event.key === "ArrowUp") {
-                    if (this.rows.cursor.previousElementSibling) {
-                        this.rows.setCursor(this.rows.cursor.previousElementSibling)
-                        event.preventDefault()
-                        event.stopPropagation()
+                    event.preventDefault()
+                    event.stopPropagation()
+                    let lastRow
+                    this.pages[this.currentPage-1].find(row => {
+                        if (row.index===this.rows.cursor) {
+                            return true
+                        }
+                        lastRow = row
+                        return false
+                    })
+                    if (lastRow) {
+                        this.rows.setCursor(lastRow.index)
                     } else if (!this.onFirstPage) {
                         this.page(this.currentPage-1, {lastRowCursor: true})
                     }
                 } else if (event.key === "ArrowDown") {
-                    if (this.rows.cursor.nextElementSibling) {
-                        this.rows.setCursor(this.rows.cursor.nextElementSibling)
-                        event.preventDefault()
-                        event.stopPropagation()
+                    event.preventDefault()
+                    event.stopPropagation()
+                    let foundRow
+                    const nextRow = this.pages[this.currentPage-1].find(row => {
+                        if (foundRow) {
+                            return true
+                        }
+                        if (row.index===this.rows.cursor) {
+                            foundRow = true
+                        }
+                        return false
+                    })
+                    if (nextRow) {
+                        this.rows.setCursor(nextRow.index)
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1)
                     }
@@ -457,16 +472,16 @@ export class DataTable {
                     this.emit("datatable.selectrow", this.rows.cursor, event)
                 }
             })
-            this.bodyDOM.addEventListener("mousedown", event => {
-                if (this.bodyDOM.matches(":focus")) {
-                    const row = Array.from(this.bodyDOM.rows).find(row => row.contains(event.target))
+            this.dom.addEventListener("mousedown", event => {
+                if (this.dom.matches(":focus")) {
+                    const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
                     this.emit("datatable.selectrow", row, event)
                 }
 
             })
         } else {
-            this.bodyDOM.addEventListener("mousedown", event => {
-                const row = Array.from(this.bodyDOM.rows).find(row => row.contains(event.target))
+            this.dom.addEventListener("mousedown", event => {
+                const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
                 this.emit("datatable.selectrow", row, event)
             })
         }
@@ -525,8 +540,6 @@ export class DataTable {
             this.links[i] = button(i === 0 ? "active" : "", num, num)
         }
 
-        this.sorting = false
-
         this.renderPager()
 
         this.emit("datatable.update")
@@ -547,7 +560,7 @@ export class DataTable {
             this.filterStates.forEach(
                 filterState => {
                     rows = rows.filter(
-                        row => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column]) : row.row[filterState.column] === filterState.state
+                        row => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
                     )
                 }
             )
@@ -610,32 +623,32 @@ export class DataTable {
                     if (!this.headerDOM) {
                         this.headerDOM = document.createElement("div")
                         this.virtualHeaderDOM = {
-                            nodeType: "DIV"
+                            nodeName: "DIV"
                         }
 
                     }
                     container.parentElement.insertBefore(this.headerDOM, container)
                     const newVirtualHeaderDOM = {
-                        nodeType: "DIV",
+                        nodeName: "DIV",
                         attributes: {
                             class: "dataTable-headercontainer"
                         },
                         childNodes: [
                             {
-                                nodeType: "TABLE",
+                                nodeName: "TABLE",
                                 attributes: {
                                     class: "dataTable-table"
                                 },
                                 childNodes: [
                                     {
-                                        nodeType: "THEAD",
+                                        nodeName: "THEAD",
                                         childNodes: [
-                                            {
-                                                nodeType: "TR",
-                                                childNodes: [headingsToVirtualHeaderRowDOM()]
-                                            }
+                                            headingsToVirtualHeaderRowDOM(
+                                                this.data.headings, this.columnSettings, this.columnWidths, this.options, {unhideHeader: true})
                                         ]
+
                                     }
+
                                 ]
                             }
                         ]
@@ -756,7 +769,7 @@ export class DataTable {
      */
     page(page, lastRowCursor = false) {
         // We don't want to load the current page again.
-        if (page == this.currentPage) {
+        if (page === this.currentPage) {
             return false
         }
 
@@ -792,11 +805,12 @@ export class DataTable {
                 rows = data.data
             }
         } else if (Array.isArray(data)) {
+            const headings = this.data.headings.map(heading => heading.data)
             data.forEach(row => {
                 const r = []
                 Object.entries(row).forEach(([heading, cell]) => {
 
-                    const index = this.data.headings.indexOf(heading)
+                    const index = headings.indexOf(heading)
 
                     if (index > -1) {
                         r[index] = cell
@@ -807,11 +821,16 @@ export class DataTable {
         }
 
         if (rows.length) {
-            rows.forEach(row => this.data.data.push(row.map((cell, index) => readDataCell(cell, this.columnSettings[index]))))
+            rows.forEach(row => this.data.data.push(row.map((cell, index) => readDataCell(cell, this.columnSettings.columns[index]))))
             this.hasRows = true
         }
 
-        this.update(false)
+
+        if (this.columnSettings.sort) {
+            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true)
+        } else {
+            this.update(false)
+        }
         this.fixColumns()
     }
 
@@ -835,7 +854,7 @@ export class DataTable {
      * @return {void}
      */
     print() {
-        const headings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeType))?.childNodes
+        const headings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeName))?.childNodes
         const rows = this.data.data
         const table = createElement("table")
         const thead = createElement("thead")

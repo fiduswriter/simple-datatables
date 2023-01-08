@@ -1,4 +1,5 @@
 import {readDataCell} from "./read_data"
+
 /**
  * Rows API
  */
@@ -9,20 +10,20 @@ export class Rows {
         this.cursor = false
     }
 
-    setCursor(row=false) {
+    setCursor(index=false) {
+        if (index === this.cursor) {
+            return
+        }
         const oldCursor = this.cursor
-        this.cursor = row
-        this.dt.update()
-        if (row) {
-            if (this.dt.options.scrollY) {
-                const cursorDOM = this.dt.dom.querySelector("dataTable-cursor")
-                if (cursorDOM) {
-                    cursorDOM.scrollIntoView({block: "nearest"})
-                }
+        this.cursor = index
+        this.dt.renderTable()
+        if (index !== false && this.dt.options.scrollY) {
+            const cursorDOM = this.dt.dom.querySelector("tr.dataTable-cursor")
+            if (cursorDOM) {
+                cursorDOM.scrollIntoView({block: "nearest"})
             }
         }
         this.dt.emit("datatable.cursormove", this.cursor, oldCursor)
-
     }
 
     /**
