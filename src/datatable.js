@@ -1,6 +1,8 @@
 import {DiffDOM, nodeToObj} from "diff-dom"
 
-import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtualdom"
+import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
+import {readColumnSettings} from "./column_settings"
+import {readTableData} from "./read_data"
 import {Rows} from "./rows"
 import {Columns} from "./columns"
 import {defaultConfig} from "./config"
@@ -54,14 +56,11 @@ export class DataTable {
         this.headerDOM = false
         this.currentPage = 0
         this.onFirstPage = true
-        this.headerTable = false
         this.hasHeadings = false
         this.hasRows = false
 
         this.columnWidths = []
         this.columnSettings = false
-        this.columnRenderers = []
-        this.selectedColumns = []
         this.filterStates = []
 
         this.init()
@@ -90,11 +89,11 @@ export class DataTable {
         // }
 
 
-        this.data = this.readTableData(this.options.data, this.dom)
+        this.data = readTableData(this.options.data, this.dom)
         this.hasRows = Boolean(this.data.data.length)
         this.hasHeadings = Boolean(this.data.headings.length)
 
-        this.columnSettings = this.readColumnSettings(this.options.columns)
+        this.columnSettings = readColumnSettings(this.options.columns)
 
         this.virtualDOM = nodeToObj(this.dom)
 
@@ -106,106 +105,6 @@ export class DataTable {
         }, 10)
     }
 
-    readTableData(dataOption, dom=false) {
-        const data = {
-            data: [],
-            headings: []
-        }
-        if (dataOption?.data) {
-            data.data = dataOption.data.map(row => row.map(cell => ({data: cell,
-                text: cell})))
-        } else if (dom?.tBodies.length) {
-            console.log(Array.from(dom.tBodies[0].rows))
-            data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML,
-                text: cell.innerHTML})))
-        }
-        if (dataOption?.headings) {
-            data.headings = dataOption.headings.map(heading => ({data: heading,
-                sorted: false}))
-        } else if (dom?.tHead) {
-            data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(th => {
-                const heading = {data: th.innerHTML,
-                    sorted: false}
-                heading.sortable = th.dataset.sortable !== "false"
-                return heading
-            })
-        } else if (dataOption?.data?.data?.length) {
-            data.headings = dataOption.data.data[0].map(_cell => "")
-        } else if (dom?.tBodies.length) {
-            data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(_cell => "")
-        }
-
-        if (data.data.length && data.data[0].length !== data.headings.length) {
-            throw new Error(
-                "Data heading length mismatch."
-            )
-        }
-        console.log({dom,
-            dataOption,
-            data})
-        return data
-    }
-
-    /**
-     * Set up columns
-     */
-    readColumnSettings(columnOptions = []) {
-
-        const columns = []
-        let sort = false
-
-        // Check for the columns option
-
-        columnOptions.forEach(data => {
-
-            // convert single column selection to array
-            const columnSelectors = Array.isArray(data.select) ? data.select : [data.select]
-
-            columnSelectors.forEach(selector => {
-                if (!columns[selector]) {
-                    columns[selector] = {}
-                }
-                const column = columns[selector]
-
-
-                if (data.render) {
-                    column.render = data.render
-                }
-
-                if (data.type) {
-                    column.type = data.type
-                }
-
-                if (data.format) {
-                    column.format = data.format
-                }
-
-                if (data.sortable === false) {
-                    column.notSortable = true
-                }
-
-                if (data.hidden) {
-                    column.hidden = true
-                }
-
-                if (data.filter) {
-                    column.filter = data.filter
-                }
-
-                if (data.sort) {
-                    // We only allow one. The last one will overwrite all other options
-                    sort = {column,
-                        direction: data.sort}
-                }
-
-            })
-
-        })
-
-        return {columns,
-            sort}
-
-    }
 
     /**
      * Render the instance
@@ -397,8 +296,6 @@ export class DataTable {
         if (this.totalPages) {
             current = this.currentPage - 1
             f = current * this.options.perPage
-            console.log({current,
-                pages: this.pages})
             t = f + this.pages[current].length
             f = f + 1
             items = this.searching ? this.searchData.length : this.data.data.length
@@ -681,8 +578,7 @@ export class DataTable {
      * Fix column widths
      */
     fixColumns() {
-        const activeHeadings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeType))?.childNodes
-
+        const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden)
         if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.length) {
 
             this.columnWidths = []
@@ -706,7 +602,6 @@ export class DataTable {
                 this.renderTable(renderOptions)
 
                 const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || [])
-
                 const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth)
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
@@ -775,7 +670,6 @@ export class DataTable {
                 this.renderTable(renderOptions)
 
                 const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || [])
-
                 const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth)
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
@@ -893,7 +787,7 @@ export class DataTable {
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
-                    this.data = this.readTableData(data)
+                    this.data = readTableData(data)
                     this.hasRows = Boolean(this.data.data.length)
                     this.hasHeadings = Boolean(this.data.headings.length)
                 }
@@ -993,8 +887,8 @@ export class DataTable {
      * Show a message in the table
      */
     setMessage(message) {
-        const activeHeadings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeType))?.childNodes
-        const colspan = activeHeadings?.length || 1
+        const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden)
+        const colspan = activeHeadings.length || 1
 
         this.wrapper.classList.add("dataTable-empty")
 
@@ -1031,9 +925,6 @@ export class DataTable {
 
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
-        console.log({diff,
-            newVirtualDOM,
-            virtualDOM: this.virtualDOM})
         this.dd.apply(this.dom, diff)
         this.virtualDOM = newVirtualDOM
 

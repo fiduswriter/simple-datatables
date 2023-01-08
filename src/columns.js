@@ -183,6 +183,16 @@ export class Columns {
             this.dt.emit("datatable.sorting", column, dir)
         }
 
+        if (!dir) {
+            const currentDir = this.dt.data.headings[column].sorted
+            dir = currentDir === "asc" ? "desc" : "asc"
+        }
+
+        // Remove all other sorting
+        this.dt.data.headings.forEach(heading => {
+            heading.sorted = false
+        })
+
         this.dt.data.data.sort((row1, row2) => {
             let order1 = row1[column].order || row1[column].data,
                 order2 = row2[column].order || row2[column].data
@@ -197,8 +207,9 @@ export class Columns {
                 return 1
             }
             return 0
-
         })
+
+        this.dt.data.headings[column].sorted = dir
 
         this.dt.update()
 

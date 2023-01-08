@@ -10,6 +10,10 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
             if (!column.notSortable && sortable) {
                 attributes["data-sortable"] = true
             }
+            if (heading.sorted) {
+                attributes.class = heading.sorted
+                attributes["aria-sort"] = heading.sorted === "asc" ? "ascending" : "descending"
+            }
             let style = ""
             if (columnWidths[index] && !noColumnWidths) {
                 style += `width: ${columnWidths[index]}%;`
@@ -56,7 +60,6 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
 })
 
 export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader, showHeader}) => {
-
     const table = {
         nodeName: "TABLE",
         attributes: {
