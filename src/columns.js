@@ -82,7 +82,7 @@ export class Columns {
      */
     add(data) {
         const newColumnSelector = this.td.data.heading.length
-        this.td.data.heading = this.td.data.heading.concat(data.heading)
+        this.td.data.heading = this.td.data.heading.concat([{data: data.heading}])
         this.td.data.data = this.td.data.data.map(
             (row, index) => row.concat([
                 data.data[index].map(cell => ({text: data.render ? data.render(cell) : cell,
@@ -128,7 +128,7 @@ export class Columns {
     /**
      * Filter by column
      */
-    filter(column, dir, init) {
+    filter(column, init) {
 
         if (!this.dt.columnSettings.columns[column]?.filter?.length) {
             // There is no filter to apply.
@@ -139,11 +139,11 @@ export class Columns {
         let newFilterState
         if (currentFilter) {
             let returnNext = false
-            newFilterState = this.dt.columnSettings.columns[column]?.filter.find(filter => {
+            newFilterState = this.dt.columnSettings.columns[column].filter.find(filter => {
                 if (returnNext) {
                     return true
                 }
-                if (filter === currentFilter.filter) {
+                if (filter === currentFilter.state) {
                     returnNext = true
                 }
                 return false
@@ -153,18 +153,18 @@ export class Columns {
         }
 
         if (currentFilter && newFilterState) {
-            currentFilter.filter = newFilterState
+            currentFilter.state = newFilterState
         } else if (currentFilter) {
             this.dt.filterStates = this.dt.filterStates.filter(filterState => filterState.column !== column)
         } else {
             this.dt.filterStates.push({column,
-                filter: newFilterState})
+                state: newFilterState})
         }
 
         this.dt.update()
 
         if (!init) {
-            this.dt.emit("datatable.sort", column, dir)
+            this.dt.emit("datatable.filter", column, newFilterState)
         }
     }
 
@@ -176,7 +176,7 @@ export class Columns {
 
         // If there is a filter for this column, apply it instead of sorting
         if (this.dt.columnSettings.columns[column]?.filter?.length) {
-            return this.filter(column, dir, init)
+            return this.filter(column, init)
         }
 
         if (!init) {
@@ -184,8 +184,8 @@ export class Columns {
         }
 
         this.dt.data.data.sort((row1, row2) => {
-            let order1 = row1[column].data,
-                order2 = row2[column].data
+            let order1 = row1[column].order || row1[column].data,
+                order2 = row2[column].order || row2[column].data
             if (dir === "desc") {
                 const temp = order1
                 order1 = order2

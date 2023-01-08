@@ -351,6 +351,7 @@ export class DataTable {
             this.options.paging && this.currentPage && !renderOptions.noPaging ? this.pages[this.currentPage - 1] : this.data.data,
             this.columnSettings,
             this.columnWidths,
+            this.rows.cursor,
             this.options,
             renderOptions
         )
@@ -654,7 +655,7 @@ export class DataTable {
             this.filterStates.forEach(
                 filterState => {
                     rows = rows.filter(
-                        row => typeof filterState.filter === "function" ? filterState.filter(row[filterState.column]) : row[filterState.column] === filterState.filter
+                        row => typeof filterState.state === "function" ? filterState.state(row[filterState.column]) : row[filterState.column] === filterState.state
                     )
                 }
             )

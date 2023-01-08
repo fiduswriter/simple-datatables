@@ -55,7 +55,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
     ).filter(column => column)
 })
 
-export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader, showHeader}) => {
+export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader, showHeader}) => {
 
     const table = {
         nodeName: "TABLE",
@@ -66,32 +66,38 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, {
             {
                 nodeName: "TBODY",
                 childNodes: rows.map(
-                    row => ({
-                        nodeName: "TR",
-                        childNodes: row.map(
-                            (cell, index) => {
-                                const column = columnSettings.columns[index] || {}
-                                if (column.hidden) {
-                                    return false
-                                }
-                                const node = {
-                                    nodeName: "TD",
-                                    childNodes: [
-                                        {
-                                            nodeName: "#text",
-                                            data: column.render ? column.render(cell.data) : cell.text
-                                        }
-                                    ]
-                                }
-                                if (!header && !footer && columnWidths[index] && !noColumnWidths) {
-                                    node.attributes = {
-                                        style: `width: ${columnWidths[index]}%;`
+                    (row, rIndex) => {
+                        const tr = {
+                            nodeName: "TR",
+                            childNodes: row.map(
+                                (cell, index) => {
+                                    const column = columnSettings.columns[index] || {}
+                                    if (column.hidden) {
+                                        return false
                                     }
+                                    const node = {
+                                        nodeName: "TD",
+                                        childNodes: [
+                                            {
+                                                nodeName: "#text",
+                                                data: column.render ? column.render(cell.data) : cell.text
+                                            }
+                                        ]
+                                    }
+                                    if (!header && !footer && columnWidths[index] && !noColumnWidths) {
+                                        node.attributes = {
+                                            style: `width: ${columnWidths[index]}%;`
+                                        }
+                                    }
+                                    return node
                                 }
-                                return node
-                            }
-                        ).filter(column => column)
-                    })
+                            ).filter(column => column)
+                        }
+                        if (rIndex===rowCursor) {
+                            tr.attributes.class = "dataTable-cursor"
+                        }
+                        return tr
+                    }
                 )
             }
         ]
