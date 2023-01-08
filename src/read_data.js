@@ -1,14 +1,33 @@
-export const readTableData = (dataOption, dom=false) => {
+import {parseDate} from "./date"
+
+export const readDataCell = (cell, columnSettings = {}) => {
+    if (cell.constructor == Object) {
+        return cell
+    }
+    const cellData = {
+        data: cell
+    }
+    if (columnSettings.type === "date" && columnSettings.format) {
+        cellData.order = parseDate(cell, columnSettings.format)
+    }
+
+    return cellData
+}
+
+
+export const readTableData = (dataOption, dom=false, columnSettings) => {
     const data = {
         data: [],
         headings: []
     }
     if (dataOption?.data) {
-        data.data = dataOption.data.map(row => row.map(cell => ({data: cell,
-            text: cell})))
+        data.data = dataOption.data.map(row => row.map((cell, index) => readDataCell(cell, columnSettings.columns[index])))
     } else if (dom?.tBodies.length) {
-        data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML,
-            text: cell.innerHTML})))
+        data.data = Array.from(dom.tBodies[0].rows).map(
+            row => Array.from(row.cells).map(
+                (cell, index) => readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index])
+            )
+        )
     }
     if (dataOption?.headings) {
         data.headings = dataOption.headings.map(heading => ({data: heading,
@@ -31,6 +50,5 @@ export const readTableData = (dataOption, dom=false) => {
             "Data heading length mismatch."
         )
     }
-
     return data
 }

@@ -2,7 +2,7 @@ import {DiffDOM, nodeToObj} from "diff-dom"
 
 import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
 import {readColumnSettings} from "./column_settings"
-import {readTableData} from "./read_data"
+import {readTableData, readDataCell} from "./read_data"
 import {Rows} from "./rows"
 import {Columns} from "./columns"
 import {defaultConfig} from "./config"
@@ -88,12 +88,10 @@ export class DataTable {
         //     )
         // }
 
-
-        this.data = readTableData(this.options.data, this.dom)
+        this.columnSettings = readColumnSettings(this.options.columns)
+        this.data = readTableData(this.options.data, this.dom, this.columnSettings)
         this.hasRows = Boolean(this.data.data.length)
         this.hasHeadings = Boolean(this.data.headings.length)
-
-        this.columnSettings = readColumnSettings(this.options.columns)
 
         this.virtualDOM = nodeToObj(this.dom)
 
@@ -257,9 +255,6 @@ export class DataTable {
         )
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
-        console.log({diff,
-            newVirtualDOM,
-            virtualDOM: this.virtualDOM})
         this.dd.apply(this.dom, diff)
         this.virtualDOM = newVirtualDOM
     }
@@ -787,7 +782,7 @@ export class DataTable {
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(data)
+                    this.data = readTableData(data, undefined, this.columnSettings)
                     this.hasRows = Boolean(this.data.data.length)
                     this.hasHeadings = Boolean(this.data.headings.length)
                 }
@@ -812,8 +807,7 @@ export class DataTable {
         }
 
         if (rows.length) {
-            rows.forEach(row => this.data.data.push(row.map(cell => ({data: cell,
-                text: cell}))))
+            rows.forEach(row => this.data.data.push(row.map((cell, index) => readDataCell(cell, this.columnSettings[index]))))
             this.hasRows = true
         }
 

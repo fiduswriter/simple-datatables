@@ -1,3 +1,5 @@
+import {readDataCell} from "./read_data"
+
 export class Columns {
     constructor(dt) {
         this.dt = dt
@@ -84,10 +86,7 @@ export class Columns {
         const newColumnSelector = this.td.data.heading.length
         this.td.data.heading = this.td.data.heading.concat([{data: data.heading}])
         this.td.data.data = this.td.data.data.map(
-            (row, index) => row.concat([
-                data.data[index].map(cell => ({text: data.render ? data.render(cell) : cell,
-                    data: cell}))
-            ])
+            (row, index) => row.concat([data.data[index].map((cell, index) => readDataCell(cell, this.td.columnSettings[index]))])
         )
         if (data.type || data.format || data.sortable || data.render) {
             const columnSettings = this.td.columnSettings.columns[newColumnSelector] = {}
@@ -172,7 +171,6 @@ export class Columns {
      * Sort by column
      */
     sort(column, dir, init) {
-        // TODO: add date sorting
 
         // If there is a filter for this column, apply it instead of sorting
         if (this.dt.columnSettings.columns[column]?.filter?.length) {

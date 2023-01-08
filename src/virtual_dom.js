@@ -59,7 +59,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
     ).filter(column => column)
 })
 
-export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader, showHeader}) => {
+export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender}, {noColumnWidths, unhideHeader, showHeader}) => {
     const table = {
         nodeName: "TABLE",
         attributes: {
@@ -81,26 +81,36 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                     if (column.hidden) {
                                         return false
                                     }
-                                    const node = {
+                                    const td = {
                                         nodeName: "TD",
                                         childNodes: [
                                             {
                                                 nodeName: "#text",
-                                                data: column.render ? column.render(cell.data) : cell.text
+                                                data: String(cell.data)
                                             }
                                         ]
                                     }
                                     if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
-                                        node.attributes = {
+                                        td.attributes = {
                                             style: `width: ${columnWidths[cIndex]}%;`
                                         }
                                     }
-                                    return node
+                                    if (column.render) {
+                                        const renderedCell = column.render(cell, td, index, cIndex)
+                                        if (renderedCell && renderedCell instanceof String && td.childNodes.length) {
+                                            // Convenience function to make it work similarly to what it did up to version 5.
+                                            td.childNodes[0].data = renderedCell
+                                        }
+                                    }
+                                    return td
                                 }
                             ).filter(column => column)
                         }
                         if (index===rowCursor) {
                             tr.attributes.class = "dataTable-cursor"
+                        }
+                        if (rowRender) {
+                            rowRender(row, tr, index)
                         }
                         return tr
                     }

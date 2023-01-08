@@ -1,3 +1,4 @@
+import {readDataCell} from "./read_data"
 /**
  * Rows API
  */
@@ -30,8 +31,7 @@ export class Rows {
     add(data) {
         const row = data.map((cell, index) => {
             const columnSettings = this.dt.columnSettings.columns[index] || {}
-            return ({text: columnSettings.render ? data.render(cell) : cell,
-                data: cell})
+            return readDataCell(cell, columnSettings)
         })
         this.dt.data.data.push(row)
 
@@ -104,8 +104,7 @@ export class Rows {
     updateRow(select, data) {
         const row = data.map((cell, index) => {
             const columnSettings = this.dt.columnSettings.columns[index] || {}
-            return ({text: columnSettings.render ? data.render(cell) : cell,
-                data: cell})
+            return readDataCell(cell, columnSettings)
         })
         this.dt.data.data.splice(select, 1, row)
 

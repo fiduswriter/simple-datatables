@@ -33,6 +33,7 @@ export const defaultConfig = {
 
     tabIndex: false,
     rowNavigation: false,
+    rowRender: false,
 
     // Customise the display text
     labels: {
