@@ -23,7 +23,7 @@ LGPL
 
 ### Features
 
-* Sortable columns
+* Sortable/filterable columns
 * Pagination
 * Searchable
 * Customisable layout
@@ -34,7 +34,6 @@ LGPL
 * Control column visibility
 * Reorder or swap columns
 * dayjs integration for sorting columns with datetime strings
-* Extentable with custom plugins [See the simple-datatables wiki](https://github.com/fiduswriter/simple-datatables/wiki/Plugins)
 
 
 [simple-datatables Documentation](https://github.com/fiduswriter/simple-datatables/wiki)
