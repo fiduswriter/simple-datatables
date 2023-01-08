@@ -53,37 +53,6 @@ export const button = (className, page, text) => createElement(
 )
 
 /**
- * Bubble sort algorithm
- */
-export const sortItems = (a, b) => {
-    let c
-    let d
-    if (1 === b) {
-        c = 0
-        d = a.length
-    } else {
-        if (b === -1) {
-            c = a.length - 1
-            d = -1
-        }
-    }
-    for (let e = !0; e;) {
-        e = !1
-        for (let f = c; f != d; f += b) {
-            if (a[f + b] && a[f].value > a[f + b].value) {
-                const g = a[f]
-                const h = a[f + b]
-                const i = g
-                a[f] = h
-                a[f + b] = i
-                e = !0
-            }
-        }
-    }
-    return a
-}
-
-/**
  * Pager truncation algorithm
  */
 export const truncate = (a, b, c, d, ellipsis) => {

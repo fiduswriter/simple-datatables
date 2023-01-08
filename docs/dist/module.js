@@ -2115,62 +2115,64 @@ class DiffDOM {
     }
 }
 
-const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {hiddenHeader, sortable, scrollY}, {noColumnWidths, unhideHeader}) => ({
-    nodeName: "TR",
-    childNodes: headings.map(
-        (heading, index) => {
-            const column = columnSettings.columns[index] || {};
-            if (column.hidden) {
-                return false
-            }
-            const attributes = {};
-            if (!column.notSortable && sortable) {
-                attributes["data-sortable"] = true;
-            }
-            let style = "";
-            if (columnWidths[index] && !noColumnWidths) {
-                style += `width: ${columnWidths[index]}%;`;
-            }
-            if (hiddenHeader && !unhideHeader) {
-                style += "height: 0;";
-            }
-            if (scrollY.length && !unhideHeader) {
-                style += "padding-bottom: 0;padding-top: 0;border: 0;";
-            }
+const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {hiddenHeader, sortable, scrollY}, {noColumnWidths, unhideHeader}) => {
+    return {
+        nodeName: "TR",
+        childNodes: headings.map(
+            (heading, index) => {
+                const column = columnSettings.columns[index] || {};
+                if (column.hidden) {
+                    return false
+                }
+                const attributes = {};
+                if (!column.notSortable && sortable) {
+                    attributes['data-sortable'] = true;
+                }
+                let style = "";
+                if (columnWidths[index] && !noColumnWidths) {
+                    style += `width: ${columnWidths[index]}%;`;
+                }
+                if (hiddenHeader && !unhideHeader) {
+                    style += "height: 0;";
+                }
+                if (scrollY.length && !unhideHeader) {
+                    style += "padding-bottom: 0;padding-top: 0;border: 0;";
+                }
 
-            if (style.length) {
-                attributes.style = style;
+                if (style.length) {
+                    attributes['style'] = style;
+                }
+                return {
+                    nodeName: "TH",
+                    attributes,
+                    childNodes: [
+                        (hiddenHeader && !unhideHeader) ?
+                            {nodeName: "#text",
+                                data: ""} :
+                            column.notSortable  || !sortable ?
+                                {
+                                    nodeName: "#text",
+                                    data: heading.data
+                                } :
+                                {
+                                    nodeName: "a",
+                                    attributes: {
+                                        href: "#",
+                                        class: "dataTable-sorter"
+                                    },
+                                    childNodes: [
+                                        {
+                                            nodeName: "#text",
+                                            data: heading.data
+                                        }
+                                    ]
+                                }
+                    ]
+                }
             }
-            return {
-                nodeName: "TH",
-                attributes,
-                childNodes: [
-                    (hiddenHeader && !unhideHeader) ?
-                        {nodeName: "#text",
-                            data: ""} :
-                        column.notSortable || !sortable ?
-                            {
-                                nodeName: "#text",
-                                data: heading.data
-                            } :
-                            {
-                                nodeName: "a",
-                                attributes: {
-                                    href: "#",
-                                    class: "dataTable-sorter"
-                                },
-                                childNodes: [
-                                    {
-                                        nodeName: "#text",
-                                        data: heading.data
-                                    }
-                                ]
-                            }
-                ]
-            }
-        }
-    ).filter(column => column)
-});
+        ).filter(column => column)
+    }
+};
 
 const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader, showHeader}) => {
 
@@ -2215,10 +2217,7 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, {hiddenH
     };
 
     if (header || footer || showHeader) {
-        const headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader,
-            sortable,
-            scrollY}, {noColumnWidths,
-            unhideHeader});
+        const headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader, sortable, scrollY}, {noColumnWidths, unhideHeader});
 
         if (header || showHeader) {
             table.childNodes.unshift({
@@ -2292,37 +2291,6 @@ const button = (className, page, text) => createElement(
         html: `<a href="#" data-page="${page}">${text}</a>`
     }
 );
-
-/**
- * Bubble sort algorithm
- */
-const sortItems = (a, b) => {
-    let c;
-    let d;
-    if (1 === b) {
-        c = 0;
-        d = a.length;
-    } else {
-        if (b === -1) {
-            c = a.length - 1;
-            d = -1;
-        }
-    }
-    for (let e = !0; e;) {
-        e = !1;
-        for (let f = c; f != d; f += b) {
-            if (a[f + b] && a[f].value > a[f + b].value) {
-                const g = a[f];
-                const h = a[f + b];
-                const i = g;
-                a[f] = h;
-                a[f + b] = i;
-                e = !0;
-            }
-        }
-    }
-    return a
-};
 
 /**
  * Pager truncation algorithm
@@ -2448,7 +2416,7 @@ class Rows {
             }
 
 
-            this.update();
+            //this.update()
 
             dt.columns.rebuild();
         }
@@ -2479,7 +2447,7 @@ class Rows {
             dt.hasRows = false;
         }
 
-        this.update();
+        //this.update()
         dt.columns.rebuild();
     }
 
@@ -2487,11 +2455,11 @@ class Rows {
      * Update row indexes
      * @return {Void}
      */
-    update() {
-        this.dt.rowData.forEach((row, i) => {
-            row.dataIndex = i;
-        });
-    }
+    // update() {
+    //     this.dt.rowData.forEach((row, i) => {
+    //         row.dataIndex = i
+    //     })
+    // }
 
     /**
      * Find index of row by searching for a value in a column
@@ -2519,9 +2487,9 @@ class Rows {
             }
         }
         // get the row from data
-        const row = this.dt.rowData[index];
+        const row = this.dt.data.data[index];
         // return innerHTML of each td
-        const cols = [...row.cells].map(r => r.innerHTML);
+        const cols = row.map(cell => cell.text);
         // return everything
         return {
             index,
@@ -2536,7 +2504,7 @@ class Rows {
     updateRow(select, data) {
         const row = this.build(data);
         this.dt.rowData.splice(select, 1, row);
-        this.update();
+        //this.update()
         this.dt.columns.rebuild();
     }
 }
@@ -2548,16 +2516,11 @@ class Columns {
 
     /**
      * Swap two columns
-     * @return {Void}
      */
     swap(columns) {
-        if (columns.length && columns.length === 2) {
-            const cols = [];
-
+        if (columns.length === 2) {
             // Get the current column indexes
-            this.dt.headings.forEach((h, i) => {
-                cols.push(i);
-            });
+            const cols = this.dt.data.headings.map((_node, index) => index);
 
             const x = columns[0];
             const y = columns[1];
@@ -2565,7 +2528,7 @@ class Columns {
             cols[y] = cols[x];
             cols[x] = b;
 
-            this.order(cols);
+            return this.order(cols)
         }
     }
 
@@ -2573,269 +2536,139 @@ class Columns {
      * Reorder the columns
      */
     order(columns) {
-        let a;
-        let b;
-        let c;
-        let d;
-        let h;
-        let s;
-        let cell;
 
-        const temp = [
-            [],
-            [],
-            [],
-            []
-        ];
-
-        const dt = this.dt;
-
-        // Order the headings
-        columns.forEach((column, x) => {
-            h = dt.headings[column];
-            s = h.getAttribute("data-sortable") !== "false";
-            a = h.cloneNode(true);
-            a.originalCellIndex = x;
-            a.sortable = s;
-
-            temp[0].push(a);
-
-            if (!dt.hiddenColumns.includes(column)) {
-                b = h.cloneNode(true);
-                b.originalCellIndex = x;
-                b.sortable = s;
-
-                temp[1].push(b);
-            }
-        });
-
-        // Order the row cells
-        dt.rowData.forEach((row, i) => {
-            c = row.cloneNode(false);
-            d = row.cloneNode(false);
-
-            c.dataIndex = d.dataIndex = i;
-
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                c.searchIndex = d.searchIndex = row.searchIndex;
-            }
-
-            // Append the cell to the fragment in the correct order
-            columns.forEach(column => {
-                cell = row.cells[column].cloneNode(true);
-                cell.data = row.cells[column].data;
-                c.appendChild(cell);
-
-                if (!dt.hiddenColumns.includes(column)) {
-                    cell = row.cells[column].cloneNode(true);
-                    cell.data = row.cells[column].data;
-                    d.appendChild(cell);
-                }
-            });
-
-            temp[2].push(c);
-            temp[3].push(d);
-        });
-
-        dt.headings = temp[0];
-        dt.activeHeadings = temp[1];
-
-        dt.rowData = temp[2];
-        dt.activeRows = temp[3];
+        this.dt.headings = columns.map(index => this.dt.headings[index]);
+        this.dt.data.data = this.dt.data.data.map(
+            row => columns.map(index => row[index])
+        );
 
         // Update
-        dt.update();
+        this.dt.update();
     }
 
     /**
      * Hide columns
      */
     hide(columns) {
-        if (columns.length) {
-            const dt = this.dt;
-
-            columns.forEach(column => {
-                if (!dt.hiddenColumns.includes(column)) {
-                    dt.hiddenColumns.push(column);
-                }
-            });
-
-            this.rebuild();
+        if (!columns.length) {
+            return
         }
+        columns.forEach(index => {
+            const column = this.dt.columnSettings.columns[index] || {};
+            column.hidden = true;
+        });
+
+        this.dt.update();
     }
 
     /**
      * Show columns
      */
     show(columns) {
-        if (columns.length) {
-            let index;
-            const dt = this.dt;
-
-            columns.forEach(column => {
-                index = dt.hiddenColumns.indexOf(column);
-                if (index > -1) {
-                    dt.hiddenColumns.splice(index, 1);
-                }
-            });
-
-            this.rebuild();
+        if (!columns.length) {
+            return
         }
+        columns.forEach(index => {
+            const column = this.dt.columnSettings.columns[index] || {};
+            delete column.hidden;
+        });
+
+        this.dt.update();
     }
 
     /**
      * Check column(s) visibility
-     * @return {Boolean}
      */
     visible(columns) {
-        let cols;
-        const dt = this.dt;
 
-        columns = columns || dt.headings.map(th => th.originalCellIndex);
-
-        if (!isNaN(columns)) {
-            cols = !dt.hiddenColumns.includes(columns);
-        } else if (Array.isArray(columns)) {
-            cols = [];
-            columns.forEach(column => {
-                cols.push(!dt.hiddenColumns.includes(column));
-            });
+        if (Array.isArray(columns)) {
+            return columns.map(index => !this.dt.columnSettings.columns[index]?.hidden)
+        } else {
+            return !this.dt.columnSettings.columns[columns]?.hidden
         }
-
-        return cols
     }
 
     /**
      * Add a new column
      */
     add(data) {
-        let td;
-        const th = document.createElement("th");
-
-        if (!this.dt.headings.length) {
-            this.dt.insert({
-                headings: [data.heading],
-                data: data.data.map(i => [i])
-            });
-            this.rebuild();
-            return
-        }
-
-        if (!this.dt.hiddenHeader) {
-            if (data.heading.nodeName) {
-                th.appendChild(data.heading);
-            } else {
-                th.innerHTML = data.heading;
+        const newColumnSelector = this.td.data.heading.length;
+        this.td.data.heading = this.td.data.heading.concat(data.heading);
+        this.td.data.data = this.td.data.data.map(
+            (row, index) => row.concat([data.data[index].map(cell => ({text: data.render ? data.render(cell) : cell, data: cell}))])
+        );
+        if (data.type || data.format || data.sortable || data.render) {
+            const columnSettings = this.td.columnSettings.columns[newColumnSelector] = {};
+            if (data.type) {
+                columnSettings.type = data.type;
             }
-        } else {
-            th.innerHTML = "";
-        }
-
-        this.dt.headings.push(th);
-
-        this.dt.rowData.forEach((row, i) => {
-            if (data.data[i]) {
-                td = document.createElement("td");
-
-                if (data.data[i].nodeName) {
-                    td.appendChild(data.data[i]);
-                } else {
-                    td.innerHTML = data.data[i];
-                }
-
-                td.data = td.innerHTML;
-
-                if (data.render) {
-                    td.innerHTML = data.render.call(this, td.data, td, row);
-                }
-
-                row.appendChild(td);
+            if (data.format) {
+                columnSettings.format = data.format;
             }
-        });
-
-        if (data.type) {
-            th.setAttribute("data-type", data.type);
+            if (data.sortable) {
+                columnSettings.sortable = data.sortable;
+            }
+            if (data.filter) {
+                columnSettings.filter = data.filter;
+            }
+            if (data.type) {
+                columnSettings.type = data.type;
+            }
         }
-        if (data.format) {
-            th.setAttribute("data-format", data.format);
-        }
-
-        if (data.hasOwnProperty("sortable")) {
-            th.sortable = data.sortable;
-            th.setAttribute("data-sortable", data.sortable === true ? "true" : "false");
-        }
-
-        this.rebuild();
-
-        this.dt.renderHeader();
+        this.td.fixColumns();
     }
 
     /**
      * Remove column(s)
      */
-    remove(select) {
-        if (Array.isArray(select)) {
-            // Remove in reverse otherwise the indexes will be incorrect
-            select.sort((a, b) => b - a);
-            select.forEach(column => this.remove(column));
+    remove(columns) {
+        if (Array.isArray(columns)) {
+            this.dt.data.headings = this.dt.data.headings.filter((_heading, index) => !columns.includes(index));
+            this.td.data.data = this.td.data.data.map(
+                (row, index) => row.filter((_cell, index) => !columns.includes(index))
+            );
+            this.td.fixColumns();
         } else {
-            this.dt.headings.splice(select, 1);
-
-            this.dt.rowData.forEach(row => {
-                row.removeChild(row.cells[select]);
-            });
+            return this.remove([columns])
         }
-
-        this.rebuild();
     }
 
     /**
      * Filter by column
      */
-    filter(column, dir, init, terms) {
-        const dt = this.dt;
+    filter(column, dir, init) {
 
-        // Creates a internal state that manages filters if there are none
-        if ( !dt.filterState ) {
-            dt.filterState = {
-                originalData: dt.rowData
-            };
+        if (!this.dt.columnSettings.columns[column]?.filter?.length) {
+            // There is no filter to apply.
+            return
         }
 
-        // If that column is was not filtered yet, we need to create its state
-        if ( !dt.filterState[column] ) {
-
-            // append a filter that selects all rows, 'resetting' the filter
-            const filters = [...terms, () => true];
-
-            dt.filterState[column] = (
-                function() {
-                    let i = 0;
-                    return () => filters[i++ % (filters.length)]
-                }()
-            );
-        }
-
-        // Apply the filter and rebuild table
-        const rowFilter = dt.filterState[column](); // fetches next filter
-        const filteredRows = Array.from(dt.filterState.originalData).filter(tr => {
-            const cell = tr.cells[column];
-            const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText;
-
-            // If the filter is a function, call it, if it is a string, compare it
-            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter
-        });
-
-        dt.rowData = filteredRows;
-
-        if (!dt.rowData.length) {
-            dt.clear();
-            dt.hasRows = false;
-            dt.setMessage(dt.options.labels.noRows);
+        const currentFilter = this.dt.filterStates.find(filterState => filterState.column === column);
+        let newFilterState;
+        if (currentFilter) {
+            let returnNext = false;
+            newFilterState = this.dt.columnSettings.columns[column]?.filter.find(filter => {
+                if (returnNext) {
+                    return true
+                }
+                if (filter === currentFilter.filter) {
+                    returnNext = true;
+                }
+                return false
+            });
         } else {
-            this.rebuild();
-            dt.update();
+            newFilterState = this.dt.columnSettings.columns[column].filter[0];
         }
+
+        if (currentFilter && newFilterState) {
+            currentFilter.filter = newFilterState;
+        } else if (currentFilter) {
+            this.dt.filterStates = this.dt.filterStates.filter(filterState => filterState.column !== column);
+        } else {
+            this.dt.filterStates.push({column, filter: newFilterState});
+        }
+
+        this.dt.update();
 
         if (!init) {
             dt.emit("datatable.sort", column, dir);
@@ -2846,202 +2679,35 @@ class Columns {
      * Sort by column
      */
     sort(column, dir, init) {
-        const dt = this.dt;
-
-        // Check column is present
-        if (dt.hasHeadings && (column < 0 || column > dt.headings.length)) {
-            return false
-        }
+        // TODO: add date sorting
 
         // If there is a filter for this column, apply it instead of sorting
-        const filterTerms = dt.options.filters &&
-              dt.options.filters[dt.headings[column].textContent];
-        if ( filterTerms && filterTerms.length !== 0 ) {
-            this.filter(column, dir, init, filterTerms);
-            return
+        if (this.dt.columnSettings.columns[column]?.filter?.length) {
+            return this.filter(column, dir, init)
         }
 
-        dt.sorting = true;
+        this.dt.data.data.sort((row1, row2) => {
+            let order1 = row1[column].data,
+                order2 = row2[column].data;
+            if (dir === "desc") {
+                const temp = order1;
+                order1 = order2;
+                order2 = temp;
+            }
+            if (order1 < order2) {
+                return -1
+            } else if (order1 > order2) {
+                return 1
+            } else {
+                return 0
+            }
+        });
+
+        this.dt.update();
 
         if (!init) {
-            dt.emit("datatable.sorting", column, dir);
+            this.dt.emit("datatable.sort", column, dir);
         }
-
-        let rows = dt.rowData;
-        const alpha = [];
-        const numeric = [];
-        let a = 0;
-        let n = 0;
-        const th = dt.headings[column];
-
-        const waitFor = [];
-
-        // Check for date format
-        if (th.getAttribute("data-type") === "date") {
-            let format = false;
-            const formatted = th.hasAttribute("data-format");
-
-            if (formatted) {
-                format = th.getAttribute("data-format");
-            }
-            waitFor.push(Promise.resolve().then(function () { return date; }).then(({parseDate}) => date => parseDate(date, format)));
-        }
-
-        Promise.all(waitFor).then(importedFunctions => {
-            const parseFunction = importedFunctions[0]; // only defined if date
-            Array.from(rows).forEach(tr => {
-                const cell = tr.cells[column];
-                const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText;
-                let num;
-                if (parseFunction) {
-                    num = parseFunction(content);
-                } else if (typeof content==="string") {
-                    num = content.replace(/(\$|,|\s|%)/g, "");
-                } else {
-                    num = content;
-                }
-
-                if (parseFloat(num) == num) {
-                    numeric[n++] = {
-                        value: Number(num),
-                        row: tr
-                    };
-                } else {
-                    alpha[a++] = {
-                        value: typeof content==="string" ? content.toLowerCase() : content,
-                        row: tr
-                    };
-                }
-            });
-
-            /* Sort according to direction (ascending or descending) */
-            if (!dir) {
-                if (th.classList.contains("asc")) {
-                    dir = "desc";
-                } else {
-                    dir = "asc";
-                }
-            }
-            let top;
-            let btm;
-            if (dir == "desc") {
-                top = sortItems(alpha, -1);
-                btm = sortItems(numeric, -1);
-                th.classList.remove("asc");
-                th.classList.add("desc");
-                th.setAttribute("aria-sort", "descending");
-            } else {
-                top = sortItems(numeric, 1);
-                btm = sortItems(alpha, 1);
-                th.classList.remove("desc");
-                th.classList.add("asc");
-                th.setAttribute("aria-sort", "ascending");
-            }
-
-            /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
-            if (dt.lastTh && th != dt.lastTh) {
-                dt.lastTh.classList.remove("desc");
-                dt.lastTh.classList.remove("asc");
-                dt.lastTh.removeAttribute("aria-sort");
-            }
-
-            dt.lastTh = th;
-
-            /* Reorder the table */
-            rows = top.concat(btm);
-
-            dt.rowData = [];
-            const indexes = [];
-
-            rows.forEach((v, i) => {
-                dt.rowData.push(v.row);
-
-                if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
-                    indexes.push(i);
-                }
-            });
-
-            dt.searchData = indexes;
-
-            this.rebuild();
-
-            dt.update();
-
-            if (!init) {
-                dt.emit("datatable.sort", column, dir);
-            }
-        });
-    }
-
-    /**
-     * Rebuild the columns
-     * @return {Void}
-     */
-    rebuild() {
-        let a;
-        let b;
-        let c;
-        let d;
-        const dt = this.dt;
-        const temp = [];
-
-        dt.activeRows = [];
-        dt.activeHeadings = [];
-
-        dt.headings.forEach((th, i) => {
-            th.originalCellIndex = i;
-            th.sortable = th.getAttribute("data-sortable") !== "false";
-            if (!dt.hiddenColumns.includes(i)) {
-                dt.activeHeadings.push(th);
-            }
-        });
-
-        if (dt.selectedColumns.length) {
-            dt.rowData.forEach(row => {
-                Array.from(row.cells).forEach((cell, i) => {
-                    if (dt.selectedColumns.includes(i)) {
-                        dt.columnRenderers.forEach(options => {
-                            if (options.columns.includes(i)) {
-                                dt.rowData[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row);
-                            }
-                        });
-                    }
-                });
-            });
-        }
-
-        // Loop over the rows and reorder the cells
-        dt.rowData.forEach((row, i) => {
-            a = row.cloneNode(false);
-            b = row.cloneNode(false);
-
-            a.dataIndex = b.dataIndex = i;
-
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                a.searchIndex = b.searchIndex = row.searchIndex;
-            }
-
-            // Append the cell to the fragment in the correct order
-            Array.from(row.cells).forEach(cell => {
-                c = cell.cloneNode(true);
-                c.data = cell.data;
-                a.appendChild(c);
-
-                if (!dt.hiddenColumns.includes(c.cellIndex)) {
-                    d = c.cloneNode(true);
-                    d.data = c.data;
-                    b.appendChild(d);
-                }
-            });
-
-            // Append the fragment with the ordered cells
-            temp.push(a);
-            dt.activeRows.push(b);
-        });
-
-        dt.rowData = temp;
-
-        dt.update();
     }
 }
 
@@ -3136,7 +2802,6 @@ class DataTable {
         this.virtualDOM = false;
         this.virtualHeaderDOM = false;
         this.headerDOM = false;
-        this.rowData = false;
         this.currentPage = 0;
         this.onFirstPage = true;
         this.headerTable = false;
@@ -3144,9 +2809,10 @@ class DataTable {
         this.hasRows = false;
 
         this.columnWidths = [];
-        this.hiddenColumns = [];
+        this.columnSettings = false;
         this.columnRenderers = [];
         this.selectedColumns = [];
+        this.filterStates = [];
 
         this.init();
     }
@@ -3199,6 +2865,7 @@ class DataTable {
             data.data = dataOption.data.map(row => row.map(cell => ({data: cell,
                 text: cell})));
         } else if (dom?.tBodies.length) {
+            console.log(Array.from(dom.tBodies[0].rows));
             data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML,
                 text: cell.innerHTML})));
         }
@@ -3271,6 +2938,10 @@ class DataTable {
                     column.hidden = true;
                 }
 
+                if (data.filter) {
+                    column.filter = data.filter;
+                }
+
                 if (data.sort) {
                     // We only allow one. The last one will overwrite all other options
                     sort = {column,
@@ -3294,14 +2965,11 @@ class DataTable {
         this.renderTable();
 
         // Store references
-        this.body = this.dom.tBodies[0];
+        this.bodyDOM = this.dom.tBodies[0];
         this.head = this.dom.tHead;
-
-        this.headings = [];
 
         if (this.hasHeadings) {
             this.header = this.head.rows[0];
-            this.headings = [].slice.call(this.header.cells);
         }
 
         // Build
@@ -3389,9 +3057,6 @@ class DataTable {
 
         // Store the table dimensions
         this.rect = this.dom.getBoundingClientRect();
-
-        // Convert rows to array for processing
-        this.rowData = Array.from(this.body.rows);
 
         // // Update
         this.update();
@@ -3622,7 +3287,7 @@ class DataTable {
                     t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    this.columns.sort(this.headings.indexOf(t.parentNode));
+                    this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode));
                     e.preventDefault();
                 }
             }
@@ -3649,16 +3314,16 @@ class DataTable {
                     this.emit("datatable.selectrow", this.rows.cursor, event);
                 }
             });
-            this.body.addEventListener("mousedown", event => {
-                if (this.body.matches(":focus")) {
-                    const row = Array.from(this.body.rows).find(row => row.contains(event.target));
+            this.bodyDOM.addEventListener("mousedown", event => {
+                if (this.bodyDOM.matches(":focus")) {
+                    const row = Array.from(this.bodyDOM.rows).find(row => row.contains(event.target));
                     this.emit("datatable.selectrow", row, event);
                 }
 
             });
         } else {
-            this.body.addEventListener("mousedown", event => {
-                const row = Array.from(this.body.rows).find(row => row.contains(event.target));
+            this.bodyDOM.addEventListener("mousedown", event => {
+                const row = Array.from(this.bodyDOM.rows).find(row => row.contains(event.target));
                 this.emit("datatable.selectrow", row, event);
             });
         }
@@ -3721,7 +3386,7 @@ class DataTable {
 
         this.renderPager();
 
-        this.rows.update();
+        //this.rows.update()
 
         this.emit("datatable.update");
     }
@@ -3733,6 +3398,16 @@ class DataTable {
             rows = [];
 
             this.searchData.forEach(index => rows.push(this.data.data[index]));
+        }
+
+        if (this.filterStates.length) {
+            this.filterStates.forEach(
+                filterState => {
+                    rows = rows.filter(
+                        row => typeof filterState.filter === 'function' ? filterState.filter(row[filterState.column]) : row[filterState.column] === filterState.filter
+                    );
+                }
+            );
         }
 
         if (this.options.paging) {
@@ -3957,14 +3632,6 @@ class DataTable {
         this.renderPager();
 
         this.emit("datatable.page", page);
-    }
-
-    /**
-     * Sort by column
-     */
-    sortColumn(column, direction) {
-        // Use columns API until sortColumn method is removed
-        this.columns.sort(column, direction);
     }
 
     /**
@@ -5222,63 +4889,6 @@ const makeEditable = function(dataTable, options = {}) {
 
     return editor
 };
-
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-var dayjs_min = {exports: {}};
-
-(function (module, exports) {
-	!function(t,e){module.exports=e();}(commonjsGlobal,(function(){var t=1e3,e=6e4,n=36e5,r="millisecond",i="second",s="minute",u="hour",a="day",o="week",f="month",h="quarter",c="year",d="date",$="Invalid Date",l=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,y=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,M={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},m=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},g={s:m,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+m(r,2,"0")+":"+m(i,2,"0")},m:function t(e,n){if(e.date()<n.date())return -t(n,e);var r=12*(n.year()-e.year())+(n.month()-e.month()),i=e.clone().add(r,f),s=n-i<0,u=e.clone().add(r+(s?-1:1),f);return +(-(r+(n-i)/(s?i-u:u-i))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return {M:f,y:c,w:o,d:a,D:d,h:u,m:s,s:i,ms:r,Q:h}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},v="en",D={};D[v]=M;var p=function(t){return t instanceof _},S=function t(e,n,r){var i;if(!e)return v;if("string"==typeof e){var s=e.toLowerCase();D[s]&&(i=s),n&&(D[s]=n,i=s);var u=e.split("-");if(!i&&u.length>1)return t(u[0])}else {var a=e.name;D[a]=e,i=a;}return !r&&i&&(v=i),i||!r&&v},w=function(t,e){if(p(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new _(n)},O=g;O.l=S,O.i=p,O.w=function(t,e){return w(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var _=function(){function M(t){this.$L=S(t.locale,null,!0),this.parse(t);}var m=M.prototype;return m.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(O.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match(l);if(r){var i=r[2]-1||0,s=(r[7]||"0").substring(0,3);return n?new Date(Date.UTC(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)):new Date(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)}}return new Date(e)}(t),this.$x=t.x||{},this.init();},m.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},m.$utils=function(){return O},m.isValid=function(){return !(this.$d.toString()===$)},m.isSame=function(t,e){var n=w(t);return this.startOf(e)<=n&&n<=this.endOf(e)},m.isAfter=function(t,e){return w(t)<this.startOf(e)},m.isBefore=function(t,e){return this.endOf(e)<w(t)},m.$g=function(t,e,n){return O.u(t)?this[e]:this.set(n,t)},m.unix=function(){return Math.floor(this.valueOf()/1e3)},m.valueOf=function(){return this.$d.getTime()},m.startOf=function(t,e){var n=this,r=!!O.u(e)||e,h=O.p(t),$=function(t,e){var i=O.w(n.$u?Date.UTC(n.$y,e,t):new Date(n.$y,e,t),n);return r?i:i.endOf(a)},l=function(t,e){return O.w(n.toDate()[t].apply(n.toDate("s"),(r?[0,0,0,0]:[23,59,59,999]).slice(e)),n)},y=this.$W,M=this.$M,m=this.$D,g="set"+(this.$u?"UTC":"");switch(h){case c:return r?$(1,0):$(31,11);case f:return r?$(1,M):$(0,M+1);case o:var v=this.$locale().weekStart||0,D=(y<v?y+7:y)-v;return $(r?m-D:m+(6-D),M);case a:case d:return l(g+"Hours",0);case u:return l(g+"Minutes",1);case s:return l(g+"Seconds",2);case i:return l(g+"Milliseconds",3);default:return this.clone()}},m.endOf=function(t){return this.startOf(t,!1)},m.$set=function(t,e){var n,o=O.p(t),h="set"+(this.$u?"UTC":""),$=(n={},n[a]=h+"Date",n[d]=h+"Date",n[f]=h+"Month",n[c]=h+"FullYear",n[u]=h+"Hours",n[s]=h+"Minutes",n[i]=h+"Seconds",n[r]=h+"Milliseconds",n)[o],l=o===a?this.$D+(e-this.$W):e;if(o===f||o===c){var y=this.clone().set(d,1);y.$d[$](l),y.init(),this.$d=y.set(d,Math.min(this.$D,y.daysInMonth())).$d;}else $&&this.$d[$](l);return this.init(),this},m.set=function(t,e){return this.clone().$set(t,e)},m.get=function(t){return this[O.p(t)]()},m.add=function(r,h){var d,$=this;r=Number(r);var l=O.p(h),y=function(t){var e=w($);return O.w(e.date(e.date()+Math.round(t*r)),$)};if(l===f)return this.set(f,this.$M+r);if(l===c)return this.set(c,this.$y+r);if(l===a)return y(1);if(l===o)return y(7);var M=(d={},d[s]=e,d[u]=n,d[i]=t,d)[l]||1,m=this.$d.getTime()+r*M;return O.w(m,this)},m.subtract=function(t,e){return this.add(-1*t,e)},m.format=function(t){var e=this,n=this.$locale();if(!this.isValid())return n.invalidDate||$;var r=t||"YYYY-MM-DDTHH:mm:ssZ",i=O.z(this),s=this.$H,u=this.$m,a=this.$M,o=n.weekdays,f=n.months,h=function(t,n,i,s){return t&&(t[n]||t(e,r))||i[n].slice(0,s)},c=function(t){return O.s(s%12||12,t,"0")},d=n.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:a+1,MM:O.s(a+1,2,"0"),MMM:h(n.monthsShort,a,f,3),MMMM:h(f,a),D:this.$D,DD:O.s(this.$D,2,"0"),d:String(this.$W),dd:h(n.weekdaysMin,this.$W,o,2),ddd:h(n.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(s),HH:O.s(s,2,"0"),h:c(1),hh:c(2),a:d(s,u,!0),A:d(s,u,!1),m:String(u),mm:O.s(u,2,"0"),s:String(this.$s),ss:O.s(this.$s,2,"0"),SSS:O.s(this.$ms,3,"0"),Z:i};return r.replace(y,(function(t,e){return e||l[t]||i.replace(":","")}))},m.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},m.diff=function(r,d,$){var l,y=O.p(d),M=w(r),m=(M.utcOffset()-this.utcOffset())*e,g=this-M,v=O.m(this,M);return v=(l={},l[c]=v/12,l[f]=v,l[h]=v/3,l[o]=(g-m)/6048e5,l[a]=(g-m)/864e5,l[u]=g/n,l[s]=g/e,l[i]=g/t,l)[y]||g,$?v:O.a(v)},m.daysInMonth=function(){return this.endOf(f).$D},m.$locale=function(){return D[this.$L]},m.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=S(t,e,!0);return r&&(n.$L=r),n},m.clone=function(){return O.w(this.$d,this)},m.toDate=function(){return new Date(this.valueOf())},m.toJSON=function(){return this.isValid()?this.toISOString():null},m.toISOString=function(){return this.$d.toISOString()},m.toString=function(){return this.$d.toUTCString()},M}(),T=_.prototype;return w.prototype=T,[["$ms",r],["$s",i],["$m",s],["$H",u],["$W",a],["$M",f],["$y",c],["$D",d]].forEach((function(t){T[t[1]]=function(e){return this.$g(e,t[0],t[1])};})),w.extend=function(t,e){return t.$i||(t(e,_,w),t.$i=!0),w},w.locale=S,w.isDayjs=p,w.unix=function(t){return w(1e3*t)},w.en=D[v],w.Ls=D,w.p={},w}));
-} (dayjs_min));
-
-var dayjs = dayjs_min.exports;
-
-var customParseFormat$1 = {exports: {}};
-
-(function (module, exports) {
-	!function(e,t){module.exports=t();}(commonjsGlobal,(function(){var e={LTS:"h:mm:ss A",LT:"h:mm A",L:"MM/DD/YYYY",LL:"MMMM D, YYYY",LLL:"MMMM D, YYYY h:mm A",LLLL:"dddd, MMMM D, YYYY h:mm A"},t=/(\[[^[]*\])|([-_:/.,()\s]+)|(A|a|YYYY|YY?|MM?M?M?|Do|DD?|hh?|HH?|mm?|ss?|S{1,3}|z|ZZ?)/g,n=/\d\d/,r=/\d\d?/,i=/\d*[^-_:/,()\s\d]+/,o={},s=function(e){return (e=+e)+(e>68?1900:2e3)};var a=function(e){return function(t){this[e]=+t;}},f=[/[+-]\d\d:?(\d\d)?|Z/,function(e){(this.zone||(this.zone={})).offset=function(e){if(!e)return 0;if("Z"===e)return 0;var t=e.match(/([+-]|\d\d)/g),n=60*t[1]+(+t[2]||0);return 0===n?0:"+"===t[0]?-n:n}(e);}],h=function(e){var t=o[e];return t&&(t.indexOf?t:t.s.concat(t.f))},u=function(e,t){var n,r=o.meridiem;if(r){for(var i=1;i<=24;i+=1)if(e.indexOf(r(i,0,t))>-1){n=i>12;break}}else n=e===(t?"pm":"PM");return n},d={A:[i,function(e){this.afternoon=u(e,!1);}],a:[i,function(e){this.afternoon=u(e,!0);}],S:[/\d/,function(e){this.milliseconds=100*+e;}],SS:[n,function(e){this.milliseconds=10*+e;}],SSS:[/\d{3}/,function(e){this.milliseconds=+e;}],s:[r,a("seconds")],ss:[r,a("seconds")],m:[r,a("minutes")],mm:[r,a("minutes")],H:[r,a("hours")],h:[r,a("hours")],HH:[r,a("hours")],hh:[r,a("hours")],D:[r,a("day")],DD:[n,a("day")],Do:[i,function(e){var t=o.ordinal,n=e.match(/\d+/);if(this.day=n[0],t)for(var r=1;r<=31;r+=1)t(r).replace(/\[|\]/g,"")===e&&(this.day=r);}],M:[r,a("month")],MM:[n,a("month")],MMM:[i,function(e){var t=h("months"),n=(h("monthsShort")||t.map((function(e){return e.slice(0,3)}))).indexOf(e)+1;if(n<1)throw new Error;this.month=n%12||n;}],MMMM:[i,function(e){var t=h("months").indexOf(e)+1;if(t<1)throw new Error;this.month=t%12||t;}],Y:[/[+-]?\d+/,a("year")],YY:[n,function(e){this.year=s(e);}],YYYY:[/\d{4}/,a("year")],Z:f,ZZ:f};function c(n){var r,i;r=n,i=o&&o.formats;for(var s=(n=r.replace(/(\[[^\]]+])|(LTS?|l{1,4}|L{1,4})/g,(function(t,n,r){var o=r&&r.toUpperCase();return n||i[r]||e[r]||i[o].replace(/(\[[^\]]+])|(MMMM|MM|DD|dddd)/g,(function(e,t,n){return t||n.slice(1)}))}))).match(t),a=s.length,f=0;f<a;f+=1){var h=s[f],u=d[h],c=u&&u[0],l=u&&u[1];s[f]=l?{regex:c,parser:l}:h.replace(/^\[|\]$/g,"");}return function(e){for(var t={},n=0,r=0;n<a;n+=1){var i=s[n];if("string"==typeof i)r+=i.length;else {var o=i.regex,f=i.parser,h=e.slice(r),u=o.exec(h)[0];f.call(t,u),e=e.replace(u,"");}}return function(e){var t=e.afternoon;if(void 0!==t){var n=e.hours;t?n<12&&(e.hours+=12):12===n&&(e.hours=0),delete e.afternoon;}}(t),t}}return function(e,t,n){n.p.customParseFormat=!0,e&&e.parseTwoDigitYear&&(s=e.parseTwoDigitYear);var r=t.prototype,i=r.parse;r.parse=function(e){var t=e.date,r=e.utc,s=e.args;this.$u=r;var a=s[1];if("string"==typeof a){var f=!0===s[2],h=!0===s[3],u=f||h,d=s[2];h&&(d=s[2]),o=this.$locale(),!f&&d&&(o=n.Ls[d]),this.$d=function(e,t,n){try{if(["x","X"].indexOf(t)>-1)return new Date(("X"===t?1e3:1)*e);var r=c(t)(e),i=r.year,o=r.month,s=r.day,a=r.hours,f=r.minutes,h=r.seconds,u=r.milliseconds,d=r.zone,l=new Date,m=s||(i||o?1:l.getDate()),M=i||l.getFullYear(),Y=0;i&&!o||(Y=o>0?o-1:l.getMonth());var p=a||0,v=f||0,D=h||0,g=u||0;return d?new Date(Date.UTC(M,Y,m,p,v,D,g+60*d.offset*1e3)):n?new Date(Date.UTC(M,Y,m,p,v,D,g)):new Date(M,Y,m,p,v,D,g)}catch(e){return new Date("")}}(t,a,r),this.init(),d&&!0!==d&&(this.$L=this.locale(d).$L),u&&t!=this.format(a)&&(this.$d=new Date("")),o={};}else if(a instanceof Array)for(var l=a.length,m=1;m<=l;m+=1){s[1]=a[m-1];var M=n.apply(this,s);if(M.isValid()){this.$d=M.$d,this.$L=M.$L,this.init();break}m===l&&(this.$d=new Date(""));}else i.call(this,e);};}}));
-} (customParseFormat$1));
-
-var customParseFormat = customParseFormat$1.exports;
-
-dayjs.extend(customParseFormat);
-
-/**
- * Use dayjs to parse cell contents for sorting
- */
-const parseDate = (content, format) => {
-    let date = false;
-
-    // Converting to YYYYMMDD ensures we can accurately sort the column numerically
-
-    if (format) {
-        switch (format) {
-        case "ISO_8601":
-            // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
-            date = content;
-            break
-        case "RFC_2822":
-            date = dayjs(content.slice(5), "DD MMM YYYY HH:mm:ss ZZ").unix();
-            break
-        case "MYSQL":
-            date = dayjs(content, "YYYY-MM-DD hh:mm:ss").unix();
-            break
-        case "UNIX":
-            date = dayjs(content).unix();
-            break
-        // User defined format using the data-format attribute or columns[n].format option
-        default:
-            date = dayjs(content, format, true).valueOf();
-            break
-        }
-    }
-    return date
-};
-
-var date = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    parseDate: parseDate
-});
 
 export { DataTable, convertCSV, convertJSON, createElement, exportCSV, exportJSON, exportSQL, exportTXT, isJson, isObject, makeEditable };
 //# sourceMappingURL=module.js.map

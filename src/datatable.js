@@ -59,9 +59,10 @@ export class DataTable {
         this.hasRows = false
 
         this.columnWidths = []
-        this.hiddenColumns = []
+        this.columnSettings = false
         this.columnRenderers = []
         this.selectedColumns = []
+        this.filterStates = []
 
         this.init()
     }
@@ -114,6 +115,7 @@ export class DataTable {
             data.data = dataOption.data.map(row => row.map(cell => ({data: cell,
                 text: cell})))
         } else if (dom?.tBodies.length) {
+            console.log(Array.from(dom.tBodies[0].rows))
             data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML,
                 text: cell.innerHTML})))
         }
@@ -186,6 +188,10 @@ export class DataTable {
                     column.hidden = true
                 }
 
+                if (data.filter) {
+                    column.filter = data.filter
+                }
+
                 if (data.sort) {
                     // We only allow one. The last one will overwrite all other options
                     sort = {column,
@@ -209,14 +215,11 @@ export class DataTable {
         this.renderTable()
 
         // Store references
-        this.body = this.dom.tBodies[0]
+        this.bodyDOM = this.dom.tBodies[0]
         this.head = this.dom.tHead
-
-        this.headings = []
 
         if (this.hasHeadings) {
             this.header = this.head.rows[0]
-            this.headings = [].slice.call(this.header.cells)
         }
 
         // Build
@@ -534,7 +537,7 @@ export class DataTable {
                     t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    this.columns.sort(this.headings.indexOf(t.parentNode))
+                    this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode))
                     e.preventDefault()
                 }
             }
@@ -561,16 +564,16 @@ export class DataTable {
                     this.emit("datatable.selectrow", this.rows.cursor, event)
                 }
             })
-            this.body.addEventListener("mousedown", event => {
-                if (this.body.matches(":focus")) {
-                    const row = Array.from(this.body.rows).find(row => row.contains(event.target))
+            this.bodyDOM.addEventListener("mousedown", event => {
+                if (this.bodyDOM.matches(":focus")) {
+                    const row = Array.from(this.bodyDOM.rows).find(row => row.contains(event.target))
                     this.emit("datatable.selectrow", row, event)
                 }
 
             })
         } else {
-            this.body.addEventListener("mousedown", event => {
-                const row = Array.from(this.body.rows).find(row => row.contains(event.target))
+            this.bodyDOM.addEventListener("mousedown", event => {
+                const row = Array.from(this.bodyDOM.rows).find(row => row.contains(event.target))
                 this.emit("datatable.selectrow", row, event)
             })
         }
@@ -633,7 +636,7 @@ export class DataTable {
 
         this.renderPager()
 
-        this.rows.update()
+        //this.rows.update()
 
         this.emit("datatable.update")
     }
@@ -645,6 +648,16 @@ export class DataTable {
             rows = []
 
             this.searchData.forEach(index => rows.push(this.data.data[index]))
+        }
+
+        if (this.filterStates.length) {
+            this.filterStates.forEach(
+                filterState => {
+                    rows = rows.filter(
+                        row => typeof filterState.filter === "function" ? filterState.filter(row[filterState.column]) : row[filterState.column] === filterState.filter
+                    )
+                }
+            )
         }
 
         if (this.options.paging) {
@@ -869,14 +882,6 @@ export class DataTable {
         this.renderPager()
 
         this.emit("datatable.page", page)
-    }
-
-    /**
-     * Sort by column
-     */
-    sortColumn(column, direction) {
-        // Use columns API until sortColumn method is removed
-        this.columns.sort(column, direction)
     }
 
     /**

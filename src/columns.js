@@ -1,6 +1,3 @@
-import {sortItems} from "./helpers"
-
-
 export class Columns {
     constructor(dt) {
         this.dt = dt
@@ -8,16 +5,11 @@ export class Columns {
 
     /**
      * Swap two columns
-     * @return {Void}
      */
     swap(columns) {
-        if (columns.length && columns.length === 2) {
-            const cols = []
-
+        if (columns.length === 2) {
             // Get the current column indexes
-            this.dt.headings.forEach((h, i) => {
-                cols.push(i)
-            })
+            const cols = this.dt.data.headings.map((_node, index) => index)
 
             const x = columns[0]
             const y = columns[1]
@@ -25,7 +17,7 @@ export class Columns {
             cols[y] = cols[x]
             cols[x] = b
 
-            this.order(cols)
+            return this.order(cols)
         }
     }
 
@@ -33,272 +25,146 @@ export class Columns {
      * Reorder the columns
      */
     order(columns) {
-        let a
-        let b
-        let c
-        let d
-        let h
-        let s
-        let cell
 
-        const temp = [
-            [],
-            [],
-            [],
-            []
-        ]
-
-        const dt = this.dt
-
-        // Order the headings
-        columns.forEach((column, x) => {
-            h = dt.headings[column]
-            s = h.getAttribute("data-sortable") !== "false"
-            a = h.cloneNode(true)
-            a.originalCellIndex = x
-            a.sortable = s
-
-            temp[0].push(a)
-
-            if (!dt.hiddenColumns.includes(column)) {
-                b = h.cloneNode(true)
-                b.originalCellIndex = x
-                b.sortable = s
-
-                temp[1].push(b)
-            }
-        })
-
-        // Order the row cells
-        dt.rowData.forEach((row, i) => {
-            c = row.cloneNode(false)
-            d = row.cloneNode(false)
-
-            c.dataIndex = d.dataIndex = i
-
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                c.searchIndex = d.searchIndex = row.searchIndex
-            }
-
-            // Append the cell to the fragment in the correct order
-            columns.forEach(column => {
-                cell = row.cells[column].cloneNode(true)
-                cell.data = row.cells[column].data
-                c.appendChild(cell)
-
-                if (!dt.hiddenColumns.includes(column)) {
-                    cell = row.cells[column].cloneNode(true)
-                    cell.data = row.cells[column].data
-                    d.appendChild(cell)
-                }
-            })
-
-            temp[2].push(c)
-            temp[3].push(d)
-        })
-
-        dt.headings = temp[0]
-        dt.activeHeadings = temp[1]
-
-        dt.rowData = temp[2]
-        dt.activeRows = temp[3]
+        this.dt.headings = columns.map(index => this.dt.headings[index])
+        this.dt.data.data = this.dt.data.data.map(
+            row => columns.map(index => row[index])
+        )
 
         // Update
-        dt.update()
+        this.dt.update()
     }
 
     /**
      * Hide columns
      */
     hide(columns) {
-        if (columns.length) {
-            const dt = this.dt
-
-            columns.forEach(column => {
-                if (!dt.hiddenColumns.includes(column)) {
-                    dt.hiddenColumns.push(column)
-                }
-            })
-
-            this.rebuild()
+        if (!columns.length) {
+            return
         }
+        columns.forEach(index => {
+            const column = this.dt.columnSettings.columns[index] || {}
+            column.hidden = true
+        })
+
+        this.dt.update()
     }
 
     /**
      * Show columns
      */
     show(columns) {
-        if (columns.length) {
-            let index
-            const dt = this.dt
-
-            columns.forEach(column => {
-                index = dt.hiddenColumns.indexOf(column)
-                if (index > -1) {
-                    dt.hiddenColumns.splice(index, 1)
-                }
-            })
-
-            this.rebuild()
+        if (!columns.length) {
+            return
         }
+        columns.forEach(index => {
+            const column = this.dt.columnSettings.columns[index] || {}
+            delete column.hidden
+        })
+
+        this.dt.update()
     }
 
     /**
      * Check column(s) visibility
-     * @return {Boolean}
      */
     visible(columns) {
-        let cols
-        const dt = this.dt
 
-        columns = columns || dt.headings.map(th => th.originalCellIndex)
-
-        if (!isNaN(columns)) {
-            cols = !dt.hiddenColumns.includes(columns)
-        } else if (Array.isArray(columns)) {
-            cols = []
-            columns.forEach(column => {
-                cols.push(!dt.hiddenColumns.includes(column))
-            })
+        if (Array.isArray(columns)) {
+            return columns.map(index => !this.dt.columnSettings.columns[index]?.hidden)
         }
+        return !this.dt.columnSettings.columns[columns]?.hidden
 
-        return cols
     }
 
     /**
      * Add a new column
      */
     add(data) {
-        let td
-        const th = document.createElement("th")
-
-        if (!this.dt.headings.length) {
-            this.dt.insert({
-                headings: [data.heading],
-                data: data.data.map(i => [i])
-            })
-            this.rebuild()
-            return
-        }
-
-        if (!this.dt.hiddenHeader) {
-            if (data.heading.nodeName) {
-                th.appendChild(data.heading)
-            } else {
-                th.innerHTML = data.heading
+        const newColumnSelector = this.td.data.heading.length
+        this.td.data.heading = this.td.data.heading.concat(data.heading)
+        this.td.data.data = this.td.data.data.map(
+            (row, index) => row.concat([
+                data.data[index].map(cell => ({text: data.render ? data.render(cell) : cell,
+                    data: cell}))
+            ])
+        )
+        if (data.type || data.format || data.sortable || data.render) {
+            const columnSettings = this.td.columnSettings.columns[newColumnSelector] = {}
+            if (data.type) {
+                columnSettings.type = data.type
             }
-        } else {
-            th.innerHTML = ""
-        }
-
-        this.dt.headings.push(th)
-
-        this.dt.rowData.forEach((row, i) => {
-            if (data.data[i]) {
-                td = document.createElement("td")
-
-                if (data.data[i].nodeName) {
-                    td.appendChild(data.data[i])
-                } else {
-                    td.innerHTML = data.data[i]
-                }
-
-                td.data = td.innerHTML
-
-                if (data.render) {
-                    td.innerHTML = data.render.call(this, td.data, td, row)
-                }
-
-                row.appendChild(td)
+            if (data.format) {
+                columnSettings.format = data.format
             }
-        })
-
-        if (data.type) {
-            th.setAttribute("data-type", data.type)
+            if (data.sortable) {
+                columnSettings.sortable = data.sortable
+            }
+            if (data.filter) {
+                columnSettings.filter = data.filter
+            }
+            if (data.type) {
+                columnSettings.type = data.type
+            }
         }
-        if (data.format) {
-            th.setAttribute("data-format", data.format)
-        }
-
-        if (data.hasOwnProperty("sortable")) {
-            th.sortable = data.sortable
-            th.setAttribute("data-sortable", data.sortable === true ? "true" : "false")
-        }
-
-        this.rebuild()
-
-        this.dt.renderHeader()
+        this.td.fixColumns()
     }
 
     /**
      * Remove column(s)
      */
-    remove(select) {
-        if (Array.isArray(select)) {
-            // Remove in reverse otherwise the indexes will be incorrect
-            select.sort((a, b) => b - a)
-            select.forEach(column => this.remove(column))
+    remove(columns) {
+        if (Array.isArray(columns)) {
+            this.dt.data.headings = this.dt.data.headings.filter((_heading, index) => !columns.includes(index))
+            this.td.data.data = this.td.data.data.map(
+                row => row.filter((_cell, index) => !columns.includes(index))
+            )
+            this.td.fixColumns()
         } else {
-            this.dt.headings.splice(select, 1)
-
-            this.dt.rowData.forEach(row => {
-                row.removeChild(row.cells[select])
-            })
+            return this.remove([columns])
         }
-
-        this.rebuild()
     }
 
     /**
      * Filter by column
      */
-    filter(column, dir, init, terms) {
-        const dt = this.dt
+    filter(column, dir, init) {
 
-        // Creates a internal state that manages filters if there are none
-        if ( !dt.filterState ) {
-            dt.filterState = {
-                originalData: dt.rowData
-            }
+        if (!this.dt.columnSettings.columns[column]?.filter?.length) {
+            // There is no filter to apply.
+            return
         }
 
-        // If that column is was not filtered yet, we need to create its state
-        if ( !dt.filterState[column] ) {
-
-            // append a filter that selects all rows, 'resetting' the filter
-            const filters = [...terms, () => true]
-
-            dt.filterState[column] = (
-                function() {
-                    let i = 0
-                    return () => filters[i++ % (filters.length)]
-                }()
-            )
-        }
-
-        // Apply the filter and rebuild table
-        const rowFilter = dt.filterState[column]() // fetches next filter
-        const filteredRows = Array.from(dt.filterState.originalData).filter(tr => {
-            const cell = tr.cells[column]
-            const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText
-
-            // If the filter is a function, call it, if it is a string, compare it
-            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter
-        })
-
-        dt.rowData = filteredRows
-
-        if (!dt.rowData.length) {
-            dt.clear()
-            dt.hasRows = false
-            dt.setMessage(dt.options.labels.noRows)
+        const currentFilter = this.dt.filterStates.find(filterState => filterState.column === column)
+        let newFilterState
+        if (currentFilter) {
+            let returnNext = false
+            newFilterState = this.dt.columnSettings.columns[column]?.filter.find(filter => {
+                if (returnNext) {
+                    return true
+                }
+                if (filter === currentFilter.filter) {
+                    returnNext = true
+                }
+                return false
+            })
         } else {
-            this.rebuild()
-            dt.update()
+            newFilterState = this.dt.columnSettings.columns[column].filter[0]
         }
+
+        if (currentFilter && newFilterState) {
+            currentFilter.filter = newFilterState
+        } else if (currentFilter) {
+            this.dt.filterStates = this.dt.filterStates.filter(filterState => filterState.column !== column)
+        } else {
+            this.dt.filterStates.push({column,
+                filter: newFilterState})
+        }
+
+        this.dt.update()
 
         if (!init) {
-            dt.emit("datatable.sort", column, dir)
+            this.dt.emit("datatable.sort", column, dir)
         }
     }
 
@@ -306,201 +172,38 @@ export class Columns {
      * Sort by column
      */
     sort(column, dir, init) {
-        const dt = this.dt
-
-        // Check column is present
-        if (dt.hasHeadings && (column < 0 || column > dt.headings.length)) {
-            return false
-        }
+        // TODO: add date sorting
 
         // If there is a filter for this column, apply it instead of sorting
-        const filterTerms = dt.options.filters &&
-              dt.options.filters[dt.headings[column].textContent]
-        if ( filterTerms && filterTerms.length !== 0 ) {
-            this.filter(column, dir, init, filterTerms)
-            return
+        if (this.dt.columnSettings.columns[column]?.filter?.length) {
+            return this.filter(column, dir, init)
         }
-
-        dt.sorting = true
 
         if (!init) {
-            dt.emit("datatable.sorting", column, dir)
+            this.dt.emit("datatable.sorting", column, dir)
         }
 
-        let rows = dt.rowData
-        const alpha = []
-        const numeric = []
-        let a = 0
-        let n = 0
-        const th = dt.headings[column]
-
-        const waitFor = []
-
-        // Check for date format
-        if (th.getAttribute("data-type") === "date") {
-            let format = false
-            const formatted = th.hasAttribute("data-format")
-
-            if (formatted) {
-                format = th.getAttribute("data-format")
+        this.dt.data.data.sort((row1, row2) => {
+            let order1 = row1[column].data,
+                order2 = row2[column].data
+            if (dir === "desc") {
+                const temp = order1
+                order1 = order2
+                order2 = temp
             }
-            waitFor.push(import("./date").then(({parseDate}) => date => parseDate(date, format)))
+            if (order1 < order2) {
+                return -1
+            } else if (order1 > order2) {
+                return 1
+            }
+            return 0
+
+        })
+
+        this.dt.update()
+
+        if (!init) {
+            this.dt.emit("datatable.sort", column, dir)
         }
-
-        Promise.all(waitFor).then(importedFunctions => {
-            const parseFunction = importedFunctions[0] // only defined if date
-            Array.from(rows).forEach(tr => {
-                const cell = tr.cells[column]
-                const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText
-                let num
-                if (parseFunction) {
-                    num = parseFunction(content)
-                } else if (typeof content==="string") {
-                    num = content.replace(/(\$|,|\s|%)/g, "")
-                } else {
-                    num = content
-                }
-
-                if (parseFloat(num) == num) {
-                    numeric[n++] = {
-                        value: Number(num),
-                        row: tr
-                    }
-                } else {
-                    alpha[a++] = {
-                        value: typeof content==="string" ? content.toLowerCase() : content,
-                        row: tr
-                    }
-                }
-            })
-
-            /* Sort according to direction (ascending or descending) */
-            if (!dir) {
-                if (th.classList.contains("asc")) {
-                    dir = "desc"
-                } else {
-                    dir = "asc"
-                }
-            }
-            let top
-            let btm
-            if (dir == "desc") {
-                top = sortItems(alpha, -1)
-                btm = sortItems(numeric, -1)
-                th.classList.remove("asc")
-                th.classList.add("desc")
-                th.setAttribute("aria-sort", "descending")
-            } else {
-                top = sortItems(numeric, 1)
-                btm = sortItems(alpha, 1)
-                th.classList.remove("desc")
-                th.classList.add("asc")
-                th.setAttribute("aria-sort", "ascending")
-            }
-
-            /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
-            if (dt.lastTh && th != dt.lastTh) {
-                dt.lastTh.classList.remove("desc")
-                dt.lastTh.classList.remove("asc")
-                dt.lastTh.removeAttribute("aria-sort")
-            }
-
-            dt.lastTh = th
-
-            /* Reorder the table */
-            rows = top.concat(btm)
-
-            dt.rowData = []
-            const indexes = []
-
-            rows.forEach((v, i) => {
-                dt.rowData.push(v.row)
-
-                if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
-                    indexes.push(i)
-                }
-            })
-
-            dt.searchData = indexes
-
-            this.rebuild()
-
-            dt.update()
-
-            if (!init) {
-                dt.emit("datatable.sort", column, dir)
-            }
-        })
-    }
-
-    /**
-     * Rebuild the columns
-     * @return {Void}
-     */
-    rebuild() {
-        let a
-        let b
-        let c
-        let d
-        const dt = this.dt
-        const temp = []
-
-        dt.activeRows = []
-        dt.activeHeadings = []
-
-        dt.headings.forEach((th, i) => {
-            th.originalCellIndex = i
-            th.sortable = th.getAttribute("data-sortable") !== "false"
-            if (!dt.hiddenColumns.includes(i)) {
-                dt.activeHeadings.push(th)
-            }
-        })
-
-        if (dt.selectedColumns.length) {
-            dt.rowData.forEach(row => {
-                Array.from(row.cells).forEach((cell, i) => {
-                    if (dt.selectedColumns.includes(i)) {
-                        dt.columnRenderers.forEach(options => {
-                            if (options.columns.includes(i)) {
-                                dt.rowData[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row)
-                            }
-                        })
-                    }
-                })
-            })
-        }
-
-        // Loop over the rows and reorder the cells
-        dt.rowData.forEach((row, i) => {
-            a = row.cloneNode(false)
-            b = row.cloneNode(false)
-
-            a.dataIndex = b.dataIndex = i
-
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                a.searchIndex = b.searchIndex = row.searchIndex
-            }
-
-            // Append the cell to the fragment in the correct order
-            Array.from(row.cells).forEach(cell => {
-                c = cell.cloneNode(true)
-                c.data = cell.data
-                a.appendChild(c)
-
-                if (!dt.hiddenColumns.includes(c.cellIndex)) {
-                    d = c.cloneNode(true)
-                    d.data = c.data
-                    b.appendChild(d)
-                }
-            })
-
-            // Append the fragment with the ordered cells
-            temp.push(a)
-            dt.activeRows.push(b)
-        })
-
-        dt.rowData = temp
-
-        dt.update()
     }
 }

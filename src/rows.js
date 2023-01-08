@@ -80,7 +80,7 @@ export class Rows {
             }
 
 
-            this.update()
+            //this.update()
 
             dt.columns.rebuild()
         }
@@ -111,7 +111,7 @@ export class Rows {
             dt.hasRows = false
         }
 
-        this.update()
+        //this.update()
         dt.columns.rebuild()
     }
 
@@ -119,11 +119,11 @@ export class Rows {
      * Update row indexes
      * @return {Void}
      */
-    update() {
-        this.dt.rowData.forEach((row, i) => {
-            row.dataIndex = i
-        })
-    }
+    // update() {
+    //     this.dt.rowData.forEach((row, i) => {
+    //         row.dataIndex = i
+    //     })
+    // }
 
     /**
      * Find index of row by searching for a value in a column
@@ -151,9 +151,9 @@ export class Rows {
             }
         }
         // get the row from data
-        const row = this.dt.rowData[index]
+        const row = this.dt.data.data[index]
         // return innerHTML of each td
-        const cols = [...row.cells].map(r => r.innerHTML)
+        const cols = row.map(cell => cell.text)
         // return everything
         return {
             index,
@@ -168,7 +168,7 @@ export class Rows {
     updateRow(select, data) {
         const row = this.build(data)
         this.dt.rowData.splice(select, 1, row)
-        this.update()
+        //this.update()
         this.dt.columns.rebuild()
     }
 }
