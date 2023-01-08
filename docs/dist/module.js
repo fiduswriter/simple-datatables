@@ -985,43 +985,12 @@ class DataTable {
         this.columnRenderers = [];
         this.selectedColumns = [];
 
-        this.readTableData(this.dom, this.options.data);
-
         this.render();
 
         setTimeout(() => {
             this.emit("datatable.init");
             this.initialized = true;
         }, 10);
-    }
-
-    readTableData(dom, dataOption) {
-        console.log({dom, dataOption});
-        const data = {
-            data: [],
-            headings: []
-        };
-        if (dataOption?.data) {
-            data.data = dataOption.data;
-        } else if (dom.tBodies.length) {
-            data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cell).map(cell => cell.dataset.content || cell.innerHTML));
-        }
-        if (dataOption?.headings) {
-            data.headings = dataOption.headings;
-        } else if (dom.tHead) {
-            data.headings = Array.from(dom.tHead.querySelectorAll('th')).map(th => th.innerHTML);
-        } else if (dataOption?.data?.data?.length) {
-            data.headings = dataOption.data.data[0].map(_cell => "");
-        } else if (dom.tBodies.length) {
-            data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(_cell => "");
-        }
-        if (data.data.length && data.data[0].length !== data.headings.length) {
-            throw new Error(
-                "Data heading length mismatch."
-            )
-        }
-        this.data = data;
-        console.log({data});
     }
 
     /**
