@@ -2129,7 +2129,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
             }
             if (heading.sorted) {
                 attributes.class = heading.sorted;
-                attributes['aria-sort'] = heading.sorted === "asc" ? "ascending" : "descending";
+                attributes["aria-sort"] = heading.sorted === "asc" ? "ascending" : "descending";
             }
             let style = "";
             if (columnWidths[index] && !noColumnWidths) {
@@ -2177,7 +2177,6 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
 });
 
 const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY}, {noColumnWidths, unhideHeader, showHeader}) => {
-    console.log({columnWidths});
     const table = {
         nodeName: "TABLE",
         attributes: {
@@ -2316,7 +2315,6 @@ const readTableData = (dataOption, dom=false) => {
         data.data = dataOption.data.map(row => row.map(cell => ({data: cell,
             text: cell})));
     } else if (dom?.tBodies.length) {
-        console.log(Array.from(dom.tBodies[0].rows));
         data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map(cell => ({data: cell.dataset.content || cell.innerHTML,
             text: cell.innerHTML})));
     }
@@ -2341,9 +2339,7 @@ const readTableData = (dataOption, dom=false) => {
             "Data heading length mismatch."
         )
     }
-    console.log({dom,
-        dataOption,
-        data});
+
     return data
 };
 
@@ -2653,7 +2649,9 @@ class Columns {
         }
 
         // Remove all other sorting
-        this.dt.data.headings.forEach(heading => heading.sorted = false);
+        this.dt.data.headings.forEach(heading => {
+            heading.sorted = false;
+        });
 
         this.dt.data.data.sort((row1, row2) => {
             let order1 = row1[column].order || row1[column].data,
@@ -2926,8 +2924,6 @@ class DataTable {
      */
     render() {
 
-        this.renderTable();
-
         // Store references
         this.bodyDOM = this.dom.tBodies[0];
         this.head = this.dom.tHead;
@@ -3023,7 +3019,7 @@ class DataTable {
         this.rect = this.dom.getBoundingClientRect();
 
         // // Update
-        this.update();
+        this.update(false);
         //
         // // Fix height
         this.fixHeight();
@@ -3082,7 +3078,7 @@ class DataTable {
      * Render the page
      * @return {Void}
      */
-    renderPage(lastRowCursor=false) {
+    renderPage(renderTable=true, lastRowCursor=false) {
 
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
@@ -3090,10 +3086,9 @@ class DataTable {
             }
 
             // Use a fragment to limit touching the DOM
-
-
-            this.renderTable();
-
+            if (renderTable) {
+                this.renderTable();
+            }
 
             this.onFirstPage = this.currentPage === 1;
             this.onLastPage = this.currentPage === this.lastPage;
@@ -3111,8 +3106,6 @@ class DataTable {
         if (this.totalPages) {
             current = this.currentPage - 1;
             f = current * this.options.perPage;
-            console.log({current,
-                pages: this.pages});
             t = f + this.pages[current].length;
             f = f + 1;
             items = this.searching ? this.searchData.length : this.data.data.length;
@@ -3265,7 +3258,7 @@ class DataTable {
                         event.preventDefault();
                         event.stopPropagation();
                     } else if (!this.onFirstPage) {
-                        this.page(this.currentPage-1, true);
+                        this.page(this.currentPage-1, {lastRowCursor: true});
                     }
                 } else if (event.key === "ArrowDown") {
                     if (this.rows.cursor.nextElementSibling) {
@@ -3333,11 +3326,11 @@ class DataTable {
      * Update the instance
      * @return {Void}
      */
-    update() {
+    update(renderTable = true) {
         this.wrapper.classList.remove("dataTable-empty");
 
         this.paginate();
-        this.renderPage();
+        this.renderPage(renderTable);
 
         this.links = [];
 
@@ -3350,8 +3343,6 @@ class DataTable {
         this.sorting = false;
 
         this.renderPager();
-
-        //this.rows.update()
 
         this.emit("datatable.update");
     }
@@ -3395,9 +3386,7 @@ class DataTable {
      * Fix column widths
      */
     fixColumns() {
-        console.log('fixColumns');
         const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden);
-        console.log([this.options.scrollY, this.options.fixedColumns, activeHeadings]);
         if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.length) {
 
             this.columnWidths = [];
@@ -3421,7 +3410,6 @@ class DataTable {
                 this.renderTable(renderOptions);
 
                 const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || []);
-                console.log({activeDOMHeadings});
                 const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth);
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
@@ -3490,7 +3478,6 @@ class DataTable {
                 this.renderTable(renderOptions);
 
                 const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || []);
-                console.log({activeDOMHeadings});
                 const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth);
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
@@ -3580,7 +3567,7 @@ class DataTable {
     /**
      * Change page
      */
-    page(page, lastRowCursor=false) {
+    page(page, lastRowCursor = false) {
         // We don't want to load the current page again.
         if (page == this.currentPage) {
             return false
@@ -3594,7 +3581,7 @@ class DataTable {
             return false
         }
 
-        this.renderPage(lastRowCursor);
+        this.renderPage(undefined, lastRowCursor);
         this.renderPager();
 
         this.emit("datatable.page", page);
@@ -3638,7 +3625,7 @@ class DataTable {
             this.hasRows = true;
         }
 
-        this.update();
+        this.update(false);
         this.fixColumns();
     }
 
@@ -3746,9 +3733,6 @@ class DataTable {
 
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
-        console.log({diff,
-            newVirtualDOM,
-            virtualDOM: this.virtualDOM});
         this.dd.apply(this.dom, diff);
         this.virtualDOM = newVirtualDOM;
 

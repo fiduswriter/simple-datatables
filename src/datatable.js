@@ -111,8 +111,6 @@ export class DataTable {
      */
     render() {
 
-        this.renderTable()
-
         // Store references
         this.bodyDOM = this.dom.tBodies[0]
         this.head = this.dom.tHead
@@ -208,7 +206,7 @@ export class DataTable {
         this.rect = this.dom.getBoundingClientRect()
 
         // // Update
-        this.update()
+        this.update(false)
         //
         // // Fix height
         this.fixHeight()
@@ -267,7 +265,7 @@ export class DataTable {
      * Render the page
      * @return {Void}
      */
-    renderPage(lastRowCursor=false) {
+    renderPage(renderTable=true, lastRowCursor=false) {
 
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
@@ -275,10 +273,9 @@ export class DataTable {
             }
 
             // Use a fragment to limit touching the DOM
-
-
-            this.renderTable()
-
+            if (renderTable) {
+                this.renderTable()
+            }
 
             this.onFirstPage = this.currentPage === 1
             this.onLastPage = this.currentPage === this.lastPage
@@ -448,7 +445,7 @@ export class DataTable {
                         event.preventDefault()
                         event.stopPropagation()
                     } else if (!this.onFirstPage) {
-                        this.page(this.currentPage-1, true)
+                        this.page(this.currentPage-1, {lastRowCursor: true})
                     }
                 } else if (event.key === "ArrowDown") {
                     if (this.rows.cursor.nextElementSibling) {
@@ -516,11 +513,11 @@ export class DataTable {
      * Update the instance
      * @return {Void}
      */
-    update() {
+    update(renderTable = true) {
         this.wrapper.classList.remove("dataTable-empty")
 
         this.paginate()
-        this.renderPage()
+        this.renderPage(renderTable)
 
         this.links = []
 
@@ -533,8 +530,6 @@ export class DataTable {
         this.sorting = false
 
         this.renderPager()
-
-        //this.rows.update()
 
         this.emit("datatable.update")
     }
@@ -759,7 +754,7 @@ export class DataTable {
     /**
      * Change page
      */
-    page(page, lastRowCursor=false) {
+    page(page, lastRowCursor = false) {
         // We don't want to load the current page again.
         if (page == this.currentPage) {
             return false
@@ -773,7 +768,7 @@ export class DataTable {
             return false
         }
 
-        this.renderPage(lastRowCursor)
+        this.renderPage(undefined, lastRowCursor)
         this.renderPager()
 
         this.emit("datatable.page", page)
@@ -817,7 +812,7 @@ export class DataTable {
             this.hasRows = true
         }
 
-        this.update()
+        this.update(false)
         this.fixColumns()
     }
 
