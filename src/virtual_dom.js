@@ -69,12 +69,15 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
             {
                 nodeName: "TBODY",
                 childNodes: rows.map(
-                    (row, rIndex) => {
+                    ({row, index}) => {
                         const tr = {
                             nodeName: "TR",
+                            attributes: {
+                                "data-index": index
+                            },
                             childNodes: row.map(
-                                (cell, index) => {
-                                    const column = columnSettings.columns[index] || {}
+                                (cell, cIndex) => {
+                                    const column = columnSettings.columns[cIndex] || {}
                                     if (column.hidden) {
                                         return false
                                     }
@@ -87,16 +90,16 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                             }
                                         ]
                                     }
-                                    if (!header && !footer && columnWidths[index] && !noColumnWidths) {
+                                    if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
                                         node.attributes = {
-                                            style: `width: ${columnWidths[index]}%;`
+                                            style: `width: ${columnWidths[cIndex]}%;`
                                         }
                                     }
                                     return node
                                 }
                             ).filter(column => column)
                         }
-                        if (rIndex===rowCursor) {
+                        if (index===rowCursor) {
                             tr.attributes.class = "dataTable-cursor"
                         }
                         return tr

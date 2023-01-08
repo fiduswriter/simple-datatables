@@ -2186,12 +2186,15 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
             {
                 nodeName: "TBODY",
                 childNodes: rows.map(
-                    (row, rIndex) => {
+                    ({row, index}) => {
                         const tr = {
                             nodeName: "TR",
+                            attributes: {
+                                'data-index': index
+                            },
                             childNodes: row.map(
-                                (cell, index) => {
-                                    const column = columnSettings.columns[index] || {};
+                                (cell, cIndex) => {
+                                    const column = columnSettings.columns[cIndex] || {};
                                     if (column.hidden) {
                                         return false
                                     }
@@ -2204,16 +2207,16 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                                             }
                                         ]
                                     };
-                                    if (!header && !footer && columnWidths[index] && !noColumnWidths) {
+                                    if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
                                         node.attributes = {
-                                            style: `width: ${columnWidths[index]}%;`
+                                            style: `width: ${columnWidths[cIndex]}%;`
                                         };
                                     }
                                     return node
                                 }
                             ).filter(column => column)
                         };
-                        if (rIndex===rowCursor) {
+                        if (index===rowCursor) {
                             tr.attributes.class = "dataTable-cursor";
                         }
                         return tr
@@ -3058,7 +3061,7 @@ class DataTable {
     renderTable(renderOptions={}) {
         const newVirtualDOM = dataToVirtualDOM(
             this.data.headings,
-            this.options.paging && this.currentPage && !renderOptions.noPaging ? this.pages[this.currentPage - 1] : this.data.data,
+            this.options.paging && this.currentPage && !renderOptions.noPaging ? this.pages[this.currentPage - 1] : this.data.data.map((row, index) => ({row, index})),
             this.columnSettings,
             this.columnWidths,
             this.rows.cursor,
@@ -3128,7 +3131,7 @@ class DataTable {
         }
 
         if (this.options.rowNavigation) {
-            if (!this.rows.cursor || !this.pages[this.currentPage-1].includes(this.rows.cursor)) {
+            if (!this.rows.cursor || !this.pages[this.currentPage-1].find(page => page.index === this.rows.cursor)) {
                 const rows = this.pages[this.currentPage-1];
                 if (lastRowCursor) {
                     this.rows.setCursor(rows[rows.length-1]);
@@ -3348,19 +3351,19 @@ class DataTable {
     }
 
     paginate() {
-        let rows = this.data.data;
+        let rows = this.data.data.map((row, index) => ({row, index}));
 
         if (this.searching) {
             rows = [];
 
-            this.searchData.forEach(index => rows.push(this.data.data[index]));
+            this.searchData.forEach(index => rows.push({index, row: this.data.data[index]}));
         }
 
         if (this.filterStates.length) {
             this.filterStates.forEach(
                 filterState => {
                     rows = rows.filter(
-                        row => typeof filterState.state === "function" ? filterState.state(row[filterState.column]) : row[filterState.column] === filterState.state
+                        row => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column]) : row.row[filterState.column] === filterState.state
                     );
                 }
             );
