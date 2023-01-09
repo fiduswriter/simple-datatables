@@ -674,7 +674,7 @@ export class DataTable {
                 }
 
             } else {
-                renderOptions.showHeader = true
+                renderOptions.renderHeader = true
                 this.renderTable(renderOptions)
 
                 const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || [])
@@ -851,46 +851,32 @@ export class DataTable {
 
     /**
      * Print the table
-     * @return {void}
      */
     print() {
-        const headings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeName))?.childNodes
-        const rows = this.data.data
-        const table = createElement("table")
-        const thead = createElement("thead")
-        const tbody = createElement("tbody")
+        const tableDOM = createElement("table")
+        const tableVirtualDOM = {nodeName: "TABLE"}
+        const newTableVirtualDOM = dataToVirtualDOM(
+            this.data.headings,
+            this.data.data.map((row, index) => ({row,
+                index})),
+            this.columnSettings,
+            this.columnWidths,
+            false, // No row cursor
+            this.options,
+            {
+                noColumnWidths: true,
+                unhideHeader: true
+            }
+        )
 
-        const tr = createElement("tr")
-        headings.forEach(th => {
-            tr.appendChild(
-                createElement("th", {
-                    html: th.textContent
-                })
-            )
-        })
-
-        thead.appendChild(tr)
-
-        rows.forEach(row => {
-            const tr = createElement("tr")
-            Array.from(row.cells).forEach(cell => {
-                tr.appendChild(
-                    createElement("td", {
-                        html: cell.textContent
-                    })
-                )
-            })
-            tbody.appendChild(tr)
-        })
-
-        table.appendChild(thead)
-        table.appendChild(tbody)
+        const diff = this.dd.diff(tableVirtualDOM, newTableVirtualDOM)
+        this.dd.apply(tableDOM, diff)
 
         // Open new window
         const w = window.open()
 
         // Append the table to the body
-        w.document.body.appendChild(table)
+        w.document.body.appendChild(tableDOM)
 
         // Print
         w.print()

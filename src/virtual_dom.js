@@ -56,7 +56,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
     ).filter(column => column)
 })
 
-export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, showHeader}) => {
+export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, renderHeader}) => {
     const table = {
         nodeName: "TABLE",
         attributes: {
@@ -116,13 +116,13 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
         ]
     }
 
-    if (header || footer || showHeader) {
+    if (header || footer || renderHeader) {
         const headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader,
             sortable,
             scrollY}, {noColumnWidths,
             unhideHeader})
 
-        if (header || showHeader) {
+        if (header || renderHeader) {
             const thead = {
                 nodeName: "THEAD",
                 childNodes: [headerRow]

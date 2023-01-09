@@ -8,13 +8,6 @@ import {
 export const exportJSON = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings
-    let rows = []
-    const arr = []
-    let i
-    let x
-    let str
-    let link
 
     const defaults = {
         download: true,
@@ -33,46 +26,43 @@ export const exportJSON = function(dataTable, userOptions = {}) {
         ...userOptions
     }
 
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
 
+    let rows = []
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1])
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1])
+            for (let i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows)
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
     }
+
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data)
 
     // Only proceed if we have data
     if (rows.length) {
-        // Iterate rows
-        for (x = 0; x < rows.length; x++) {
+        const arr = []
+        rows.forEach((row, x) => {
             arr[x] = arr[x] || {}
-            // Iterate columns
-            for (i = 0; i < headers.length; i++) {
-                // Check for column skip and column visibility
-                if (
-                    !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                    dataTable.columns.visible(headers[i].originalCellIndex)
-                ) {
-                    arr[x][headers[i].textContent] = rows[x].cells[i].textContent
-                }
-            }
-        }
+            row.forEach((cell, i) => {
+                arr[x][headers[i]] = cell
+            })
+        })
 
         // Convert the array of objects to JSON string
-        str = JSON.stringify(arr, options.replacer, options.space)
+        const str = JSON.stringify(arr, options.replacer, options.space)
 
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a")
+            const link = document.createElement("a")
             link.href = encodeURI(`data:application/json;charset=utf-8,${str}`)
             link.download = `${options.filename || "datatable_export"}.json`
 

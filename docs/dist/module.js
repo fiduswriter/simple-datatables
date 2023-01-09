@@ -2173,7 +2173,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
     ).filter(column => column)
 });
 
-const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, showHeader}) => {
+const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, renderHeader}) => {
     const table = {
         nodeName: "TABLE",
         attributes: {
@@ -2233,13 +2233,13 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
         ]
     };
 
-    if (header || footer || showHeader) {
+    if (header || footer || renderHeader) {
         const headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader,
             sortable,
             scrollY}, {noColumnWidths,
             unhideHeader});
 
-        if (header || showHeader) {
+        if (header || renderHeader) {
             const thead = {
                 nodeName: "THEAD",
                 childNodes: [headerRow]
@@ -3577,7 +3577,7 @@ class DataTable {
                 }
 
             } else {
-                renderOptions.showHeader = true;
+                renderOptions.renderHeader = true;
                 this.renderTable(renderOptions);
 
                 const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || []);
@@ -3754,46 +3754,32 @@ class DataTable {
 
     /**
      * Print the table
-     * @return {void}
      */
     print() {
-        const headings = this.virtualDOM.childNodes.find(node => ["THEAD", "TFOOT"].includes(node.nodeName))?.childNodes;
-        const rows = this.data.data;
-        const table = createElement("table");
-        const thead = createElement("thead");
-        const tbody = createElement("tbody");
+        const tableDOM = createElement("table");
+        const tableVirtualDOM = {nodeName: 'TABLE'};
+        const newTableVirtualDOM = dataToVirtualDOM(
+            this.data.headings,
+            this.data.data.map((row, index) => ({row,
+                index})),
+            this.columnSettings,
+            this.columnWidths,
+            false, // No row cursor
+            this.options,
+            {
+                noColumnWidths: true,
+                unhideHeader: true
+            }
+        );
 
-        const tr = createElement("tr");
-        headings.forEach(th => {
-            tr.appendChild(
-                createElement("th", {
-                    html: th.textContent
-                })
-            );
-        });
-
-        thead.appendChild(tr);
-
-        rows.forEach(row => {
-            const tr = createElement("tr");
-            Array.from(row.cells).forEach(cell => {
-                tr.appendChild(
-                    createElement("td", {
-                        html: cell.textContent
-                    })
-                );
-            });
-            tbody.appendChild(tr);
-        });
-
-        table.appendChild(thead);
-        table.appendChild(tbody);
+        const diff = this.dd.diff(tableVirtualDOM, newTableVirtualDOM);
+        this.dd.apply(tableDOM, diff);
 
         // Open new window
         const w = window.open();
 
         // Append the table to the body
-        w.document.body.appendChild(table);
+        w.document.body.appendChild(tableDOM);
 
         // Print
         w.print();
@@ -3929,7 +3915,7 @@ const convertCSV = function(userOptions = {}) {
                         if (options.removeDoubleQuotes) {
                             value = value.trim().replace(/(^"|"$)/g, "");
                         }
-                        obj.data[i].push(value);
+                        obj.data[i].push({data: value});
                     });
                 }
             });
@@ -3980,7 +3966,7 @@ const convertJSON = function(userOptions = {}) {
                         obj.headings.push(column);
                     }
 
-                    obj.data[i].push(value);
+                    obj.data[i].push({data: value});
                 });
             });
         } else {
@@ -4001,12 +3987,7 @@ const convertJSON = function(userOptions = {}) {
 const exportCSV = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
+    const columnShown = (index) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
 
     const defaults = {
         download: true,
@@ -4024,56 +4005,50 @@ const exportCSV = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     };
-
+    let rows = [];
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
     // Include headings
-    rows[0] = dataTable.header;
+    rows[0] = headers;
 
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell=> cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows);
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
     }
 
     // Only proceed if we have data
     if (rows.length) {
-        str = "";
-
-        for (i = 0; i < rows.length; i++) {
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    let text = rows[i].cells[x].textContent;
-                    text = text.trim();
-                    text = text.replace(/\s{2,}/g, " ");
-                    text = text.replace(/\n/g, "  ");
-                    text = text.replace(/"/g, "\"\"");
+        let str = "";
+        rows.forEach(row => {
+            row.forEach(cell => {
+                if (typeof cell === "string") {
+                    cell = cell.trim();
+                    cell = cell.replace(/\s{2,}/g, " ");
+                    cell = cell.replace(/\n/g, "  ");
+                    cell = cell.replace(/"/g, "\"\"");
                     //have to manually encode "#" as encodeURI leaves it as is.
-                    text = text.replace(/#/g, "%23");
-                    if (text.includes(","))
-                        text = `"${text}"`;
-
-
-                    str += text + options.columnDelimiter;
+                    cell = cell.replace(/#/g, "%23");
+                    if (cell.includes(",")) {
+                        cell = `"${cell}"`;
+                    }
                 }
-            }
+                str += cell + options.columnDelimiter;
+            });
             // Remove trailing column delimiter
             str = str.trim().substring(0, str.length - 1);
 
             // Apply line delimiter
             str += options.lineDelimiter;
-        }
+        });
 
         // Remove trailing line delimiter
         str = str.trim().substring(0, str.length - 1);
@@ -4081,7 +4056,7 @@ const exportCSV = function(dataTable, userOptions = {}) {
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a");
+            const link = document.createElement("a");
             link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`);
             link.download = `${options.filename || "datatable_export"}.csv`;
 
@@ -4107,13 +4082,7 @@ const exportCSV = function(dataTable, userOptions = {}) {
 const exportJSON = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    const arr = [];
-    let i;
-    let x;
-    let str;
-    let link;
+    const columnShown = (index) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
 
     const defaults = {
         download: true,
@@ -4132,46 +4101,41 @@ const exportJSON = function(dataTable, userOptions = {}) {
         ...userOptions
     };
 
-
+    let rows = [];
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell=> cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows);
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
     }
+
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
 
     // Only proceed if we have data
     if (rows.length) {
-        // Iterate rows
-        for (x = 0; x < rows.length; x++) {
+        const arr = [];
+        rows.forEach((row, x) => {
             arr[x] = arr[x] || {};
-            // Iterate columns
-            for (i = 0; i < headers.length; i++) {
-                // Check for column skip and column visibility
-                if (
-                    !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                    dataTable.columns.visible(headers[i].originalCellIndex)
-                ) {
-                    arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
-                }
-            }
-        }
+            row.forEach((cell, i) => {
+                arr[x][headers[i]] = cell;
+            });
+        });
 
         // Convert the array of objects to JSON string
-        str = JSON.stringify(arr, options.replacer, options.space);
+        const str = JSON.stringify(arr, options.replacer, options.space);
 
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a");
+            const link = document.createElement("a");
             link.href = encodeURI(`data:application/json;charset=utf-8,${str}`);
             link.download = `${options.filename || "datatable_export"}.json`;
 
@@ -4197,12 +4161,7 @@ const exportJSON = function(dataTable, userOptions = {}) {
 const exportSQL = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
+    const columnShown = (index) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
 
     const defaults = {
         download: true,
@@ -4219,37 +4178,32 @@ const exportSQL = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     };
-
+    let rows = [];
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell=> cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows);
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
     }
 
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
-        str = `INSERT INTO \`${options.tableName}\` (`;
+        let str = `INSERT INTO \`${options.tableName}\` (`;
 
         // Convert table headings to column names
-        for (i = 0; i < headers.length; i++) {
-            // Check for column skip and column visibility
-            if (
-                !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                dataTable.columns.visible(headers[i].originalCellIndex)
-            ) {
-                str += `\`${headers[i].textContent}\`,`;
-            }
-        }
+        headers.forEach(header => {
+            str += `\`${header}\`,`;
+        });
 
         // Remove trailing comma
         str = str.trim().substring(0, str.length - 1);
@@ -4258,25 +4212,23 @@ const exportSQL = function(dataTable, userOptions = {}) {
         str += ") VALUES ";
 
         // Iterate rows and convert cell data to column values
-        for (i = 0; i < rows.length; i++) {
+
+        rows.forEach(row => {
             str += "(";
-
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and column visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    str += `"${rows[i].cells[x].textContent}",`;
+            row.forEach(cell => {
+                if (typeof cell === "string") {
+                    str += `"${cell}",`;
+                } else {
+                    str += `${cell},`;
                 }
-            }
-
+            });
             // Remove trailing comma
             str = str.trim().substring(0, str.length - 1);
 
             // end VALUES
             str += "),";
-        }
+
+        });
 
         // Remove trailing comma
         str = str.trim().substring(0, str.length - 1);
@@ -4291,7 +4243,7 @@ const exportSQL = function(dataTable, userOptions = {}) {
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a");
+            const link = document.createElement("a");
             link.href = encodeURI(str);
             link.download = `${options.filename || "datatable_export"}.sql`;
 
@@ -4317,16 +4269,13 @@ const exportSQL = function(dataTable, userOptions = {}) {
 const exportTXT = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
+    const columnShown = (index) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
 
     const defaults = {
         download: true,
-        skipColumn: []
+        skipColumn: [],
+        lineDelimiter: "\n",
+        columnDelimiter: ","
     };
 
     // Check for the options object
@@ -4339,55 +4288,52 @@ const exportTXT = function(dataTable, userOptions = {}) {
         ...userOptions
     };
 
+    let rows = [];
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
     // Include headings
-    rows[0] = dataTable.header;
+    rows[0] = headers;
 
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell=> cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows);
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
     }
 
     // Only proceed if we have data
     if (rows.length) {
-        str = "";
+        let str = "";
 
-        for (i = 0; i < rows.length; i++) {
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    let text = rows[i].cells[x].textContent;
-                    text = text.trim();
-                    text = text.replace(/\s{2,}/g, " ");
-                    text = text.replace(/\n/g, "  ");
-                    text = text.replace(/"/g, "\"\"");
+        rows.forEach(row => {
+            row.forEach(cell => {
+                if (typeof cell === "string") {
+                    cell = cell.trim();
+                    cell = cell.replace(/\s{2,}/g, " ");
+                    cell = cell.replace(/\n/g, "  ");
+                    cell = cell.replace(/"/g, "\"\"");
                     //have to manually encode "#" as encodeURI leaves it as is.
-                    text = text.replace(/#/g, "%23");
-                    if (text.includes(","))
-                        text = `"${text}"`;
-
-
-                    str += text + options.columnDelimiter;
+                    cell = cell.replace(/#/g, "%23");
+                    if (cell.includes(",")) {
+                        cell = `"${cell}"`;
+                    }
                 }
-            }
+                str += cell + options.columnDelimiter;
+            });
             // Remove trailing column delimiter
             str = str.trim().substring(0, str.length - 1);
 
             // Apply line delimiter
             str += options.lineDelimiter;
-        }
+
+        });
 
         // Remove trailing line delimiter
         str = str.trim().substring(0, str.length - 1);
@@ -4398,7 +4344,7 @@ const exportTXT = function(dataTable, userOptions = {}) {
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a");
+            const link = document.createElement("a");
             link.href = encodeURI(str);
             link.download = `${options.filename || "datatable_export"}.txt`;
 

@@ -55,7 +55,7 @@ export const convertCSV = function(userOptions = {}) {
                         if (options.removeDoubleQuotes) {
                             value = value.trim().replace(/(^"|"$)/g, "")
                         }
-                        obj.data[i].push(value)
+                        obj.data[i].push({data: value})
                     })
                 }
             })

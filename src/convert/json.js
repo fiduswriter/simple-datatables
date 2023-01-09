@@ -40,7 +40,7 @@ export const convertJSON = function(userOptions = {}) {
                         obj.headings.push(column)
                     }
 
-                    obj.data[i].push(value)
+                    obj.data[i].push({data: value})
                 })
             })
         } else {

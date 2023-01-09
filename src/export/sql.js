@@ -8,13 +8,6 @@ import {
 export const exportSQL = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings
-    let rows = []
-    let i
-    let x
-    let str
-    let link
-
     const defaults = {
         download: true,
         skipColumn: [],
@@ -30,37 +23,33 @@ export const exportSQL = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     }
-
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
+    let rows = []
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1])
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1])
+            for (let i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows)
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
     }
 
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data)
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
-        str = `INSERT INTO \`${options.tableName}\` (`
+        let str = `INSERT INTO \`${options.tableName}\` (`
 
         // Convert table headings to column names
-        for (i = 0; i < headers.length; i++) {
-            // Check for column skip and column visibility
-            if (
-                !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                dataTable.columns.visible(headers[i].originalCellIndex)
-            ) {
-                str += `\`${headers[i].textContent}\`,`
-            }
-        }
+        headers.forEach(header => {
+            str += `\`${header}\`,`
+        })
 
         // Remove trailing comma
         str = str.trim().substring(0, str.length - 1)
@@ -69,25 +58,23 @@ export const exportSQL = function(dataTable, userOptions = {}) {
         str += ") VALUES "
 
         // Iterate rows and convert cell data to column values
-        for (i = 0; i < rows.length; i++) {
+
+        rows.forEach(row => {
             str += "("
-
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and column visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    str += `"${rows[i].cells[x].textContent}",`
+            row.forEach(cell => {
+                if (typeof cell === "string") {
+                    str += `"${cell}",`
+                } else {
+                    str += `${cell},`
                 }
-            }
-
+            })
             // Remove trailing comma
             str = str.trim().substring(0, str.length - 1)
 
             // end VALUES
             str += "),"
-        }
+
+        })
 
         // Remove trailing comma
         str = str.trim().substring(0, str.length - 1)
@@ -102,7 +89,7 @@ export const exportSQL = function(dataTable, userOptions = {}) {
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a")
+            const link = document.createElement("a")
             link.href = encodeURI(str)
             link.download = `${options.filename || "datatable_export"}.sql`
 
