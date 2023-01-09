@@ -74,14 +74,14 @@ rows.remove([0, 1, 2, 3, 4]);
 rows.remove([20, 21, 22, 23, 24]);
 ```
 
-You can quickly access the correct index for the rendered row by grabbing it's `dataIndex` property as opposed to the `rowIndex` property.
+You can quickly access the correct index for the rendered row by grabbing it's `dataset-index` property as opposed to the `rowIndex` property.
 
 ```javascript
 // Get the first rendered row
 let rowToRemove = datatable.body.querySelector("tr");
 
 // Remove it
-datatable.rows.remove(rowToRemove.dataIndex);
+datatable.rows.remove(parseInt(rowToRemove.dataset.index));
 
 ```
 

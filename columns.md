@@ -34,16 +34,12 @@ A string representing the `datetime` format when using the `date` type.
 
 #### `render`
 
-A callback to customise the rendering of the column(s) cell content. The function takes 3 parameters and should return the formatted cell content.
+A callback to customise the rendering of the column(s) cell content. The function takes 4 parameters.
+You can either return a string representing the cells content, you can modify the provided td in the format used by (diffDOM)[https://github.com/fiduswriter/diffDOM] or you can return a new td in that same format. 
 
 ```javascript
-
-/**
- * @param {String} data The cell's content (innerHTML)
- * @param {Object} cell The HTMLTableCellElement
- * @param {Object} row The cell's parent HTMLTableRowElement 
- */
-render: function(data, cell, row) {
+ =>
+render: function(value, td, rowIndex, cellIndex) {
 
 }		
 
@@ -70,8 +66,8 @@ let datatable = new DataTable("#myTable", {
         // Append a button to the seventh column
         {
             select: 6,
-            render: function(data, cell, row) {
-                return data + "<button type='button' data-row='"  + row.dataIndex + "'>Select</button>";
+            render: function(data, td, rowIndex, cellIndex) {
+                return `${data}<button type='button' data-row='${rowIndex}'>Select</button>`;
             }
         }
     ]

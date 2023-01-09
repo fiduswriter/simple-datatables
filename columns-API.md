@@ -16,8 +16,6 @@ You can then chain the following methods.
 
 Sort the selected column. The `column` parameter should be a non-zero-based integer. The `direction` parameter is optional.
 
-Replaces the deprecated [`sortColumn`](https://github.com/fiduswriter/simple-datatables/wiki/sortcolumn()) method.
-
 ---
 
 ### `add(data [object])`
@@ -111,7 +109,7 @@ Checks to see if the selected column(s) are visible. Returns a `boolean` for sin
 If you omit the `select` parameter, an `array` of `booleans` will be returned representing all available columns.
 
 ```javascript
-let columns = datatable.columns();
+let columns = datatable.columns;
 
 // Hide the 4th of 5 columns
 columns.hide(3);
@@ -119,13 +117,13 @@ columns.hide(3);
 // Check visiblilty
 columns.visible(3) // returns false
 
-or 
+or
 
-columns().visible([0,1,2,3]) // returns  [true, true, true, false]
+columns.visible([0,1,2,3]) // returns  [true, true, true, false]
 
 or
 
-columns().visible() // returns  [true, true, true, false, true]
+columns.visible() // returns  [true, true, true, false, true]
 
 ```
 
@@ -146,7 +144,7 @@ Usage is the same as the `visible` method.
 Swap th position of two columns. Just pass an array of 2 integers representing the column indexes you require swapping.
 
 ```javascript
-let columns = datatable.columns();
+let columns = datatable.columns;
 
 // Swap the 1st and 6th columns
 columns.swap([0,5]);
@@ -165,7 +163,7 @@ Order the columns based on the given order. Just pass an array of column indexes
 
 ```javascript
 // Reorder the columns
-datatable.columns().order([1,3,4,2,0]);
+datatable.columns.order([1,3,4,2,0]);
 ```
 
 

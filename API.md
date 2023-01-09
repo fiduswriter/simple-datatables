@@ -78,10 +78,10 @@ Returns a collection of all [`HTMLTableRowElement`s](https://developer.mozilla.o
 
 ---
 
-### dataIndex
+### data-index
 #### type `Integer`
 
-All rows in the `data` array have a custom propery named `dataIndex`. This represents the position in the `data` array. It can be useful for getting the correct position of a row as the native `rowIndex` property may be either `-1` if the row isn't rendered or incorrect if you're on any other page than page 1.
+All rows in the `data` array have a custom propery named `data-index`. This represents the position in the `data` array. It can be useful for getting the correct position of a row as the native `rowIndex` property may be either `-1` if the row isn't rendered or incorrect if you're on any other page than page 1.
 
 Also, in some browsers, the first row of a `tbody` element will have a `rowIndex` of `1` instead of `0` as they take the `thead` row as the first row.
 
@@ -95,9 +95,9 @@ let firstRow = document.querySelector("tr");
 // will be 1 which will remove the second row in the data array
 datatable.rows.remove(firstRow.rowIndex);
 
-// CORRECT: firstRow.dataIndex will return 20 which is the
+// CORRECT: firstRow.dataset.index will return 20 which is the
 // correct position (21st row) in the data array
-datatable.rows.remove(firstRow.dataIndex);
+datatable.rows.remove(parseInt(firstRow.dataset.index));
 
 ```
 
