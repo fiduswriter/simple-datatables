@@ -737,25 +737,25 @@
                 hiddenColumns: true,
                 menuItems: [
                     {
-                        text: " < span class = 'mdi mdi-lead-pencil' > < /span> Edit Cell",
+                        text: "<span class = 'mdi mdi-lead-pencil'> </span> Edit Cell",
                         action: (editor, _event) => {
-                            const cell = editor.event.target.closest("td")
-                            return editor.editCell(cell)
+                            const td = editor.event.target.closest("td")
+                            return editor.editCell(td)
                         }
                     }, {
-                        text: " < span class = 'mdi mdi-lead-pencil' > < /span> Edit Row",
+                        text: "<span class = 'mdi mdi-lead-pencil'> </span> Edit Row",
                         action: (editor, _event) => {
-                            const row = editor.event.target.closest("tr")
-                            return editor.editRow(row)
+                            const tr = editor.event.target.closest("tr")
+                            return editor.editRow(tr)
                         }
                     }, {
                         separator: true
                     }, {
-                        text: " < span class = 'mdi mdi-delete' > < /span> Remove",
+                        text: "<span class = 'mdi mdi-delete'> </span> Remove",
                         action: (editor, _event) => {
                             if (confirm("Are you sure?")) {
-                                const row = editor.event.target.closest("tr")
-                                editor.removeRow(row)
+                                const tr = editor.event.target.closest("tr")
+                                editor.removeRow(tr)
                             }
                         }
                     }

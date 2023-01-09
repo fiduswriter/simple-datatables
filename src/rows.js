@@ -50,7 +50,7 @@ export class Rows {
      */
     remove(select) {
         if (Array.isArray(select)) {
-            this.dt.data.data = this.data.data.filter((_row, index) => !select.includes(index))
+            this.dt.data.data = this.dt.data.data.filter((_row, index) => !select.includes(index))
             // We may have emptied the table
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false

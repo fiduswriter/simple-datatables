@@ -475,14 +475,14 @@ export class DataTable {
             this.dom.addEventListener("mousedown", event => {
                 if (this.dom.matches(":focus")) {
                     const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
-                    this.emit("datatable.selectrow", row, event)
+                    this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
                 }
 
             })
         } else {
             this.dom.addEventListener("mousedown", event => {
                 const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
-                this.emit("datatable.selectrow", row, event)
+                this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
             })
         }
 

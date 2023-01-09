@@ -2195,7 +2195,7 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                                     if (column.hidden) {
                                         return false
                                     }
-                                    const td = cell.type === 'node' ?
+                                    const td = cell.type === "node" ?
                                         {
                                             nodeName: "TD",
                                             childNodes: cell.data
@@ -2220,7 +2220,7 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                                             if (typeof renderedCell === "string") {
                                                 // Convenience method to make it work similarly to what it did up to version 5.
                                                 const node = stringToObj(`<td>${renderedCell}</td>`);
-                                                if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== '#text') {
+                                                if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
                                                     td.childNodes = node.childNodes;
                                                 } else {
                                                     td.childNodes[0].data = renderedCell;
@@ -2244,11 +2244,11 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                             if (renderedRow) {
                                 if (typeof renderedRow === "string") {
                                     // Convenience method to make it work similarly to what it did up to version 5.
-                                    const node = stringToObj(`<tr>${renderedCell}</tr>`);
-                                    if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== '#text') {
+                                    const node = stringToObj(`<tr>${renderedRow}</tr>`);
+                                    if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
                                         tr.childNodes = node.childNodes;
                                     } else {
-                                        tr.childNodes[0].data = renderedCell;
+                                        tr.childNodes[0].data = renderedRow;
                                     }
 
                                 } else {
@@ -2508,20 +2508,27 @@ const truncate = (a, b, c, d, ellipsis) => {
 };
 
 
-const objToText = (obj) => {
+const objToText = obj => {
     if (obj.nodeName==="#text") {
         return obj.data
     }
     if (obj.childNodes) {
-        return obj.childNodes.map(childNode => objToText(childNode)).join('')
+        return obj.childNodes.map(childNode => objToText(childNode)).join("")
     }
     return ""
 };
 
+
+const escapeText = function(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+};
+
 const readDataCell = (cell, columnSettings = {}) => {
-    console.log({cell, constructor: cell.constructor});
     if (cell.constructor == Object) {
-        console.log('return cell');
         return cell
     }
     const cellData = {
@@ -2529,9 +2536,9 @@ const readDataCell = (cell, columnSettings = {}) => {
     };
     if (typeof cell === "string" && cell.length) {
         const node = stringToObj(`<td>${cell}</td>`);
-        if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== '#text')) {
+        if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
             cellData.data = node.childNodes;
-            cellData.type = 'node';
+            cellData.type = "node";
             const text = objToText(node);
             cellData.text = text;
             cellData.order = text;
@@ -2633,7 +2640,7 @@ class Rows {
      */
     remove(select) {
         if (Array.isArray(select)) {
-            this.dt.data.data = this.data.data.filter((_row, index) => !select.includes(index));
+            this.dt.data.data = this.dt.data.data.filter((_row, index) => !select.includes(index));
             // We may have emptied the table
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false;
@@ -2789,16 +2796,16 @@ class Columns {
      * Add a new column
      */
     add(data) {
-        this.dt.data.headings.length;
+        const newColumnSelector = this.dt.data.headings.length;
         this.dt.data.headings = this.dt.data.headings.concat([{data: data.heading}]);
         this.dt.data.data = this.dt.data.data.map(
             (row, index) => row.concat([readDataCell(data.data[index], data)])
         );
         if (data.type || data.format || data.sortable || data.render) {
-            if (!this.dt.columnSettings.columns[index]) {
-                this.dt.columnSettings.columns[index] = {};
+            if (!this.dt.columnSettings.columns[newColumnSelector]) {
+                this.dt.columnSettings.columns[newColumnSelector] = {};
             }
-            const column = this.dt.columnSettings.columns[index];
+            const column = this.dt.columnSettings.columns[newColumnSelector];
             if (data.type) {
                 column.type = data.type;
             }
@@ -3443,14 +3450,14 @@ class DataTable {
             this.dom.addEventListener("mousedown", event => {
                 if (this.dom.matches(":focus")) {
                     const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target));
-                    this.emit("datatable.selectrow", row, event);
+                    this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
                 }
 
             });
         } else {
             this.dom.addEventListener("mousedown", event => {
                 const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target));
-                this.emit("datatable.selectrow", row, event);
+                this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
             });
         }
 
@@ -3789,7 +3796,6 @@ class DataTable {
         if (rows.length) {
             rows.forEach(row => this.data.data.push(row.map((cell, index) => {
                 const cellOut = readDataCell(cell, this.columnSettings.columns[index]);
-                console.log({cellOut});
                 return cellOut
             })));
             this.hasRows = true;
@@ -4200,8 +4206,6 @@ const exportJSON = function(dataTable, userOptions = {}) {
             });
         });
 
-        console.log({arr});
-
         // Convert the array of objects to JSON string
         const str = JSON.stringify(arr, options.replacer, options.space);
 
@@ -4210,11 +4214,11 @@ const exportJSON = function(dataTable, userOptions = {}) {
             // Create a link to trigger the download
 
             const blob = new Blob(
-				[ str ],
-				{
-					type : "data:application/json;charset=utf-8"
-				}
-			);
+                [str],
+                {
+                    type: "data:application/json;charset=utf-8"
+                }
+            );
             const url = URL.createObjectURL(blob);
 
 
@@ -4541,7 +4545,7 @@ const debounce = function(func, timeout = 300) {
  */
 class Editor {
     constructor(dataTable, options = {}) {
-        this.dataTable = dataTable;
+        this.dt = dataTable;
         this.options = {
             ...defaultConfig,
             ...options
@@ -4556,7 +4560,7 @@ class Editor {
         if (this.initialized) {
             return
         }
-        this.dataTable.wrapper.classList.add(this.options.classes.editable);
+        this.dt.wrapper.classList.add(this.options.classes.editable);
         if (this.options.contextMenu) {
             this.container = createElement("div", {
                 id: this.options.classes.container
@@ -4601,7 +4605,7 @@ class Editor {
         this.bindEvents();
         setTimeout(() => {
             this.initialized = true;
-            this.dataTable.emit("editable.init");
+            this.dt.emit("editable.init");
         }, 10);
     }
 
@@ -4618,7 +4622,7 @@ class Editor {
             click: this.click.bind(this)
         };
         // listen for click / double-click
-        this.dataTable.body.addEventListener(this.options.clickEvent, this.events.click);
+        this.dt.dom.addEventListener(this.options.clickEvent, this.events.click);
         // listen for click anywhere but the menu
         document.addEventListener("click", this.events.dismiss);
         // listen for right-click
@@ -4626,7 +4630,7 @@ class Editor {
         if (this.options.contextMenu) {
             // listen for right-click
 
-            this.dataTable.body.addEventListener("contextmenu", this.events.context);
+            this.dt.dom.addEventListener("contextmenu", this.events.context);
             // reset
             this.events.reset = debounce(this.events.update, 50);
             window.addEventListener("resize", this.events.reset);
@@ -4641,8 +4645,8 @@ class Editor {
      */
     context(event) {
         this.event = event;
-        const valid = this.dataTable.body.contains(event.target);
-        if (this.options.contextMenu && !this.disabled && valid) {
+        const cell = event.target.closest("tbody td");
+        if (this.options.contextMenu && !this.disabled && cell) {
             event.preventDefault();
             // get the mouse position
             let x = event.pageX;
@@ -4669,9 +4673,9 @@ class Editor {
      */
     click(event) {
         if (this.editing && this.data && this.editingCell) {
-            this.saveCell();
+            this.saveCell(this.data.input.value);
         } else if (!this.editing) {
-            const cell = event.target.closest("td");
+            const cell = event.target.closest("tbody td");
             if (cell) {
                 this.editCell(cell);
                 event.preventDefault();
@@ -4690,15 +4694,15 @@ class Editor {
                 this.closeModal();
             } else if (event.key === "Enter") { // save button
                 // Save
-                this.saveRow();
+                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
             }
         } else if (this.editing && this.data) {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
-                    this.saveCell();
+                    this.saveCell(this.data.input.value);
                 } else if (this.editingRow) {
-                    this.saveRow();
+                    this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
                 }
             } else if (event.key === "Escape") {
                 // Escape key reverts
@@ -4709,34 +4713,73 @@ class Editor {
 
     /**
      * Edit cell
-     * @param  {Object} cell    The HTMLTableCellElement
+     * @param  {Object} td    The HTMLTableCellElement
      * @return {Void}
      */
-    editCell(cell) {
-        if (this.options.excludeColumns.includes(cell.cellIndex)) {
+    editCell(td) {
+        let columnIndex = 0;
+        let cellIndex = 0;
+        while (cellIndex < td.cellIndex) {
+            const columnSettings = this.dt.columnSettings.columns[columnIndex] || {};
+            if (!columnSettings.hidden) {
+                cellIndex += 1;
+            }
+            columnIndex += 1;
+        }
+        if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu();
             return
         }
-        const row = this.dataTable.body.rows[cell.parentNode.dataIndex];
-        cell = row.cells[cell.cellIndex];
+        const rowIndex = parseInt(td.parentNode.dataset.index, 10);
+        const row = this.dt.data.data[rowIndex];
+        const cell = row[columnIndex];
+
         this.data = {
             cell,
-            content: cell.dataset.content || cell.innerHTML,
-            input: createElement("input", {
-                type: "text",
-                value: cell.dataset.content || cell.innerHTML,
-                class: this.options.classes.input
-            })
+            rowIndex,
+            columnIndex,
+            content: cell.text || String(cell.data)
         };
-        cell.innerHTML = "";
-        cell.appendChild(this.data.input);
-        setTimeout(() => {
-            this.data.input.focus();
-            this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length;
-            this.editing = true;
-            this.editingCell = true;
-            this.closeMenu();
-        }, 10);
+        const template = [
+            `<div class='${this.options.classes.inner}'>`,
+            `<div class='${this.options.classes.header}'>`,
+            "<h4>Editing cell</h4>",
+            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            " </div>",
+            `<div class='${this.options.classes.block}'>`,
+            `<form class='${this.options.classes.form}'>`,
+            `<div class='${this.options.classes.row}'>`,
+            `<label class='${this.options.classes.label}'>${escapeText(this.dt.data.headings[columnIndex].data)}</label>`,
+            `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
+            "</div>",
+            `<div class='${this.options.classes.row}'>`,
+            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            "</div>",
+            "</form>",
+            "</div>",
+            "</div>"
+        ].join("");
+        const modal = createElement("div", {
+            class: this.options.classes.modal,
+            html: template
+        });
+        this.modal = modal;
+        this.openModal();
+        this.editing = true;
+        this.editingCell = true;
+        this.data.input = modal.querySelector("input[type=text]");
+        this.data.input.focus();
+        this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length;
+        // Close / save
+        modal.addEventListener("click", event => {
+            if (event.target.hasAttribute("data-editor-close")) { // close button
+                this.closeModal();
+            } else if (event.target.hasAttribute("data-editor-save")) { // save button
+                // Save
+                this.saveCell(this.data.input.value);
+            }
+        });
+        this.closeMenu();
     }
 
     /**
@@ -4745,26 +4788,25 @@ class Editor {
      * @param  {String} value   Cell content
      * @return {Void}
      */
-    saveCell(value, cell) {
-        cell = cell || this.data.cell;
-        value = value || this.data.input.value;
+    saveCell(value) {
         const oldData = this.data.content;
         // Set the cell content
-        this.dataTable.data[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = value.trim();
+        this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = {data: value.trim()};
+        this.closeModal();
+        this.dt.fixColumns();
+        this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex);
         this.data = {};
-        this.editing = this.editingCell = false;
-        this.dataTable.emit("editable.save.cell", value, oldData, cell);
     }
 
     /**
      * Edit row
-     * @param  {Object} cell    The HTMLTableRowElement
+     * @param  {Object} row    The HTMLTableRowElement
      * @return {Void}
      */
-    editRow(row) {
-        row = row || this.event.target.closest("tr");
-        if (!row || row.nodeName !== "TR" || this.editing) return
-        row = this.dataTable.body.rows[row.dataIndex];
+    editRow(tr) {
+        if (!tr || tr.nodeName !== "TR" || this.editing) return
+        const dataIndex = parseInt(tr.dataset.index, 10);
+        const row = this.dt.data.data[dataIndex];
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
@@ -4787,14 +4829,15 @@ class Editor {
         const inner = modal.firstElementChild;
         const form = inner.lastElementChild.firstElementChild;
         // Add the inputs for each cell
-        Array.from(row.cells).forEach((cell, i) => {
-            if ((!cell.hidden || (cell.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
+        row.forEach((cell, i) => {
+            const columnSettings = this.dt.columnSettings.columns[i] || {};
+            if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 form.insertBefore(createElement("div", {
                     class: this.options.classes.row,
                     html: [
                         `<div class='${this.options.classes.row}'>`,
-                        `<label class='${this.options.classes.label}'>${this.dataTable.header.cells[i].textContent}</label>`,
-                        `<input class='${this.options.classes.input}' value='${cell.dataset.content || cell.innerHTML}' type='text'>`,
+                        `<label class='${this.options.classes.label}'>${escapeText(this.dt.data.headings[i].data)}</label>`,
+                        `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
                         "</div>"
                     ].join("")
                 }), form.lastElementChild);
@@ -4808,7 +4851,8 @@ class Editor {
         inputs.pop();
         this.data = {
             row,
-            inputs
+            inputs,
+            dataIndex
         };
         this.editing = true;
         this.editingRow = true;
@@ -4818,7 +4862,7 @@ class Editor {
                 this.closeModal();
             } else if (event.target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveRow();
+                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
             }
         });
         this.closeMenu();
@@ -4831,15 +4875,12 @@ class Editor {
      * @return {Void}
      */
     saveRow(data, row) {
-        data = data || this.data.inputs.map(input => input.value.trim());
-        row = row || this.data.row;
         // Store the old data for the emitter
-        const oldData = Array.from(row.cells).map(cell => cell.dataset.content || cell.innerHTML);
-        Array.from(row.cells).forEach((cell, i) => {
-            cell.innerHTML = data[i];
-        });
+        const oldData = row.map(cell => cell.text || String(cell.data));
+        this.dt.rows.updateRow(this.data.dataIndex, data);
+        this.data = {};
         this.closeModal();
-        this.dataTable.emit("editable.save.row", data, oldData, row);
+        this.dt.emit("editable.save.row", data, oldData, row);
     }
 
     /**
@@ -4859,30 +4900,20 @@ class Editor {
     closeModal() {
         if (this.editing && this.modal) {
             document.body.removeChild(this.modal);
-            this.modal = this.editing = this.editingRow = false;
+            this.modal = this.editing = this.editingRow = this.editingCell = false;
         }
     }
 
     /**
      * Remove a row
-     * @param  {Number|Object} row The HTMLTableRowElement or dataIndex property
+     * @param  {Object} tr The HTMLTableRowElement
      * @return {Void}
      */
-    removeRow(row) {
-        if (!row) {
-            row = this.event.target.closest("tr");
-            if (row && row.dataIndex !== undefined) {
-                this.dataTable.rows.remove(row.dataIndex);
-                this.closeMenu();
-            }
-        } else {
-            // User passed a HTMLTableRowElement
-            if (row instanceof Element && row.nodeName === "TR" && row.dataIndex !== undefined) {
-                row = row.dataIndex;
-            }
-            this.dataTable.rows.remove(row);
-            this.closeMenu();
-        }
+    removeRow(tr) {
+        if (!tr || tr.nodeName !== "TR" || this.editing) return
+        const index = parseInt(tr.dataset.index, 10);
+        this.dt.rows.remove(index);
+        this.closeMenu();
     }
 
     /**
@@ -4927,12 +4958,12 @@ class Editor {
      */
     openMenu() {
         if (this.editing && this.data && this.editingCell) {
-            this.saveCell();
+            this.saveCell(this.data.input.value);
         }
         if (this.options.contextMenu) {
             document.body.appendChild(this.container);
             this.closed = false;
-            this.dataTable.emit("editable.context.open");
+            this.dt.emit("editable.context.open");
         }
     }
 
@@ -4944,7 +4975,7 @@ class Editor {
         if (this.options.contextMenu && !this.closed) {
             this.closed = true;
             document.body.removeChild(this.container);
-            this.dataTable.emit("editable.context.close");
+            this.dt.emit("editable.context.close");
         }
     }
 
@@ -4953,8 +4984,8 @@ class Editor {
      * @return {Void}
      */
     destroy() {
-        this.dataTable.body.removeEventListener(this.options.clickEvent, this.events.click);
-        this.dataTable.body.removeEventListener("contextmenu", this.events.context);
+        this.dt.dom.removeEventListener(this.options.clickEvent, this.events.click);
+        this.dt.dom.removeEventListener("contextmenu", this.events.context);
         document.removeEventListener("click", this.events.dismiss);
         document.removeEventListener("keydown", this.events.keydown);
         window.removeEventListener("resize", this.events.reset);
