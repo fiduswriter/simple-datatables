@@ -70,7 +70,7 @@ export class DataTable {
      * Initialize the instance
      */
     init() {
-        if (this.initialized || this.dom.classList.contains("dataTable-table")) {
+        if (this.initialized || this.dom.classList.contains("datatable-table")) {
             return false
         }
 
@@ -111,35 +111,35 @@ export class DataTable {
 
         // Build
         this.wrapper = createElement("div", {
-            class: "dataTable-wrapper dataTable-loading"
+            class: "datatable-wrapper datatable-loading"
         })
 
         // Template for custom layouts
         let template = ""
-        template += "<div class='dataTable-top'>"
+        template += "<div class='datatable-top'>"
         template += this.options.layout.top
         template += "</div>"
         if (this.options.scrollY.length) {
-            template += `<div class='dataTable-container' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`
+            template += `<div class='datatable-container' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`
         } else {
-            template += "<div class='dataTable-container'></div>"
+            template += "<div class='datatable-container'></div>"
         }
-        template += "<div class='dataTable-bottom'>"
+        template += "<div class='datatable-bottom'>"
         template += this.options.layout.bottom
         template += "</div>"
 
         // Info placement
-        template = template.replace("{info}", this.options.paging ? "<div class='dataTable-info'></div>" : "")
+        template = template.replace("{info}", this.options.paging ? "<div class='datatable-info'></div>" : "")
 
         // Per Page Select
         if (this.options.paging && this.options.perPageSelect) {
-            let wrap = "<div class='dataTable-dropdown'><label>"
+            let wrap = "<div class='datatable-dropdown'><label>"
             wrap += this.options.labels.perPage
             wrap += "</label></div>"
 
             // Create the select
             const select = createElement("select", {
-                class: "dataTable-selector"
+                class: "datatable-selector"
             })
 
             // Create the options
@@ -161,7 +161,7 @@ export class DataTable {
         // Searchable
         if (this.options.searchable) {
             const form =
-                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${this.options.labels.placeholder}' type='text'></div>`
+                `<div class='datatable-search'><input class='datatable-input' placeholder='${this.options.labels.placeholder}' type='text'></div>`
 
             // Search input placement
             template = template.replace("{search}", form)
@@ -171,10 +171,10 @@ export class DataTable {
 
         // Paginator
         const paginatorWrapper = createElement("nav", {
-            class: "dataTable-pagination"
+            class: "datatable-pagination"
         })
         const paginator = createElement("ul", {
-            class: "dataTable-pagination-list"
+            class: "datatable-pagination-list"
         })
         paginatorWrapper.appendChild(paginator)
 
@@ -182,11 +182,11 @@ export class DataTable {
         template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML)
         this.wrapper.innerHTML = template
 
-        this.container = this.wrapper.querySelector(".dataTable-container")
+        this.container = this.wrapper.querySelector(".datatable-container")
 
-        this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination-list")
+        this.pagers = this.wrapper.querySelectorAll(".datatable-pagination-list")
 
-        this.label = this.wrapper.querySelector(".dataTable-info")
+        this.label = this.wrapper.querySelector(".datatable-info")
 
         // Insert in to DOM tree
         this.dom.parentNode.replaceChild(this.wrapper, this.dom)
@@ -393,7 +393,7 @@ export class DataTable {
     bindEvents() {
         // Per page selector
         if (this.options.perPageSelect) {
-            const selector = this.wrapper.querySelector(".dataTable-selector")
+            const selector = this.wrapper.querySelector(".datatable-selector")
             if (selector) {
                 // Change per page
                 selector.addEventListener("change", () => {
@@ -409,7 +409,7 @@ export class DataTable {
 
         // Search input
         if (this.options.searchable) {
-            this.input = this.wrapper.querySelector(".dataTable-input")
+            this.input = this.wrapper.querySelector(".datatable-input")
             if (this.input) {
                 this.input.addEventListener("keyup", () => this.search(this.input.value), false)
             }
@@ -424,7 +424,7 @@ export class DataTable {
                     e.preventDefault()
                 } else if (
                     this.options.sortable &&
-                    t.classList.contains("dataTable-sorter") &&
+                    t.classList.contains("datatable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
                     this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode))
@@ -512,7 +512,7 @@ export class DataTable {
         this.dom.innerHTML = this.initialInnerHTML
 
         // Remove the className
-        this.dom.classList.remove("dataTable-table")
+        this.dom.classList.remove("datatable-table")
 
         // Remove the containers
         this.wrapper.parentNode.replaceChild(this.dom, this.wrapper)
@@ -527,7 +527,7 @@ export class DataTable {
      * @return {Void}
      */
     update(renderTable = true) {
-        this.wrapper.classList.remove("dataTable-empty")
+        this.wrapper.classList.remove("datatable-empty")
 
         this.paginate()
         this.renderPage(renderTable)
@@ -631,13 +631,13 @@ export class DataTable {
                     const newVirtualHeaderDOM = {
                         nodeName: "DIV",
                         attributes: {
-                            class: "dataTable-headercontainer"
+                            class: "datatable-headercontainer"
                         },
                         childNodes: [
                             {
                                 nodeName: "TABLE",
                                 attributes: {
-                                    class: "dataTable-table"
+                                    class: "datatable-table"
                                 },
                                 childNodes: [
                                     {
@@ -890,7 +890,7 @@ export class DataTable {
         const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden)
         const colspan = activeHeadings.length || 1
 
-        this.wrapper.classList.add("dataTable-empty")
+        this.wrapper.classList.add("datatable-empty")
 
         if (this.label) {
             this.label.innerHTML = ""

@@ -1,4 +1,4 @@
-.dataTable-editor-modal {
+.datatable-editor-modal {
   position: absolute;
   left: 0;
   top: 0;
@@ -9,17 +9,17 @@
           animation: 250ms ease 0ms fadeIn;
 }
 
-.dataTable-editor-modal.closed {
+.datatable-editor-modal.closed {
   -webkit-animation: 250ms ease 0ms fadeIn;
           animation: 250ms ease 0ms fadeIn;
 }
 
-.dataTable-editor-modal.closed .dataTable-editor-inner {
+.datatable-editor-modal.closed .datatable-editor-inner {
   -webkit-animation: 250ms ease 0ms slideIn;
           animation: 250ms ease 0ms slideIn;
 }
 
-.dataTable-editor-inner {
+.datatable-editor-inner {
   width: 30%;
   margin: 10% auto;
   background-color: #fff;
@@ -28,17 +28,17 @@
           animation: 250ms ease 0ms slideIn;
 }
 
-.dataTable-editor-header {
+.datatable-editor-header {
   position: relative;
   border-bottom: 1px solid #ccc;
 }
 
-.dataTable-editor-header h4 {
+.datatable-editor-header h4 {
   font-size: 20px;
   margin: 0;
 }
 
-.dataTable-editor-header button {
+.datatable-editor-header button {
   position: absolute;
   right: 10px;
   top: 10px;
@@ -51,41 +51,41 @@
   opacity: 0.6;
 }
 
-.dataTable-editor-header button:hover {
+.datatable-editor-header button:hover {
   opacity: 1;
 }
 
-.dataTable-editor-header {
+.datatable-editor-header {
   padding: 15px 30px;
 }
 
-.dataTable-editor-block {
+.datatable-editor-block {
   padding: 15px 60px;
 }
 
-.dataTable-editor-row {
+.datatable-editor-row {
   margin: 0 0 15px;
 }
 
-.dataTable-editor-row:last-child {
+.datatable-editor-row:last-child {
   margin: 0 0 5px;
 }
 
-.dataTable-editor-row:last-child {
+.datatable-editor-row:last-child {
   text-align: right;
 }
 
-.dataTable-editor-label {
+.datatable-editor-label {
   width: 25%;
   text-align: right;
   padding: 0 15px;
 }
 
-.dataTable-editor-label, .dataTable-editor-input {
+.datatable-editor-label, .datatable-editor-input {
   display: inline-block;
 }
 
-.dataTable-editor-input {
+.datatable-editor-input {
   padding: 4px 6px;
   border: 1px solid #ccc;
   width: 100%;
@@ -97,12 +97,12 @@
   color: inherit;
 }
 
-.dataTable-editor-row .dataTable-editor-input {
+.datatable-editor-row .datatable-editor-input {
   margin: 0;
   width: 75%;
 }
 
-.dataTable-editor-save {
+.datatable-editor-save {
   background-color: #27ae60;
   border: 1px solid #27ae60;
   padding: 6px 12px;
@@ -114,17 +114,17 @@
   border-radius: 3px;
 }
 
-.dataTable-editor-save:hover {
+.datatable-editor-save:hover {
   background-color: #2cc36b;
   border-color: #2cc36b;
 }
 
 /* ContextMenu */
-.dataTable-editor-wrapper {
+.datatable-editor-wrapper {
   position: absolute;
 }
 
-.dataTable-editor-menu {
+.datatable-editor-menu {
   background: #fff none repeat scroll 0 0;
   border-radius: 3px;
   margin: 0;
@@ -133,11 +133,11 @@
   box-shadow: 0px 0px 10px 2px #aaa;
 }
 
-.dataTable-editor-menu li {
+.datatable-editor-menu li {
   list-style: none;
 }
 
-.dataTable-editor-menu a {
+.datatable-editor-menu a {
   box-sizing: border-box;
   color: inherit;
   display: block;
@@ -146,11 +146,11 @@
   width: 100%;
 }
 
-.dataTable-editor-menu a:hover {
+.datatable-editor-menu a:hover {
   background-color: #ddd;
 }
 
-.dataTable-editor-separator {
+.datatable-editor-separator {
   border-bottom: 1px solid #aaa;
   margin: 5px 0;
 }
@@ -197,7 +197,7 @@
   }
 }
 
-.dataTable-editor-action .mdi {
+.datatable-editor-action .mdi {
    margin-right: 5px;
 	color: #666;
 }

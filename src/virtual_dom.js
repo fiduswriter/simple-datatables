@@ -43,7 +43,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
                                 nodeName: "a",
                                 attributes: {
                                     href: "#",
-                                    class: "dataTable-sorter"
+                                    class: "datatable-sorter"
                                 },
                                 childNodes: [
                                     {
@@ -62,7 +62,7 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
     const table = {
         nodeName: "TABLE",
         attributes: {
-            class: "dataTable-table"
+            class: "datatable-table"
         },
         childNodes: [
             {
@@ -122,7 +122,7 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                             ).filter(column => column)
                         }
                         if (index===rowCursor) {
-                            tr.attributes.class = "dataTable-cursor"
+                            tr.attributes.class = "datatable-cursor"
                         }
                         if (rowRender) {
                             const renderedRow = rowRender(row, tr, index)

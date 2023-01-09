@@ -2158,7 +2158,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
                                 nodeName: "a",
                                 attributes: {
                                     href: "#",
-                                    class: "dataTable-sorter"
+                                    class: "datatable-sorter"
                                 },
                                 childNodes: [
                                     {
@@ -2177,7 +2177,7 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
     const table = {
         nodeName: "TABLE",
         attributes: {
-            class: "dataTable-table"
+            class: "datatable-table"
         },
         childNodes: [
             {
@@ -2237,7 +2237,7 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                             ).filter(column => column)
                         };
                         if (index===rowCursor) {
-                            tr.attributes.class = "dataTable-cursor";
+                            tr.attributes.class = "datatable-cursor";
                         }
                         if (rowRender) {
                             const renderedRow = rowRender(row, tr, index);
@@ -2608,7 +2608,7 @@ class Rows {
         this.cursor = index;
         this.dt.renderTable();
         if (index !== false && this.dt.options.scrollY) {
-            const cursorDOM = this.dt.dom.querySelector("tr.dataTable-cursor");
+            const cursorDOM = this.dt.dom.querySelector("tr.datatable-cursor");
             if (cursorDOM) {
                 cursorDOM.scrollIntoView({block: "nearest"});
             }
@@ -3045,7 +3045,7 @@ class DataTable {
      * Initialize the instance
      */
     init() {
-        if (this.initialized || this.dom.classList.contains("dataTable-table")) {
+        if (this.initialized || this.dom.classList.contains("datatable-table")) {
             return false
         }
 
@@ -3086,35 +3086,35 @@ class DataTable {
 
         // Build
         this.wrapper = createElement("div", {
-            class: "dataTable-wrapper dataTable-loading"
+            class: "datatable-wrapper datatable-loading"
         });
 
         // Template for custom layouts
         let template = "";
-        template += "<div class='dataTable-top'>";
+        template += "<div class='datatable-top'>";
         template += this.options.layout.top;
         template += "</div>";
         if (this.options.scrollY.length) {
-            template += `<div class='dataTable-container' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`;
+            template += `<div class='datatable-container' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`;
         } else {
-            template += "<div class='dataTable-container'></div>";
+            template += "<div class='datatable-container'></div>";
         }
-        template += "<div class='dataTable-bottom'>";
+        template += "<div class='datatable-bottom'>";
         template += this.options.layout.bottom;
         template += "</div>";
 
         // Info placement
-        template = template.replace("{info}", this.options.paging ? "<div class='dataTable-info'></div>" : "");
+        template = template.replace("{info}", this.options.paging ? "<div class='datatable-info'></div>" : "");
 
         // Per Page Select
         if (this.options.paging && this.options.perPageSelect) {
-            let wrap = "<div class='dataTable-dropdown'><label>";
+            let wrap = "<div class='datatable-dropdown'><label>";
             wrap += this.options.labels.perPage;
             wrap += "</label></div>";
 
             // Create the select
             const select = createElement("select", {
-                class: "dataTable-selector"
+                class: "datatable-selector"
             });
 
             // Create the options
@@ -3136,7 +3136,7 @@ class DataTable {
         // Searchable
         if (this.options.searchable) {
             const form =
-                `<div class='dataTable-search'><input class='dataTable-input' placeholder='${this.options.labels.placeholder}' type='text'></div>`;
+                `<div class='datatable-search'><input class='datatable-input' placeholder='${this.options.labels.placeholder}' type='text'></div>`;
 
             // Search input placement
             template = template.replace("{search}", form);
@@ -3146,10 +3146,10 @@ class DataTable {
 
         // Paginator
         const paginatorWrapper = createElement("nav", {
-            class: "dataTable-pagination"
+            class: "datatable-pagination"
         });
         const paginator = createElement("ul", {
-            class: "dataTable-pagination-list"
+            class: "datatable-pagination-list"
         });
         paginatorWrapper.appendChild(paginator);
 
@@ -3157,11 +3157,11 @@ class DataTable {
         template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML);
         this.wrapper.innerHTML = template;
 
-        this.container = this.wrapper.querySelector(".dataTable-container");
+        this.container = this.wrapper.querySelector(".datatable-container");
 
-        this.pagers = this.wrapper.querySelectorAll(".dataTable-pagination-list");
+        this.pagers = this.wrapper.querySelectorAll(".datatable-pagination-list");
 
-        this.label = this.wrapper.querySelector(".dataTable-info");
+        this.label = this.wrapper.querySelector(".datatable-info");
 
         // Insert in to DOM tree
         this.dom.parentNode.replaceChild(this.wrapper, this.dom);
@@ -3368,7 +3368,7 @@ class DataTable {
     bindEvents() {
         // Per page selector
         if (this.options.perPageSelect) {
-            const selector = this.wrapper.querySelector(".dataTable-selector");
+            const selector = this.wrapper.querySelector(".datatable-selector");
             if (selector) {
                 // Change per page
                 selector.addEventListener("change", () => {
@@ -3384,7 +3384,7 @@ class DataTable {
 
         // Search input
         if (this.options.searchable) {
-            this.input = this.wrapper.querySelector(".dataTable-input");
+            this.input = this.wrapper.querySelector(".datatable-input");
             if (this.input) {
                 this.input.addEventListener("keyup", () => this.search(this.input.value), false);
             }
@@ -3399,7 +3399,7 @@ class DataTable {
                     e.preventDefault();
                 } else if (
                     this.options.sortable &&
-                    t.classList.contains("dataTable-sorter") &&
+                    t.classList.contains("datatable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
                     this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode));
@@ -3487,7 +3487,7 @@ class DataTable {
         this.dom.innerHTML = this.initialInnerHTML;
 
         // Remove the className
-        this.dom.classList.remove("dataTable-table");
+        this.dom.classList.remove("datatable-table");
 
         // Remove the containers
         this.wrapper.parentNode.replaceChild(this.dom, this.wrapper);
@@ -3502,7 +3502,7 @@ class DataTable {
      * @return {Void}
      */
     update(renderTable = true) {
-        this.wrapper.classList.remove("dataTable-empty");
+        this.wrapper.classList.remove("datatable-empty");
 
         this.paginate();
         this.renderPage(renderTable);
@@ -3606,13 +3606,13 @@ class DataTable {
                     const newVirtualHeaderDOM = {
                         nodeName: "DIV",
                         attributes: {
-                            class: "dataTable-headercontainer"
+                            class: "datatable-headercontainer"
                         },
                         childNodes: [
                             {
                                 nodeName: "TABLE",
                                 attributes: {
-                                    class: "dataTable-table"
+                                    class: "datatable-table"
                                 },
                                 childNodes: [
                                     {
@@ -3865,7 +3865,7 @@ class DataTable {
         const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden);
         const colspan = activeHeadings.length || 1;
 
-        this.wrapper.classList.add("dataTable-empty");
+        this.wrapper.classList.add("datatable-empty");
 
         if (this.label) {
             this.label.innerHTML = "";
@@ -4457,23 +4457,23 @@ const exportTXT = function(dataTable, userOptions = {}) {
 */
 const defaultConfig = {
     classes: {
-        row: "dataTable-editor-row",
-        form: "dataTable-editor-form",
-        item: "dataTable-editor-item",
-        menu: "dataTable-editor-menu",
-        save: "dataTable-editor-save",
-        block: "dataTable-editor-block",
-        close: "dataTable-editor-close",
-        inner: "dataTable-editor-inner",
-        input: "dataTable-editor-input",
-        label: "dataTable-editor-label",
-        modal: "dataTable-editor-modal",
-        action: "dataTable-editor-action",
-        header: "dataTable-editor-header",
-        wrapper: "dataTable-editor-wrapper",
-        editable: "dataTable-editor-editable",
-        container: "dataTable-editor-container",
-        separator: "dataTable-editor-separator"
+        row: "datatable-editor-row",
+        form: "datatable-editor-form",
+        item: "datatable-editor-item",
+        menu: "datatable-editor-menu",
+        save: "datatable-editor-save",
+        block: "datatable-editor-block",
+        close: "datatable-editor-close",
+        inner: "datatable-editor-inner",
+        input: "datatable-editor-input",
+        label: "datatable-editor-label",
+        modal: "datatable-editor-modal",
+        action: "datatable-editor-action",
+        header: "datatable-editor-header",
+        wrapper: "datatable-editor-wrapper",
+        editable: "datatable-editor-editable",
+        container: "datatable-editor-container",
+        separator: "datatable-editor-separator"
     },
 
     labels: {

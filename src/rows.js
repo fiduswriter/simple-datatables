@@ -18,7 +18,7 @@ export class Rows {
         this.cursor = index
         this.dt.renderTable()
         if (index !== false && this.dt.options.scrollY) {
-            const cursorDOM = this.dt.dom.querySelector("tr.dataTable-cursor")
+            const cursorDOM = this.dt.dom.querySelector("tr.datatable-cursor")
             if (cursorDOM) {
                 cursorDOM.scrollIntoView({block: "nearest"})
             }
