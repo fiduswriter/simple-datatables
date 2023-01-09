@@ -1,8 +1,8 @@
 # simple-datatables
 
-A lightweight, extendable, dependency-free javascript HTML table plugin. Similar to jQuery DataTables **for use in modern browsers**, but without the jQuery dependency. Note: If you want a version that works in very old browsers (IE, etc.), then head over to https://github.com/fiduswriter/simple-datatables-classic .
+A lightweight, extendable, JavaScript HTML table library. Similar to jQuery DataTables **for use in modern browsers**, but without the jQuery dependency. Note: If you want a version that works in very old browsers (IE, etc.), then head over to https://github.com/fiduswriter/simple-datatables-classic .
 
-Based on [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in ES2018.
+Originally a fork of [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in ES2018.
 
 See the demos [here](https://fiduswriter.github.io/simple-datatables/).
 
