@@ -94,3 +94,14 @@ export const truncate = (a, b, c, d, ellipsis) => {
 
     return i
 }
+
+
+export const objToText = obj => {
+    if (obj.nodeName==="#text") {
+        return obj.data
+    }
+    if (obj.childNodes) {
+        return obj.childNodes.map(childNode => objToText(childNode)).join("")
+    }
+    return ""
+}

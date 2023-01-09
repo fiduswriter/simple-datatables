@@ -1,4 +1,6 @@
+import {stringToObj} from "diff-dom"
 import {parseDate} from "./date"
+import {objToText} from "./helpers"
 
 export const readDataCell = (cell, columnSettings = {}) => {
     if (cell.constructor == Object) {
@@ -6,6 +8,16 @@ export const readDataCell = (cell, columnSettings = {}) => {
     }
     const cellData = {
         data: cell
+    }
+    if (typeof cell === "string" && cell.length) {
+        const node = stringToObj(`<td>${cell}</td>`)
+        if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+            cellData.data = node.childNodes
+            cellData.type = "node"
+            const text = objToText(node)
+            cellData.text = text
+            cellData.order = text
+        }
     }
     if (columnSettings.type === "date" && columnSettings.format) {
         cellData.order = parseDate(cell, columnSettings.format)

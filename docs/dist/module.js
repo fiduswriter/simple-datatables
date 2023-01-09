@@ -2195,15 +2195,20 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                                     if (column.hidden) {
                                         return false
                                     }
-                                    const td = {
-                                        nodeName: "TD",
-                                        childNodes: [
-                                            {
-                                                nodeName: "#text",
-                                                data: String(cell.data)
-                                            }
-                                        ]
-                                    };
+                                    const td = cell.type === 'node' ?
+                                        {
+                                            nodeName: "TD",
+                                            childNodes: cell.data
+                                        } :
+                                        {
+                                            nodeName: "TD",
+                                            childNodes: [
+                                                {
+                                                    nodeName: "#text",
+                                                    data: String(cell.data)
+                                                }
+                                            ]
+                                        };
                                     if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
                                         td.attributes = {
                                             style: `width: ${columnWidths[cIndex]}%;`
@@ -2211,10 +2216,21 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                                     }
                                     if (column.render) {
                                         const renderedCell = column.render(cell.data, td, index, cIndex);
-                                        if (renderedCell && typeof renderedCell === "string" && td.childNodes.length && td.childNodes[0].nodeName === "#text") {
-                                            // Convenience function to make it work similarly to what it did up to version 5.
-                                            td.childNodes[0].data = renderedCell;
+                                        if (renderedCell) {
+                                            if (typeof renderedCell === "string") {
+                                                // Convenience method to make it work similarly to what it did up to version 5.
+                                                const node = stringToObj(`<td>${renderedCell}</td>`);
+                                                if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== '#text') {
+                                                    td.childNodes = node.childNodes;
+                                                } else {
+                                                    td.childNodes[0].data = renderedCell;
+                                                }
+
+                                            } else {
+                                                return renderedCell
+                                            }
                                         }
+
                                     }
                                     return td
                                 }
@@ -2224,7 +2240,21 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                             tr.attributes.class = "dataTable-cursor";
                         }
                         if (rowRender) {
-                            rowRender(row, tr, index);
+                            const renderedRow = rowRender(row, tr, index);
+                            if (renderedRow) {
+                                if (typeof renderedRow === "string") {
+                                    // Convenience method to make it work similarly to what it did up to version 5.
+                                    const node = stringToObj(`<tr>${renderedCell}</tr>`);
+                                    if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== '#text') {
+                                        tr.childNodes = node.childNodes;
+                                    } else {
+                                        tr.childNodes[0].data = renderedCell;
+                                    }
+
+                                } else {
+                                    return renderedRow
+                                }
+                            }
                         }
                         return tr
                     }
@@ -2315,7 +2345,7 @@ const readColumnSettings = (columnOptions = []) => {
 
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
-                sort = {column: selector,
+                sort = {column,
                     dir: data.sort};
             }
 
@@ -2380,13 +2410,133 @@ const parseDate = (content, format) => {
     return date
 };
 
+/**
+ * Check is item is object
+ */
+const isObject = val => Object.prototype.toString.call(val) === "[object Object]";
+
+/**
+ * Check for valid JSON string
+ */
+const isJson = str => {
+    let t = !1;
+    try {
+        t = JSON.parse(str);
+    } catch (e) {
+        return !1
+    }
+    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t
+};
+
+/**
+ * Create DOM element node
+ */
+const createElement = (nodeName, attrs) => {
+    const dom = document.createElement(nodeName);
+    if (attrs && "object" == typeof attrs) {
+        for (const attr in attrs) {
+            if ("html" === attr) {
+                dom.innerHTML = attrs[attr];
+            } else {
+                dom.setAttribute(attr, attrs[attr]);
+            }
+        }
+    }
+    return dom
+};
+
+const flush = el => {
+    if (el instanceof NodeList) {
+        el.forEach(e => flush(e));
+    } else {
+        el.innerHTML = "";
+    }
+};
+
+/**
+ * Create button helper
+ */
+const button = (className, page, text) => createElement(
+    "li",
+    {
+        class: className,
+        html: `<a href="#" data-page="${page}">${text}</a>`
+    }
+);
+
+/**
+ * Pager truncation algorithm
+ */
+const truncate = (a, b, c, d, ellipsis) => {
+    d = d || 2;
+    let j;
+    const e = 2 * d;
+    let f = b - d;
+    let g = b + d;
+    const h = [];
+    const i = [];
+    if (b < 4 - d + e) {
+        g = 3 + e;
+    } else if (b > c - (3 - d + e)) {
+        f = c - (2 + e);
+    }
+    for (let k = 1; k <= c; k++) {
+        if (1 == k || k == c || (k >= f && k <= g)) {
+            const l = a[k - 1];
+            l.classList.remove("active");
+            h.push(l);
+        }
+    }
+    h.forEach(c => {
+        const d = c.children[0].getAttribute("data-page");
+        if (j) {
+            const e = j.children[0].getAttribute("data-page");
+            if (d - e == 2) i.push(a[e]);
+            else if (d - e != 1) {
+                const f = createElement("li", {
+                    class: "ellipsis",
+                    html: `<a href="#">${ellipsis}</a>`
+                });
+                i.push(f);
+            }
+        }
+        i.push(c);
+        j = c;
+    });
+
+    return i
+};
+
+
+const objToText = (obj) => {
+    if (obj.nodeName==="#text") {
+        return obj.data
+    }
+    if (obj.childNodes) {
+        return obj.childNodes.map(childNode => objToText(childNode)).join('')
+    }
+    return ""
+};
+
 const readDataCell = (cell, columnSettings = {}) => {
+    console.log({cell, constructor: cell.constructor});
     if (cell.constructor == Object) {
+        console.log('return cell');
         return cell
     }
     const cellData = {
         data: cell
     };
+    if (typeof cell === "string" && cell.length) {
+        const node = stringToObj(`<td>${cell}</td>`);
+        if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== '#text')) {
+            cellData.data = node.childNodes;
+            cellData.type = 'node';
+            const text = objToText(node);
+            cellData.text = text;
+            cellData.order = text;
+        }
+    }
     if (columnSettings.type === "date" && columnSettings.format) {
         cellData.order = parseDate(cell, columnSettings.format);
     }
@@ -2503,7 +2653,7 @@ class Rows {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
         return this.dt.data.data.findIndex(
-            row => String(row[columnIndex].text).toLowerCase().includes(String(value).toLowerCase())
+            row => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
         )
     }
 
@@ -2524,7 +2674,7 @@ class Rows {
         // get the row from data
         const row = this.dt.data.data[index];
         // return innerHTML of each td
-        const cols = row.map(cell => cell.text);
+        const cols = row.map(cell => cell.data);
         // return everything
         return {
             index,
@@ -2542,7 +2692,7 @@ class Rows {
             return readDataCell(cell, columnSettings)
         });
         this.dt.data.data.splice(select, 1, row);
-
+        this.dt.update(false);
         this.dt.fixColumns();
     }
 }
@@ -2579,6 +2729,9 @@ class Columns {
         this.dt.data.data = this.dt.data.data.map(
             row => columns.map(index => row[index])
         );
+        this.dt.columnSettings.columns = columns.map(
+            index => this.dt.columnSettings.columns[index]
+        );
 
         // Update
         this.dt.update();
@@ -2592,7 +2745,10 @@ class Columns {
             return
         }
         columns.forEach(index => {
-            const column = this.dt.columnSettings.columns[index] || {};
+            if (!this.dt.columnSettings.columns[index]) {
+                this.dt.columnSettings.columns[index] = {};
+            }
+            const column = this.dt.columnSettings.columns[index];
             column.hidden = true;
         });
 
@@ -2607,7 +2763,10 @@ class Columns {
             return
         }
         columns.forEach(index => {
-            const column = this.dt.columnSettings.columns[index] || {};
+            if (!this.dt.columnSettings.columns[index]) {
+                this.dt.columnSettings.columns[index] = {};
+            }
+            const column = this.dt.columnSettings.columns[index];
             delete column.hidden;
         });
 
@@ -2630,27 +2789,30 @@ class Columns {
      * Add a new column
      */
     add(data) {
-        const newColumnSelector = this.dt.data.headings.length;
+        this.dt.data.headings.length;
         this.dt.data.headings = this.dt.data.headings.concat([{data: data.heading}]);
         this.dt.data.data = this.dt.data.data.map(
             (row, index) => row.concat([readDataCell(data.data[index], data)])
         );
         if (data.type || data.format || data.sortable || data.render) {
-            const columnSettings = this.dt.columnSettings.columns[newColumnSelector] = {};
+            if (!this.dt.columnSettings.columns[index]) {
+                this.dt.columnSettings.columns[index] = {};
+            }
+            const column = this.dt.columnSettings.columns[index];
             if (data.type) {
-                columnSettings.type = data.type;
+                column.type = data.type;
             }
             if (data.format) {
-                columnSettings.format = data.format;
+                column.format = data.format;
             }
             if (data.sortable) {
-                columnSettings.sortable = data.sortable;
+                column.sortable = data.sortable;
             }
             if (data.filter) {
-                columnSettings.filter = data.filter;
+                column.filter = data.filter;
             }
             if (data.type) {
-                columnSettings.type = data.type;
+                column.type = data.type;
             }
         }
         this.dt.update(false);
@@ -2819,103 +2981,6 @@ const defaultConfig$1 = {
         top: "{select}{search}",
         bottom: "{info}{pager}"
     }
-};
-
-/**
- * Check is item is object
- */
-const isObject = val => Object.prototype.toString.call(val) === "[object Object]";
-
-/**
- * Check for valid JSON string
- */
-const isJson = str => {
-    let t = !1;
-    try {
-        t = JSON.parse(str);
-    } catch (e) {
-        return !1
-    }
-    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t
-};
-
-/**
- * Create DOM element node
- */
-const createElement = (nodeName, attrs) => {
-    const dom = document.createElement(nodeName);
-    if (attrs && "object" == typeof attrs) {
-        for (const attr in attrs) {
-            if ("html" === attr) {
-                dom.innerHTML = attrs[attr];
-            } else {
-                dom.setAttribute(attr, attrs[attr]);
-            }
-        }
-    }
-    return dom
-};
-
-const flush = el => {
-    if (el instanceof NodeList) {
-        el.forEach(e => flush(e));
-    } else {
-        el.innerHTML = "";
-    }
-};
-
-/**
- * Create button helper
- */
-const button = (className, page, text) => createElement(
-    "li",
-    {
-        class: className,
-        html: `<a href="#" data-page="${page}">${text}</a>`
-    }
-);
-
-/**
- * Pager truncation algorithm
- */
-const truncate = (a, b, c, d, ellipsis) => {
-    d = d || 2;
-    let j;
-    const e = 2 * d;
-    let f = b - d;
-    let g = b + d;
-    const h = [];
-    const i = [];
-    if (b < 4 - d + e) {
-        g = 3 + e;
-    } else if (b > c - (3 - d + e)) {
-        f = c - (2 + e);
-    }
-    for (let k = 1; k <= c; k++) {
-        if (1 == k || k == c || (k >= f && k <= g)) {
-            const l = a[k - 1];
-            l.classList.remove("active");
-            h.push(l);
-        }
-    }
-    h.forEach(c => {
-        const d = c.children[0].getAttribute("data-page");
-        if (j) {
-            const e = j.children[0].getAttribute("data-page");
-            if (d - e == 2) i.push(a[e]);
-            else if (d - e != 1) {
-                const f = createElement("li", {
-                    class: "ellipsis",
-                    html: `<a href="#">${ellipsis}</a>`
-                });
-                i.push(f);
-            }
-        }
-        i.push(c);
-        j = c;
-    });
-
-    return i
 };
 
 class DataTable {
@@ -3635,11 +3700,9 @@ class DataTable {
 
                 for (let x = 0; x < row.length; x++) {
                     cell = row[x];
-                    content = cell.data;
-
+                    content = cell.text || String(cell.data);
                     if (
-                        content.toLowerCase().includes(word) &&
-                        this.columns.visible(cell.cellIndex)
+                        this.columns.visible(x) && content.toLowerCase().includes(word)
                     ) {
                         includes = true;
                         break
@@ -3724,7 +3787,11 @@ class DataTable {
         }
 
         if (rows.length) {
-            rows.forEach(row => this.data.data.push(row.map((cell, index) => readDataCell(cell, this.columnSettings.columns[index]))));
+            rows.forEach(row => this.data.data.push(row.map((cell, index) => {
+                const cellOut = readDataCell(cell, this.columnSettings.columns[index]);
+                console.log({cellOut});
+                return cellOut
+            })));
             this.hasRows = true;
         }
 
@@ -3757,7 +3824,7 @@ class DataTable {
      */
     print() {
         const tableDOM = createElement("table");
-        const tableVirtualDOM = {nodeName: 'TABLE'};
+        const tableVirtualDOM = {nodeName: "TABLE"};
         const newTableVirtualDOM = dataToVirtualDOM(
             this.data.headings,
             this.data.data.map((row, index) => ({row,
@@ -3965,8 +4032,12 @@ const convertJSON = function(userOptions = {}) {
                     if (!obj.headings.includes(column)) {
                         obj.headings.push(column);
                     }
+                    if (value.constructor == Object) {
+                        obj.data[i].push(value);
+                    } else {
+                        obj.data[i].push({data: value});
+                    }
 
-                    obj.data[i].push({data: value});
                 });
             });
         } else {
@@ -3987,8 +4058,6 @@ const convertJSON = function(userOptions = {}) {
 const exportCSV = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const columnShown = (index) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
-
     const defaults = {
         download: true,
         skipColumn: [],
@@ -4005,6 +4074,7 @@ const exportCSV = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     };
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
     let rows = [];
     const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
     // Include headings
@@ -4014,15 +4084,15 @@ const exportCSV = function(dataTable, userOptions = {}) {
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell=> cell.data)));
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
+            for (let i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
     }
 
     // Only proceed if we have data
@@ -4082,7 +4152,6 @@ const exportCSV = function(dataTable, userOptions = {}) {
 const exportJSON = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const columnShown = (index) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
 
     const defaults = {
         download: true,
@@ -4101,20 +4170,22 @@ const exportJSON = function(dataTable, userOptions = {}) {
         ...userOptions
     };
 
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
+
     let rows = [];
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell=> cell.data)));
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
+            for (let i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
     }
 
     const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
@@ -4129,14 +4200,26 @@ const exportJSON = function(dataTable, userOptions = {}) {
             });
         });
 
+        console.log({arr});
+
         // Convert the array of objects to JSON string
         const str = JSON.stringify(arr, options.replacer, options.space);
 
         // Download
         if (options.download) {
             // Create a link to trigger the download
+
+            const blob = new Blob(
+				[ str ],
+				{
+					type : "data:application/json;charset=utf-8"
+				}
+			);
+            const url = URL.createObjectURL(blob);
+
+
             const link = document.createElement("a");
-            link.href = encodeURI(`data:application/json;charset=utf-8,${str}`);
+            link.href = url;
             link.download = `${options.filename || "datatable_export"}.json`;
 
             // Append the link
@@ -4147,6 +4230,7 @@ const exportJSON = function(dataTable, userOptions = {}) {
 
             // Remove the link
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         return str
@@ -4160,8 +4244,6 @@ const exportJSON = function(dataTable, userOptions = {}) {
  */
 const exportSQL = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const columnShown = (index) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
 
     const defaults = {
         download: true,
@@ -4178,15 +4260,16 @@ const exportSQL = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     };
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
     let rows = [];
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell=> cell.data)));
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
+            for (let i = 0; i < options.selection.length; i++) {
                 rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
             }
         }
@@ -4269,8 +4352,6 @@ const exportSQL = function(dataTable, userOptions = {}) {
 const exportTXT = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const columnShown = (index) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
-
     const defaults = {
         download: true,
         skipColumn: [],
@@ -4288,6 +4369,8 @@ const exportTXT = function(dataTable, userOptions = {}) {
         ...userOptions
     };
 
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
+
     let rows = [];
     const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
     // Include headings
@@ -4297,10 +4380,10 @@ const exportTXT = function(dataTable, userOptions = {}) {
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell=> cell.data)));
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
+            for (let i = 0; i < options.selection.length; i++) {
                 rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
             }
         }

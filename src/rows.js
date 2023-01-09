@@ -70,7 +70,7 @@ export class Rows {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
         return this.dt.data.data.findIndex(
-            row => String(row[columnIndex].text).toLowerCase().includes(String(value).toLowerCase())
+            row => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
         )
     }
 
@@ -91,7 +91,7 @@ export class Rows {
         // get the row from data
         const row = this.dt.data.data[index]
         // return innerHTML of each td
-        const cols = row.map(cell => cell.text)
+        const cols = row.map(cell => cell.data)
         // return everything
         return {
             index,
@@ -109,7 +109,7 @@ export class Rows {
             return readDataCell(cell, columnSettings)
         })
         this.dt.data.data.splice(select, 1, row)
-
+        this.dt.update(false)
         this.dt.fixColumns()
     }
 }

@@ -160,10 +160,9 @@
                 </div>
             </div>
         </div>
-        <!-- CDN -->
-        <script src="../dist/umd.js"></script>
         <!-- Custom Code -->
-        <script>
+        <script type="module">
+            import {DataTable, convertJSON, convertCSV, exportCSV, exportSQL, exportJSON} from "../dist/module.js"
             const createElement = (nodeName, attrs) => {
                 const dom = document.createElement(nodeName)
                 if (attrs && "object" == typeof attrs) {
@@ -171,6 +170,8 @@
                         if ("text" === attr) {
                             const text = document.createTextNode(attrs[attr])
                             dom.appendChild(text)
+                        } else if ("html" === attr) {
+                            dom.innerHTML = attrs[attr]
                         } else {
                             dom.setAttribute(attr, attrs[attr])
                         }
@@ -181,26 +182,27 @@
             const checkboxes = document.getElementById("columns"),
                 table = document.getElementsByTagName("table")[0],
                 textarea = document.getElementsByTagName("textarea")[0]
-            const hidden = []
-            let inputs = [],
-                visible = []
-
-            const datatable = new window.simpleDatatables.DataTable(table, {
+            const hidden = [],
+    visible = []
+            let inputs = []
+            const datatable = new DataTable(table, {
                 perPage: 5
             })
+            window.datatable = datatable
             const updateColumns = function() {
-                try {
-                    datatable.columns.show(visible)
-                    datatable.columns.hide(hidden)
-                } catch (e) {
-                    console.log(e)
-                }
+                datatable.columns.show(visible)
+                datatable.columns.hide(hidden)
             }
             const setCheckboxes = function() {
                 inputs = []
-                visible = []
+                while (visible.length) {
+                    visible.pop()
+                }
+                while (hidden.length) {
+                    hidden.pop()
+                }
                 checkboxes.innerHTML = ""
-                datatable.headings.forEach((heading, i) => {
+                datatable.data.headings.forEach((heading, i) => {
                     const checkbox = createElement("div", {
                         class: "checkbox"
                     })
@@ -211,10 +213,10 @@
                     })
                     const label = createElement("label", {
                         for: `checkbox-${i}`,
-                        html: heading.textContent
+                        html: heading.data
                     })
                     input.idx = i
-                    if (datatable.columns.visible(heading.cellIndex)) {
+                    if (datatable.columns.visible(i)) {
                         input.checked = true
                         visible.push(i)
                     } else {
@@ -253,13 +255,19 @@
                 el.addEventListener("click", _event => {
                     const type = el.dataset.type
                     const data = {
-                        type,
                         filename: `my-${type}`
                     }
                     if (type === "csv") {
-                        data.columnDelimiter = "|"
+                        data.columnDelimiter = ","
                     }
-                    window.simpleDatatables.exportData(datatable, data)
+                    if (type==="csv") {
+                        exportCSV(datatable, data)
+                    } else if (type==="json") {
+                        exportJSON(datatable, data)
+                    } else if (type==="sql") {
+                        exportSQL(datatable, data)
+                    }
+
                 })
             })
             document.querySelectorAll(".main").forEach(el => {
@@ -275,7 +283,6 @@
                 el.addEventListener("click", _event => {
                     const type = el.dataset.type
                     const data = {
-                        type,
                         data: textarea.value
                     }
                     textarea.parentNode.classList.remove("error")
@@ -283,8 +290,14 @@
                         textarea.parentNode.classList.add("error")
                         return false
                     }
-                    const convertedData = window.simpleDatatables.convertData(data)
-                    datatable.insert(convertedData)
+                    if (type==="csv") {
+                        const convertedData = convertCSV(data)
+                        datatable.insert(convertedData)
+                    } else if (type==="json") {
+                        const convertedData = convertJSON(data)
+                        datatable.insert(convertedData)
+                    }
+
                 })
             })
         </script>

@@ -33,15 +33,15 @@ export const exportJSON = function(dataTable, userOptions = {}) {
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)))
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)))
             }
         }
     } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)))
     }
 
     const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data)
@@ -62,8 +62,18 @@ export const exportJSON = function(dataTable, userOptions = {}) {
         // Download
         if (options.download) {
             // Create a link to trigger the download
+
+            const blob = new Blob(
+                [str],
+                {
+                    type: "data:application/json;charset=utf-8"
+                }
+            )
+            const url = URL.createObjectURL(blob)
+
+
             const link = document.createElement("a")
-            link.href = encodeURI(`data:application/json;charset=utf-8,${str}`)
+            link.href = url
             link.download = `${options.filename || "datatable_export"}.json`
 
             // Append the link
@@ -74,6 +84,7 @@ export const exportJSON = function(dataTable, userOptions = {}) {
 
             // Remove the link
             document.body.removeChild(link)
+            URL.revokeObjectURL(url)
         }
 
         return str

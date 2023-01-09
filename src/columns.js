@@ -32,6 +32,9 @@ export class Columns {
         this.dt.data.data = this.dt.data.data.map(
             row => columns.map(index => row[index])
         )
+        this.dt.columnSettings.columns = columns.map(
+            index => this.dt.columnSettings.columns[index]
+        )
 
         // Update
         this.dt.update()
@@ -45,7 +48,10 @@ export class Columns {
             return
         }
         columns.forEach(index => {
-            const column = this.dt.columnSettings.columns[index] || {}
+            if (!this.dt.columnSettings.columns[index]) {
+                this.dt.columnSettings.columns[index] = {}
+            }
+            const column = this.dt.columnSettings.columns[index]
             column.hidden = true
         })
 
@@ -60,7 +66,10 @@ export class Columns {
             return
         }
         columns.forEach(index => {
-            const column = this.dt.columnSettings.columns[index] || {}
+            if (!this.dt.columnSettings.columns[index]) {
+                this.dt.columnSettings.columns[index] = {}
+            }
+            const column = this.dt.columnSettings.columns[index]
             delete column.hidden
         })
 
@@ -89,21 +98,24 @@ export class Columns {
             (row, index) => row.concat([readDataCell(data.data[index], data)])
         )
         if (data.type || data.format || data.sortable || data.render) {
-            const columnSettings = this.dt.columnSettings.columns[newColumnSelector] = {}
+            if (!this.dt.columnSettings.columns[newColumnSelector]) {
+                this.dt.columnSettings.columns[newColumnSelector] = {}
+            }
+            const column = this.dt.columnSettings.columns[newColumnSelector]
             if (data.type) {
-                columnSettings.type = data.type
+                column.type = data.type
             }
             if (data.format) {
-                columnSettings.format = data.format
+                column.format = data.format
             }
             if (data.sortable) {
-                columnSettings.sortable = data.sortable
+                column.sortable = data.sortable
             }
             if (data.filter) {
-                columnSettings.filter = data.filter
+                column.filter = data.filter
             }
             if (data.type) {
-                columnSettings.type = data.type
+                column.type = data.type
             }
         }
         this.dt.update(false)

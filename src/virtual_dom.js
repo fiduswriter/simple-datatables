@@ -1,3 +1,5 @@
+import {stringToObj} from "diff-dom"
+
 export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {hiddenHeader, sortable, scrollY}, {noColumnWidths, unhideHeader}) => ({
     nodeName: "TR",
     childNodes: headings.map(
@@ -78,15 +80,20 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                     if (column.hidden) {
                                         return false
                                     }
-                                    const td = {
-                                        nodeName: "TD",
-                                        childNodes: [
-                                            {
-                                                nodeName: "#text",
-                                                data: String(cell.data)
-                                            }
-                                        ]
-                                    }
+                                    const td = cell.type === "node" ?
+                                        {
+                                            nodeName: "TD",
+                                            childNodes: cell.data
+                                        } :
+                                        {
+                                            nodeName: "TD",
+                                            childNodes: [
+                                                {
+                                                    nodeName: "#text",
+                                                    data: String(cell.data)
+                                                }
+                                            ]
+                                        }
                                     if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
                                         td.attributes = {
                                             style: `width: ${columnWidths[cIndex]}%;`
@@ -94,10 +101,21 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                     }
                                     if (column.render) {
                                         const renderedCell = column.render(cell.data, td, index, cIndex)
-                                        if (renderedCell && typeof renderedCell === "string" && td.childNodes.length && td.childNodes[0].nodeName === "#text") {
-                                            // Convenience function to make it work similarly to what it did up to version 5.
-                                            td.childNodes[0].data = renderedCell
+                                        if (renderedCell) {
+                                            if (typeof renderedCell === "string") {
+                                                // Convenience method to make it work similarly to what it did up to version 5.
+                                                const node = stringToObj(`<td>${renderedCell}</td>`)
+                                                if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
+                                                    td.childNodes = node.childNodes
+                                                } else {
+                                                    td.childNodes[0].data = renderedCell
+                                                }
+
+                                            } else {
+                                                return renderedCell
+                                            }
                                         }
+
                                     }
                                     return td
                                 }
@@ -107,7 +125,21 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                             tr.attributes.class = "dataTable-cursor"
                         }
                         if (rowRender) {
-                            rowRender(row, tr, index)
+                            const renderedRow = rowRender(row, tr, index)
+                            if (renderedRow) {
+                                if (typeof renderedRow === "string") {
+                                    // Convenience method to make it work similarly to what it did up to version 5.
+                                    const node = stringToObj(`<tr>${renderedRow}</tr>`)
+                                    if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+                                        tr.childNodes = node.childNodes
+                                    } else {
+                                        tr.childNodes[0].data = renderedRow
+                                    }
+
+                                } else {
+                                    return renderedRow
+                                }
+                            }
                         }
                         return tr
                     }

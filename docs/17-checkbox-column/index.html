@@ -28,21 +28,21 @@
                             headings: ["Checked"].concat(Object.keys(data[0])),
                             data: data.map(item => [false].concat(Object.values(item)))
                         },
+                        rowRender: (rowValue, tr, _index) => {
+                            if (!tr.attributes) {
+                                tr.attributes = {}
+                            }
+                            tr.attributes["data-name"] = rowValue[1].data
+                            return tr
+                        },
                         columns: [
                             {
                                 select: 0,
-                                render: value => `<input type="checkbox" ${value=== "true" ? "checked": ""}>`
-                            },
-                            {
-                                select: 1,
-                                render: (value, td, tr) => {
-                                    tr.dataset.name = value
-                                    return value
-                                }
+                                render: (value, _td, _rowIndex, _cellIndex) => `<input type="checkbox" ${value=== "true" ? "checked": ""}>`
                             }
                         ]
                     })
-                    datatable.body.addEventListener("click", e => {
+                    datatable.dom.addEventListener("click", e => {
                         if (e.target.matches("input[type=checkbox]")) {
                             const name = e.target.parentElement.parentElement.dataset.name
                             const checked = e.target.checked

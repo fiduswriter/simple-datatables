@@ -732,11 +732,9 @@ export class DataTable {
 
                 for (let x = 0; x < row.length; x++) {
                     cell = row[x]
-                    content = cell.data
-
+                    content = cell.text || String(cell.data)
                     if (
-                        content.toLowerCase().includes(word) &&
-                        this.columns.visible(cell.cellIndex)
+                        this.columns.visible(x) && content.toLowerCase().includes(word)
                     ) {
                         includes = true
                         break
@@ -821,7 +819,10 @@ export class DataTable {
         }
 
         if (rows.length) {
-            rows.forEach(row => this.data.data.push(row.map((cell, index) => readDataCell(cell, this.columnSettings.columns[index]))))
+            rows.forEach(row => this.data.data.push(row.map((cell, index) => {
+                const cellOut = readDataCell(cell, this.columnSettings.columns[index])
+                return cellOut
+            })))
             this.hasRows = true
         }
 
