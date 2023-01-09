@@ -751,22 +751,43 @@
                 if (table) {
                     table.destroy()
                 }
-                const options = {}
+
+                let selectedRows = []
+
+                const options = {
+                    rowRender: (_row, tr, index) => {
+                        if (!selectedRows.includes(index)) {
+                            return
+                        }
+                        if (!tr.attributes) {
+                            tr.attributes = {}
+                        }
+                        if (!tr.attributes.class) {
+                            tr.attributes.class = "selected"
+                        } else {
+                            tr.attributes.class += " selected"
+                        }
+                        return tr
+
+                    }
+                }
                 if (rowNavigation) {
                     options.rowNavigation = true
                     options.tabIndex = 1
                 }
                 table = new DataTable("table", options)
-                let selectedRow
-                table.on("datatable.selectrow", (row, event) => {
+
+                table.on("datatable.selectrow", (rowIndex, event) => {
                     event.preventDefault()
-                    if (!multiSelect) {
-                        if (selectedRow) {
-                            selectedRow.classList.toggle("selected")
+                    if (selectedRows.includes(rowIndex)) {
+                        selectedRows = selectedRows.filter(row => row !== rowIndex)
+                    } else {
+                        if (!multiSelect) {
+                            selectedRows.pop()
                         }
-                        selectedRow = row
+                        selectedRows.push(rowIndex)
                     }
-                    row.classList.toggle("selected")
+                    table.renderTable()
                 })
             }
             const isMobile = window.matchMedia("(any-pointer:coarse)").matches

@@ -38,16 +38,17 @@
             document.body.appendChild(t)
             window.dt = new window.simpleDatatables.DataTable(t, {
                 data,
-                filters: {
-                    "Job": ["Assistant", "Manager"]
-                },
                 columns: [
-        {
+                    {
+                        select: 1,
+                        filter: ["Assistant", "Manager"]
+                    },
+                    {
                         select: 4,
                         type: "date",
                         format: "MM/DD/YYYY"
                     }
-    ]
+                ]
             })
         </script>
     </body>

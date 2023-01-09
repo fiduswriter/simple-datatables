@@ -1,4 +1,5 @@
-import {createElement} from "./helpers"
+import {readDataCell} from "./read_data"
+
 /**
  * Rows API
  */
@@ -9,81 +10,38 @@ export class Rows {
         this.cursor = false
     }
 
-    /**
-     * Build a new row
-     */
-    build(row) {
-        const tr = createElement("tr")
-
-        let headings = this.dt.headings
-
-        if (!headings.length) {
-            headings = row.map(() => "")
+    setCursor(index=false) {
+        if (index === this.cursor) {
+            return
         }
-
-        headings.forEach((h, i) => {
-            const td = createElement("td")
-
-            // Fixes #29
-            if (!row[i] || !row[i].length) {
-                row[i] = ""
+        const oldCursor = this.cursor
+        this.cursor = index
+        this.dt.renderTable()
+        if (index !== false && this.dt.options.scrollY) {
+            const cursorDOM = this.dt.dom.querySelector("tr.dataTable-cursor")
+            if (cursorDOM) {
+                cursorDOM.scrollIntoView({block: "nearest"})
             }
-
-            td.innerHTML = row[i]
-
-            td.data = row[i]
-
-            tr.appendChild(td)
-        })
-
-        return tr
-    }
-
-    setCursor(row=false) {
-        let oldCursor
-        Array.from(this.dt.dom.rows).forEach(row => {
-            oldCursor = row
-            row.classList.remove("dataTable-cursor")
-        })
-        if (row) {
-            row.classList.add("dataTable-cursor")
-            this.cursor = row
-            if (this.dt.options.scrollY) {
-                this.cursor.scrollIntoView({block: "nearest"})
-            }
-            this.dt.emit("datatable.cursormove", this.cursor, oldCursor)
         }
-    }
-
-    render(row) {
-        return row
+        this.dt.emit("datatable.cursormove", this.cursor, oldCursor)
     }
 
     /**
      * Add new row
      */
     add(data) {
-        if (Array.isArray(data)) {
-            const dt = this.dt
-            // Check for multiple rows
-            if (Array.isArray(data[0])) {
-                data.forEach(row => {
-                    dt.rowData.push(this.build(row))
-                })
-            } else {
-                dt.rowData.push(this.build(data))
-            }
+        const row = data.map((cell, index) => {
+            const columnSettings = this.dt.columnSettings.columns[index] || {}
+            return readDataCell(cell, columnSettings)
+        })
+        this.dt.data.data.push(row)
 
-            // We may have added data to an empty table
-            if ( dt.rowData.length ) {
-                dt.hasRows = true
-            }
-
-
-            this.update()
-
-            dt.columns.rebuild()
+        // We may have added data to an empty table
+        if ( this.dt.data.data.length ) {
+            this.dt.hasRows = true
         }
+        this.dt.update(false)
+        this.dt.fixColumns()
 
     }
 
@@ -91,39 +49,19 @@ export class Rows {
      * Remove row(s)
      */
     remove(select) {
-        const dt = this.dt
-
         if (Array.isArray(select)) {
-            // Remove in reverse otherwise the indexes will be incorrect
-            select.sort((a, b) => b - a)
-
-            select.forEach(row => {
-                dt.rowData.splice(row, 1)
-            })
-        } else if (select == "all") {
-            dt.rowData = []
+            this.dt.data.data = this.dt.data.data.filter((_row, index) => !select.includes(index))
+            // We may have emptied the table
+            if ( !this.dt.data.data.length ) {
+                this.dt.hasRows = false
+            }
+            this.dt.update(false)
+            this.dt.fixColumns()
         } else {
-            dt.rowData.splice(select, 1)
+            return this.remove([select])
         }
-
-        // We may have emptied the table
-        if ( !dt.rowData.length ) {
-            dt.hasRows = false
-        }
-
-        this.update()
-        dt.columns.rebuild()
     }
 
-    /**
-     * Update row indexes
-     * @return {Void}
-     */
-    update() {
-        this.dt.rowData.forEach((row, i) => {
-            row.dataIndex = i
-        })
-    }
 
     /**
      * Find index of row by searching for a value in a column
@@ -131,8 +69,8 @@ export class Rows {
     findRowIndex(columnIndex, value) {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
-        return this.dt.rowData.findIndex(
-            tr => tr.children[columnIndex].innerText.toLowerCase().includes(String(value).toLowerCase())
+        return this.dt.data.data.findIndex(
+            row => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
         )
     }
 
@@ -151,9 +89,9 @@ export class Rows {
             }
         }
         // get the row from data
-        const row = this.dt.rowData[index]
+        const row = this.dt.data.data[index]
         // return innerHTML of each td
-        const cols = [...row.cells].map(r => r.innerHTML)
+        const cols = row.map(cell => cell.data)
         // return everything
         return {
             index,
@@ -166,9 +104,12 @@ export class Rows {
      * Update a row with new data
      */
     updateRow(select, data) {
-        const row = this.build(data)
-        this.dt.rowData.splice(select, 1, row)
-        this.update()
-        this.dt.columns.rebuild()
+        const row = data.map((cell, index) => {
+            const columnSettings = this.dt.columnSettings.columns[index] || {}
+            return readDataCell(cell, columnSettings)
+        })
+        this.dt.data.data.splice(select, 1, row)
+        this.dt.update(false)
+        this.dt.fixColumns()
     }
 }

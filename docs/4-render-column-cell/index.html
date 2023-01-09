@@ -84,42 +84,83 @@
                 ]
             }
             // Add Icon
-            const renderIcon = function(data, _cell, _row) {
+            const renderIcon = function(data, _cell, _dataIndex, _cellIndex) {
+                console.log({renderIcon,
+        data})
                 if (data == "latte") {
                     return `🔥 ${data}`
                 }
                 return `🌿 ${data}`
             }
             // Price column cell manipulation
-            const renderButton = function(data, _cell, row) {
-                return `${data}<button data-row="${row.dataIndex}">Buy Now</button>`
+            const renderButton = function(data, cell, dataIndex, _cellIndex) {
+                cell.childNodes.push({
+                    nodeName: "BUTTON",
+                    attributes: {
+                        "data-row": dataIndex
+                    },
+                    childNodes: [
+                        {
+                            nodeName: "#text",
+                            data: "Buy Now"
+                        }
+                    ]
+                })
             }
             // Caffeinated column cell manipulation
-            const renderYesNo = function(data, _cell, row) {
-                if (data == "true") {
-                    row.classList.add("yes")
-                    return "<b> Yes </b>"
-                } else if (data == "false") {
-                    row.classList.add("no")
-                    return "<b> No </b>"
+            const renderYesNo = function(data, cell, _dataIndex, _cellIndex) {
+
+                if ([true, false].includes(data)) {
+                    cell.childNodes = [
+                        {
+                            nodeName: "B",
+                            childNodes: [
+                                {
+                                    nodeName: "#text",
+                                    data: data === true ? " Yes " : " No "
+                                }
+                            ]
+                        }
+                    ]
                 }
-                // Or if you don't need to add class to the "row"
-                // return data == 'true' ? '< b class = "yes" > Yes < /b>' : ' < b class = "no" > No < /b>'
             }
 
             // numbers
-            const renderHighLow = function(data, _cell, _row) {
+            const renderHighLow = function(data, cell, _dataIndex, _cellIndex) {
+                const cellTextNode = cell.childNodes[0]
+                const currencyNode = {
+                    nodeName: "SPAN",
+                    attributes: {
+                        class: "currency "
+                    },
+                    childNodes: [cellTextNode]
+                }
+                cell.childNodes = [currencyNode]
+
                 if (data < 0) {
-                    return `<span class="currency currency--loss">${data}</span>`
+                    currencyNode.attributes.class += "currency--loss"
                 } else if (data > 0) {
-                    return `<span class="currency currency--profit">${data}</span>`
+                    currencyNode.attributes.class += "currency--profit"
                 } else if (data == 0) {
-                    return `<span class="currency currency--zero">${data}</span>`
+                    currencyNode.attributes.class += "currency--zero"
                 }
             }
             new window.simpleDatatables.DataTable("#drinks", {
                 data,
                 perPage: 25,
+                rowRender: (row, tr, _index) => {
+                    if ([true, false].includes(row[3].data)) {
+                        if (!tr.attributes?.class) {
+                            if (!tr.attributes) {
+                                tr.attributes = {}
+                            }
+                            tr.attributes.class = row[3].data === true ? "yes" : "no"
+                        } else {
+                            tr.attributes.class += row[3].data === true ? "yes" : "no"
+                        }
+
+                    }
+                },
                 columns: [
         {
                         select: 0,

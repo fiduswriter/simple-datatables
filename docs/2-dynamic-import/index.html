@@ -727,9 +727,11 @@
                 </tr>
             </tbody>
         </table>
+        <button class="print">Print</button>
         <script type="module">
             import("../dist/module.js").then(({DataTable}) => {
-                new DataTable("table")
+                const datatable = new DataTable("table")
+                document.querySelector("button.print").addEventListener("click", () => datatable.print())
             })
         </script>
     </body>

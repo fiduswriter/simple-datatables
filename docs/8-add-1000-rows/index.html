@@ -4060,7 +4060,7 @@
             })
             document.getElementById("add").addEventListener("click", _event => {
                 datatable.insert({
-                    data: datatable.options.data.data
+                    data: structuredClone(datatable.options.data.data)
                 })
             })
         </script>

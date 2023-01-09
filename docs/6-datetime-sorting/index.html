@@ -19,7 +19,7 @@
                     <th data-type="date" data-format="MYSQL">MySQL</th>
                     <th>RFC 2822</th>
                     <!-- Type and format defined in the js -->
-                    <th>MMM DD, YYYY</th>
+                    <th>MMM D, YYYY</th>
                     <!-- Type and format defined in the js -->
                     <th data-type="date" data-format="DD/MM/YYYY">DD/MM/YYYY</th>
                     <th data-type="date" data-format="MM-DD-YY">MM-DD-YY</th>
@@ -943,7 +943,15 @@
                     }, {
                         select: 3,
                         type: "date",
-                        format: "MMM DD, YYYY"
+                        format: "MMM D, YYYY"
+                    }, {
+                        select: 4,
+                        type: "date",
+                        format: "DD/MM/YYYY"
+                    }, {
+                        select: 5,
+                        type: "date",
+                        format: "MM-DD-YY"
                     }
     ]
             })

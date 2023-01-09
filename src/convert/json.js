@@ -39,8 +39,12 @@ export const convertJSON = function(userOptions = {}) {
                     if (!obj.headings.includes(column)) {
                         obj.headings.push(column)
                     }
+                    if (value.constructor == Object) {
+                        obj.data[i].push(value)
+                    } else {
+                        obj.data[i].push({data: value})
+                    }
 
-                    obj.data[i].push(value)
                 })
             })
         } else {

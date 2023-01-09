@@ -1,3 +1,2415 @@
+function objToNode(objNode, insideSvg, options) {
+    let node;
+    if (objNode.nodeName === "#text") {
+        node = options.document.createTextNode(objNode.data);
+    } else if (objNode.nodeName === "#comment") {
+        node = options.document.createComment(objNode.data);
+    } else {
+        if (insideSvg) {
+            node = options.document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                objNode.nodeName
+            );
+        } else if (objNode.nodeName.toLowerCase() === "svg") {
+            node = options.document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "svg"
+            );
+            insideSvg = true;
+        } else {
+            node = options.document.createElement(objNode.nodeName);
+        }
+        if (objNode.attributes) {
+            Object.entries(objNode.attributes).forEach(([key, value]) =>
+                node.setAttribute(key, value)
+            );
+        }
+        if (objNode.childNodes) {
+            objNode.childNodes.forEach((childNode) =>
+                node.appendChild(objToNode(childNode, insideSvg, options))
+            );
+        }
+        if (options.valueDiffing) {
+            if (objNode.value) {
+                node.value = objNode.value;
+            }
+            if (objNode.checked) {
+                node.checked = objNode.checked;
+            }
+            if (objNode.selected) {
+                node.selected = objNode.selected;
+            }
+        }
+    }
+    return node
+}
+
+// ===== Apply a diff =====
+
+function getFromRoute(node, route) {
+    route = route.slice();
+    while (route.length > 0) {
+        if (!node.childNodes) {
+            return false
+        }
+        const c = route.splice(0, 1)[0];
+        node = node.childNodes[c];
+    }
+    return node
+}
+
+function applyDiff(
+    tree,
+    diff,
+    options // {preDiffApply, postDiffApply, textDiff, valueDiffing, _const}
+) {
+    let node = getFromRoute(tree, diff[options._const.route]);
+    let newNode;
+    let reference;
+    let route;
+    let nodeArray;
+    let c;
+
+    // pre-diff hook
+    const info = {
+        diff,
+        node,
+    };
+
+    if (options.preDiffApply(info)) {
+        return true
+    }
+
+    switch (diff[options._const.action]) {
+        case options._const.addAttribute:
+            if (!node || !node.setAttribute) {
+                return false
+            }
+            node.setAttribute(
+                diff[options._const.name],
+                diff[options._const.value]
+            );
+            break
+        case options._const.modifyAttribute:
+            if (!node || !node.setAttribute) {
+                return false
+            }
+            node.setAttribute(
+                diff[options._const.name],
+                diff[options._const.newValue]
+            );
+            if (
+                node.nodeName === "INPUT" &&
+                diff[options._const.name] === "value"
+            ) {
+                node.value = diff[options._const.newValue];
+            }
+            break
+        case options._const.removeAttribute:
+            if (!node || !node.removeAttribute) {
+                return false
+            }
+            node.removeAttribute(diff[options._const.name]);
+            break
+        case options._const.modifyTextElement:
+            if (!node || node.nodeType !== 3) {
+                return false
+            }
+            options.textDiff(
+                node,
+                node.data,
+                diff[options._const.oldValue],
+                diff[options._const.newValue]
+            );
+            break
+        case options._const.modifyValue:
+            if (!node || typeof node.value === "undefined") {
+                return false
+            }
+            node.value = diff[options._const.newValue];
+            break
+        case options._const.modifyComment:
+            if (!node || typeof node.data === "undefined") {
+                return false
+            }
+            options.textDiff(
+                node,
+                node.data,
+                diff[options._const.oldValue],
+                diff[options._const.newValue]
+            );
+            break
+        case options._const.modifyChecked:
+            if (!node || typeof node.checked === "undefined") {
+                return false
+            }
+            node.checked = diff[options._const.newValue];
+            break
+        case options._const.modifySelected:
+            if (!node || typeof node.selected === "undefined") {
+                return false
+            }
+            node.selected = diff[options._const.newValue];
+            break
+        case options._const.replaceElement:
+            node.parentNode.replaceChild(
+                objToNode(
+                    diff[options._const.newValue],
+                    diff[options._const.newValue].nodeName.toLowerCase() ===
+                        "svg",
+                    options
+                ),
+                node
+            );
+            break
+        case options._const.relocateGroup:
+            nodeArray = Array(...new Array(diff.groupLength)).map(() =>
+                node.removeChild(node.childNodes[diff[options._const.from]])
+            );
+            nodeArray.forEach((childNode, index) => {
+                if (index === 0) {
+                    reference = node.childNodes[diff[options._const.to]];
+                }
+                node.insertBefore(childNode, reference || null);
+            });
+            break
+        case options._const.removeElement:
+            node.parentNode.removeChild(node);
+            break
+        case options._const.addElement:
+            route = diff[options._const.route].slice();
+            c = route.splice(route.length - 1, 1)[0];
+            node = getFromRoute(tree, route);
+            node.insertBefore(
+                objToNode(
+                    diff[options._const.element],
+                    node.namespaceURI === "http://www.w3.org/2000/svg",
+                    options
+                ),
+                node.childNodes[c] || null
+            );
+            break
+        case options._const.removeTextElement:
+            if (!node || node.nodeType !== 3) {
+                return false
+            }
+            node.parentNode.removeChild(node);
+            break
+        case options._const.addTextElement:
+            route = diff[options._const.route].slice();
+            c = route.splice(route.length - 1, 1)[0];
+            newNode = options.document.createTextNode(
+                diff[options._const.value]
+            );
+            node = getFromRoute(tree, route);
+            if (!node || !node.childNodes) {
+                return false
+            }
+            node.insertBefore(newNode, node.childNodes[c] || null);
+            break
+        default:
+            console.log("unknown action");
+    }
+
+    // if a new node was created, we might be interested in its
+    // post diff hook
+    info.newNode = newNode;
+    options.postDiffApply(info);
+
+    return true
+}
+
+function applyDOM(tree, diffs, options) {
+    return diffs.every((diff) => applyDiff(tree, diff, options))
+}
+
+// ===== Undo a diff =====
+
+function swap(obj, p1, p2) {
+    const tmp = obj[p1];
+    obj[p1] = obj[p2];
+    obj[p2] = tmp;
+}
+
+function undoDiff(
+    tree,
+    diff,
+    options // {preDiffApply, postDiffApply, textDiff, valueDiffing, _const}
+) {
+    switch (diff[options._const.action]) {
+        case options._const.addAttribute:
+            diff[options._const.action] = options._const.removeAttribute;
+            applyDiff(tree, diff, options);
+            break
+        case options._const.modifyAttribute:
+            swap(diff, options._const.oldValue, options._const.newValue);
+            applyDiff(tree, diff, options);
+            break
+        case options._const.removeAttribute:
+            diff[options._const.action] = options._const.addAttribute;
+            applyDiff(tree, diff, options);
+            break
+        case options._const.modifyTextElement:
+            swap(diff, options._const.oldValue, options._const.newValue);
+            applyDiff(tree, diff, options);
+            break
+        case options._const.modifyValue:
+            swap(diff, options._const.oldValue, options._const.newValue);
+            applyDiff(tree, diff, options);
+            break
+        case options._const.modifyComment:
+            swap(diff, options._const.oldValue, options._const.newValue);
+            applyDiff(tree, diff, options);
+            break
+        case options._const.modifyChecked:
+            swap(diff, options._const.oldValue, options._const.newValue);
+            applyDiff(tree, diff, options);
+            break
+        case options._const.modifySelected:
+            swap(diff, options._const.oldValue, options._const.newValue);
+            applyDiff(tree, diff, options);
+            break
+        case options._const.replaceElement:
+            swap(diff, options._const.oldValue, options._const.newValue);
+            applyDiff(tree, diff, options);
+            break
+        case options._const.relocateGroup:
+            swap(diff, options._const.from, options._const.to);
+            applyDiff(tree, diff, options);
+            break
+        case options._const.removeElement:
+            diff[options._const.action] = options._const.addElement;
+            applyDiff(tree, diff, options);
+            break
+        case options._const.addElement:
+            diff[options._const.action] = options._const.removeElement;
+            applyDiff(tree, diff, options);
+            break
+        case options._const.removeTextElement:
+            diff[options._const.action] = options._const.addTextElement;
+            applyDiff(tree, diff, options);
+            break
+        case options._const.addTextElement:
+            diff[options._const.action] = options._const.removeTextElement;
+            applyDiff(tree, diff, options);
+            break
+        default:
+            console.log("unknown action");
+    }
+}
+
+function undoDOM(tree, diffs, options) {
+    if (!diffs.length) {
+        diffs = [diffs];
+    }
+    diffs = diffs.slice();
+    diffs.reverse();
+    diffs.forEach((diff) => {
+        undoDiff(tree, diff, options);
+    });
+}
+
+class Diff {
+    constructor(options = {}) {
+        Object.entries(options).forEach(([key, value]) => (this[key] = value));
+    }
+
+    toString() {
+        return JSON.stringify(this)
+    }
+
+    setValue(aKey, aValue) {
+        this[aKey] = aValue;
+        return this
+    }
+}
+
+function elementDescriptors(el) {
+    const output = [];
+    output.push(el.nodeName);
+    if (el.nodeName !== "#text" && el.nodeName !== "#comment") {
+        if (el.attributes) {
+            if (el.attributes["class"]) {
+                output.push(
+                    `${el.nodeName}.${el.attributes["class"].replace(
+                        / /g,
+                        "."
+                    )}`
+                );
+            }
+            if (el.attributes.id) {
+                output.push(`${el.nodeName}#${el.attributes.id}`);
+            }
+        }
+    }
+    return output
+}
+
+function findUniqueDescriptors(li) {
+    const uniqueDescriptors = {};
+    const duplicateDescriptors = {};
+
+    li.forEach((node) => {
+        elementDescriptors(node).forEach((descriptor) => {
+            const inUnique = descriptor in uniqueDescriptors;
+            const inDupes = descriptor in duplicateDescriptors;
+            if (!inUnique && !inDupes) {
+                uniqueDescriptors[descriptor] = true;
+            } else if (inUnique) {
+                delete uniqueDescriptors[descriptor];
+                duplicateDescriptors[descriptor] = true;
+            }
+        });
+    });
+
+    return uniqueDescriptors
+}
+
+function uniqueInBoth(l1, l2) {
+    const l1Unique = findUniqueDescriptors(l1);
+    const l2Unique = findUniqueDescriptors(l2);
+    const inBoth = {};
+
+    Object.keys(l1Unique).forEach((key) => {
+        if (l2Unique[key]) {
+            inBoth[key] = true;
+        }
+    });
+
+    return inBoth
+}
+
+function removeDone(tree) {
+    delete tree.outerDone;
+    delete tree.innerDone;
+    delete tree.valueDone;
+    if (tree.childNodes) {
+        return tree.childNodes.every(removeDone)
+    } else {
+        return true
+    }
+}
+
+function isEqual(e1, e2) {
+    if (
+        !["nodeName", "value", "checked", "selected", "data"].every(
+            (element) => {
+                if (e1[element] !== e2[element]) {
+                    return false
+                }
+                return true
+            }
+        )
+    ) {
+        return false
+    }
+
+    if (Boolean(e1.attributes) !== Boolean(e2.attributes)) {
+        return false
+    }
+
+    if (Boolean(e1.childNodes) !== Boolean(e2.childNodes)) {
+        return false
+    }
+    if (e1.attributes) {
+        const e1Attributes = Object.keys(e1.attributes);
+        const e2Attributes = Object.keys(e2.attributes);
+
+        if (e1Attributes.length !== e2Attributes.length) {
+            return false
+        }
+        if (
+            !e1Attributes.every((attribute) => {
+                if (e1.attributes[attribute] !== e2.attributes[attribute]) {
+                    return false
+                }
+                return true
+            })
+        ) {
+            return false
+        }
+    }
+    if (e1.childNodes) {
+        if (e1.childNodes.length !== e2.childNodes.length) {
+            return false
+        }
+        if (
+            !e1.childNodes.every((childNode, index) =>
+                isEqual(childNode, e2.childNodes[index])
+            )
+        ) {
+            return false
+        }
+    }
+
+    return true
+}
+
+function roughlyEqual(
+    e1,
+    e2,
+    uniqueDescriptors,
+    sameSiblings,
+    preventRecursion
+) {
+    if (!e1 || !e2) {
+        return false
+    }
+
+    if (e1.nodeName !== e2.nodeName) {
+        return false
+    }
+
+    if (e1.nodeName === "#text") {
+        // Note that we initially don't care what the text content of a node is,
+        // the mere fact that it's the same tag and "has text" means it's roughly
+        // equal, and then we can find out the true text difference later.
+        return preventRecursion ? true : e1.data === e2.data
+    }
+
+    if (e1.nodeName in uniqueDescriptors) {
+        return true
+    }
+
+    if (e1.attributes && e2.attributes) {
+        if (e1.attributes.id) {
+            if (e1.attributes.id !== e2.attributes.id) {
+                return false
+            } else {
+                const idDescriptor = `${e1.nodeName}#${e1.attributes.id}`;
+                if (idDescriptor in uniqueDescriptors) {
+                    return true
+                }
+            }
+        }
+        if (
+            e1.attributes["class"] &&
+            e1.attributes["class"] === e2.attributes["class"]
+        ) {
+            const classDescriptor = `${e1.nodeName}.${e1.attributes[
+                "class"
+            ].replace(/ /g, ".")}`;
+            if (classDescriptor in uniqueDescriptors) {
+                return true
+            }
+        }
+    }
+
+    if (sameSiblings) {
+        return true
+    }
+
+    const nodeList1 = e1.childNodes ? e1.childNodes.slice().reverse() : [];
+    const nodeList2 = e2.childNodes ? e2.childNodes.slice().reverse() : [];
+
+    if (nodeList1.length !== nodeList2.length) {
+        return false
+    }
+
+    if (preventRecursion) {
+        return nodeList1.every(
+            (element, index) => element.nodeName === nodeList2[index].nodeName
+        )
+    } else {
+        // note: we only allow one level of recursion at any depth. If 'preventRecursion'
+        // was not set, we must explicitly force it to true for child iterations.
+        const childUniqueDescriptors = uniqueInBoth(nodeList1, nodeList2);
+        return nodeList1.every((element, index) =>
+            roughlyEqual(
+                element,
+                nodeList2[index],
+                childUniqueDescriptors,
+                true,
+                true
+            )
+        )
+    }
+}
+
+function cloneObj(obj) {
+    //  TODO: Do we really need to clone here? Is it not enough to just return the original object?
+    return JSON.parse(JSON.stringify(obj))
+}
+/**
+ * based on https://en.wikibooks.org/wiki/Algorithm_implementation/Strings/Longest_common_substring#JavaScript
+ */
+function findCommonSubsets(c1, c2, marked1, marked2) {
+    let lcsSize = 0;
+    let index = [];
+    const c1Length = c1.length;
+    const c2Length = c2.length;
+
+    const // set up the matching table
+        matches = Array(...new Array(c1Length + 1)).map(() => []);
+
+    const uniqueDescriptors = uniqueInBoth(c1, c2);
+
+    let // If all of the elements are the same tag, id and class, then we can
+        // consider them roughly the same even if they have a different number of
+        // children. This will reduce removing and re-adding similar elements.
+        subsetsSame = c1Length === c2Length;
+
+    if (subsetsSame) {
+        c1.some((element, i) => {
+            const c1Desc = elementDescriptors(element);
+            const c2Desc = elementDescriptors(c2[i]);
+            if (c1Desc.length !== c2Desc.length) {
+                subsetsSame = false;
+                return true
+            }
+            c1Desc.some((description, i) => {
+                if (description !== c2Desc[i]) {
+                    subsetsSame = false;
+                    return true
+                }
+            });
+            if (!subsetsSame) {
+                return true
+            }
+        });
+    }
+
+    // fill the matches with distance values
+    for (let c1Index = 0; c1Index < c1Length; c1Index++) {
+        const c1Element = c1[c1Index];
+        for (let c2Index = 0; c2Index < c2Length; c2Index++) {
+            const c2Element = c2[c2Index];
+            if (
+                !marked1[c1Index] &&
+                !marked2[c2Index] &&
+                roughlyEqual(
+                    c1Element,
+                    c2Element,
+                    uniqueDescriptors,
+                    subsetsSame
+                )
+            ) {
+                matches[c1Index + 1][c2Index + 1] = matches[c1Index][c2Index]
+                    ? matches[c1Index][c2Index] + 1
+                    : 1;
+                if (matches[c1Index + 1][c2Index + 1] >= lcsSize) {
+                    lcsSize = matches[c1Index + 1][c2Index + 1];
+                    index = [c1Index + 1, c2Index + 1];
+                }
+            } else {
+                matches[c1Index + 1][c2Index + 1] = 0;
+            }
+        }
+    }
+
+    if (lcsSize === 0) {
+        return false
+    }
+
+    return {
+        oldValue: index[0] - lcsSize,
+        newValue: index[1] - lcsSize,
+        length: lcsSize,
+    }
+}
+
+/**
+ * This should really be a predefined function in Array...
+ */
+function makeArray(n, v) {
+    return Array(...new Array(n)).map(() => v)
+}
+
+/**
+ * Generate arrays that indicate which node belongs to which subset,
+ * or whether it's actually an orphan node, existing in only one
+ * of the two trees, rather than somewhere in both.
+ *
+ * So if t1 = <img><canvas><br>, t2 = <canvas><br><img>.
+ * The longest subset is "<canvas><br>" (length 2), so it will group 0.
+ * The second longest is "<img>" (length 1), so it will be group 1.
+ * gaps1 will therefore be [1,0,0] and gaps2 [0,0,1].
+ *
+ * If an element is not part of any group, it will stay being 'true', which
+ * is the initial value. For example:
+ * t1 = <img><p></p><br><canvas>, t2 = <b></b><br><canvas><img>
+ *
+ * The "<p></p>" and "<b></b>" do only show up in one of the two and will
+ * therefore be marked by "true". The remaining parts are parts of the
+ * groups 0 and 1:
+ * gaps1 = [1, true, 0, 0], gaps2 = [true, 0, 0, 1]
+ *
+ */
+function getGapInformation(t1, t2, stable) {
+    const gaps1 = t1.childNodes ? makeArray(t1.childNodes.length, true) : [];
+    const gaps2 = t2.childNodes ? makeArray(t2.childNodes.length, true) : [];
+    let group = 0;
+
+    // give elements from the same subset the same group number
+    stable.forEach((subset) => {
+        const endOld = subset.oldValue + subset.length;
+        const endNew = subset.newValue + subset.length;
+
+        for (let j = subset.oldValue; j < endOld; j += 1) {
+            gaps1[j] = group;
+        }
+        for (let j = subset.newValue; j < endNew; j += 1) {
+            gaps2[j] = group;
+        }
+        group += 1;
+    });
+
+    return {
+        gaps1,
+        gaps2,
+    }
+}
+
+/**
+ * Find all matching subsets, based on immediate child differences only.
+ */
+function markSubTrees(oldTree, newTree) {
+    // note: the child lists are views, and so update as we update old/newTree
+    const oldChildren = oldTree.childNodes ? oldTree.childNodes : [];
+
+    const newChildren = newTree.childNodes ? newTree.childNodes : [];
+    const marked1 = makeArray(oldChildren.length, false);
+    const marked2 = makeArray(newChildren.length, false);
+    const subsets = [];
+    let subset = true;
+
+    const returnIndex = function () {
+        return arguments[1]
+    };
+
+    const markBoth = (i) => {
+        marked1[subset.oldValue + i] = true;
+        marked2[subset.newValue + i] = true;
+    };
+
+    while (subset) {
+        subset = findCommonSubsets(oldChildren, newChildren, marked1, marked2);
+        if (subset) {
+            subsets.push(subset);
+            const subsetArray = Array(...new Array(subset.length)).map(
+                returnIndex
+            );
+            subsetArray.forEach((item) => markBoth(item));
+        }
+    }
+
+    oldTree.subsets = subsets;
+    oldTree.subsetsAge = 100;
+    return subsets
+}
+
+class DiffTracker {
+    constructor() {
+        this.list = [];
+    }
+
+    add(diffs) {
+        this.list.push(...diffs);
+    }
+    forEach(fn) {
+        this.list.forEach((li) => fn(li));
+    }
+}
+
+// ===== Apply a virtual diff =====
+
+function getFromVirtualRoute(tree, route) {
+    let node = tree;
+    let parentNode;
+    let nodeIndex;
+
+    route = route.slice();
+    while (route.length > 0) {
+        if (!node.childNodes) {
+            return false
+        }
+        nodeIndex = route.splice(0, 1)[0];
+        parentNode = node;
+        node = node.childNodes[nodeIndex];
+    }
+    return {
+        node,
+        parentNode,
+        nodeIndex,
+    }
+}
+
+function applyVirtualDiff(
+    tree,
+    diff,
+    options // {preVirtualDiffApply, postVirtualDiffApply, _const}
+) {
+    const routeInfo = getFromVirtualRoute(tree, diff[options._const.route]);
+    let node = routeInfo.node;
+    const parentNode = routeInfo.parentNode;
+    const nodeIndex = routeInfo.nodeIndex;
+    const newSubsets = [];
+
+    // pre-diff hook
+    const info = {
+        diff,
+        node,
+    };
+
+    if (options.preVirtualDiffApply(info)) {
+        return true
+    }
+
+    let newNode;
+    let nodeArray;
+    let route;
+    let c;
+    switch (diff[options._const.action]) {
+        case options._const.addAttribute:
+            if (!node.attributes) {
+                node.attributes = {};
+            }
+
+            node.attributes[diff[options._const.name]] =
+                diff[options._const.value];
+
+            if (diff[options._const.name] === "checked") {
+                node.checked = true;
+            } else if (diff[options._const.name] === "selected") {
+                node.selected = true;
+            } else if (
+                node.nodeName === "INPUT" &&
+                diff[options._const.name] === "value"
+            ) {
+                node.value = diff[options._const.value];
+            }
+
+            break
+        case options._const.modifyAttribute:
+            node.attributes[diff[options._const.name]] =
+                diff[options._const.newValue];
+            break
+        case options._const.removeAttribute:
+            delete node.attributes[diff[options._const.name]];
+
+            if (Object.keys(node.attributes).length === 0) {
+                delete node.attributes;
+            }
+
+            if (diff[options._const.name] === "checked") {
+                node.checked = false;
+            } else if (diff[options._const.name] === "selected") {
+                delete node.selected;
+            } else if (
+                node.nodeName === "INPUT" &&
+                diff[options._const.name] === "value"
+            ) {
+                delete node.value;
+            }
+
+            break
+        case options._const.modifyTextElement:
+            node.data = diff[options._const.newValue];
+            break
+        case options._const.modifyValue:
+            node.value = diff[options._const.newValue];
+            break
+        case options._const.modifyComment:
+            node.data = diff[options._const.newValue];
+            break
+        case options._const.modifyChecked:
+            node.checked = diff[options._const.newValue];
+            break
+        case options._const.modifySelected:
+            node.selected = diff[options._const.newValue];
+            break
+        case options._const.replaceElement:
+            newNode = cloneObj(diff[options._const.newValue]);
+            newNode.outerDone = true;
+            newNode.innerDone = true;
+            newNode.valueDone = true;
+            parentNode.childNodes[nodeIndex] = newNode;
+            break
+        case options._const.relocateGroup:
+            nodeArray = node.childNodes
+                .splice(diff[options._const.from], diff.groupLength)
+                .reverse();
+            nodeArray.forEach((movedNode) =>
+                node.childNodes.splice(diff[options._const.to], 0, movedNode)
+            );
+            if (node.subsets) {
+                node.subsets.forEach((map) => {
+                    if (
+                        diff[options._const.from] < diff[options._const.to] &&
+                        map.oldValue <= diff[options._const.to] &&
+                        map.oldValue > diff[options._const.from]
+                    ) {
+                        map.oldValue -= diff.groupLength;
+                        const splitLength =
+                            map.oldValue + map.length - diff[options._const.to];
+                        if (splitLength > 0) {
+                            // new insertion splits map.
+                            newSubsets.push({
+                                oldValue:
+                                    diff[options._const.to] + diff.groupLength,
+                                newValue:
+                                    map.newValue + map.length - splitLength,
+                                length: splitLength,
+                            });
+                            map.length -= splitLength;
+                        }
+                    } else if (
+                        diff[options._const.from] > diff[options._const.to] &&
+                        map.oldValue > diff[options._const.to] &&
+                        map.oldValue < diff[options._const.from]
+                    ) {
+                        map.oldValue += diff.groupLength;
+                        const splitLength =
+                            map.oldValue + map.length - diff[options._const.to];
+                        if (splitLength > 0) {
+                            // new insertion splits map.
+                            newSubsets.push({
+                                oldValue:
+                                    diff[options._const.to] + diff.groupLength,
+                                newValue:
+                                    map.newValue + map.length - splitLength,
+                                length: splitLength,
+                            });
+                            map.length -= splitLength;
+                        }
+                    } else if (map.oldValue === diff[options._const.from]) {
+                        map.oldValue = diff[options._const.to];
+                    }
+                });
+            }
+
+            break
+        case options._const.removeElement:
+            parentNode.childNodes.splice(nodeIndex, 1);
+            if (parentNode.subsets) {
+                parentNode.subsets.forEach((map) => {
+                    if (map.oldValue > nodeIndex) {
+                        map.oldValue -= 1;
+                    } else if (map.oldValue === nodeIndex) {
+                        map.delete = true;
+                    } else if (
+                        map.oldValue < nodeIndex &&
+                        map.oldValue + map.length > nodeIndex
+                    ) {
+                        if (map.oldValue + map.length - 1 === nodeIndex) {
+                            map.length--;
+                        } else {
+                            newSubsets.push({
+                                newValue:
+                                    map.newValue + nodeIndex - map.oldValue,
+                                oldValue: nodeIndex,
+                                length:
+                                    map.length - nodeIndex + map.oldValue - 1,
+                            });
+                            map.length = nodeIndex - map.oldValue;
+                        }
+                    }
+                });
+            }
+            node = parentNode;
+            break
+        case options._const.addElement:
+            route = diff[options._const.route].slice();
+            c = route.splice(route.length - 1, 1)[0];
+            node = getFromVirtualRoute(tree, route).node;
+            newNode = cloneObj(diff[options._const.element]);
+            newNode.outerDone = true;
+            newNode.innerDone = true;
+            newNode.valueDone = true;
+
+            if (!node.childNodes) {
+                node.childNodes = [];
+            }
+
+            if (c >= node.childNodes.length) {
+                node.childNodes.push(newNode);
+            } else {
+                node.childNodes.splice(c, 0, newNode);
+            }
+            if (node.subsets) {
+                node.subsets.forEach((map) => {
+                    if (map.oldValue >= c) {
+                        map.oldValue += 1;
+                    } else if (
+                        map.oldValue < c &&
+                        map.oldValue + map.length > c
+                    ) {
+                        const splitLength = map.oldValue + map.length - c;
+                        newSubsets.push({
+                            newValue: map.newValue + map.length - splitLength,
+                            oldValue: c + 1,
+                            length: splitLength,
+                        });
+                        map.length -= splitLength;
+                    }
+                });
+            }
+            break
+        case options._const.removeTextElement:
+            parentNode.childNodes.splice(nodeIndex, 1);
+            if (parentNode.nodeName === "TEXTAREA") {
+                delete parentNode.value;
+            }
+            if (parentNode.subsets) {
+                parentNode.subsets.forEach((map) => {
+                    if (map.oldValue > nodeIndex) {
+                        map.oldValue -= 1;
+                    } else if (map.oldValue === nodeIndex) {
+                        map.delete = true;
+                    } else if (
+                        map.oldValue < nodeIndex &&
+                        map.oldValue + map.length > nodeIndex
+                    ) {
+                        if (map.oldValue + map.length - 1 === nodeIndex) {
+                            map.length--;
+                        } else {
+                            newSubsets.push({
+                                newValue:
+                                    map.newValue + nodeIndex - map.oldValue,
+                                oldValue: nodeIndex,
+                                length:
+                                    map.length - nodeIndex + map.oldValue - 1,
+                            });
+                            map.length = nodeIndex - map.oldValue;
+                        }
+                    }
+                });
+            }
+            node = parentNode;
+            break
+        case options._const.addTextElement:
+            route = diff[options._const.route].slice();
+            c = route.splice(route.length - 1, 1)[0];
+            newNode = {};
+            newNode.nodeName = "#text";
+            newNode.data = diff[options._const.value];
+            node = getFromVirtualRoute(tree, route).node;
+            if (!node.childNodes) {
+                node.childNodes = [];
+            }
+
+            if (c >= node.childNodes.length) {
+                node.childNodes.push(newNode);
+            } else {
+                node.childNodes.splice(c, 0, newNode);
+            }
+            if (node.nodeName === "TEXTAREA") {
+                node.value = diff[options._const.newValue];
+            }
+            if (node.subsets) {
+                node.subsets.forEach((map) => {
+                    if (map.oldValue >= c) {
+                        map.oldValue += 1;
+                    }
+                    if (map.oldValue < c && map.oldValue + map.length > c) {
+                        const splitLength = map.oldValue + map.length - c;
+                        newSubsets.push({
+                            newValue: map.newValue + map.length - splitLength,
+                            oldValue: c + 1,
+                            length: splitLength,
+                        });
+                        map.length -= splitLength;
+                    }
+                });
+            }
+            break
+        default:
+            console.log("unknown action");
+    }
+
+    if (node.subsets) {
+        node.subsets = node.subsets.filter(
+            (map) => !map.delete && map.oldValue !== map.newValue
+        );
+        if (newSubsets.length) {
+            node.subsets = node.subsets.concat(newSubsets);
+        }
+    }
+
+    // capture newNode for the callback
+    info.newNode = newNode;
+    options.postVirtualDiffApply(info);
+
+    return
+}
+
+function applyVirtual(tree, diffs, options) {
+    diffs.forEach((diff) => {
+        applyVirtualDiff(tree, diff, options);
+    });
+    return true
+}
+
+function nodeToObj(aNode, options = {}) {
+    const objNode = {};
+    objNode.nodeName = aNode.nodeName;
+    if (objNode.nodeName === "#text" || objNode.nodeName === "#comment") {
+        objNode.data = aNode.data;
+    } else {
+        if (aNode.attributes && aNode.attributes.length > 0) {
+            objNode.attributes = {};
+            const nodeArray = Array.prototype.slice.call(aNode.attributes);
+            nodeArray.forEach(
+                (attribute) =>
+                    (objNode.attributes[attribute.name] = attribute.value)
+            );
+        }
+        if (objNode.nodeName === "TEXTAREA") {
+            objNode.value = aNode.value;
+        } else if (aNode.childNodes && aNode.childNodes.length > 0) {
+            objNode.childNodes = [];
+            const nodeArray = Array.prototype.slice.call(aNode.childNodes);
+            nodeArray.forEach((childNode) =>
+                objNode.childNodes.push(nodeToObj(childNode, options))
+            );
+        }
+        if (options.valueDiffing) {
+            if (
+                aNode.checked !== undefined &&
+                aNode.type &&
+                ["radio", "checkbox"].includes(aNode.type.toLowerCase())
+            ) {
+                objNode.checked = aNode.checked;
+            } else if (aNode.value !== undefined) {
+                objNode.value = aNode.value;
+            }
+            if (aNode.selected !== undefined) {
+                objNode.selected = aNode.selected;
+            }
+        }
+    }
+    return objNode
+}
+
+// from html-parse-stringify (MIT)
+
+const tagRE = /<(?:"[^"]*"['"]*|'[^']*'['"]*|[^'">])+>/g;
+
+// re-used obj for quick lookups of components
+const empty = Object.create ? Object.create(null) : {};
+const attrRE = /\s([^'"/\s><]+?)[\s/>]|([^\s=]+)=\s?(".*?"|'.*?')/g;
+
+function unescape(string) {
+    return string
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&amp;/g, "&")
+}
+
+// create optimized lookup object for
+// void elements as listed here:
+// http://www.w3.org/html/wg/drafts/html/master/syntax.html#void-elements
+const lookup = {
+    area: true,
+    base: true,
+    br: true,
+    col: true,
+    embed: true,
+    hr: true,
+    img: true,
+    input: true,
+    keygen: true,
+    link: true,
+    menuItem: true,
+    meta: true,
+    param: true,
+    source: true,
+    track: true,
+    wbr: true,
+};
+
+function parseTag(tag) {
+    const res = {
+        nodeName: "",
+        attributes: {},
+    };
+
+    let tagMatch = tag.match(/<\/?([^\s]+?)[/\s>]/);
+    if (tagMatch) {
+        res.nodeName = tagMatch[1].toUpperCase();
+        if (lookup[tagMatch[1]] || tag.charAt(tag.length - 2) === "/") {
+            res.voidElement = true;
+        }
+
+        // handle comment tag
+        if (res.nodeName.startsWith("!--")) {
+            const endIndex = tag.indexOf("-->");
+            return {
+                type: "comment",
+                data: endIndex !== -1 ? tag.slice(4, endIndex) : "",
+            }
+        }
+    }
+
+    let reg = new RegExp(attrRE);
+    let result = null;
+    let done = false;
+    while (!done) {
+        result = reg.exec(tag);
+
+        if (result === null) {
+            done = true;
+        } else if (result[0].trim()) {
+            if (result[1]) {
+                let attr = result[1].trim();
+                let arr = [attr, ""];
+
+                if (attr.indexOf("=") > -1) arr = attr.split("=");
+
+                res.attributes[arr[0]] = arr[1];
+                reg.lastIndex--;
+            } else if (result[2])
+                res.attributes[result[2]] = result[3]
+                    .trim()
+                    .substring(1, result[3].length - 1);
+        }
+    }
+
+    return res
+}
+
+function parse(html, options = { components: empty }) {
+    const result = [];
+    let current;
+    let level = -1;
+    const arr = [];
+    let inComponent = false;
+
+    // handle text at top level
+    if (html.indexOf("<") !== 0) {
+        const end = html.indexOf("<");
+        result.push({
+            nodeName: "#text",
+            data: end === -1 ? html : html.substring(0, end),
+        });
+    }
+
+    html.replace(tagRE, (tag, index) => {
+        if (inComponent) {
+            if (tag !== `</${current.nodeName}>`) {
+                return
+            } else {
+                inComponent = false;
+            }
+        }
+        const isOpen = tag.charAt(1) !== "/";
+        const isComment = tag.startsWith("<!--");
+        const start = index + tag.length;
+        const nextChar = html.charAt(start);
+        let parent;
+
+        if (isComment) {
+            const comment = parseTag(tag);
+
+            // if we're at root, push new base node
+            if (level < 0) {
+                result.push(comment);
+                return result
+            }
+            parent = arr[level];
+            if (parent) {
+                if (!parent.childNodes) {
+                    parent.childNodes = [];
+                }
+                parent.childNodes.push(comment);
+            }
+
+            return result
+        }
+
+        if (isOpen) {
+            current = parseTag(tag);
+            level++;
+            if (
+                current.type === "tag" &&
+                options.components[current.nodeName]
+            ) {
+                current.type = "component";
+                inComponent = true;
+            }
+
+            if (
+                !current.voidElement &&
+                !inComponent &&
+                nextChar &&
+                nextChar !== "<"
+            ) {
+                if (!current.childNodes) {
+                    current.childNodes = [];
+                }
+                current.childNodes.push({
+                    nodeName: "#text",
+                    data: unescape(html.slice(start, html.indexOf("<", start))),
+                });
+            }
+
+            // if we're at root, push new base node
+            if (level === 0) {
+                result.push(current);
+            }
+
+            parent = arr[level - 1];
+
+            if (parent) {
+                if (!parent.childNodes) {
+                    parent.childNodes = [];
+                }
+                parent.childNodes.push(current);
+            }
+
+            arr[level] = current;
+        }
+
+        if (!isOpen || current.voidElement) {
+            if (
+                level > -1 &&
+                (current.voidElement ||
+                    current.nodeName === tag.slice(2, -1).toUpperCase())
+            ) {
+                level--;
+                // move current up a level to match the end tag
+                current = level === -1 ? result : arr[level];
+            }
+            if (!inComponent && nextChar !== "<" && nextChar) {
+                // trailing text node
+                // if we're at the root, push a base text node. otherwise add as
+                // a child to the current node.
+                parent = level === -1 ? result : arr[level].childNodes || [];
+
+                // calculate correct end of the data slice in case there's
+                // no tag after the text node.
+                const end = html.indexOf("<", start);
+                let data = unescape(
+                    html.slice(start, end === -1 ? undefined : end)
+                );
+                parent.push({
+                    nodeName: "#text",
+                    data,
+                });
+            }
+        }
+    });
+
+    return result[0]
+}
+
+function cleanObj(obj) {
+    delete obj.voidElement;
+    if (obj.childNodes) {
+        obj.childNodes.forEach((child) => cleanObj(child));
+    }
+    return obj
+}
+
+function stringToObj(string) {
+    return cleanObj(parse(string))
+}
+
+// ===== Create a diff =====
+
+class DiffFinder {
+    constructor(t1Node, t2Node, options) {
+        this.options = options;
+        this.t1 =
+            typeof HTMLElement !== "undefined" && t1Node instanceof HTMLElement
+                ? nodeToObj(t1Node, this.options)
+                : typeof t1Node === "string"
+                ? stringToObj(t1Node, this.options)
+                : JSON.parse(JSON.stringify(t1Node));
+        this.t2 =
+            typeof HTMLElement !== "undefined" && t2Node instanceof HTMLElement
+                ? nodeToObj(t2Node, this.options)
+                : typeof t2Node === "string"
+                ? stringToObj(t2Node, this.options)
+                : JSON.parse(JSON.stringify(t2Node));
+        this.diffcount = 0;
+        this.foundAll = false;
+        if (this.debug) {
+            this.t1Orig = nodeToObj(t1Node, this.options);
+            this.t2Orig = nodeToObj(t2Node, this.options);
+        }
+
+        this.tracker = new DiffTracker();
+    }
+
+    init() {
+        return this.findDiffs(this.t1, this.t2)
+    }
+
+    findDiffs(t1, t2) {
+        let diffs;
+        do {
+            if (this.options.debug) {
+                this.diffcount += 1;
+                if (this.diffcount > this.options.diffcap) {
+                    throw new Error(
+                        `surpassed diffcap:${JSON.stringify(
+                            this.t1Orig
+                        )} -> ${JSON.stringify(this.t2Orig)}`
+                    )
+                }
+            }
+            diffs = this.findNextDiff(t1, t2, []);
+
+            if (diffs.length === 0) {
+                // Last check if the elements really are the same now.
+                // If not, remove all info about being done and start over.
+                // Sometimes a node can be marked as done, but the creation of subsequent diffs means that it has to be changed again.
+                if (!isEqual(t1, t2)) {
+                    if (this.foundAll) {
+                        console.error("Could not find remaining diffs!");
+                    } else {
+                        this.foundAll = true;
+                        removeDone(t1);
+                        diffs = this.findNextDiff(t1, t2, []);
+                    }
+                }
+            }
+            if (diffs.length > 0) {
+                this.foundAll = false;
+                this.tracker.add(diffs);
+                applyVirtual(t1, diffs, this.options);
+            }
+        } while (diffs.length > 0)
+
+        return this.tracker.list
+    }
+
+    findNextDiff(t1, t2, route) {
+        let diffs;
+        let fdiffs;
+
+        if (this.options.maxDepth && route.length > this.options.maxDepth) {
+            return []
+        }
+        // outer differences?
+        if (!t1.outerDone) {
+            diffs = this.findOuterDiff(t1, t2, route);
+            if (this.options.filterOuterDiff) {
+                fdiffs = this.options.filterOuterDiff(t1, t2, diffs);
+                if (fdiffs) diffs = fdiffs;
+            }
+            if (diffs.length > 0) {
+                t1.outerDone = true;
+                return diffs
+            } else {
+                t1.outerDone = true;
+            }
+        }
+        // inner differences?
+        if (!t1.innerDone) {
+            diffs = this.findInnerDiff(t1, t2, route);
+            if (diffs.length > 0) {
+                return diffs
+            } else {
+                t1.innerDone = true;
+            }
+        }
+
+        if (this.options.valueDiffing && !t1.valueDone) {
+            // value differences?
+            diffs = this.findValueDiff(t1, t2, route);
+
+            if (diffs.length > 0) {
+                t1.valueDone = true;
+                return diffs
+            } else {
+                t1.valueDone = true;
+            }
+        }
+
+        // no differences
+        return []
+    }
+
+    findOuterDiff(t1, t2, route) {
+        const diffs = [];
+        let attr;
+        let attr1;
+        let attr2;
+        let attrLength;
+        let pos;
+        let i;
+        if (t1.nodeName !== t2.nodeName) {
+            if (!route.length) {
+                throw new Error("Top level nodes have to be of the same kind.")
+            }
+            return [
+                new Diff()
+                    .setValue(
+                        this.options._const.action,
+                        this.options._const.replaceElement
+                    )
+                    .setValue(this.options._const.oldValue, cloneObj(t1))
+                    .setValue(this.options._const.newValue, cloneObj(t2))
+                    .setValue(this.options._const.route, route),
+            ]
+        }
+        if (
+            route.length &&
+            this.options.maxNodeDiffCount <
+                Math.abs(
+                    (t1.childNodes || []).length - (t2.childNodes || []).length
+                )
+        ) {
+            return [
+                new Diff()
+                    .setValue(
+                        this.options._const.action,
+                        this.options._const.replaceElement
+                    )
+                    .setValue(this.options._const.oldValue, cloneObj(t1))
+                    .setValue(this.options._const.newValue, cloneObj(t2))
+                    .setValue(this.options._const.route, route),
+            ]
+        }
+
+        if (t1.data !== t2.data) {
+            // Comment or text node.
+            if (t1.nodeName === "#text") {
+                return [
+                    new Diff()
+                        .setValue(
+                            this.options._const.action,
+                            this.options._const.modifyTextElement
+                        )
+                        .setValue(this.options._const.route, route)
+                        .setValue(this.options._const.oldValue, t1.data)
+                        .setValue(this.options._const.newValue, t2.data),
+                ]
+            } else {
+                return [
+                    new Diff()
+                        .setValue(
+                            this.options._const.action,
+                            this.options._const.modifyComment
+                        )
+                        .setValue(this.options._const.route, route)
+                        .setValue(this.options._const.oldValue, t1.data)
+                        .setValue(this.options._const.newValue, t2.data),
+                ]
+            }
+        }
+
+        attr1 = t1.attributes ? Object.keys(t1.attributes).sort() : [];
+        attr2 = t2.attributes ? Object.keys(t2.attributes).sort() : [];
+
+        attrLength = attr1.length;
+        for (i = 0; i < attrLength; i++) {
+            attr = attr1[i];
+            pos = attr2.indexOf(attr);
+            if (pos === -1) {
+                diffs.push(
+                    new Diff()
+                        .setValue(
+                            this.options._const.action,
+                            this.options._const.removeAttribute
+                        )
+                        .setValue(this.options._const.route, route)
+                        .setValue(this.options._const.name, attr)
+                        .setValue(
+                            this.options._const.value,
+                            t1.attributes[attr]
+                        )
+                );
+            } else {
+                attr2.splice(pos, 1);
+                if (t1.attributes[attr] !== t2.attributes[attr]) {
+                    diffs.push(
+                        new Diff()
+                            .setValue(
+                                this.options._const.action,
+                                this.options._const.modifyAttribute
+                            )
+                            .setValue(this.options._const.route, route)
+                            .setValue(this.options._const.name, attr)
+                            .setValue(
+                                this.options._const.oldValue,
+                                t1.attributes[attr]
+                            )
+                            .setValue(
+                                this.options._const.newValue,
+                                t2.attributes[attr]
+                            )
+                    );
+                }
+            }
+        }
+
+        attrLength = attr2.length;
+        for (i = 0; i < attrLength; i++) {
+            attr = attr2[i];
+            diffs.push(
+                new Diff()
+                    .setValue(
+                        this.options._const.action,
+                        this.options._const.addAttribute
+                    )
+                    .setValue(this.options._const.route, route)
+                    .setValue(this.options._const.name, attr)
+                    .setValue(this.options._const.value, t2.attributes[attr])
+            );
+        }
+
+        return diffs
+    }
+
+    findInnerDiff(t1, t2, route) {
+        const t1ChildNodes = t1.childNodes ? t1.childNodes.slice() : [];
+        const t2ChildNodes = t2.childNodes ? t2.childNodes.slice() : [];
+        const last = Math.max(t1ChildNodes.length, t2ChildNodes.length);
+        let childNodesLengthDifference = Math.abs(
+            t1ChildNodes.length - t2ChildNodes.length
+        );
+        let diffs = [];
+        let index = 0;
+        if (!this.options.maxChildCount || last < this.options.maxChildCount) {
+            const cachedSubtrees = t1.subsets && t1.subsetsAge--;
+            const subtrees = cachedSubtrees
+                ? t1.subsets
+                : t1.childNodes && t2.childNodes
+                ? markSubTrees(t1, t2)
+                : [];
+            if (subtrees.length > 0) {
+                /* One or more groups have been identified among the childnodes of t1
+                 * and t2.
+                 */
+                diffs = this.attemptGroupRelocation(
+                    t1,
+                    t2,
+                    subtrees,
+                    route,
+                    cachedSubtrees
+                );
+                if (diffs.length > 0) {
+                    return diffs
+                }
+            }
+        }
+
+        /* 0 or 1 groups of similar child nodes have been found
+         * for t1 and t2. 1 If there is 1, it could be a sign that the
+         * contents are the same. When the number of groups is below 2,
+         * t1 and t2 are made to have the same length and each of the
+         * pairs of child nodes are diffed.
+         */
+
+        for (let i = 0; i < last; i += 1) {
+            const e1 = t1ChildNodes[i];
+            const e2 = t2ChildNodes[i];
+
+            if (childNodesLengthDifference) {
+                /* t1 and t2 have different amounts of childNodes. Add
+                 * and remove as necessary to obtain the same length */
+                if (e1 && !e2) {
+                    if (e1.nodeName === "#text") {
+                        diffs.push(
+                            new Diff()
+                                .setValue(
+                                    this.options._const.action,
+                                    this.options._const.removeTextElement
+                                )
+                                .setValue(
+                                    this.options._const.route,
+                                    route.concat(index)
+                                )
+                                .setValue(this.options._const.value, e1.data)
+                        );
+                        index -= 1;
+                    } else {
+                        diffs.push(
+                            new Diff()
+                                .setValue(
+                                    this.options._const.action,
+                                    this.options._const.removeElement
+                                )
+                                .setValue(
+                                    this.options._const.route,
+                                    route.concat(index)
+                                )
+                                .setValue(
+                                    this.options._const.element,
+                                    cloneObj(e1)
+                                )
+                        );
+                        index -= 1;
+                    }
+                } else if (e2 && !e1) {
+                    if (e2.nodeName === "#text") {
+                        diffs.push(
+                            new Diff()
+                                .setValue(
+                                    this.options._const.action,
+                                    this.options._const.addTextElement
+                                )
+                                .setValue(
+                                    this.options._const.route,
+                                    route.concat(index)
+                                )
+                                .setValue(this.options._const.value, e2.data)
+                        );
+                    } else {
+                        diffs.push(
+                            new Diff()
+                                .setValue(
+                                    this.options._const.action,
+                                    this.options._const.addElement
+                                )
+                                .setValue(
+                                    this.options._const.route,
+                                    route.concat(index)
+                                )
+                                .setValue(
+                                    this.options._const.element,
+                                    cloneObj(e2)
+                                )
+                        );
+                    }
+                }
+            }
+            /* We are now guaranteed that childNodes e1 and e2 exist,
+             * and that they can be diffed.
+             */
+            /* Diffs in child nodes should not affect the parent node,
+             * so we let these diffs be submitted together with other
+             * diffs.
+             */
+
+            if (e1 && e2) {
+                if (
+                    !this.options.maxChildCount ||
+                    last < this.options.maxChildCount
+                ) {
+                    diffs = diffs.concat(
+                        this.findNextDiff(e1, e2, route.concat(index))
+                    );
+                } else if (!isEqual(e1, e2)) {
+                    if (t1ChildNodes.length > t2ChildNodes.length) {
+                        if (e1.nodeName === "#text") {
+                            diffs.push(
+                                new Diff()
+                                    .setValue(
+                                        this.options._const.action,
+                                        this.options._const.removeTextElement
+                                    )
+                                    .setValue(
+                                        this.options._const.route,
+                                        route.concat(index)
+                                    )
+                                    .setValue(
+                                        this.options._const.value,
+                                        e1.data
+                                    )
+                            );
+                        } else {
+                            diffs.push(
+                                new Diff()
+                                    .setValue(
+                                        this.options._const.action,
+                                        this.options._const.removeElement
+                                    )
+                                    .setValue(
+                                        this.options._const.element,
+                                        cloneObj(e1)
+                                    )
+                                    .setValue(
+                                        this.options._const.route,
+                                        route.concat(index)
+                                    )
+                            );
+                        }
+                        t1ChildNodes.splice(i, 1);
+                        i -= 1;
+                        index -= 1;
+
+                        childNodesLengthDifference -= 1;
+                    } else if (t1ChildNodes.length < t2ChildNodes.length) {
+                        diffs = diffs.concat([
+                            new Diff()
+                                .setValue(
+                                    this.options._const.action,
+                                    this.options._const.addElement
+                                )
+                                .setValue(
+                                    this.options._const.element,
+                                    cloneObj(e2)
+                                )
+                                .setValue(
+                                    this.options._const.route,
+                                    route.concat(index)
+                                ),
+                        ]);
+                        t1ChildNodes.splice(i, 0, {});
+                        childNodesLengthDifference -= 1;
+                    } else {
+                        diffs = diffs.concat([
+                            new Diff()
+                                .setValue(
+                                    this.options._const.action,
+                                    this.options._const.replaceElement
+                                )
+                                .setValue(
+                                    this.options._const.oldValue,
+                                    cloneObj(e1)
+                                )
+                                .setValue(
+                                    this.options._const.newValue,
+                                    cloneObj(e2)
+                                )
+                                .setValue(
+                                    this.options._const.route,
+                                    route.concat(index)
+                                ),
+                        ]);
+                    }
+                }
+            }
+            index += 1;
+        }
+        t1.innerDone = true;
+        return diffs
+    }
+
+    attemptGroupRelocation(t1, t2, subtrees, route, cachedSubtrees) {
+        /* Either t1.childNodes and t2.childNodes have the same length, or
+         * there are at least two groups of similar elements can be found.
+         * attempts are made at equalizing t1 with t2. First all initial
+         * elements with no group affiliation (gaps=true) are removed (if
+         * only in t1) or added (if only in t2). Then the creation of a group
+         * relocation diff is attempted.
+         */
+        const gapInformation = getGapInformation(t1, t2, subtrees);
+        const gaps1 = gapInformation.gaps1;
+        const gaps2 = gapInformation.gaps2;
+        let shortest = Math.min(gaps1.length, gaps2.length);
+        let destinationDifferent;
+        let toGroup;
+        let group;
+        let node;
+        let similarNode;
+        let testI;
+        const diffs = [];
+
+        for (
+            let index2 = 0, index1 = 0;
+            index2 < shortest;
+            index1 += 1, index2 += 1
+        ) {
+            if (
+                cachedSubtrees &&
+                (gaps1[index2] === true || gaps2[index2] === true)
+            ) ; else if (gaps1[index2] === true) {
+                node = t1.childNodes[index1];
+                if (node.nodeName === "#text") {
+                    if (t2.childNodes[index2].nodeName === "#text") {
+                        if (node.data !== t2.childNodes[index2].data) {
+                            testI = index1;
+                            while (
+                                t1.childNodes.length > testI + 1 &&
+                                t1.childNodes[testI + 1].nodeName === "#text"
+                            ) {
+                                testI += 1;
+                                if (
+                                    t2.childNodes[index2].data ===
+                                    t1.childNodes[testI].data
+                                ) {
+                                    similarNode = true;
+                                    break
+                                }
+                            }
+                            if (!similarNode) {
+                                diffs.push(
+                                    new Diff()
+                                        .setValue(
+                                            this.options._const.action,
+                                            this.options._const
+                                                .modifyTextElement
+                                        )
+                                        .setValue(
+                                            this.options._const.route,
+                                            route.concat(index2)
+                                        )
+                                        .setValue(
+                                            this.options._const.oldValue,
+                                            node.data
+                                        )
+                                        .setValue(
+                                            this.options._const.newValue,
+                                            t2.childNodes[index2].data
+                                        )
+                                );
+                                return diffs
+                            }
+                        }
+                    } else {
+                        diffs.push(
+                            new Diff()
+                                .setValue(
+                                    this.options._const.action,
+                                    this.options._const.removeTextElement
+                                )
+                                .setValue(
+                                    this.options._const.route,
+                                    route.concat(index2)
+                                )
+                                .setValue(this.options._const.value, node.data)
+                        );
+                        gaps1.splice(index2, 1);
+                        shortest = Math.min(gaps1.length, gaps2.length);
+                        index2 -= 1;
+                    }
+                } else {
+                    diffs.push(
+                        new Diff()
+                            .setValue(
+                                this.options._const.action,
+                                this.options._const.removeElement
+                            )
+                            .setValue(
+                                this.options._const.route,
+                                route.concat(index2)
+                            )
+                            .setValue(
+                                this.options._const.element,
+                                cloneObj(node)
+                            )
+                    );
+                    gaps1.splice(index2, 1);
+                    shortest = Math.min(gaps1.length, gaps2.length);
+                    index2 -= 1;
+                }
+            } else if (gaps2[index2] === true) {
+                node = t2.childNodes[index2];
+                if (node.nodeName === "#text") {
+                    diffs.push(
+                        new Diff()
+                            .setValue(
+                                this.options._const.action,
+                                this.options._const.addTextElement
+                            )
+                            .setValue(
+                                this.options._const.route,
+                                route.concat(index2)
+                            )
+                            .setValue(this.options._const.value, node.data)
+                    );
+                    gaps1.splice(index2, 0, true);
+                    shortest = Math.min(gaps1.length, gaps2.length);
+                    index1 -= 1;
+                } else {
+                    diffs.push(
+                        new Diff()
+                            .setValue(
+                                this.options._const.action,
+                                this.options._const.addElement
+                            )
+                            .setValue(
+                                this.options._const.route,
+                                route.concat(index2)
+                            )
+                            .setValue(
+                                this.options._const.element,
+                                cloneObj(node)
+                            )
+                    );
+                    gaps1.splice(index2, 0, true);
+                    shortest = Math.min(gaps1.length, gaps2.length);
+                    index1 -= 1;
+                }
+            } else if (gaps1[index2] !== gaps2[index2]) {
+                if (diffs.length > 0) {
+                    return diffs
+                }
+                // group relocation
+                group = subtrees[gaps1[index2]];
+                toGroup = Math.min(
+                    group.newValue,
+                    t1.childNodes.length - group.length
+                );
+                if (toGroup !== group.oldValue) {
+                    // Check whether destination nodes are different than originating ones.
+                    destinationDifferent = false;
+                    for (let j = 0; j < group.length; j += 1) {
+                        if (
+                            !roughlyEqual(
+                                t1.childNodes[toGroup + j],
+                                t1.childNodes[group.oldValue + j],
+                                [],
+                                false,
+                                true
+                            )
+                        ) {
+                            destinationDifferent = true;
+                        }
+                    }
+                    if (destinationDifferent) {
+                        return [
+                            new Diff()
+                                .setValue(
+                                    this.options._const.action,
+                                    this.options._const.relocateGroup
+                                )
+                                .setValue("groupLength", group.length)
+                                .setValue(
+                                    this.options._const.from,
+                                    group.oldValue
+                                )
+                                .setValue(this.options._const.to, toGroup)
+                                .setValue(this.options._const.route, route),
+                        ]
+                    }
+                }
+            }
+        }
+        return diffs
+    }
+
+    findValueDiff(t1, t2, route) {
+        // Differences of value. Only useful if the value/selection/checked value
+        // differs from what is represented in the DOM. For example in the case
+        // of filled out forms, etc.
+        const diffs = [];
+
+        if (t1.selected !== t2.selected) {
+            diffs.push(
+                new Diff()
+                    .setValue(
+                        this.options._const.action,
+                        this.options._const.modifySelected
+                    )
+                    .setValue(this.options._const.oldValue, t1.selected)
+                    .setValue(this.options._const.newValue, t2.selected)
+                    .setValue(this.options._const.route, route)
+            );
+        }
+
+        if (
+            (t1.value || t2.value) &&
+            t1.value !== t2.value &&
+            t1.nodeName !== "OPTION"
+        ) {
+            diffs.push(
+                new Diff()
+                    .setValue(
+                        this.options._const.action,
+                        this.options._const.modifyValue
+                    )
+                    .setValue(this.options._const.oldValue, t1.value || "")
+                    .setValue(this.options._const.newValue, t2.value || "")
+                    .setValue(this.options._const.route, route)
+            );
+        }
+        if (t1.checked !== t2.checked) {
+            diffs.push(
+                new Diff()
+                    .setValue(
+                        this.options._const.action,
+                        this.options._const.modifyChecked
+                    )
+                    .setValue(this.options._const.oldValue, t1.checked)
+                    .setValue(this.options._const.newValue, t2.checked)
+                    .setValue(this.options._const.route, route)
+            );
+        }
+
+        return diffs
+    }
+}
+
+const DEFAULT_OPTIONS = {
+    debug: false,
+    diffcap: 10, // Limit for how many diffs are accepting when debugging. Inactive when debug is false.
+    maxDepth: false, // False or a numeral. If set to a numeral, limits the level of depth that the the diff mechanism looks for differences. If false, goes through the entire tree.
+    maxChildCount: 50, // False or a numeral. If set to a numeral, only does a simplified form of diffing of contents so that the number of diffs cannot be higher than the number of child nodes.
+    valueDiffing: true, // Whether to take into consideration the values of forms that differ from auto assigned values (when a user fills out a form).
+    // syntax: textDiff: function (node, currentValue, expectedValue, newValue)
+    textDiff(node, currentValue, expectedValue, newValue) {
+        node.data = newValue;
+        return
+    },
+    // empty functions were benchmarked as running faster than both
+    // `f && f()` and `if (f) { f(); }`
+    preVirtualDiffApply() {},
+    postVirtualDiffApply() {},
+    preDiffApply() {},
+    postDiffApply() {},
+    filterOuterDiff: null,
+    compress: false, // Whether to work with compressed diffs
+    _const: false, // object with strings for every change types to be used in diffs.
+    document:
+        typeof window !== "undefined" && window.document
+            ? window.document
+            : false,
+};
+
+class DiffDOM {
+    constructor(options = {}) {
+        this.options = options;
+        // IE11 doesn't have Object.assign and buble doesn't translate object spreaders
+        // by default, so this is the safest way of doing it currently.
+        Object.entries(DEFAULT_OPTIONS).forEach(([key, value]) => {
+            if (!Object.prototype.hasOwnProperty.call(this.options, key)) {
+                this.options[key] = value;
+            }
+        });
+
+        if (!this.options._const) {
+            const varNames = [
+                "addAttribute",
+                "modifyAttribute",
+                "removeAttribute",
+                "modifyTextElement",
+                "relocateGroup",
+                "removeElement",
+                "addElement",
+                "removeTextElement",
+                "addTextElement",
+                "replaceElement",
+                "modifyValue",
+                "modifyChecked",
+                "modifySelected",
+                "modifyComment",
+                "action",
+                "route",
+                "oldValue",
+                "newValue",
+                "element",
+                "group",
+                "from",
+                "to",
+                "name",
+                "value",
+                "data",
+                "attributes",
+                "nodeName",
+                "childNodes",
+                "checked",
+                "selected",
+            ];
+            this.options._const = {};
+            if (this.options.compress) {
+                varNames.forEach(
+                    (varName, index) => (this.options._const[varName] = index)
+                );
+            } else {
+                varNames.forEach(
+                    (varName) => (this.options._const[varName] = varName)
+                );
+            }
+        }
+
+        this.DiffFinder = DiffFinder;
+    }
+
+    apply(tree, diffs) {
+        return applyDOM(tree, diffs, this.options)
+    }
+
+    undo(tree, diffs) {
+        return undoDOM(tree, diffs, this.options)
+    }
+
+    diff(t1Node, t2Node) {
+        const finder = new this.DiffFinder(t1Node, t2Node, this.options);
+        return finder.init()
+    }
+}
+
+const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {hiddenHeader, sortable, scrollY}, {noColumnWidths, unhideHeader}) => ({
+    nodeName: "TR",
+    childNodes: headings.map(
+        (heading, index) => {
+            const column = columnSettings.columns[index] || {};
+            if (column.hidden) {
+                return false
+            }
+            const attributes = {};
+            if (!column.notSortable && sortable) {
+                attributes["data-sortable"] = "true";
+            }
+            if (heading.sorted) {
+                attributes.class = heading.sorted;
+                attributes["aria-sort"] = heading.sorted === "asc" ? "ascending" : "descending";
+            }
+            let style = "";
+            if (columnWidths[index] && !noColumnWidths) {
+                style += `width: ${columnWidths[index]}%;`;
+            }
+            if (scrollY.length && !unhideHeader) {
+                style += "padding-bottom: 0;padding-top: 0;border: 0;";
+            }
+
+            if (style.length) {
+                attributes.style = style;
+            }
+            return {
+                nodeName: "TH",
+                attributes,
+                childNodes: [
+                    ((hiddenHeader || scrollY.length) && !unhideHeader) ?
+                        {nodeName: "#text",
+                            data: ""} :
+                        column.notSortable || !sortable ?
+                            {
+                                nodeName: "#text",
+                                data: heading.data
+                            } :
+                            {
+                                nodeName: "a",
+                                attributes: {
+                                    href: "#",
+                                    class: "dataTable-sorter"
+                                },
+                                childNodes: [
+                                    {
+                                        nodeName: "#text",
+                                        data: heading.data
+                                    }
+                                ]
+                            }
+                ]
+            }
+        }
+    ).filter(column => column)
+});
+
+const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, renderHeader}) => {
+    const table = {
+        nodeName: "TABLE",
+        attributes: {
+            class: "dataTable-table"
+        },
+        childNodes: [
+            {
+                nodeName: "TBODY",
+                childNodes: rows.map(
+                    ({row, index}) => {
+                        const tr = {
+                            nodeName: "TR",
+                            attributes: {
+                                "data-index": index
+                            },
+                            childNodes: row.map(
+                                (cell, cIndex) => {
+                                    const column = columnSettings.columns[cIndex] || {};
+                                    if (column.hidden) {
+                                        return false
+                                    }
+                                    const td = cell.type === "node" ?
+                                        {
+                                            nodeName: "TD",
+                                            childNodes: cell.data
+                                        } :
+                                        {
+                                            nodeName: "TD",
+                                            childNodes: [
+                                                {
+                                                    nodeName: "#text",
+                                                    data: String(cell.data)
+                                                }
+                                            ]
+                                        };
+                                    if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
+                                        td.attributes = {
+                                            style: `width: ${columnWidths[cIndex]}%;`
+                                        };
+                                    }
+                                    if (column.render) {
+                                        const renderedCell = column.render(cell.data, td, index, cIndex);
+                                        if (renderedCell) {
+                                            if (typeof renderedCell === "string") {
+                                                // Convenience method to make it work similarly to what it did up to version 5.
+                                                const node = stringToObj(`<td>${renderedCell}</td>`);
+                                                if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
+                                                    td.childNodes = node.childNodes;
+                                                } else {
+                                                    td.childNodes[0].data = renderedCell;
+                                                }
+
+                                            } else {
+                                                return renderedCell
+                                            }
+                                        }
+
+                                    }
+                                    return td
+                                }
+                            ).filter(column => column)
+                        };
+                        if (index===rowCursor) {
+                            tr.attributes.class = "dataTable-cursor";
+                        }
+                        if (rowRender) {
+                            const renderedRow = rowRender(row, tr, index);
+                            if (renderedRow) {
+                                if (typeof renderedRow === "string") {
+                                    // Convenience method to make it work similarly to what it did up to version 5.
+                                    const node = stringToObj(`<tr>${renderedRow}</tr>`);
+                                    if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+                                        tr.childNodes = node.childNodes;
+                                    } else {
+                                        tr.childNodes[0].data = renderedRow;
+                                    }
+
+                                } else {
+                                    return renderedRow
+                                }
+                            }
+                        }
+                        return tr
+                    }
+                )
+            }
+        ]
+    };
+
+    if (header || footer || renderHeader) {
+        const headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader,
+            sortable,
+            scrollY}, {noColumnWidths,
+            unhideHeader});
+
+        if (header || renderHeader) {
+            const thead = {
+                nodeName: "THEAD",
+                childNodes: [headerRow]
+            };
+            if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+                thead.attributes = {style: "height: 0px;"};
+            }
+            table.childNodes.unshift(thead);
+        }
+        if (footer) {
+            const footerRow = header ? structuredClone(headerRow) : headerRow;
+            const tfoot = {
+                nodeName: "TFOOT",
+                childNodes: [footerRow]
+            };
+            if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+                tfoot.attributes = {style: "height: 0px;"};
+            }
+            table.childNodes.push(tfoot);
+        }
+
+    }
+
+    if (tabIndex !== false) {
+        table.attributes.tabindex = String(tabIndex);
+    }
+
+    return table
+};
+
+const readColumnSettings = (columnOptions = []) => {
+
+    const columns = [];
+    let sort = false;
+
+    // Check for the columns option
+
+    columnOptions.forEach(data => {
+
+        // convert single column selection to array
+        const columnSelectors = Array.isArray(data.select) ? data.select : [data.select];
+
+        columnSelectors.forEach(selector => {
+            if (!columns[selector]) {
+                columns[selector] = {};
+            }
+            const column = columns[selector];
+
+
+            if (data.render) {
+                column.render = data.render;
+            }
+
+            if (data.type) {
+                column.type = data.type;
+            }
+
+            if (data.format) {
+                column.format = data.format;
+            }
+
+            if (data.sortable === false) {
+                column.notSortable = true;
+            }
+
+            if (data.hidden) {
+                column.hidden = true;
+            }
+
+            if (data.filter) {
+                column.filter = data.filter;
+            }
+
+            if (data.sort) {
+                // We only allow one. The last one will overwrite all other options
+                sort = {column,
+                    dir: data.sort};
+            }
+
+        });
+
+    });
+
+    return {columns,
+        sort}
+
+};
+
+var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
+
+var dayjs_min = {exports: {}};
+
+(function (module, exports) {
+	!function(t,e){module.exports=e();}(commonjsGlobal,(function(){var t=1e3,e=6e4,n=36e5,r="millisecond",i="second",s="minute",u="hour",a="day",o="week",f="month",h="quarter",c="year",d="date",$="Invalid Date",l=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,y=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,M={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},m=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},g={s:m,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+m(r,2,"0")+":"+m(i,2,"0")},m:function t(e,n){if(e.date()<n.date())return -t(n,e);var r=12*(n.year()-e.year())+(n.month()-e.month()),i=e.clone().add(r,f),s=n-i<0,u=e.clone().add(r+(s?-1:1),f);return +(-(r+(n-i)/(s?i-u:u-i))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return {M:f,y:c,w:o,d:a,D:d,h:u,m:s,s:i,ms:r,Q:h}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},v="en",D={};D[v]=M;var p=function(t){return t instanceof _},S=function t(e,n,r){var i;if(!e)return v;if("string"==typeof e){var s=e.toLowerCase();D[s]&&(i=s),n&&(D[s]=n,i=s);var u=e.split("-");if(!i&&u.length>1)return t(u[0])}else {var a=e.name;D[a]=e,i=a;}return !r&&i&&(v=i),i||!r&&v},w=function(t,e){if(p(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new _(n)},O=g;O.l=S,O.i=p,O.w=function(t,e){return w(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var _=function(){function M(t){this.$L=S(t.locale,null,!0),this.parse(t);}var m=M.prototype;return m.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(O.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match(l);if(r){var i=r[2]-1||0,s=(r[7]||"0").substring(0,3);return n?new Date(Date.UTC(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)):new Date(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)}}return new Date(e)}(t),this.$x=t.x||{},this.init();},m.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},m.$utils=function(){return O},m.isValid=function(){return !(this.$d.toString()===$)},m.isSame=function(t,e){var n=w(t);return this.startOf(e)<=n&&n<=this.endOf(e)},m.isAfter=function(t,e){return w(t)<this.startOf(e)},m.isBefore=function(t,e){return this.endOf(e)<w(t)},m.$g=function(t,e,n){return O.u(t)?this[e]:this.set(n,t)},m.unix=function(){return Math.floor(this.valueOf()/1e3)},m.valueOf=function(){return this.$d.getTime()},m.startOf=function(t,e){var n=this,r=!!O.u(e)||e,h=O.p(t),$=function(t,e){var i=O.w(n.$u?Date.UTC(n.$y,e,t):new Date(n.$y,e,t),n);return r?i:i.endOf(a)},l=function(t,e){return O.w(n.toDate()[t].apply(n.toDate("s"),(r?[0,0,0,0]:[23,59,59,999]).slice(e)),n)},y=this.$W,M=this.$M,m=this.$D,g="set"+(this.$u?"UTC":"");switch(h){case c:return r?$(1,0):$(31,11);case f:return r?$(1,M):$(0,M+1);case o:var v=this.$locale().weekStart||0,D=(y<v?y+7:y)-v;return $(r?m-D:m+(6-D),M);case a:case d:return l(g+"Hours",0);case u:return l(g+"Minutes",1);case s:return l(g+"Seconds",2);case i:return l(g+"Milliseconds",3);default:return this.clone()}},m.endOf=function(t){return this.startOf(t,!1)},m.$set=function(t,e){var n,o=O.p(t),h="set"+(this.$u?"UTC":""),$=(n={},n[a]=h+"Date",n[d]=h+"Date",n[f]=h+"Month",n[c]=h+"FullYear",n[u]=h+"Hours",n[s]=h+"Minutes",n[i]=h+"Seconds",n[r]=h+"Milliseconds",n)[o],l=o===a?this.$D+(e-this.$W):e;if(o===f||o===c){var y=this.clone().set(d,1);y.$d[$](l),y.init(),this.$d=y.set(d,Math.min(this.$D,y.daysInMonth())).$d;}else $&&this.$d[$](l);return this.init(),this},m.set=function(t,e){return this.clone().$set(t,e)},m.get=function(t){return this[O.p(t)]()},m.add=function(r,h){var d,$=this;r=Number(r);var l=O.p(h),y=function(t){var e=w($);return O.w(e.date(e.date()+Math.round(t*r)),$)};if(l===f)return this.set(f,this.$M+r);if(l===c)return this.set(c,this.$y+r);if(l===a)return y(1);if(l===o)return y(7);var M=(d={},d[s]=e,d[u]=n,d[i]=t,d)[l]||1,m=this.$d.getTime()+r*M;return O.w(m,this)},m.subtract=function(t,e){return this.add(-1*t,e)},m.format=function(t){var e=this,n=this.$locale();if(!this.isValid())return n.invalidDate||$;var r=t||"YYYY-MM-DDTHH:mm:ssZ",i=O.z(this),s=this.$H,u=this.$m,a=this.$M,o=n.weekdays,f=n.months,h=function(t,n,i,s){return t&&(t[n]||t(e,r))||i[n].slice(0,s)},c=function(t){return O.s(s%12||12,t,"0")},d=n.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:a+1,MM:O.s(a+1,2,"0"),MMM:h(n.monthsShort,a,f,3),MMMM:h(f,a),D:this.$D,DD:O.s(this.$D,2,"0"),d:String(this.$W),dd:h(n.weekdaysMin,this.$W,o,2),ddd:h(n.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(s),HH:O.s(s,2,"0"),h:c(1),hh:c(2),a:d(s,u,!0),A:d(s,u,!1),m:String(u),mm:O.s(u,2,"0"),s:String(this.$s),ss:O.s(this.$s,2,"0"),SSS:O.s(this.$ms,3,"0"),Z:i};return r.replace(y,(function(t,e){return e||l[t]||i.replace(":","")}))},m.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},m.diff=function(r,d,$){var l,y=O.p(d),M=w(r),m=(M.utcOffset()-this.utcOffset())*e,g=this-M,v=O.m(this,M);return v=(l={},l[c]=v/12,l[f]=v,l[h]=v/3,l[o]=(g-m)/6048e5,l[a]=(g-m)/864e5,l[u]=g/n,l[s]=g/e,l[i]=g/t,l)[y]||g,$?v:O.a(v)},m.daysInMonth=function(){return this.endOf(f).$D},m.$locale=function(){return D[this.$L]},m.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=S(t,e,!0);return r&&(n.$L=r),n},m.clone=function(){return O.w(this.$d,this)},m.toDate=function(){return new Date(this.valueOf())},m.toJSON=function(){return this.isValid()?this.toISOString():null},m.toISOString=function(){return this.$d.toISOString()},m.toString=function(){return this.$d.toUTCString()},M}(),T=_.prototype;return w.prototype=T,[["$ms",r],["$s",i],["$m",s],["$H",u],["$W",a],["$M",f],["$y",c],["$D",d]].forEach((function(t){T[t[1]]=function(e){return this.$g(e,t[0],t[1])};})),w.extend=function(t,e){return t.$i||(t(e,_,w),t.$i=!0),w},w.locale=S,w.isDayjs=p,w.unix=function(t){return w(1e3*t)},w.en=D[v],w.Ls=D,w.p={},w}));
+} (dayjs_min));
+
+var dayjs = dayjs_min.exports;
+
+var customParseFormat$1 = {exports: {}};
+
+(function (module, exports) {
+	!function(e,t){module.exports=t();}(commonjsGlobal,(function(){var e={LTS:"h:mm:ss A",LT:"h:mm A",L:"MM/DD/YYYY",LL:"MMMM D, YYYY",LLL:"MMMM D, YYYY h:mm A",LLLL:"dddd, MMMM D, YYYY h:mm A"},t=/(\[[^[]*\])|([-_:/.,()\s]+)|(A|a|YYYY|YY?|MM?M?M?|Do|DD?|hh?|HH?|mm?|ss?|S{1,3}|z|ZZ?)/g,n=/\d\d/,r=/\d\d?/,i=/\d*[^-_:/,()\s\d]+/,o={},s=function(e){return (e=+e)+(e>68?1900:2e3)};var a=function(e){return function(t){this[e]=+t;}},f=[/[+-]\d\d:?(\d\d)?|Z/,function(e){(this.zone||(this.zone={})).offset=function(e){if(!e)return 0;if("Z"===e)return 0;var t=e.match(/([+-]|\d\d)/g),n=60*t[1]+(+t[2]||0);return 0===n?0:"+"===t[0]?-n:n}(e);}],h=function(e){var t=o[e];return t&&(t.indexOf?t:t.s.concat(t.f))},u=function(e,t){var n,r=o.meridiem;if(r){for(var i=1;i<=24;i+=1)if(e.indexOf(r(i,0,t))>-1){n=i>12;break}}else n=e===(t?"pm":"PM");return n},d={A:[i,function(e){this.afternoon=u(e,!1);}],a:[i,function(e){this.afternoon=u(e,!0);}],S:[/\d/,function(e){this.milliseconds=100*+e;}],SS:[n,function(e){this.milliseconds=10*+e;}],SSS:[/\d{3}/,function(e){this.milliseconds=+e;}],s:[r,a("seconds")],ss:[r,a("seconds")],m:[r,a("minutes")],mm:[r,a("minutes")],H:[r,a("hours")],h:[r,a("hours")],HH:[r,a("hours")],hh:[r,a("hours")],D:[r,a("day")],DD:[n,a("day")],Do:[i,function(e){var t=o.ordinal,n=e.match(/\d+/);if(this.day=n[0],t)for(var r=1;r<=31;r+=1)t(r).replace(/\[|\]/g,"")===e&&(this.day=r);}],M:[r,a("month")],MM:[n,a("month")],MMM:[i,function(e){var t=h("months"),n=(h("monthsShort")||t.map((function(e){return e.slice(0,3)}))).indexOf(e)+1;if(n<1)throw new Error;this.month=n%12||n;}],MMMM:[i,function(e){var t=h("months").indexOf(e)+1;if(t<1)throw new Error;this.month=t%12||t;}],Y:[/[+-]?\d+/,a("year")],YY:[n,function(e){this.year=s(e);}],YYYY:[/\d{4}/,a("year")],Z:f,ZZ:f};function c(n){var r,i;r=n,i=o&&o.formats;for(var s=(n=r.replace(/(\[[^\]]+])|(LTS?|l{1,4}|L{1,4})/g,(function(t,n,r){var o=r&&r.toUpperCase();return n||i[r]||e[r]||i[o].replace(/(\[[^\]]+])|(MMMM|MM|DD|dddd)/g,(function(e,t,n){return t||n.slice(1)}))}))).match(t),a=s.length,f=0;f<a;f+=1){var h=s[f],u=d[h],c=u&&u[0],l=u&&u[1];s[f]=l?{regex:c,parser:l}:h.replace(/^\[|\]$/g,"");}return function(e){for(var t={},n=0,r=0;n<a;n+=1){var i=s[n];if("string"==typeof i)r+=i.length;else {var o=i.regex,f=i.parser,h=e.slice(r),u=o.exec(h)[0];f.call(t,u),e=e.replace(u,"");}}return function(e){var t=e.afternoon;if(void 0!==t){var n=e.hours;t?n<12&&(e.hours+=12):12===n&&(e.hours=0),delete e.afternoon;}}(t),t}}return function(e,t,n){n.p.customParseFormat=!0,e&&e.parseTwoDigitYear&&(s=e.parseTwoDigitYear);var r=t.prototype,i=r.parse;r.parse=function(e){var t=e.date,r=e.utc,s=e.args;this.$u=r;var a=s[1];if("string"==typeof a){var f=!0===s[2],h=!0===s[3],u=f||h,d=s[2];h&&(d=s[2]),o=this.$locale(),!f&&d&&(o=n.Ls[d]),this.$d=function(e,t,n){try{if(["x","X"].indexOf(t)>-1)return new Date(("X"===t?1e3:1)*e);var r=c(t)(e),i=r.year,o=r.month,s=r.day,a=r.hours,f=r.minutes,h=r.seconds,u=r.milliseconds,d=r.zone,l=new Date,m=s||(i||o?1:l.getDate()),M=i||l.getFullYear(),Y=0;i&&!o||(Y=o>0?o-1:l.getMonth());var p=a||0,v=f||0,D=h||0,g=u||0;return d?new Date(Date.UTC(M,Y,m,p,v,D,g+60*d.offset*1e3)):n?new Date(Date.UTC(M,Y,m,p,v,D,g)):new Date(M,Y,m,p,v,D,g)}catch(e){return new Date("")}}(t,a,r),this.init(),d&&!0!==d&&(this.$L=this.locale(d).$L),u&&t!=this.format(a)&&(this.$d=new Date("")),o={};}else if(a instanceof Array)for(var l=a.length,m=1;m<=l;m+=1){s[1]=a[m-1];var M=n.apply(this,s);if(M.isValid()){this.$d=M.$d,this.$L=M.$L,this.init();break}m===l&&(this.$d=new Date(""));}else i.call(this,e);};}}));
+} (customParseFormat$1));
+
+var customParseFormat = customParseFormat$1.exports;
+
+dayjs.extend(customParseFormat);
+
+/**
+ * Use dayjs to parse cell contents for sorting
+ */
+const parseDate = (content, format) => {
+    let date = false;
+
+    // Converting to YYYYMMDD ensures we can accurately sort the column numerically
+
+    if (format) {
+        switch (format) {
+        case "ISO_8601":
+            // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
+            date = content;
+            break
+        case "RFC_2822":
+            date = dayjs(content.slice(5), "DD MMM YYYY HH:mm:ss ZZ").unix();
+            break
+        case "MYSQL":
+            date = dayjs(content, "YYYY-MM-DD hh:mm:ss").unix();
+            break
+        case "UNIX":
+            date = dayjs(content).unix();
+            break
+        // User defined format using the data-format attribute or columns[n].format option
+        default:
+            date = dayjs(content, format, true).valueOf();
+            break
+        }
+    }
+    return date
+};
+
 /**
  * Check is item is object
  */
@@ -53,37 +2465,6 @@ const button = (className, page, text) => createElement(
 );
 
 /**
- * Bubble sort algorithm
- */
-const sortItems = (a, b) => {
-    let c;
-    let d;
-    if (1 === b) {
-        c = 0;
-        d = a.length;
-    } else {
-        if (b === -1) {
-            c = a.length - 1;
-            d = -1;
-        }
-    }
-    for (let e = !0; e;) {
-        e = !1;
-        for (let f = c; f != d; f += b) {
-            if (a[f + b] && a[f].value > a[f + b].value) {
-                const g = a[f];
-                const h = a[f + b];
-                const i = g;
-                a[f] = h;
-                a[f + b] = i;
-                e = !0;
-            }
-        }
-    }
-    return a
-};
-
-/**
  * Pager truncation algorithm
  */
 const truncate = (a, b, c, d, ellipsis) => {
@@ -126,6 +2507,89 @@ const truncate = (a, b, c, d, ellipsis) => {
     return i
 };
 
+
+const objToText = obj => {
+    if (obj.nodeName==="#text") {
+        return obj.data
+    }
+    if (obj.childNodes) {
+        return obj.childNodes.map(childNode => objToText(childNode)).join("")
+    }
+    return ""
+};
+
+
+const escapeText = function(text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+};
+
+const readDataCell = (cell, columnSettings = {}) => {
+    if (cell.constructor == Object) {
+        return cell
+    }
+    const cellData = {
+        data: cell
+    };
+    if (typeof cell === "string" && cell.length) {
+        const node = stringToObj(`<td>${cell}</td>`);
+        if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+            cellData.data = node.childNodes;
+            cellData.type = "node";
+            const text = objToText(node);
+            cellData.text = text;
+            cellData.order = text;
+        }
+    }
+    if (columnSettings.type === "date" && columnSettings.format) {
+        cellData.order = parseDate(cell, columnSettings.format);
+    }
+
+    return cellData
+};
+
+
+const readTableData = (dataOption, dom=false, columnSettings) => {
+    const data = {
+        data: [],
+        headings: []
+    };
+    if (dataOption?.data) {
+        data.data = dataOption.data.map(row => row.map((cell, index) => readDataCell(cell, columnSettings.columns[index])));
+    } else if (dom?.tBodies.length) {
+        data.data = Array.from(dom.tBodies[0].rows).map(
+            row => Array.from(row.cells).map(
+                (cell, index) => readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index])
+            )
+        );
+    }
+    if (dataOption?.headings) {
+        data.headings = dataOption.headings.map(heading => ({data: heading,
+            sorted: false}));
+    } else if (dom?.tHead) {
+        data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(th => {
+            const heading = {data: th.innerHTML,
+                sorted: false};
+            heading.sortable = th.dataset.sortable !== "false";
+            return heading
+        });
+    } else if (dataOption?.data?.data?.length) {
+        data.headings = dataOption.data.data[0].map(_cell => "");
+    } else if (dom?.tBodies.length) {
+        data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(_cell => "");
+    }
+
+    if (data.data.length && data.data[0].length !== data.headings.length) {
+        throw new Error(
+            "Data heading length mismatch."
+        )
+    }
+    return data
+};
+
 /**
  * Rows API
  */
@@ -136,81 +2600,38 @@ class Rows {
         this.cursor = false;
     }
 
-    /**
-     * Build a new row
-     */
-    build(row) {
-        const tr = createElement("tr");
-
-        let headings = this.dt.headings;
-
-        if (!headings.length) {
-            headings = row.map(() => "");
+    setCursor(index=false) {
+        if (index === this.cursor) {
+            return
         }
-
-        headings.forEach((h, i) => {
-            const td = createElement("td");
-
-            // Fixes #29
-            if (!row[i] || !row[i].length) {
-                row[i] = "";
+        const oldCursor = this.cursor;
+        this.cursor = index;
+        this.dt.renderTable();
+        if (index !== false && this.dt.options.scrollY) {
+            const cursorDOM = this.dt.dom.querySelector("tr.dataTable-cursor");
+            if (cursorDOM) {
+                cursorDOM.scrollIntoView({block: "nearest"});
             }
-
-            td.innerHTML = row[i];
-
-            td.data = row[i];
-
-            tr.appendChild(td);
-        });
-
-        return tr
-    }
-
-    setCursor(row=false) {
-        let oldCursor;
-        Array.from(this.dt.dom.rows).forEach(row => {
-            oldCursor = row;
-            row.classList.remove("dataTable-cursor");
-        });
-        if (row) {
-            row.classList.add("dataTable-cursor");
-            this.cursor = row;
-            if (this.dt.options.scrollY) {
-                this.cursor.scrollIntoView({block: "nearest"});
-            }
-            this.dt.emit("datatable.cursormove", this.cursor, oldCursor);
         }
-    }
-
-    render(row) {
-        return row
+        this.dt.emit("datatable.cursormove", this.cursor, oldCursor);
     }
 
     /**
      * Add new row
      */
     add(data) {
-        if (Array.isArray(data)) {
-            const dt = this.dt;
-            // Check for multiple rows
-            if (Array.isArray(data[0])) {
-                data.forEach(row => {
-                    dt.rowData.push(this.build(row));
-                });
-            } else {
-                dt.rowData.push(this.build(data));
-            }
+        const row = data.map((cell, index) => {
+            const columnSettings = this.dt.columnSettings.columns[index] || {};
+            return readDataCell(cell, columnSettings)
+        });
+        this.dt.data.data.push(row);
 
-            // We may have added data to an empty table
-            if ( dt.rowData.length ) {
-                dt.hasRows = true;
-            }
-
-
-            this.update();
-
-            dt.columns.rebuild();
+        // We may have added data to an empty table
+        if ( this.dt.data.data.length ) {
+            this.dt.hasRows = true;
         }
+        this.dt.update(false);
+        this.dt.fixColumns();
 
     }
 
@@ -218,39 +2639,19 @@ class Rows {
      * Remove row(s)
      */
     remove(select) {
-        const dt = this.dt;
-
         if (Array.isArray(select)) {
-            // Remove in reverse otherwise the indexes will be incorrect
-            select.sort((a, b) => b - a);
-
-            select.forEach(row => {
-                dt.rowData.splice(row, 1);
-            });
-        } else if (select == "all") {
-            dt.rowData = [];
+            this.dt.data.data = this.dt.data.data.filter((_row, index) => !select.includes(index));
+            // We may have emptied the table
+            if ( !this.dt.data.data.length ) {
+                this.dt.hasRows = false;
+            }
+            this.dt.update(false);
+            this.dt.fixColumns();
         } else {
-            dt.rowData.splice(select, 1);
+            return this.remove([select])
         }
-
-        // We may have emptied the table
-        if ( !dt.rowData.length ) {
-            dt.hasRows = false;
-        }
-
-        this.update();
-        dt.columns.rebuild();
     }
 
-    /**
-     * Update row indexes
-     * @return {Void}
-     */
-    update() {
-        this.dt.rowData.forEach((row, i) => {
-            row.dataIndex = i;
-        });
-    }
 
     /**
      * Find index of row by searching for a value in a column
@@ -258,8 +2659,8 @@ class Rows {
     findRowIndex(columnIndex, value) {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
-        return this.dt.rowData.findIndex(
-            tr => tr.children[columnIndex].innerText.toLowerCase().includes(String(value).toLowerCase())
+        return this.dt.data.data.findIndex(
+            row => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
         )
     }
 
@@ -278,9 +2679,9 @@ class Rows {
             }
         }
         // get the row from data
-        const row = this.dt.rowData[index];
+        const row = this.dt.data.data[index];
         // return innerHTML of each td
-        const cols = [...row.cells].map(r => r.innerHTML);
+        const cols = row.map(cell => cell.data);
         // return everything
         return {
             index,
@@ -293,10 +2694,13 @@ class Rows {
      * Update a row with new data
      */
     updateRow(select, data) {
-        const row = this.build(data);
-        this.dt.rowData.splice(select, 1, row);
-        this.update();
-        this.dt.columns.rebuild();
+        const row = data.map((cell, index) => {
+            const columnSettings = this.dt.columnSettings.columns[index] || {};
+            return readDataCell(cell, columnSettings)
+        });
+        this.dt.data.data.splice(select, 1, row);
+        this.dt.update(false);
+        this.dt.fixColumns();
     }
 }
 
@@ -307,16 +2711,11 @@ class Columns {
 
     /**
      * Swap two columns
-     * @return {Void}
      */
     swap(columns) {
-        if (columns.length && columns.length === 2) {
-            const cols = [];
-
+        if (columns.length === 2) {
             // Get the current column indexes
-            this.dt.headings.forEach((h, i) => {
-                cols.push(i);
-            });
+            const cols = this.dt.data.headings.map((_node, index) => index);
 
             const x = columns[0];
             const y = columns[1];
@@ -324,7 +2723,7 @@ class Columns {
             cols[y] = cols[x];
             cols[x] = b;
 
-            this.order(cols);
+            return this.order(cols)
         }
     }
 
@@ -332,274 +2731,157 @@ class Columns {
      * Reorder the columns
      */
     order(columns) {
-        let a;
-        let b;
-        let c;
-        let d;
-        let h;
-        let s;
-        let cell;
 
-        const temp = [
-            [],
-            [],
-            [],
-            []
-        ];
-
-        const dt = this.dt;
-
-        // Order the headings
-        columns.forEach((column, x) => {
-            h = dt.headings[column];
-            s = h.getAttribute("data-sortable") !== "false";
-            a = h.cloneNode(true);
-            a.originalCellIndex = x;
-            a.sortable = s;
-
-            temp[0].push(a);
-
-            if (!dt.hiddenColumns.includes(column)) {
-                b = h.cloneNode(true);
-                b.originalCellIndex = x;
-                b.sortable = s;
-
-                temp[1].push(b);
-            }
-        });
-
-        // Order the row cells
-        dt.rowData.forEach((row, i) => {
-            c = row.cloneNode(false);
-            d = row.cloneNode(false);
-
-            c.dataIndex = d.dataIndex = i;
-
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                c.searchIndex = d.searchIndex = row.searchIndex;
-            }
-
-            // Append the cell to the fragment in the correct order
-            columns.forEach(column => {
-                cell = row.cells[column].cloneNode(true);
-                cell.data = row.cells[column].data;
-                c.appendChild(cell);
-
-                if (!dt.hiddenColumns.includes(column)) {
-                    cell = row.cells[column].cloneNode(true);
-                    cell.data = row.cells[column].data;
-                    d.appendChild(cell);
-                }
-            });
-
-            temp[2].push(c);
-            temp[3].push(d);
-        });
-
-        dt.headings = temp[0];
-        dt.activeHeadings = temp[1];
-
-        dt.rowData = temp[2];
-        dt.activeRows = temp[3];
+        this.dt.headings = columns.map(index => this.dt.headings[index]);
+        this.dt.data.data = this.dt.data.data.map(
+            row => columns.map(index => row[index])
+        );
+        this.dt.columnSettings.columns = columns.map(
+            index => this.dt.columnSettings.columns[index]
+        );
 
         // Update
-        dt.update();
+        this.dt.update();
     }
 
     /**
      * Hide columns
-     * @return {Void}
      */
     hide(columns) {
-        if (columns.length) {
-            const dt = this.dt;
-
-            columns.forEach(column => {
-                if (!dt.hiddenColumns.includes(column)) {
-                    dt.hiddenColumns.push(column);
-                }
-            });
-
-            this.rebuild();
+        if (!columns.length) {
+            return
         }
+        columns.forEach(index => {
+            if (!this.dt.columnSettings.columns[index]) {
+                this.dt.columnSettings.columns[index] = {};
+            }
+            const column = this.dt.columnSettings.columns[index];
+            column.hidden = true;
+        });
+
+        this.dt.update();
     }
 
     /**
      * Show columns
-     * @return {Void}
      */
     show(columns) {
-        if (columns.length) {
-            let index;
-            const dt = this.dt;
-
-            columns.forEach(column => {
-                index = dt.hiddenColumns.indexOf(column);
-                if (index > -1) {
-                    dt.hiddenColumns.splice(index, 1);
-                }
-            });
-
-            this.rebuild();
+        if (!columns.length) {
+            return
         }
+        columns.forEach(index => {
+            if (!this.dt.columnSettings.columns[index]) {
+                this.dt.columnSettings.columns[index] = {};
+            }
+            const column = this.dt.columnSettings.columns[index];
+            delete column.hidden;
+        });
+
+        this.dt.update();
     }
 
     /**
      * Check column(s) visibility
-     * @return {Boolean}
      */
     visible(columns) {
-        let cols;
-        const dt = this.dt;
 
-        columns = columns || dt.headings.map(th => th.originalCellIndex);
-
-        if (!isNaN(columns)) {
-            cols = !dt.hiddenColumns.includes(columns);
-        } else if (Array.isArray(columns)) {
-            cols = [];
-            columns.forEach(column => {
-                cols.push(!dt.hiddenColumns.includes(column));
-            });
+        if (Array.isArray(columns)) {
+            return columns.map(index => !this.dt.columnSettings.columns[index]?.hidden)
         }
+        return !this.dt.columnSettings.columns[columns]?.hidden
 
-        return cols
     }
 
     /**
      * Add a new column
      */
     add(data) {
-        let td;
-        const th = document.createElement("th");
-
-        if (!this.dt.headings.length) {
-            this.dt.insert({
-                headings: [data.heading],
-                data: data.data.map(i => [i])
-            });
-            this.rebuild();
-            return
-        }
-
-        if (!this.dt.hiddenHeader) {
-            if (data.heading.nodeName) {
-                th.appendChild(data.heading);
-            } else {
-                th.innerHTML = data.heading;
+        const newColumnSelector = this.dt.data.headings.length;
+        this.dt.data.headings = this.dt.data.headings.concat([{data: data.heading}]);
+        this.dt.data.data = this.dt.data.data.map(
+            (row, index) => row.concat([readDataCell(data.data[index], data)])
+        );
+        if (data.type || data.format || data.sortable || data.render) {
+            if (!this.dt.columnSettings.columns[newColumnSelector]) {
+                this.dt.columnSettings.columns[newColumnSelector] = {};
             }
-        } else {
-            th.innerHTML = "";
-        }
-
-        this.dt.headings.push(th);
-
-        this.dt.rowData.forEach((row, i) => {
-            if (data.data[i]) {
-                td = document.createElement("td");
-
-                if (data.data[i].nodeName) {
-                    td.appendChild(data.data[i]);
-                } else {
-                    td.innerHTML = data.data[i];
-                }
-
-                td.data = td.innerHTML;
-
-                if (data.render) {
-                    td.innerHTML = data.render.call(this, td.data, td, row);
-                }
-
-                row.appendChild(td);
+            const column = this.dt.columnSettings.columns[newColumnSelector];
+            if (data.type) {
+                column.type = data.type;
             }
-        });
-
-        if (data.type) {
-            th.setAttribute("data-type", data.type);
+            if (data.format) {
+                column.format = data.format;
+            }
+            if (data.sortable) {
+                column.sortable = data.sortable;
+            }
+            if (data.filter) {
+                column.filter = data.filter;
+            }
+            if (data.type) {
+                column.type = data.type;
+            }
         }
-        if (data.format) {
-            th.setAttribute("data-format", data.format);
-        }
-
-        if (data.hasOwnProperty("sortable")) {
-            th.sortable = data.sortable;
-            th.setAttribute("data-sortable", data.sortable === true ? "true" : "false");
-        }
-
-        this.rebuild();
-
-        this.dt.renderHeader();
+        this.dt.update(false);
+        this.dt.fixColumns();
     }
 
     /**
      * Remove column(s)
      */
-    remove(select) {
-        if (Array.isArray(select)) {
-            // Remove in reverse otherwise the indexes will be incorrect
-            select.sort((a, b) => b - a);
-            select.forEach(column => this.remove(column));
+    remove(columns) {
+        if (Array.isArray(columns)) {
+            this.dt.data.headings = this.dt.data.headings.filter((_heading, index) => !columns.includes(index));
+            this.dt.data.data = this.dt.data.data.map(
+                row => row.filter((_cell, index) => !columns.includes(index))
+            );
+            this.dt.update(false);
+            this.dt.fixColumns();
         } else {
-            this.dt.headings.splice(select, 1);
-
-            this.dt.rowData.forEach(row => {
-                row.removeChild(row.cells[select]);
-            });
+            return this.remove([columns])
         }
-
-        this.rebuild();
     }
 
     /**
      * Filter by column
      */
-    filter(column, dir, init, terms) {
-        const dt = this.dt;
+    filter(column, init) {
 
-        // Creates a internal state that manages filters if there are none
-        if ( !dt.filterState ) {
-            dt.filterState = {
-                originalData: dt.rowData
-            };
+        if (!this.dt.columnSettings.columns[column]?.filter?.length) {
+            // There is no filter to apply.
+            return
         }
 
-        // If that column is was not filtered yet, we need to create its state
-        if ( !dt.filterState[column] ) {
-
-            // append a filter that selects all rows, 'resetting' the filter
-            const filters = [...terms, () => true];
-
-            dt.filterState[column] = (
-                function() {
-                    let i = 0;
-                    return () => filters[i++ % (filters.length)]
-                }()
-            );
-        }
-
-        // Apply the filter and rebuild table
-        const rowFilter = dt.filterState[column](); // fetches next filter
-        const filteredRows = Array.from(dt.filterState.originalData).filter(tr => {
-            const cell = tr.cells[column];
-            const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText;
-
-            // If the filter is a function, call it, if it is a string, compare it
-            return (typeof rowFilter) === "function" ? rowFilter(content) : content === rowFilter
-        });
-
-        dt.rowData = filteredRows;
-
-        if (!dt.rowData.length) {
-            dt.clear();
-            dt.hasRows = false;
-            dt.setMessage(dt.options.labels.noRows);
+        const currentFilter = this.dt.filterStates.find(filterState => filterState.column === column);
+        let newFilterState;
+        if (currentFilter) {
+            let returnNext = false;
+            newFilterState = this.dt.columnSettings.columns[column].filter.find(filter => {
+                if (returnNext) {
+                    return true
+                }
+                if (filter === currentFilter.state) {
+                    returnNext = true;
+                }
+                return false
+            });
         } else {
-            this.rebuild();
-            dt.update();
+            newFilterState = this.dt.columnSettings.columns[column].filter[0];
         }
+
+        if (currentFilter && newFilterState) {
+            currentFilter.state = newFilterState;
+        } else if (currentFilter) {
+            this.dt.filterStates = this.dt.filterStates.filter(filterState => filterState.column !== column);
+        } else {
+            this.dt.filterStates.push({column,
+                state: newFilterState});
+        }
+
+        this.dt.update();
 
         if (!init) {
-            dt.emit("datatable.sort", column, dir);
+            this.dt.emit("datatable.filter", column, newFilterState);
         }
     }
 
@@ -607,262 +2889,53 @@ class Columns {
      * Sort by column
      */
     sort(column, dir, init) {
-        const dt = this.dt;
 
-        // Check column is present
-        if (dt.hasHeadings && (column < 0 || column > dt.headings.length)) {
-            return false
+        // If there is a filter for this column, apply it instead of sorting
+        if (this.dt.columnSettings.columns[column]?.filter?.length) {
+            return this.filter(column, init)
         }
-
-        //If there is a filter for this column, apply it instead of sorting
-        const filterTerms = dt.options.filters &&
-              dt.options.filters[dt.headings[column].textContent];
-        if ( filterTerms && filterTerms.length !== 0 ) {
-            this.filter(column, dir, init, filterTerms);
-            return
-        }
-
-        dt.sorting = true;
 
         if (!init) {
-            dt.emit("datatable.sorting", column, dir);
+            this.dt.emit("datatable.sorting", column, dir);
         }
 
-        let rows = dt.rowData;
-        const alpha = [];
-        const numeric = [];
-        let a = 0;
-        let n = 0;
-        const th = dt.headings[column];
-
-        const waitFor = [];
-
-        // Check for date format
-        if (th.getAttribute("data-type") === "date") {
-            let format = false;
-            const formatted = th.hasAttribute("data-format");
-
-            if (formatted) {
-                format = th.getAttribute("data-format");
-            }
-            waitFor.push(Promise.resolve().then(function () { return date; }).then(({parseDate}) => date => parseDate(date, format)));
+        if (!dir) {
+            const currentDir = this.dt.data.headings[column].sorted;
+            dir = currentDir === "asc" ? "desc" : "asc";
         }
 
-        Promise.all(waitFor).then(importedFunctions => {
-            const parseFunction = importedFunctions[0]; // only defined if date
-            Array.from(rows).forEach(tr => {
-                const cell = tr.cells[column];
-                const content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.innerText;
-                let num;
-                if (parseFunction) {
-                    num = parseFunction(content);
-                } else if (typeof content==="string") {
-                    num = content.replace(/(\$|,|\s|%)/g, "");
-                } else {
-                    num = content;
-                }
-
-                if (parseFloat(num) == num) {
-                    numeric[n++] = {
-                        value: Number(num),
-                        row: tr
-                    };
-                } else {
-                    alpha[a++] = {
-                        value: typeof content==="string" ? content.toLowerCase() : content,
-                        row: tr
-                    };
-                }
-            });
-
-            /* Sort according to direction (ascending or descending) */
-            if (!dir) {
-                if (th.classList.contains("asc")) {
-                    dir = "desc";
-                } else {
-                    dir = "asc";
-                }
-            }
-            let top;
-            let btm;
-            if (dir == "desc") {
-                top = sortItems(alpha, -1);
-                btm = sortItems(numeric, -1);
-                th.classList.remove("asc");
-                th.classList.add("desc");
-                th.setAttribute("aria-sort", "descending");
-            } else {
-                top = sortItems(numeric, 1);
-                btm = sortItems(alpha, 1);
-                th.classList.remove("desc");
-                th.classList.add("asc");
-                th.setAttribute("aria-sort", "ascending");
-            }
-
-            /* Clear asc/desc class names from the last sorted column's th if it isn't the same as the one that was just clicked */
-            if (dt.lastTh && th != dt.lastTh) {
-                dt.lastTh.classList.remove("desc");
-                dt.lastTh.classList.remove("asc");
-                dt.lastTh.removeAttribute("aria-sort");
-            }
-
-            dt.lastTh = th;
-
-            /* Reorder the table */
-            rows = top.concat(btm);
-
-            dt.rowData = [];
-            const indexes = [];
-
-            rows.forEach((v, i) => {
-                dt.rowData.push(v.row);
-
-                if (v.row.searchIndex !== null && v.row.searchIndex !== undefined) {
-                    indexes.push(i);
-                }
-            });
-
-            dt.searchData = indexes;
-
-            this.rebuild();
-
-            dt.update();
-
-            if (!init) {
-                dt.emit("datatable.sort", column, dir);
-            }
-        });
-    }
-
-    /**
-     * Rebuild the columns
-     * @return {Void}
-     */
-    rebuild() {
-        let a;
-        let b;
-        let c;
-        let d;
-        const dt = this.dt;
-        const temp = [];
-
-        dt.activeRows = [];
-        dt.activeHeadings = [];
-
-        dt.headings.forEach((th, i) => {
-            th.originalCellIndex = i;
-            th.sortable = th.getAttribute("data-sortable") !== "false";
-            if (!dt.hiddenColumns.includes(i)) {
-                dt.activeHeadings.push(th);
-            }
+        // Remove all other sorting
+        this.dt.data.headings.forEach(heading => {
+            heading.sorted = false;
         });
 
-        if (dt.selectedColumns.length) {
-            dt.rowData.forEach(row => {
-                Array.from(row.cells).forEach((cell, i) => {
-                    if (dt.selectedColumns.includes(i)) {
-                        dt.columnRenderers.forEach(options => {
-                            if (options.columns.includes(i)) {
-                                dt.rowData[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = options.renderer.call(this, cell.data, cell, row);
-                            }
-                        });
-                    }
-                });
-            });
+        this.dt.data.data.sort((row1, row2) => {
+            let order1 = row1[column].order || row1[column].data,
+                order2 = row2[column].order || row2[column].data;
+            if (dir === "desc") {
+                const temp = order1;
+                order1 = order2;
+                order2 = temp;
+            }
+            if (order1 < order2) {
+                return -1
+            } else if (order1 > order2) {
+                return 1
+            }
+            return 0
+        });
+
+        this.dt.data.headings[column].sorted = dir;
+
+        this.dt.update(!init);
+
+        if (!init) {
+            this.dt.columnSettings.sort = {column,
+                dir};
+            this.dt.emit("datatable.sort", column, dir);
         }
-
-        // Loop over the rows and reorder the cells
-        dt.rowData.forEach((row, i) => {
-            a = row.cloneNode(false);
-            b = row.cloneNode(false);
-
-            a.dataIndex = b.dataIndex = i;
-
-            if (row.searchIndex !== null && row.searchIndex !== undefined) {
-                a.searchIndex = b.searchIndex = row.searchIndex;
-            }
-
-            // Append the cell to the fragment in the correct order
-            Array.from(row.cells).forEach(cell => {
-                c = cell.cloneNode(true);
-                c.data = cell.data;
-                a.appendChild(c);
-
-                if (!dt.hiddenColumns.includes(c.cellIndex)) {
-                    d = c.cloneNode(true);
-                    d.data = c.data;
-                    b.appendChild(d);
-                }
-            });
-
-            // Append the fragment with the ordered cells
-            temp.push(a);
-            dt.activeRows.push(b);
-        });
-
-        dt.rowData = temp;
-
-        dt.update();
     }
 }
-
-/**
- * Parse data to HTML table
- */
-const dataToTable = function (data) {
-    let thead = false;
-    let tbody = false;
-
-    data = data || this.options.data;
-
-    if (data.headings) {
-        thead = createElement("thead");
-        const tr = createElement("tr");
-        data.headings.forEach(col => {
-            const td = createElement("th", {
-                html: col
-            });
-            tr.appendChild(td);
-        });
-
-        thead.appendChild(tr);
-    }
-
-    if (data.data && data.data.length) {
-        tbody = createElement("tbody");
-        data.data.forEach(rows => {
-            if (data.headings) {
-                if (data.headings.length !== rows.length) {
-                    throw new Error(
-                        "The number of rows do not match the number of headings."
-                    )
-                }
-            }
-            const tr = createElement("tr");
-            rows.forEach(value => {
-                const td = createElement("td", {
-                    html: value
-                });
-                tr.appendChild(td);
-            });
-            tbody.appendChild(tr);
-        });
-    }
-
-    if (thead) {
-        if (this.dom.tHead !== null) {
-            this.dom.removeChild(this.dom.tHead);
-        }
-        this.dom.appendChild(thead);
-    }
-
-    if (tbody) {
-        if (this.dom.tBodies.length) {
-            this.dom.removeChild(this.dom.tBodies[0]);
-        }
-        this.dom.appendChild(tbody);
-    }
-};
 
 /**
  * Default configuration
@@ -899,6 +2972,7 @@ const defaultConfig$1 = {
 
     tabIndex: false,
     rowNavigation: false,
+    rowRender: false,
 
     // Customise the display text
     labels: {
@@ -935,7 +3009,6 @@ class DataTable {
             }
         };
 
-        this.initialSortable = this.options.sortable;
         this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : ""; // preserve in case of later destruction
 
         if (this.options.tabIndex) {
@@ -948,10 +3021,22 @@ class DataTable {
             onResize: event => this.onResize(event)
         };
 
+        this.dd = new DiffDOM();
+
         // Initialize other variables
         this.initialized = false;
         this.data = false;
-        this.rowData = false;
+        this.virtualDOM = false;
+        this.virtualHeaderDOM = false;
+        this.headerDOM = false;
+        this.currentPage = 0;
+        this.onFirstPage = true;
+        this.hasHeadings = false;
+        this.hasRows = false;
+
+        this.columnWidths = [];
+        this.columnSettings = false;
+        this.filterStates = [];
 
         this.init();
     }
@@ -967,23 +3052,23 @@ class DataTable {
         this.rows = new Rows(this);
         this.columns = new Columns(this);
 
-        // Disable manual sorting if no header is present (#4)
-        if (this.dom.tHead === null && !this.options.data?.headings) {
-            this.options.sortable = false;
-        }
+        // // Disable manual sorting if no header is present (#4)
+        // if (this.dom.tHead === null && !this.options.data?.headings) {
+        //     this.options.sortable = false
+        // }
+        //
+        // if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
+        //     throw new Error(
+        //         "You seem to be using the data option, but you've not defined any rows."
+        //     )
+        // }
 
-        if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
-            throw new Error(
-                "You seem to be using the data option, but you've not defined any rows."
-            )
-        }
+        this.columnSettings = readColumnSettings(this.options.columns);
+        this.data = readTableData(this.options.data, this.dom, this.columnSettings);
+        this.hasRows = Boolean(this.data.data.length);
+        this.hasHeadings = Boolean(this.data.headings.length);
 
-        this.currentPage = 1;
-        this.onFirstPage = true;
-
-        this.hiddenColumns = [];
-        this.columnRenderers = [];
-        this.selectedColumns = [];
+        this.virtualDOM = nodeToObj(this.dom);
 
         this.render();
 
@@ -993,78 +3078,11 @@ class DataTable {
         }, 10);
     }
 
+
     /**
      * Render the instance
      */
     render() {
-        let template = "";
-
-        // Convert data to HTML
-        if (this.options.data) {
-            dataToTable.call(this);
-        }
-
-        // Store references
-        this.body = this.dom.tBodies[0];
-        this.head = this.dom.tHead;
-        this.foot = this.dom.tFoot;
-
-        if (!this.body) {
-            this.body = createElement("tbody");
-
-            this.dom.appendChild(this.body);
-        }
-
-        this.hasRows = this.body.rows.length > 0;
-
-        // Make a tHead if there isn't one (fixes #8)
-        if (!this.head) {
-            const h = createElement("thead");
-            const t = createElement("tr");
-
-            if (this.hasRows) {
-                Array.from(this.body.rows[0].cells).forEach(() => {
-                    t.appendChild(createElement("th"));
-                });
-
-                h.appendChild(t);
-            }
-
-            this.head = h;
-
-            this.dom.insertBefore(this.head, this.body);
-
-            this.hiddenHeader = this.options.hiddenHeader;
-        }
-
-        this.headings = [];
-        this.hasHeadings = this.head.rows.length > 0;
-
-        if (this.hasHeadings) {
-            this.header = this.head.rows[0];
-            this.headings = [].slice.call(this.header.cells);
-        }
-
-        // Header
-        if (!this.options.header) {
-            if (this.head) {
-                this.dom.removeChild(this.dom.tHead);
-            }
-        }
-
-        // Footer
-        if (this.options.footer) {
-            if (this.head && !this.foot) {
-                this.foot = createElement("tfoot", {
-                    html: this.head.innerHTML
-                });
-                this.dom.appendChild(this.foot);
-            }
-        } else {
-            if (this.foot) {
-                this.dom.removeChild(this.dom.tFoot);
-            }
-        }
 
         // Build
         this.wrapper = createElement("div", {
@@ -1072,6 +3090,7 @@ class DataTable {
         });
 
         // Template for custom layouts
+        let template = "";
         template += "<div class='dataTable-top'>";
         template += this.options.layout.top;
         template += "</div>";
@@ -1125,14 +3144,6 @@ class DataTable {
             template = template.replace("{search}", "");
         }
 
-        if (this.hasHeadings) {
-            // Sortable
-            this.renderHeader();
-        }
-
-        // Add table class
-        this.dom.classList.add("dataTable-table");
-
         // Paginator
         const paginatorWrapper = createElement("nav", {
             class: "dataTable-pagination"
@@ -1159,23 +3170,13 @@ class DataTable {
         // Store the table dimensions
         this.rect = this.dom.getBoundingClientRect();
 
-        // Convert rows to array for processing
-        this.rowData = Array.from(this.body.rows);
-        this.activeRows = this.rowData.slice();
-        this.activeHeadings = this.headings.slice();
-
-        // Update
-        this.update();
-
-
-        this.setColumns();
-
-
-        // Fix height
+        // // Update
+        this.update(false);
+        //
+        // // Fix height
         this.fixHeight();
+        //
 
-        // Fix columns
-        this.fixColumns();
 
         // Class names
         if (!this.options.header) {
@@ -1203,32 +3204,48 @@ class DataTable {
         }
 
         this.bindEvents();
+
+        if (this.columnSettings.sort) {
+            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true);
+        }
+
+        // // Fix columns
+        this.fixColumns();
+    }
+
+    renderTable(renderOptions={}) {
+        const newVirtualDOM = dataToVirtualDOM(
+            this.data.headings,
+            this.options.paging && this.currentPage && !renderOptions.noPaging ?
+                this.pages[this.currentPage - 1] :
+                this.data.data.map((row, index) => ({row,
+                    index})),
+            this.columnSettings,
+            this.columnWidths,
+            this.rows.cursor,
+            this.options,
+            renderOptions
+        );
+
+        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
+        this.dd.apply(this.dom, diff);
+        this.virtualDOM = newVirtualDOM;
     }
 
     /**
      * Render the page
      * @return {Void}
      */
-    renderPage(lastRowCursor=false) {
-        if (this.hasHeadings) {
-            flush(this.header);
-
-            this.activeHeadings.forEach(th => this.header.appendChild(th));
-        }
-
-
+    renderPage(renderTable=true, lastRowCursor=false) {
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
                 this.currentPage = 1;
             }
 
             // Use a fragment to limit touching the DOM
-            const index = this.currentPage - 1;
-
-            const frag = document.createDocumentFragment();
-            this.pages[index].forEach(row => frag.appendChild(this.rows.render(row)));
-
-            this.clear(frag);
+            if (renderTable) {
+                this.renderTable();
+            }
 
             this.onFirstPage = this.currentPage === 1;
             this.onLastPage = this.currentPage === this.lastPage;
@@ -1248,7 +3265,7 @@ class DataTable {
             f = current * this.options.perPage;
             t = f + this.pages[current].length;
             f = f + 1;
-            items = this.searching ? this.searchData.length : this.rowData.length;
+            items = this.searching ? this.searchData.length : this.data.data.length;
         }
 
         if (this.label && this.options.labels.info.length) {
@@ -1268,12 +3285,12 @@ class DataTable {
         }
 
         if (this.options.rowNavigation) {
-            if (!this.rows.cursor || !this.pages[this.currentPage-1].includes(this.rows.cursor)) {
+            if (!this.rows.cursor || !this.pages[this.currentPage-1].find(page => page.index === this.rows.cursor)) {
                 const rows = this.pages[this.currentPage-1];
                 if (lastRowCursor) {
-                    this.rows.setCursor(rows[rows.length-1]);
+                    this.rows.setCursor(rows[rows.length-1].index);
                 } else {
-                    this.rows.setCursor(rows[0]);
+                    this.rows.setCursor(rows[0].index);
                 }
 
             }
@@ -1345,42 +3362,6 @@ class DataTable {
     }
 
     /**
-     * Render the header
-     * @return {Void}
-     */
-    renderHeader() {
-        this.labels = [];
-
-        if (this.headings && this.headings.length) {
-            this.headings.forEach((th, i) => {
-
-                this.labels[i] = th.textContent;
-
-                if (th.firstElementChild && th.firstElementChild.classList.contains("dataTable-sorter")) {
-                    th.innerHTML = th.firstElementChild.innerHTML;
-                }
-
-                th.sortable = th.getAttribute("data-sortable") !== "false";
-
-                th.originalCellIndex = i;
-                if (this.options.sortable && th.sortable) {
-                    const link = createElement("a", {
-                        href: "#",
-                        class: "dataTable-sorter",
-                        html: th.innerHTML
-                    });
-
-                    th.innerHTML = "";
-                    th.setAttribute("data-sortable", "");
-                    th.appendChild(link);
-                }
-            });
-        }
-
-        this.fixColumns();
-    }
-
-    /**
      * Bind event listeners
      * @return {[type]} [description]
      */
@@ -1421,7 +3402,7 @@ class DataTable {
                     t.classList.contains("dataTable-sorter") &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    this.columns.sort(this.headings.indexOf(t.parentNode));
+                    this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode));
                     e.preventDefault();
                 }
             }
@@ -1429,18 +3410,36 @@ class DataTable {
         if (this.options.rowNavigation) {
             this.dom.addEventListener("keydown", event => {
                 if (event.key === "ArrowUp") {
-                    if (this.rows.cursor.previousElementSibling) {
-                        this.rows.setCursor(this.rows.cursor.previousElementSibling);
-                        event.preventDefault();
-                        event.stopPropagation();
+                    event.preventDefault();
+                    event.stopPropagation();
+                    let lastRow;
+                    this.pages[this.currentPage-1].find(row => {
+                        if (row.index===this.rows.cursor) {
+                            return true
+                        }
+                        lastRow = row;
+                        return false
+                    });
+                    if (lastRow) {
+                        this.rows.setCursor(lastRow.index);
                     } else if (!this.onFirstPage) {
-                        this.page(this.currentPage-1, true);
+                        this.page(this.currentPage-1, {lastRowCursor: true});
                     }
                 } else if (event.key === "ArrowDown") {
-                    if (this.rows.cursor.nextElementSibling) {
-                        this.rows.setCursor(this.rows.cursor.nextElementSibling);
-                        event.preventDefault();
-                        event.stopPropagation();
+                    event.preventDefault();
+                    event.stopPropagation();
+                    let foundRow;
+                    const nextRow = this.pages[this.currentPage-1].find(row => {
+                        if (foundRow) {
+                            return true
+                        }
+                        if (row.index===this.rows.cursor) {
+                            foundRow = true;
+                        }
+                        return false
+                    });
+                    if (nextRow) {
+                        this.rows.setCursor(nextRow.index);
                     } else if (!this.onLastPage) {
                         this.page(this.currentPage+1);
                     }
@@ -1448,17 +3447,17 @@ class DataTable {
                     this.emit("datatable.selectrow", this.rows.cursor, event);
                 }
             });
-            this.body.addEventListener("mousedown", event => {
-                if (this.body.matches(":focus")) {
-                    const row = Array.from(this.body.rows).find(row => row.contains(event.target));
-                    this.emit("datatable.selectrow", row, event);
+            this.dom.addEventListener("mousedown", event => {
+                if (this.dom.matches(":focus")) {
+                    const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target));
+                    this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
                 }
 
             });
         } else {
-            this.body.addEventListener("mousedown", event => {
-                const row = Array.from(this.body.rows).find(row => row.contains(event.target));
-                this.emit("datatable.selectrow", row, event);
+            this.dom.addEventListener("mousedown", event => {
+                const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target));
+                this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
             });
         }
 
@@ -1475,82 +3474,6 @@ class DataTable {
             return
         }
         this.fixColumns();
-    }
-
-    /**
-     * Set up columns
-     * @return {[type]} [description]
-     */
-    setColumns(ajax) {
-
-        if (!ajax) {
-            this.rowData.forEach(row => {
-                Array.from(row.cells).forEach(cell => {
-                    cell.data = cell.innerHTML;
-                });
-            });
-        }
-
-        // Check for the columns option
-        if (this.options.columns && this.headings.length) {
-
-            this.options.columns.forEach(data => {
-
-                // convert single column selection to array
-                if (!Array.isArray(data.select)) {
-                    data.select = [data.select];
-                }
-
-                if (data.hasOwnProperty("render") && typeof data.render === "function") {
-                    this.selectedColumns = this.selectedColumns.concat(data.select);
-
-                    this.columnRenderers.push({
-                        columns: data.select,
-                        renderer: data.render
-                    });
-                }
-
-                // Add the data attributes to the th elements
-                data.select.forEach(column => {
-                    const th = this.headings[column];
-                    if (!th) {
-                        return
-                    }
-                    if (data.type) {
-                        th.setAttribute("data-type", data.type);
-                    }
-                    if (data.format) {
-                        th.setAttribute("data-format", data.format);
-                    }
-                    if (data.hasOwnProperty("sortable")) {
-                        th.setAttribute("data-sortable", data.sortable);
-                    }
-
-                    if (data.hasOwnProperty("hidden")) {
-                        if (data.hidden !== false) {
-                            this.columns.hide([column]);
-                        }
-                    }
-
-                    if (data.hasOwnProperty("sort") && data.select.length === 1) {
-                        this.columns.sort(data.select[0], data.sort, true);
-                    }
-                });
-            });
-        }
-
-        if (this.hasRows) {
-            this.rowData.forEach((row, i) => {
-                row.dataIndex = i;
-                Array.from(row.cells).forEach(cell => {
-                    cell.data = cell.innerHTML;
-                });
-            });
-
-            this.columns.rebuild();
-        }
-
-        this.renderHeader();
     }
 
     /**
@@ -1578,11 +3501,11 @@ class DataTable {
      * Update the instance
      * @return {Void}
      */
-    update() {
+    update(renderTable = true) {
         this.wrapper.classList.remove("dataTable-empty");
 
         this.paginate();
-        this.renderPage();
+        this.renderPage(renderTable);
 
         this.links = [];
 
@@ -1592,32 +3515,36 @@ class DataTable {
             this.links[i] = button(i === 0 ? "active" : "", num, num);
         }
 
-        this.sorting = false;
-
         this.renderPager();
-
-        this.rows.update();
 
         this.emit("datatable.update");
     }
 
-    /**
-     * Sort rows into pages
-     * @return {Number}
-     */
     paginate() {
-        let rows = this.activeRows;
+        let rows = this.data.data.map((row, index) => ({row,
+            index}));
 
         if (this.searching) {
             rows = [];
 
-            this.searchData.forEach(index => rows.push(this.activeRows[index]));
+            this.searchData.forEach(index => rows.push({index,
+                row: this.data.data[index]}));
+        }
+
+        if (this.filterStates.length) {
+            this.filterStates.forEach(
+                filterState => {
+                    rows = rows.filter(
+                        row => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
+                    );
+                }
+            );
         }
 
         if (this.options.paging) {
             // Check for hidden columns
             this.pages = rows
-                .map((tr, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .map((row, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
                 .filter(page => page);
         } else {
             this.pages = [rows];
@@ -1625,85 +3552,95 @@ class DataTable {
 
         this.totalPages = this.lastPage = this.pages.length;
 
+        this.currentPage = 1;
+
         return this.totalPages
     }
 
     /**
      * Fix column widths
-     * @return {Void}
      */
     fixColumns() {
+        const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden);
+        if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.length) {
 
-        if ((this.options.scrollY.length || this.options.fixedColumns) && this.activeHeadings && this.activeHeadings.length) {
-            let cells;
-            let hd = false;
             this.columnWidths = [];
-
+            const renderOptions = {
+                noPaging: true
+            };
             // If we have headings we need only set the widths on them
             // otherwise we need a temp header and the widths need applying to all cells
-            if (this.dom.tHead) {
+            if (this.options.header || this.options.footer) {
 
                 if (this.options.scrollY.length) {
-                    hd = createElement("thead");
-                    hd.appendChild(createElement("tr"));
-                    hd.style.height = "0px";
-                    if (this.headerTable) {
-                        // move real header back into place
-                        this.dom.tHead = this.headerTable.tHead;
-                    }
+                    renderOptions.unhideHeader = true;
+                }
+                if (this.headerDOM) {
+                    // Remove headerDOM for accurate measurements
+                    this.headerDOM.parentElement.removeChild(this.headerDOM);
                 }
 
                 // Reset widths
-                this.activeHeadings.forEach(cell => {
-                    cell.style.width = "";
-                });
+                renderOptions.noColumnWidths = true;
+                this.renderTable(renderOptions);
 
-                const totalOffsetWidth = this.activeHeadings.reduce(
-                    (total, cell) => total + cell.offsetWidth,
+                const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || []);
+                const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth);
+                const totalOffsetWidth = absoluteColumnWidths.reduce(
+                    (total, cellWidth) => total + cellWidth,
                     0
                 );
+                this.columnWidths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100);
 
-                this.activeHeadings.forEach((cell, i) => {
-                    const ow = cell.offsetWidth;
-                    const w = ow / totalOffsetWidth * 100;
-                    cell.style.width = `${w}%`;
-                    this.columnWidths[i] = ow;
-                    if (this.options.scrollY.length) {
-                        const th = createElement("th");
-                        hd.firstElementChild.appendChild(th);
-                        th.style.width = `${w}%`;
-                        th.style.paddingTop = "0";
-                        th.style.paddingBottom = "0";
-                        th.style.border = "0";
-                    }
-                });
 
                 if (this.options.scrollY.length) {
                     const container = this.dom.parentElement;
-                    if (!this.headerTable) {
-                        this.headerTable = createElement("table", {
-                            class: "dataTable-table"
-                        });
-                        const headercontainer = createElement("div", {
-                            class: "dataTable-headercontainer"
-                        });
-                        headercontainer.appendChild(this.headerTable);
-                        container.parentElement.insertBefore(headercontainer, container);
-                    }
-                    const thd = this.dom.tHead;
-                    this.dom.replaceChild(hd, thd);
-                    this.headerTable.tHead = thd;
+                    if (!this.headerDOM) {
+                        this.headerDOM = document.createElement("div");
+                        this.virtualHeaderDOM = {
+                            nodeName: "DIV"
+                        };
 
-                    // Compensate for scrollbars.
-                    this.headerTable.parentElement.style.paddingRight = `${
-                        this.headerTable.clientWidth -
-                        this.dom.clientWidth +
-                        parseInt(
-                            this.headerTable.parentElement.style.paddingRight ||
-                            "0",
-                            10
-                        )
-                    }px`;
+                    }
+                    container.parentElement.insertBefore(this.headerDOM, container);
+                    const newVirtualHeaderDOM = {
+                        nodeName: "DIV",
+                        attributes: {
+                            class: "dataTable-headercontainer"
+                        },
+                        childNodes: [
+                            {
+                                nodeName: "TABLE",
+                                attributes: {
+                                    class: "dataTable-table"
+                                },
+                                childNodes: [
+                                    {
+                                        nodeName: "THEAD",
+                                        childNodes: [
+                                            headingsToVirtualHeaderRowDOM(
+                                                this.data.headings, this.columnSettings, this.columnWidths, this.options, {unhideHeader: true})
+                                        ]
+
+                                    }
+
+                                ]
+                            }
+                        ]
+                    };
+                    const diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
+                    this.dd.apply(this.headerDOM, diff);
+                    this.virtualHeaderDOM = newVirtualHeaderDOM;
+
+                    // Compensate for scrollbars
+                    const paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth;
+                    if (paddingRight) {
+                        const paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM);
+                        paddedVirtualHeaderDOM.attributes.style = `padding-right: ${paddingRight}px;`;
+                        const diff = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM);
+                        this.dd.apply(this.headerDOM, diff);
+                        this.virtualHeaderDOM = paddedVirtualHeaderDOM;
+                    }
 
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
@@ -1712,44 +3649,24 @@ class DataTable {
                 }
 
             } else {
-                cells = [];
+                renderOptions.renderHeader = true;
+                this.renderTable(renderOptions);
 
-                // Make temperary headings
-                hd = createElement("thead");
-                const r = createElement("tr");
-                Array.from(this.dom.tBodies[0].rows[0].cells).forEach(() => {
-                    const th = createElement("th");
-                    r.appendChild(th);
-                    cells.push(th);
-                });
-
-                hd.appendChild(r);
-                this.dom.insertBefore(hd, this.body);
-
-                const widths = [];
-                cells.forEach((cell, i) => {
-                    const ow = cell.offsetWidth;
-                    const w = ow / this.rect.width * 100;
-                    widths.push(w);
-                    this.columnWidths[i] = ow;
-                });
-
-                this.rowData.forEach(row => {
-                    Array.from(row.cells).forEach((cell, i) => {
-                        if (this.columns.visible(cell.cellIndex))
-                            cell.style.width = `${widths[i]}%`;
-                    });
-                });
-
-                // Discard the temp header
-                this.dom.removeChild(hd);
+                const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || []);
+                const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth);
+                const totalOffsetWidth = absoluteColumnWidths.reduce(
+                    (total, cellWidth) => total + cellWidth,
+                    0
+                );
+                this.columnWidths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100);
             }
+            // render table without options for measurements
+            this.renderTable();
         }
     }
 
     /**
      * Fix the container height
-     * @return {Void}
      */
     fixHeight() {
         if (this.options.fixedHeight) {
@@ -1779,9 +3696,7 @@ class DataTable {
             return false
         }
 
-        this.clear();
-
-        this.rowData.forEach((row, idx) => {
+        this.data.data.forEach((row, idx) => {
             const inArray = this.searchData.includes(row);
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
@@ -1790,13 +3705,11 @@ class DataTable {
                 let cell = null;
                 let content = null;
 
-                for (let x = 0; x < row.cells.length; x++) {
-                    cell = row.cells[x];
-                    content = cell.hasAttribute("data-content") ? cell.getAttribute("data-content") : cell.textContent;
-
+                for (let x = 0; x < row.length; x++) {
+                    cell = row[x];
+                    content = cell.text || String(cell.data);
                     if (
-                        content.toLowerCase().includes(word) &&
-                        this.columns.visible(cell.cellIndex)
+                        this.columns.visible(x) && content.toLowerCase().includes(word)
                     ) {
                         includes = true;
                         break
@@ -1807,10 +3720,7 @@ class DataTable {
             }, true);
 
             if (doesQueryMatch && !inArray) {
-                row.searchIndex = idx;
                 this.searchData.push(idx);
-            } else {
-                row.searchIndex = null;
             }
         });
 
@@ -1830,9 +3740,9 @@ class DataTable {
     /**
      * Change page
      */
-    page(page, lastRowCursor=false) {
+    page(page, lastRowCursor = false) {
         // We don't want to load the current page again.
-        if (page == this.currentPage) {
+        if (page === this.currentPage) {
             return false
         }
 
@@ -1844,18 +3754,10 @@ class DataTable {
             return false
         }
 
-        this.renderPage(lastRowCursor);
+        this.renderPage(undefined, lastRowCursor);
         this.renderPager();
 
         this.emit("datatable.page", page);
-    }
-
-    /**
-     * Sort by column
-     */
-    sortColumn(column, direction) {
-        // Use columns API until sortColumn method is removed
-        this.columns.sort(column, direction);
     }
 
     /**
@@ -1866,29 +3768,9 @@ class DataTable {
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
-                    const tr = createElement("tr");
-                    data.headings.forEach(heading => {
-                        const th = createElement("th", {
-                            html: heading
-                        });
-
-                        tr.appendChild(th);
-                    });
-                    this.head.appendChild(tr);
-
-                    this.header = tr;
-                    this.headings = [].slice.call(tr.cells);
-                    this.hasHeadings = true;
-
-                    // Re-enable sorting if it was disabled due
-                    // to missing header
-                    this.options.sortable = this.initialSortable;
-
-                    // Allow sorting on new header
-                    this.renderHeader();
-
-                    // Activate newly added headings
-                    this.activeHeadings = this.headings.slice();
+                    this.data = readTableData(data, undefined, this.columnSettings);
+                    this.hasRows = Boolean(this.data.data.length);
+                    this.hasHeadings = Boolean(this.data.headings.length);
                 }
             }
 
@@ -1896,11 +3778,12 @@ class DataTable {
                 rows = data.data;
             }
         } else if (Array.isArray(data)) {
+            const headings = this.data.headings.map(heading => heading.data);
             data.forEach(row => {
                 const r = [];
                 Object.entries(row).forEach(([heading, cell]) => {
 
-                    const index = this.labels.indexOf(heading);
+                    const index = headings.indexOf(heading);
 
                     if (index > -1) {
                         r[index] = cell;
@@ -1911,19 +3794,24 @@ class DataTable {
         }
 
         if (rows.length) {
-            this.rows.add(rows);
-
+            rows.forEach(row => this.data.data.push(row.map((cell, index) => {
+                const cellOut = readDataCell(cell, this.columnSettings.columns[index]);
+                return cellOut
+            })));
             this.hasRows = true;
         }
 
-        this.update();
-        this.setColumns();
+
+        if (this.columnSettings.sort) {
+            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true);
+        } else {
+            this.update(false);
+        }
         this.fixColumns();
     }
 
     /**
      * Refresh the instance
-     * @return {void}
      */
     refresh() {
         if (this.options.searchable) {
@@ -1938,70 +3826,33 @@ class DataTable {
     }
 
     /**
-     * Truncate the table
-     */
-    clear(html) {
-        if (this.body) {
-            flush(this.body);
-        }
-
-        let parent = this.body;
-        if (!this.body) {
-            parent = this.dom;
-        }
-
-        if (html) {
-            if (typeof html === "string") {
-                const frag = document.createDocumentFragment();
-                frag.innerHTML = html;
-            }
-
-            parent.appendChild(html);
-        }
-    }
-
-    /**
      * Print the table
-     * @return {void}
      */
     print() {
-        const headings = this.activeHeadings;
-        const rows = this.activeRows;
-        const table = createElement("table");
-        const thead = createElement("thead");
-        const tbody = createElement("tbody");
+        const tableDOM = createElement("table");
+        const tableVirtualDOM = {nodeName: "TABLE"};
+        const newTableVirtualDOM = dataToVirtualDOM(
+            this.data.headings,
+            this.data.data.map((row, index) => ({row,
+                index})),
+            this.columnSettings,
+            this.columnWidths,
+            false, // No row cursor
+            this.options,
+            {
+                noColumnWidths: true,
+                unhideHeader: true
+            }
+        );
 
-        const tr = createElement("tr");
-        headings.forEach(th => {
-            tr.appendChild(
-                createElement("th", {
-                    html: th.textContent
-                })
-            );
-        });
-
-        thead.appendChild(tr);
-
-        rows.forEach(row => {
-            const tr = createElement("tr");
-            Array.from(row.cells).forEach(cell => {
-                tr.appendChild(
-                    createElement("td", {
-                        html: cell.textContent
-                    })
-                );
-            });
-            tbody.appendChild(tr);
-        });
-
-        table.appendChild(thead);
-        table.appendChild(tbody);
+        const diff = this.dd.diff(tableVirtualDOM, newTableVirtualDOM);
+        this.dd.apply(tableDOM, diff);
 
         // Open new window
         const w = window.open();
 
         // Append the table to the body
-        w.document.body.appendChild(table);
+        w.document.body.appendChild(tableDOM);
 
         // Print
         w.print();
@@ -2011,13 +3862,8 @@ class DataTable {
      * Show a message in the table
      */
     setMessage(message) {
-        let colspan = 1;
-
-        if (this.hasRows) {
-            colspan = this.rowData[0].cells.length;
-        } else if (this.activeHeadings.length) {
-            colspan = this.activeHeadings.length;
-        }
+        const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden);
+        const colspan = activeHeadings.length || 1;
 
         this.wrapper.classList.add("dataTable-empty");
 
@@ -2027,11 +3873,36 @@ class DataTable {
         this.totalPages = 0;
         this.renderPager();
 
-        this.clear(
-            createElement("tr", {
-                html: `<td class="dataTables-empty" colspan="${colspan}">${message}</td>`
-            })
-        );
+        const newVirtualDOM = structuredClone(this.virtualDOM);
+
+        const tbody = newVirtualDOM.childNodes.find(node => node.nodeName === "TBODY");
+
+        tbody.childNodes = [
+            {
+                nodeName: "TR",
+                childNodes: [
+                    {
+                        nodeName: "TD",
+                        attributes: {
+                            class: "dataTables-empty",
+                            colspan
+                        },
+                        childNodes: [
+                            {
+                                nodeName: "#text",
+                                data: message
+                            }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+
+        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
+        this.dd.apply(this.dom, diff);
+        this.virtualDOM = newVirtualDOM;
+
     }
 
     /**
@@ -2117,7 +3988,7 @@ const convertCSV = function(userOptions = {}) {
                         if (options.removeDoubleQuotes) {
                             value = value.trim().replace(/(^"|"$)/g, "");
                         }
-                        obj.data[i].push(value);
+                        obj.data[i].push({data: value});
                     });
                 }
             });
@@ -2167,8 +4038,12 @@ const convertJSON = function(userOptions = {}) {
                     if (!obj.headings.includes(column)) {
                         obj.headings.push(column);
                     }
+                    if (value.constructor == Object) {
+                        obj.data[i].push(value);
+                    } else {
+                        obj.data[i].push({data: value});
+                    }
 
-                    obj.data[i].push(value);
                 });
             });
         } else {
@@ -2189,13 +4064,6 @@ const convertJSON = function(userOptions = {}) {
 const exportCSV = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
-
     const defaults = {
         download: true,
         skipColumn: [],
@@ -2212,56 +4080,51 @@ const exportCSV = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     };
-
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
+    let rows = [];
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
     // Include headings
-    rows[0] = dataTable.header;
+    rows[0] = headers;
 
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            for (let i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows);
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
     }
 
     // Only proceed if we have data
     if (rows.length) {
-        str = "";
-
-        for (i = 0; i < rows.length; i++) {
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    let text = rows[i].cells[x].textContent;
-                    text = text.trim();
-                    text = text.replace(/\s{2,}/g, " ");
-                    text = text.replace(/\n/g, "  ");
-                    text = text.replace(/"/g, "\"\"");
+        let str = "";
+        rows.forEach(row => {
+            row.forEach(cell => {
+                if (typeof cell === "string") {
+                    cell = cell.trim();
+                    cell = cell.replace(/\s{2,}/g, " ");
+                    cell = cell.replace(/\n/g, "  ");
+                    cell = cell.replace(/"/g, "\"\"");
                     //have to manually encode "#" as encodeURI leaves it as is.
-                    text = text.replace(/#/g, "%23");
-                    if (text.includes(","))
-                        text = `"${text}"`;
-
-
-                    str += text + options.columnDelimiter;
+                    cell = cell.replace(/#/g, "%23");
+                    if (cell.includes(",")) {
+                        cell = `"${cell}"`;
+                    }
                 }
-            }
+                str += cell + options.columnDelimiter;
+            });
             // Remove trailing column delimiter
             str = str.trim().substring(0, str.length - 1);
 
             // Apply line delimiter
             str += options.lineDelimiter;
-        }
+        });
 
         // Remove trailing line delimiter
         str = str.trim().substring(0, str.length - 1);
@@ -2269,7 +4132,7 @@ const exportCSV = function(dataTable, userOptions = {}) {
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a");
+            const link = document.createElement("a");
             link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`);
             link.download = `${options.filename || "datatable_export"}.csv`;
 
@@ -2295,13 +4158,6 @@ const exportCSV = function(dataTable, userOptions = {}) {
 const exportJSON = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    const arr = [];
-    let i;
-    let x;
-    let str;
-    let link;
 
     const defaults = {
         download: true,
@@ -2320,47 +4176,54 @@ const exportJSON = function(dataTable, userOptions = {}) {
         ...userOptions
     };
 
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
 
+    let rows = [];
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            for (let i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows);
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
     }
+
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
 
     // Only proceed if we have data
     if (rows.length) {
-        // Iterate rows
-        for (x = 0; x < rows.length; x++) {
+        const arr = [];
+        rows.forEach((row, x) => {
             arr[x] = arr[x] || {};
-            // Iterate columns
-            for (i = 0; i < headers.length; i++) {
-                // Check for column skip and column visibility
-                if (
-                    !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                    dataTable.columns.visible(headers[i].originalCellIndex)
-                ) {
-                    arr[x][headers[i].textContent] = rows[x].cells[i].textContent;
-                }
-            }
-        }
+            row.forEach((cell, i) => {
+                arr[x][headers[i]] = cell;
+            });
+        });
 
         // Convert the array of objects to JSON string
-        str = JSON.stringify(arr, options.replacer, options.space);
+        const str = JSON.stringify(arr, options.replacer, options.space);
 
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a");
-            link.href = encodeURI(`data:application/json;charset=utf-8,${str}`);
+
+            const blob = new Blob(
+                [str],
+                {
+                    type: "data:application/json;charset=utf-8"
+                }
+            );
+            const url = URL.createObjectURL(blob);
+
+
+            const link = document.createElement("a");
+            link.href = url;
             link.download = `${options.filename || "datatable_export"}.json`;
 
             // Append the link
@@ -2371,6 +4234,7 @@ const exportJSON = function(dataTable, userOptions = {}) {
 
             // Remove the link
             document.body.removeChild(link);
+            URL.revokeObjectURL(url);
         }
 
         return str
@@ -2384,13 +4248,6 @@ const exportJSON = function(dataTable, userOptions = {}) {
  */
 const exportSQL = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
 
     const defaults = {
         download: true,
@@ -2407,37 +4264,33 @@ const exportSQL = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     };
-
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
+    let rows = [];
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            for (let i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows);
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
     }
 
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
-        str = `INSERT INTO \`${options.tableName}\` (`;
+        let str = `INSERT INTO \`${options.tableName}\` (`;
 
         // Convert table headings to column names
-        for (i = 0; i < headers.length; i++) {
-            // Check for column skip and column visibility
-            if (
-                !options.skipColumn.includes(headers[i].originalCellIndex) &&
-                dataTable.columns.visible(headers[i].originalCellIndex)
-            ) {
-                str += `\`${headers[i].textContent}\`,`;
-            }
-        }
+        headers.forEach(header => {
+            str += `\`${header}\`,`;
+        });
 
         // Remove trailing comma
         str = str.trim().substring(0, str.length - 1);
@@ -2446,25 +4299,23 @@ const exportSQL = function(dataTable, userOptions = {}) {
         str += ") VALUES ";
 
         // Iterate rows and convert cell data to column values
-        for (i = 0; i < rows.length; i++) {
+
+        rows.forEach(row => {
             str += "(";
-
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and column visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    str += `"${rows[i].cells[x].textContent}",`;
+            row.forEach(cell => {
+                if (typeof cell === "string") {
+                    str += `"${cell}",`;
+                } else {
+                    str += `${cell},`;
                 }
-            }
-
+            });
             // Remove trailing comma
             str = str.trim().substring(0, str.length - 1);
 
             // end VALUES
             str += "),";
-        }
+
+        });
 
         // Remove trailing comma
         str = str.trim().substring(0, str.length - 1);
@@ -2479,7 +4330,7 @@ const exportSQL = function(dataTable, userOptions = {}) {
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a");
+            const link = document.createElement("a");
             link.href = encodeURI(str);
             link.download = `${options.filename || "datatable_export"}.sql`;
 
@@ -2505,16 +4356,11 @@ const exportSQL = function(dataTable, userOptions = {}) {
 const exportTXT = function(dataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
-    const headers = dataTable.activeHeadings;
-    let rows = [];
-    let i;
-    let x;
-    let str;
-    let link;
-
     const defaults = {
         download: true,
-        skipColumn: []
+        skipColumn: [],
+        lineDelimiter: "\n",
+        columnDelimiter: ","
     };
 
     // Check for the options object
@@ -2527,55 +4373,54 @@ const exportTXT = function(dataTable, userOptions = {}) {
         ...userOptions
     };
 
+    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
+
+    let rows = [];
+    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
     // Include headings
-    rows[0] = dataTable.header;
+    rows[0] = headers;
 
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1]);
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1]);
+            for (let i = 0; i < options.selection.length; i++) {
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
             }
         }
     } else {
-        rows = rows.concat(dataTable.activeRows);
+        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
     }
 
     // Only proceed if we have data
     if (rows.length) {
-        str = "";
+        let str = "";
 
-        for (i = 0; i < rows.length; i++) {
-            for (x = 0; x < rows[i].cells.length; x++) {
-                // Check for column skip and visibility
-                if (
-                    !options.skipColumn.includes(headers[x].originalCellIndex) &&
-                    dataTable.columns.visible(headers[x].originalCellIndex)
-                ) {
-                    let text = rows[i].cells[x].textContent;
-                    text = text.trim();
-                    text = text.replace(/\s{2,}/g, " ");
-                    text = text.replace(/\n/g, "  ");
-                    text = text.replace(/"/g, "\"\"");
+        rows.forEach(row => {
+            row.forEach(cell => {
+                if (typeof cell === "string") {
+                    cell = cell.trim();
+                    cell = cell.replace(/\s{2,}/g, " ");
+                    cell = cell.replace(/\n/g, "  ");
+                    cell = cell.replace(/"/g, "\"\"");
                     //have to manually encode "#" as encodeURI leaves it as is.
-                    text = text.replace(/#/g, "%23");
-                    if (text.includes(","))
-                        text = `"${text}"`;
-
-
-                    str += text + options.columnDelimiter;
+                    cell = cell.replace(/#/g, "%23");
+                    if (cell.includes(",")) {
+                        cell = `"${cell}"`;
+                    }
                 }
-            }
+                str += cell + options.columnDelimiter;
+            });
             // Remove trailing column delimiter
             str = str.trim().substring(0, str.length - 1);
 
             // Apply line delimiter
             str += options.lineDelimiter;
-        }
+
+        });
 
         // Remove trailing line delimiter
         str = str.trim().substring(0, str.length - 1);
@@ -2586,7 +4431,7 @@ const exportTXT = function(dataTable, userOptions = {}) {
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            link = document.createElement("a");
+            const link = document.createElement("a");
             link.href = encodeURI(str);
             link.download = `${options.filename || "datatable_export"}.txt`;
 
@@ -2700,7 +4545,7 @@ const debounce = function(func, timeout = 300) {
  */
 class Editor {
     constructor(dataTable, options = {}) {
-        this.dataTable = dataTable;
+        this.dt = dataTable;
         this.options = {
             ...defaultConfig,
             ...options
@@ -2715,7 +4560,7 @@ class Editor {
         if (this.initialized) {
             return
         }
-        this.dataTable.wrapper.classList.add(this.options.classes.editable);
+        this.dt.wrapper.classList.add(this.options.classes.editable);
         if (this.options.contextMenu) {
             this.container = createElement("div", {
                 id: this.options.classes.container
@@ -2760,7 +4605,7 @@ class Editor {
         this.bindEvents();
         setTimeout(() => {
             this.initialized = true;
-            this.dataTable.emit("editable.init");
+            this.dt.emit("editable.init");
         }, 10);
     }
 
@@ -2777,7 +4622,7 @@ class Editor {
             click: this.click.bind(this)
         };
         // listen for click / double-click
-        this.dataTable.body.addEventListener(this.options.clickEvent, this.events.click);
+        this.dt.dom.addEventListener(this.options.clickEvent, this.events.click);
         // listen for click anywhere but the menu
         document.addEventListener("click", this.events.dismiss);
         // listen for right-click
@@ -2785,7 +4630,7 @@ class Editor {
         if (this.options.contextMenu) {
             // listen for right-click
 
-            this.dataTable.body.addEventListener("contextmenu", this.events.context);
+            this.dt.dom.addEventListener("contextmenu", this.events.context);
             // reset
             this.events.reset = debounce(this.events.update, 50);
             window.addEventListener("resize", this.events.reset);
@@ -2800,8 +4645,8 @@ class Editor {
      */
     context(event) {
         this.event = event;
-        const valid = this.dataTable.body.contains(event.target);
-        if (this.options.contextMenu && !this.disabled && valid) {
+        const cell = event.target.closest("tbody td");
+        if (this.options.contextMenu && !this.disabled && cell) {
             event.preventDefault();
             // get the mouse position
             let x = event.pageX;
@@ -2828,9 +4673,9 @@ class Editor {
      */
     click(event) {
         if (this.editing && this.data && this.editingCell) {
-            this.saveCell();
+            this.saveCell(this.data.input.value);
         } else if (!this.editing) {
-            const cell = event.target.closest("td");
+            const cell = event.target.closest("tbody td");
             if (cell) {
                 this.editCell(cell);
                 event.preventDefault();
@@ -2849,15 +4694,15 @@ class Editor {
                 this.closeModal();
             } else if (event.key === "Enter") { // save button
                 // Save
-                this.saveRow();
+                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
             }
         } else if (this.editing && this.data) {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
-                    this.saveCell();
+                    this.saveCell(this.data.input.value);
                 } else if (this.editingRow) {
-                    this.saveRow();
+                    this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
                 }
             } else if (event.key === "Escape") {
                 // Escape key reverts
@@ -2868,34 +4713,73 @@ class Editor {
 
     /**
      * Edit cell
-     * @param  {Object} cell    The HTMLTableCellElement
+     * @param  {Object} td    The HTMLTableCellElement
      * @return {Void}
      */
-    editCell(cell) {
-        if (this.options.excludeColumns.includes(cell.cellIndex)) {
+    editCell(td) {
+        let columnIndex = 0;
+        let cellIndex = 0;
+        while (cellIndex < td.cellIndex) {
+            const columnSettings = this.dt.columnSettings.columns[columnIndex] || {};
+            if (!columnSettings.hidden) {
+                cellIndex += 1;
+            }
+            columnIndex += 1;
+        }
+        if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu();
             return
         }
-        const row = this.dataTable.body.rows[cell.parentNode.dataIndex];
-        cell = row.cells[cell.cellIndex];
+        const rowIndex = parseInt(td.parentNode.dataset.index, 10);
+        const row = this.dt.data.data[rowIndex];
+        const cell = row[columnIndex];
+
         this.data = {
             cell,
-            content: cell.dataset.content || cell.innerHTML,
-            input: createElement("input", {
-                type: "text",
-                value: cell.dataset.content || cell.innerHTML,
-                class: this.options.classes.input
-            })
+            rowIndex,
+            columnIndex,
+            content: cell.text || String(cell.data)
         };
-        cell.innerHTML = "";
-        cell.appendChild(this.data.input);
-        setTimeout(() => {
-            this.data.input.focus();
-            this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length;
-            this.editing = true;
-            this.editingCell = true;
-            this.closeMenu();
-        }, 10);
+        const template = [
+            `<div class='${this.options.classes.inner}'>`,
+            `<div class='${this.options.classes.header}'>`,
+            "<h4>Editing cell</h4>",
+            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            " </div>",
+            `<div class='${this.options.classes.block}'>`,
+            `<form class='${this.options.classes.form}'>`,
+            `<div class='${this.options.classes.row}'>`,
+            `<label class='${this.options.classes.label}'>${escapeText(this.dt.data.headings[columnIndex].data)}</label>`,
+            `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
+            "</div>",
+            `<div class='${this.options.classes.row}'>`,
+            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            "</div>",
+            "</form>",
+            "</div>",
+            "</div>"
+        ].join("");
+        const modal = createElement("div", {
+            class: this.options.classes.modal,
+            html: template
+        });
+        this.modal = modal;
+        this.openModal();
+        this.editing = true;
+        this.editingCell = true;
+        this.data.input = modal.querySelector("input[type=text]");
+        this.data.input.focus();
+        this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length;
+        // Close / save
+        modal.addEventListener("click", event => {
+            if (event.target.hasAttribute("data-editor-close")) { // close button
+                this.closeModal();
+            } else if (event.target.hasAttribute("data-editor-save")) { // save button
+                // Save
+                this.saveCell(this.data.input.value);
+            }
+        });
+        this.closeMenu();
     }
 
     /**
@@ -2904,26 +4788,25 @@ class Editor {
      * @param  {String} value   Cell content
      * @return {Void}
      */
-    saveCell(value, cell) {
-        cell = cell || this.data.cell;
-        value = value || this.data.input.value;
+    saveCell(value) {
         const oldData = this.data.content;
         // Set the cell content
-        this.dataTable.data[cell.parentNode.dataIndex].cells[cell.cellIndex].innerHTML = cell.innerHTML = value.trim();
+        this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = {data: value.trim()};
+        this.closeModal();
+        this.dt.fixColumns();
+        this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex);
         this.data = {};
-        this.editing = this.editingCell = false;
-        this.dataTable.emit("editable.save.cell", value, oldData, cell);
     }
 
     /**
      * Edit row
-     * @param  {Object} cell    The HTMLTableRowElement
+     * @param  {Object} row    The HTMLTableRowElement
      * @return {Void}
      */
-    editRow(row) {
-        row = row || this.event.target.closest("tr");
-        if (!row || row.nodeName !== "TR" || this.editing) return
-        row = this.dataTable.body.rows[row.dataIndex];
+    editRow(tr) {
+        if (!tr || tr.nodeName !== "TR" || this.editing) return
+        const dataIndex = parseInt(tr.dataset.index, 10);
+        const row = this.dt.data.data[dataIndex];
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
@@ -2946,14 +4829,15 @@ class Editor {
         const inner = modal.firstElementChild;
         const form = inner.lastElementChild.firstElementChild;
         // Add the inputs for each cell
-        Array.from(row.cells).forEach((cell, i) => {
-            if ((!cell.hidden || (cell.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
+        row.forEach((cell, i) => {
+            const columnSettings = this.dt.columnSettings.columns[i] || {};
+            if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 form.insertBefore(createElement("div", {
                     class: this.options.classes.row,
                     html: [
                         `<div class='${this.options.classes.row}'>`,
-                        `<label class='${this.options.classes.label}'>${this.dataTable.header.cells[i].textContent}</label>`,
-                        `<input class='${this.options.classes.input}' value='${cell.dataset.content || cell.innerHTML}' type='text'>`,
+                        `<label class='${this.options.classes.label}'>${escapeText(this.dt.data.headings[i].data)}</label>`,
+                        `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
                         "</div>"
                     ].join("")
                 }), form.lastElementChild);
@@ -2967,7 +4851,8 @@ class Editor {
         inputs.pop();
         this.data = {
             row,
-            inputs
+            inputs,
+            dataIndex
         };
         this.editing = true;
         this.editingRow = true;
@@ -2977,7 +4862,7 @@ class Editor {
                 this.closeModal();
             } else if (event.target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveRow();
+                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
             }
         });
         this.closeMenu();
@@ -2990,15 +4875,12 @@ class Editor {
      * @return {Void}
      */
     saveRow(data, row) {
-        data = data || this.data.inputs.map(input => input.value.trim());
-        row = row || this.data.row;
         // Store the old data for the emitter
-        const oldData = Array.from(row.cells).map(cell => cell.dataset.content || cell.innerHTML);
-        Array.from(row.cells).forEach((cell, i) => {
-            cell.innerHTML = data[i];
-        });
+        const oldData = row.map(cell => cell.text || String(cell.data));
+        this.dt.rows.updateRow(this.data.dataIndex, data);
+        this.data = {};
         this.closeModal();
-        this.dataTable.emit("editable.save.row", data, oldData, row);
+        this.dt.emit("editable.save.row", data, oldData, row);
     }
 
     /**
@@ -3018,30 +4900,20 @@ class Editor {
     closeModal() {
         if (this.editing && this.modal) {
             document.body.removeChild(this.modal);
-            this.modal = this.editing = this.editingRow = false;
+            this.modal = this.editing = this.editingRow = this.editingCell = false;
         }
     }
 
     /**
      * Remove a row
-     * @param  {Number|Object} row The HTMLTableRowElement or dataIndex property
+     * @param  {Object} tr The HTMLTableRowElement
      * @return {Void}
      */
-    removeRow(row) {
-        if (!row) {
-            row = this.event.target.closest("tr");
-            if (row && row.dataIndex !== undefined) {
-                this.dataTable.rows.remove(row.dataIndex);
-                this.closeMenu();
-            }
-        } else {
-            // User passed a HTMLTableRowElement
-            if (row instanceof Element && row.nodeName === "TR" && row.dataIndex !== undefined) {
-                row = row.dataIndex;
-            }
-            this.dataTable.rows.remove(row);
-            this.closeMenu();
-        }
+    removeRow(tr) {
+        if (!tr || tr.nodeName !== "TR" || this.editing) return
+        const index = parseInt(tr.dataset.index, 10);
+        this.dt.rows.remove(index);
+        this.closeMenu();
     }
 
     /**
@@ -3086,12 +4958,12 @@ class Editor {
      */
     openMenu() {
         if (this.editing && this.data && this.editingCell) {
-            this.saveCell();
+            this.saveCell(this.data.input.value);
         }
         if (this.options.contextMenu) {
             document.body.appendChild(this.container);
             this.closed = false;
-            this.dataTable.emit("editable.context.open");
+            this.dt.emit("editable.context.open");
         }
     }
 
@@ -3103,7 +4975,7 @@ class Editor {
         if (this.options.contextMenu && !this.closed) {
             this.closed = true;
             document.body.removeChild(this.container);
-            this.dataTable.emit("editable.context.close");
+            this.dt.emit("editable.context.close");
         }
     }
 
@@ -3112,8 +4984,8 @@ class Editor {
      * @return {Void}
      */
     destroy() {
-        this.dataTable.body.removeEventListener(this.options.clickEvent, this.events.click);
-        this.dataTable.body.removeEventListener("contextmenu", this.events.context);
+        this.dt.dom.removeEventListener(this.options.clickEvent, this.events.click);
+        this.dt.dom.removeEventListener("contextmenu", this.events.context);
         document.removeEventListener("click", this.events.dismiss);
         document.removeEventListener("keydown", this.events.keydown);
         window.removeEventListener("resize", this.events.reset);
@@ -3135,63 +5007,6 @@ const makeEditable = function(dataTable, options = {}) {
 
     return editor
 };
-
-var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
-
-var dayjs_min = {exports: {}};
-
-(function (module, exports) {
-	!function(t,e){module.exports=e();}(commonjsGlobal,(function(){var t=1e3,e=6e4,n=36e5,r="millisecond",i="second",s="minute",u="hour",a="day",o="week",f="month",h="quarter",c="year",d="date",$="Invalid Date",l=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,y=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,M={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},m=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},g={s:m,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+m(r,2,"0")+":"+m(i,2,"0")},m:function t(e,n){if(e.date()<n.date())return -t(n,e);var r=12*(n.year()-e.year())+(n.month()-e.month()),i=e.clone().add(r,f),s=n-i<0,u=e.clone().add(r+(s?-1:1),f);return +(-(r+(n-i)/(s?i-u:u-i))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return {M:f,y:c,w:o,d:a,D:d,h:u,m:s,s:i,ms:r,Q:h}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},v="en",D={};D[v]=M;var p=function(t){return t instanceof _},S=function t(e,n,r){var i;if(!e)return v;if("string"==typeof e){var s=e.toLowerCase();D[s]&&(i=s),n&&(D[s]=n,i=s);var u=e.split("-");if(!i&&u.length>1)return t(u[0])}else {var a=e.name;D[a]=e,i=a;}return !r&&i&&(v=i),i||!r&&v},w=function(t,e){if(p(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new _(n)},O=g;O.l=S,O.i=p,O.w=function(t,e){return w(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var _=function(){function M(t){this.$L=S(t.locale,null,!0),this.parse(t);}var m=M.prototype;return m.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(O.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match(l);if(r){var i=r[2]-1||0,s=(r[7]||"0").substring(0,3);return n?new Date(Date.UTC(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)):new Date(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)}}return new Date(e)}(t),this.$x=t.x||{},this.init();},m.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},m.$utils=function(){return O},m.isValid=function(){return !(this.$d.toString()===$)},m.isSame=function(t,e){var n=w(t);return this.startOf(e)<=n&&n<=this.endOf(e)},m.isAfter=function(t,e){return w(t)<this.startOf(e)},m.isBefore=function(t,e){return this.endOf(e)<w(t)},m.$g=function(t,e,n){return O.u(t)?this[e]:this.set(n,t)},m.unix=function(){return Math.floor(this.valueOf()/1e3)},m.valueOf=function(){return this.$d.getTime()},m.startOf=function(t,e){var n=this,r=!!O.u(e)||e,h=O.p(t),$=function(t,e){var i=O.w(n.$u?Date.UTC(n.$y,e,t):new Date(n.$y,e,t),n);return r?i:i.endOf(a)},l=function(t,e){return O.w(n.toDate()[t].apply(n.toDate("s"),(r?[0,0,0,0]:[23,59,59,999]).slice(e)),n)},y=this.$W,M=this.$M,m=this.$D,g="set"+(this.$u?"UTC":"");switch(h){case c:return r?$(1,0):$(31,11);case f:return r?$(1,M):$(0,M+1);case o:var v=this.$locale().weekStart||0,D=(y<v?y+7:y)-v;return $(r?m-D:m+(6-D),M);case a:case d:return l(g+"Hours",0);case u:return l(g+"Minutes",1);case s:return l(g+"Seconds",2);case i:return l(g+"Milliseconds",3);default:return this.clone()}},m.endOf=function(t){return this.startOf(t,!1)},m.$set=function(t,e){var n,o=O.p(t),h="set"+(this.$u?"UTC":""),$=(n={},n[a]=h+"Date",n[d]=h+"Date",n[f]=h+"Month",n[c]=h+"FullYear",n[u]=h+"Hours",n[s]=h+"Minutes",n[i]=h+"Seconds",n[r]=h+"Milliseconds",n)[o],l=o===a?this.$D+(e-this.$W):e;if(o===f||o===c){var y=this.clone().set(d,1);y.$d[$](l),y.init(),this.$d=y.set(d,Math.min(this.$D,y.daysInMonth())).$d;}else $&&this.$d[$](l);return this.init(),this},m.set=function(t,e){return this.clone().$set(t,e)},m.get=function(t){return this[O.p(t)]()},m.add=function(r,h){var d,$=this;r=Number(r);var l=O.p(h),y=function(t){var e=w($);return O.w(e.date(e.date()+Math.round(t*r)),$)};if(l===f)return this.set(f,this.$M+r);if(l===c)return this.set(c,this.$y+r);if(l===a)return y(1);if(l===o)return y(7);var M=(d={},d[s]=e,d[u]=n,d[i]=t,d)[l]||1,m=this.$d.getTime()+r*M;return O.w(m,this)},m.subtract=function(t,e){return this.add(-1*t,e)},m.format=function(t){var e=this,n=this.$locale();if(!this.isValid())return n.invalidDate||$;var r=t||"YYYY-MM-DDTHH:mm:ssZ",i=O.z(this),s=this.$H,u=this.$m,a=this.$M,o=n.weekdays,f=n.months,h=function(t,n,i,s){return t&&(t[n]||t(e,r))||i[n].slice(0,s)},c=function(t){return O.s(s%12||12,t,"0")},d=n.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:a+1,MM:O.s(a+1,2,"0"),MMM:h(n.monthsShort,a,f,3),MMMM:h(f,a),D:this.$D,DD:O.s(this.$D,2,"0"),d:String(this.$W),dd:h(n.weekdaysMin,this.$W,o,2),ddd:h(n.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(s),HH:O.s(s,2,"0"),h:c(1),hh:c(2),a:d(s,u,!0),A:d(s,u,!1),m:String(u),mm:O.s(u,2,"0"),s:String(this.$s),ss:O.s(this.$s,2,"0"),SSS:O.s(this.$ms,3,"0"),Z:i};return r.replace(y,(function(t,e){return e||l[t]||i.replace(":","")}))},m.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},m.diff=function(r,d,$){var l,y=O.p(d),M=w(r),m=(M.utcOffset()-this.utcOffset())*e,g=this-M,v=O.m(this,M);return v=(l={},l[c]=v/12,l[f]=v,l[h]=v/3,l[o]=(g-m)/6048e5,l[a]=(g-m)/864e5,l[u]=g/n,l[s]=g/e,l[i]=g/t,l)[y]||g,$?v:O.a(v)},m.daysInMonth=function(){return this.endOf(f).$D},m.$locale=function(){return D[this.$L]},m.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=S(t,e,!0);return r&&(n.$L=r),n},m.clone=function(){return O.w(this.$d,this)},m.toDate=function(){return new Date(this.valueOf())},m.toJSON=function(){return this.isValid()?this.toISOString():null},m.toISOString=function(){return this.$d.toISOString()},m.toString=function(){return this.$d.toUTCString()},M}(),T=_.prototype;return w.prototype=T,[["$ms",r],["$s",i],["$m",s],["$H",u],["$W",a],["$M",f],["$y",c],["$D",d]].forEach((function(t){T[t[1]]=function(e){return this.$g(e,t[0],t[1])};})),w.extend=function(t,e){return t.$i||(t(e,_,w),t.$i=!0),w},w.locale=S,w.isDayjs=p,w.unix=function(t){return w(1e3*t)},w.en=D[v],w.Ls=D,w.p={},w}));
-} (dayjs_min));
-
-var dayjs = dayjs_min.exports;
-
-var customParseFormat$1 = {exports: {}};
-
-(function (module, exports) {
-	!function(e,t){module.exports=t();}(commonjsGlobal,(function(){var e={LTS:"h:mm:ss A",LT:"h:mm A",L:"MM/DD/YYYY",LL:"MMMM D, YYYY",LLL:"MMMM D, YYYY h:mm A",LLLL:"dddd, MMMM D, YYYY h:mm A"},t=/(\[[^[]*\])|([-_:/.,()\s]+)|(A|a|YYYY|YY?|MM?M?M?|Do|DD?|hh?|HH?|mm?|ss?|S{1,3}|z|ZZ?)/g,n=/\d\d/,r=/\d\d?/,i=/\d*[^-_:/,()\s\d]+/,o={},s=function(e){return (e=+e)+(e>68?1900:2e3)};var a=function(e){return function(t){this[e]=+t;}},f=[/[+-]\d\d:?(\d\d)?|Z/,function(e){(this.zone||(this.zone={})).offset=function(e){if(!e)return 0;if("Z"===e)return 0;var t=e.match(/([+-]|\d\d)/g),n=60*t[1]+(+t[2]||0);return 0===n?0:"+"===t[0]?-n:n}(e);}],h=function(e){var t=o[e];return t&&(t.indexOf?t:t.s.concat(t.f))},u=function(e,t){var n,r=o.meridiem;if(r){for(var i=1;i<=24;i+=1)if(e.indexOf(r(i,0,t))>-1){n=i>12;break}}else n=e===(t?"pm":"PM");return n},d={A:[i,function(e){this.afternoon=u(e,!1);}],a:[i,function(e){this.afternoon=u(e,!0);}],S:[/\d/,function(e){this.milliseconds=100*+e;}],SS:[n,function(e){this.milliseconds=10*+e;}],SSS:[/\d{3}/,function(e){this.milliseconds=+e;}],s:[r,a("seconds")],ss:[r,a("seconds")],m:[r,a("minutes")],mm:[r,a("minutes")],H:[r,a("hours")],h:[r,a("hours")],HH:[r,a("hours")],hh:[r,a("hours")],D:[r,a("day")],DD:[n,a("day")],Do:[i,function(e){var t=o.ordinal,n=e.match(/\d+/);if(this.day=n[0],t)for(var r=1;r<=31;r+=1)t(r).replace(/\[|\]/g,"")===e&&(this.day=r);}],M:[r,a("month")],MM:[n,a("month")],MMM:[i,function(e){var t=h("months"),n=(h("monthsShort")||t.map((function(e){return e.slice(0,3)}))).indexOf(e)+1;if(n<1)throw new Error;this.month=n%12||n;}],MMMM:[i,function(e){var t=h("months").indexOf(e)+1;if(t<1)throw new Error;this.month=t%12||t;}],Y:[/[+-]?\d+/,a("year")],YY:[n,function(e){this.year=s(e);}],YYYY:[/\d{4}/,a("year")],Z:f,ZZ:f};function c(n){var r,i;r=n,i=o&&o.formats;for(var s=(n=r.replace(/(\[[^\]]+])|(LTS?|l{1,4}|L{1,4})/g,(function(t,n,r){var o=r&&r.toUpperCase();return n||i[r]||e[r]||i[o].replace(/(\[[^\]]+])|(MMMM|MM|DD|dddd)/g,(function(e,t,n){return t||n.slice(1)}))}))).match(t),a=s.length,f=0;f<a;f+=1){var h=s[f],u=d[h],c=u&&u[0],l=u&&u[1];s[f]=l?{regex:c,parser:l}:h.replace(/^\[|\]$/g,"");}return function(e){for(var t={},n=0,r=0;n<a;n+=1){var i=s[n];if("string"==typeof i)r+=i.length;else {var o=i.regex,f=i.parser,h=e.slice(r),u=o.exec(h)[0];f.call(t,u),e=e.replace(u,"");}}return function(e){var t=e.afternoon;if(void 0!==t){var n=e.hours;t?n<12&&(e.hours+=12):12===n&&(e.hours=0),delete e.afternoon;}}(t),t}}return function(e,t,n){n.p.customParseFormat=!0,e&&e.parseTwoDigitYear&&(s=e.parseTwoDigitYear);var r=t.prototype,i=r.parse;r.parse=function(e){var t=e.date,r=e.utc,s=e.args;this.$u=r;var a=s[1];if("string"==typeof a){var f=!0===s[2],h=!0===s[3],u=f||h,d=s[2];h&&(d=s[2]),o=this.$locale(),!f&&d&&(o=n.Ls[d]),this.$d=function(e,t,n){try{if(["x","X"].indexOf(t)>-1)return new Date(("X"===t?1e3:1)*e);var r=c(t)(e),i=r.year,o=r.month,s=r.day,a=r.hours,f=r.minutes,h=r.seconds,u=r.milliseconds,d=r.zone,l=new Date,m=s||(i||o?1:l.getDate()),M=i||l.getFullYear(),Y=0;i&&!o||(Y=o>0?o-1:l.getMonth());var p=a||0,v=f||0,D=h||0,g=u||0;return d?new Date(Date.UTC(M,Y,m,p,v,D,g+60*d.offset*1e3)):n?new Date(Date.UTC(M,Y,m,p,v,D,g)):new Date(M,Y,m,p,v,D,g)}catch(e){return new Date("")}}(t,a,r),this.init(),d&&!0!==d&&(this.$L=this.locale(d).$L),u&&t!=this.format(a)&&(this.$d=new Date("")),o={};}else if(a instanceof Array)for(var l=a.length,m=1;m<=l;m+=1){s[1]=a[m-1];var M=n.apply(this,s);if(M.isValid()){this.$d=M.$d,this.$L=M.$L,this.init();break}m===l&&(this.$d=new Date(""));}else i.call(this,e);};}}));
-} (customParseFormat$1));
-
-var customParseFormat = customParseFormat$1.exports;
-
-dayjs.extend(customParseFormat);
-
-/**
- * Use dayjs to parse cell contents for sorting
- */
-const parseDate = (content, format) => {
-    let date = false;
-
-    // Converting to YYYYMMDD ensures we can accurately sort the column numerically
-
-    if (format) {
-        switch (format) {
-        case "ISO_8601":
-            // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
-            date = content;
-            break
-        case "RFC_2822":
-            date = dayjs(content.slice(5), "DD MMM YYYY HH:mm:ss ZZ").unix();
-            break
-        case "MYSQL":
-            date = dayjs(content, "YYYY-MM-DD hh:mm:ss").unix();
-            break
-        case "UNIX":
-            date = dayjs(content).unix();
-            break
-        // User defined format using the data-format attribute or columns[n].format option
-        default:
-            date = dayjs(content, format, true).valueOf();
-            break
-        }
-    }
-    return date
-};
-
-var date = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    parseDate: parseDate
-});
 
 export { DataTable, convertCSV, convertJSON, createElement, exportCSV, exportJSON, exportSQL, exportTXT, isJson, isObject, makeEditable };
 //# sourceMappingURL=module.js.map

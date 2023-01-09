@@ -759,10 +759,10 @@
                     ...defaults,
                     ...clonedUserOptions
                 }
-                const separatorRow = Array(dataTable.activeHeadings.length).fill("-")
+                const separatorRow = Array(dataTable.data.headings.filter((_heading, index) => !dataTable.columnSettings.columns[index]?.hidden).length).fill("-")
         .join(options.columnDelimiter)
                 const str = `${separatorRow}${options.lineDelimiter}${csv}${options.lineDelimiter}${separatorRow}`
-                if (options.download) {
+                if (userOptions.download) {
                     // Create a link to trigger the download
                     const link = document.createElement("a")
                     link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`)
@@ -780,7 +780,7 @@
             document.querySelector("button.csv").addEventListener("click", () => {
                 exportCSV(table, {
                     download: true,
-                    lineDelimiter: "\n\n",
+                    lineDelimiter: "\n",
                     columnDelimiter: ";"
                 })
             })
@@ -798,7 +798,6 @@
             document.querySelector("button.json").addEventListener("click", () => {
                 exportJSON(table, {
                     download: true,
-                    escapeHTML: true,
                     space: 3
                 })
             })
