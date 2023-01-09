@@ -2210,8 +2210,8 @@ const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCurso
                                         };
                                     }
                                     if (column.render) {
-                                        const renderedCell = column.render(cell, td, index, cIndex);
-                                        if (renderedCell && renderedCell instanceof String && td.childNodes.length) {
+                                        const renderedCell = column.render(cell.data, td, index, cIndex);
+                                        if (renderedCell && typeof renderedCell === "string" && td.childNodes.length && td.childNodes[0].nodeName === "#text") {
                                             // Convenience function to make it work similarly to what it did up to version 5.
                                             td.childNodes[0].data = renderedCell;
                                         }
@@ -2473,7 +2473,7 @@ class Rows {
         if ( this.dt.data.data.length ) {
             this.dt.hasRows = true;
         }
-
+        this.dt.update(false);
         this.dt.fixColumns();
 
     }
@@ -2488,6 +2488,7 @@ class Rows {
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false;
             }
+            this.dt.update(false);
             this.dt.fixColumns();
         } else {
             return this.remove([select])
@@ -2629,13 +2630,13 @@ class Columns {
      * Add a new column
      */
     add(data) {
-        const newColumnSelector = this.td.data.headings.length;
-        this.td.data.heading = this.td.data.heading.concat([{data: data.heading}]);
-        this.td.data.data = this.td.data.data.map(
-            (row, index) => row.concat([data.data[index].map(cell => readDataCell(cell, data))])
+        const newColumnSelector = this.dt.data.headings.length;
+        this.dt.data.headings = this.dt.data.headings.concat([{data: data.heading}]);
+        this.dt.data.data = this.dt.data.data.map(
+            (row, index) => row.concat([readDataCell(data.data[index], data)])
         );
         if (data.type || data.format || data.sortable || data.render) {
-            const columnSettings = this.td.columnSettings.columns[newColumnSelector] = {};
+            const columnSettings = this.dt.columnSettings.columns[newColumnSelector] = {};
             if (data.type) {
                 columnSettings.type = data.type;
             }
@@ -2652,7 +2653,8 @@ class Columns {
                 columnSettings.type = data.type;
             }
         }
-        this.td.fixColumns();
+        this.dt.update(false);
+        this.dt.fixColumns();
     }
 
     /**
@@ -2661,10 +2663,11 @@ class Columns {
     remove(columns) {
         if (Array.isArray(columns)) {
             this.dt.data.headings = this.dt.data.headings.filter((_heading, index) => !columns.includes(index));
-            this.td.data.data = this.td.data.data.map(
+            this.dt.data.data = this.dt.data.data.map(
                 row => row.filter((_cell, index) => !columns.includes(index))
             );
-            this.td.fixColumns();
+            this.dt.update(false);
+            this.dt.fixColumns();
         } else {
             return this.remove([columns])
         }
@@ -2758,7 +2761,8 @@ class Columns {
         this.dt.update(!init);
 
         if (!init) {
-            this.dt.columnSettings.sort = {column, dir};
+            this.dt.columnSettings.sort = {column,
+                dir};
             this.dt.emit("datatable.sort", column, dir);
         }
     }
@@ -3373,14 +3377,14 @@ class DataTable {
             });
             this.dom.addEventListener("mousedown", event => {
                 if (this.dom.matches(":focus")) {
-                    const row = Array.from(this.dom.querySelectorAll('body tr')).find(row => row.contains(event.target));
+                    const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target));
                     this.emit("datatable.selectrow", row, event);
                 }
 
             });
         } else {
             this.dom.addEventListener("mousedown", event => {
-                const row = Array.from(this.dom.querySelectorAll('body tr')).find(row => row.contains(event.target));
+                const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target));
                 this.emit("datatable.selectrow", row, event);
             });
         }
@@ -3541,8 +3545,10 @@ class DataTable {
                                 childNodes: [
                                     {
                                         nodeName: "THEAD",
-                                        childNodes: [headingsToVirtualHeaderRowDOM(
-                                                    this.data.headings, this.columnSettings, this.columnWidths, this.options, {unhideHeader: true})]
+                                        childNodes: [
+                                            headingsToVirtualHeaderRowDOM(
+                                                this.data.headings, this.columnSettings, this.columnWidths, this.options, {unhideHeader: true})
+                                        ]
 
                                     }
 

@@ -83,13 +83,13 @@ export class Columns {
      * Add a new column
      */
     add(data) {
-        const newColumnSelector = this.td.data.headings.length
-        this.td.data.heading = this.td.data.heading.concat([{data: data.heading}])
-        this.td.data.data = this.td.data.data.map(
-            (row, index) => row.concat([data.data[index].map(cell => readDataCell(cell, data))])
+        const newColumnSelector = this.dt.data.headings.length
+        this.dt.data.headings = this.dt.data.headings.concat([{data: data.heading}])
+        this.dt.data.data = this.dt.data.data.map(
+            (row, index) => row.concat([readDataCell(data.data[index], data)])
         )
         if (data.type || data.format || data.sortable || data.render) {
-            const columnSettings = this.td.columnSettings.columns[newColumnSelector] = {}
+            const columnSettings = this.dt.columnSettings.columns[newColumnSelector] = {}
             if (data.type) {
                 columnSettings.type = data.type
             }
@@ -106,7 +106,8 @@ export class Columns {
                 columnSettings.type = data.type
             }
         }
-        this.td.fixColumns()
+        this.dt.update(false)
+        this.dt.fixColumns()
     }
 
     /**
@@ -115,10 +116,11 @@ export class Columns {
     remove(columns) {
         if (Array.isArray(columns)) {
             this.dt.data.headings = this.dt.data.headings.filter((_heading, index) => !columns.includes(index))
-            this.td.data.data = this.td.data.data.map(
+            this.dt.data.data = this.dt.data.data.map(
                 row => row.filter((_cell, index) => !columns.includes(index))
             )
-            this.td.fixColumns()
+            this.dt.update(false)
+            this.dt.fixColumns()
         } else {
             return this.remove([columns])
         }

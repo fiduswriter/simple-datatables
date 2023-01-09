@@ -40,7 +40,7 @@ export class Rows {
         if ( this.dt.data.data.length ) {
             this.dt.hasRows = true
         }
-
+        this.dt.update(false)
         this.dt.fixColumns()
 
     }
@@ -55,6 +55,7 @@ export class Rows {
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false
             }
+            this.dt.update(false)
             this.dt.fixColumns()
         } else {
             return this.remove([select])

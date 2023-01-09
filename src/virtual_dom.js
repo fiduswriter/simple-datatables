@@ -93,8 +93,8 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                         }
                                     }
                                     if (column.render) {
-                                        const renderedCell = column.render(cell, td, index, cIndex)
-                                        if (renderedCell && renderedCell instanceof String && td.childNodes.length) {
+                                        const renderedCell = column.render(cell.data, td, index, cIndex)
+                                        if (renderedCell && typeof renderedCell === "string" && td.childNodes.length && td.childNodes[0].nodeName === "#text") {
                                             // Convenience function to make it work similarly to what it did up to version 5.
                                             td.childNodes[0].data = renderedCell
                                         }
