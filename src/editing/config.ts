@@ -45,15 +45,15 @@ export const defaultConfig = {
     // set the context menu items
     menuItems: [
         {
-            text: editor => editor.options.labels.editCell,
-            action: (editor, _event) => {
+            text: (editor: any) => editor.options.labels.editCell,
+            action: (editor: any, _event: any) => {
                 const cell = editor.event.target.closest("td")
                 return editor.editCell(cell)
             }
         },
         {
-            text: editor => editor.options.labels.editRow,
-            action: (editor, _event) => {
+            text: (editor: any) => editor.options.labels.editRow,
+            action: (editor: any, _event: any) => {
                 const row = editor.event.target.closest("tr")
                 return editor.editRow(row)
             }
@@ -62,8 +62,8 @@ export const defaultConfig = {
             separator: true
         },
         {
-            text: editor => editor.options.labels.removeRow,
-            action: (editor, _event) => {
+            text: (editor: any) => editor.options.labels.removeRow,
+            action: (editor: any, _event: any) => {
                 if (confirm(editor.options.labels.reallyRemove)) {
                     const row = editor.event.target.closest("tr")
                     editor.removeRow(row)

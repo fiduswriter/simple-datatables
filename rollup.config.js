@@ -3,11 +3,17 @@ import nodePolyfills from 'rollup-plugin-polyfill-node'
 import resolve from '@rollup/plugin-node-resolve'
 import babel from '@rollup/plugin-babel'
 import {terser} from 'rollup-plugin-terser'
+import tsc from "rollup-plugin-tsc"
 
 export default [
     {
-        input: 'src/index.js',
+        input: 'src/index.ts',
         plugins: [
+            tsc({
+                compilerOptions: {
+                    allowSyntheticDefaultImports: true
+                }
+            }),
             resolve({browser: true}),
             commonjs(),
             nodePolyfills(),
@@ -22,8 +28,13 @@ export default [
         }
     },
     {
-        input: 'src/index.js',
+        input: 'src/index.ts',
         plugins: [
+            tsc({
+                compilerOptions: {
+                    allowSyntheticDefaultImports: true
+                }
+            }),
             resolve({browser: true}),
             commonjs(),
             nodePolyfills(),
@@ -38,8 +49,13 @@ export default [
         },
     },
     {
-        input: 'src/index.js',
+        input: 'src/index.ts',
         plugins: [
+            tsc({
+                compilerOptions: {
+                    allowSyntheticDefaultImports: true
+                }
+            }),
             resolve({browser: true}),
             commonjs(),
             nodePolyfills(),

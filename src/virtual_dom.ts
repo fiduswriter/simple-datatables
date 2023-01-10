@@ -1,9 +1,23 @@
 import {stringToObj} from "diff-dom"
 
-export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {hiddenHeader, sortable, scrollY}, {noColumnWidths, unhideHeader}) => ({
+export const headingsToVirtualHeaderRowDOM = (
+    headings,
+    columnSettings,
+    columnWidths,
+    {
+        hiddenHeader,
+        sortable,
+        scrollY
+    }: any,
+    {
+        noColumnWidths,
+        unhideHeader
+    }: any
+) => ({
     nodeName: "TR",
+
     childNodes: headings.map(
-        (heading, index) => {
+        (heading: any, index: any) => {
             const column = columnSettings.columns[index] || {}
             if (column.hidden) {
                 return false
@@ -13,6 +27,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
                 attributes["data-sortable"] = "true"
             }
             if (heading.sorted) {
+                // @ts-expect-error TS(2339): Property 'class' does not exist on type '{}'.
                 attributes.class = heading.sorted
                 attributes["aria-sort"] = heading.sorted === "asc" ? "ascending" : "descending"
             }
@@ -25,6 +40,7 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
             }
 
             if (style.length) {
+                // @ts-expect-error TS(2339): Property 'style' does not exist on type '{}'.
                 attributes.style = style
             }
             return {
@@ -55,10 +71,22 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
                 ]
             }
         }
-    ).filter(column => column)
+    ).filter((column: any) => column)
 })
 
-export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, renderHeader}) => {
+export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, columnWidths: any, rowCursor: any, {
+    hiddenHeader,
+    header,
+    footer,
+    sortable,
+    scrollY,
+    rowRender,
+    tabIndex
+}: any, {
+    noColumnWidths,
+    unhideHeader,
+    renderHeader
+}: any) => {
     const table = {
         nodeName: "TABLE",
         attributes: {
@@ -68,14 +96,17 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
             {
                 nodeName: "TBODY",
                 childNodes: rows.map(
-                    ({row, index}) => {
+                    ({
+                        row,
+                        index
+                    }: any) => {
                         const tr = {
                             nodeName: "TR",
                             attributes: {
                                 "data-index": index
                             },
                             childNodes: row.map(
-                                (cell, cIndex) => {
+                                (cell: any, cIndex: any) => {
                                     const column = columnSettings.columns[cIndex] || {}
                                     if (column.hidden) {
                                         return false
@@ -95,6 +126,7 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                             ]
                                         }
                                     if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
+                                        // @ts-expect-error TS(2339): Property 'attributes' does not exist on type '{ no... Remove this comment to see the full error message
                                         td.attributes = {
                                             style: `width: ${columnWidths[cIndex]}%;`
                                         }
@@ -105,6 +137,7 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                             if (typeof renderedCell === "string") {
                                                 // Convenience method to make it work similarly to what it did up to version 5.
                                                 const node = stringToObj(`<td>${renderedCell}</td>`)
+                                                // @ts-expect-error TS(2367): This condition will always return 'true' since the... Remove this comment to see the full error message
                                                 if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
                                                     td.childNodes = node.childNodes
                                                 } else {
@@ -119,9 +152,10 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                     }
                                     return td
                                 }
-                            ).filter(column => column)
+                            ).filter((column: any) => column)
                         }
                         if (index===rowCursor) {
+                            // @ts-expect-error TS(2339): Property 'class' does not exist on type '{ "data-i... Remove this comment to see the full error message
                             tr.attributes.class = "datatable-cursor"
                         }
                         if (rowRender) {
@@ -160,6 +194,7 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                 childNodes: [headerRow]
             }
             if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+                // @ts-expect-error TS(2339): Property 'attributes' does not exist on type '{ no... Remove this comment to see the full error message
                 thead.attributes = {style: "height: 0px;"}
             }
             table.childNodes.unshift(thead)
@@ -171,6 +206,7 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                 childNodes: [footerRow]
             }
             if ((scrollY.length || hiddenHeader) && !unhideHeader) {
+                // @ts-expect-error TS(2339): Property 'attributes' does not exist on type '{ no... Remove this comment to see the full error message
                 tfoot.attributes = {style: "height: 0px;"}
             }
             table.childNodes.push(tfoot)
@@ -179,6 +215,7 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
     }
 
     if (tabIndex !== false) {
+        // @ts-expect-error TS(2339): Property 'tabindex' does not exist on type '{ clas... Remove this comment to see the full error message
         table.attributes.tabindex = String(tabIndex)
     }
 

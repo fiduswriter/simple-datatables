@@ -16,7 +16,40 @@ import {
 
 
 export class DataTable {
-    constructor(table, options = {}) {
+    columnSettings: any;
+    columnWidths: any;
+    columns: any;
+    container: any;
+    currentPage: any;
+    data: any;
+    dd: any;
+    dom: any;
+    events: any;
+    filterStates: any;
+    hasHeadings: any;
+    hasRows: any;
+    headerDOM: any;
+    initialInnerHTML: any;
+    initialized: any;
+    input: any;
+    label: any;
+    lastPage: any;
+    links: any;
+    listeners: any;
+    onFirstPage: any;
+    onLastPage: any;
+    options: any;
+    pagers: any;
+    pages: any;
+    rect: any;
+    rows: any;
+    searchData: any;
+    searching: any;
+    totalPages: any;
+    virtualDOM: any;
+    virtualHeaderDOM: any;
+    wrapper: any;
+    constructor(table: any, options = {}) {
 
         this.dom = typeof table === "string" ? document.querySelector(table) : table
 
@@ -26,10 +59,12 @@ export class DataTable {
             ...options,
             layout: {
                 ...defaultConfig.layout,
+                // @ts-expect-error TS(2339): Property 'layout' does not exist on type '{}'.
                 ...options.layout
             },
             labels: {
                 ...defaultConfig.labels,
+                // @ts-expect-error TS(2339): Property 'labels' does not exist on type '{}'.
                 ...options.labels
             }
         }
@@ -43,13 +78,15 @@ export class DataTable {
         }
 
         this.listeners = {
-            onResize: event => this.onResize(event)
+            // @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
+            onResize: (event: any) => this.onResize(event)
         }
 
         this.dd = new DiffDOM()
 
         // Initialize other variables
         this.initialized = false
+        this.events = {}
         this.data = false
         this.virtualDOM = false
         this.virtualHeaderDOM = false
@@ -76,17 +113,6 @@ export class DataTable {
 
         this.rows = new Rows(this)
         this.columns = new Columns(this)
-
-        // // Disable manual sorting if no header is present (#4)
-        // if (this.dom.tHead === null && !this.options.data?.headings) {
-        //     this.options.sortable = false
-        // }
-        //
-        // if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
-        //     throw new Error(
-        //         "You seem to be using the data option, but you've not defined any rows."
-        //     )
-        // }
 
         this.columnSettings = readColumnSettings(this.options.columns)
         this.data = readTableData(this.options.data, this.dom, this.columnSettings)
@@ -143,10 +169,10 @@ export class DataTable {
             })
 
             // Create the options
-            this.options.perPageSelect.forEach(val => {
+            this.options.perPageSelect.forEach((val: any) => {
                 const selected = val === this.options.perPage
                 const option = new Option(val, val, selected, selected)
-                select.add(option)
+                select.appendChild(option)
             })
 
             // Custom label
@@ -241,10 +267,13 @@ export class DataTable {
     renderTable(renderOptions={}) {
         const newVirtualDOM = dataToVirtualDOM(
             this.data.headings,
+            // @ts-expect-error TS(2339): Property 'noPaging' does not exist on type '{}'.
             this.options.paging && this.currentPage && !renderOptions.noPaging ?
                 this.pages[this.currentPage - 1] :
-                this.data.data.map((row, index) => ({row,
-                    index})),
+                this.data.data.map((row, index) => ({
+                    row,
+                    index
+                })),
             this.columnSettings,
             this.columnWidths,
             this.rows.cursor,
@@ -310,7 +339,7 @@ export class DataTable {
         }
 
         if (this.options.rowNavigation) {
-            if (!this.rows.cursor || !this.pages[this.currentPage-1].find(page => page.index === this.rows.cursor)) {
+            if (!this.rows.cursor || !this.pages[this.currentPage-1].find((page: any) => page.index === this.rows.cursor)) {
                 const rows = this.pages[this.currentPage-1]
                 if (lastRowCursor) {
                     this.rows.setCursor(rows[rows.length-1].index)
@@ -362,7 +391,7 @@ export class DataTable {
             this.links[this.currentPage - 1].classList.add("active")
 
             // append the links
-            pager.forEach(p => {
+            pager.forEach((p: any) => {
                 p.classList.remove("active")
                 frag.appendChild(p)
             })
@@ -380,7 +409,7 @@ export class DataTable {
             }
 
             // We may have more than one pager
-            this.pagers.forEach(pager => {
+            this.pagers.forEach((pager: any) => {
                 pager.appendChild(frag.cloneNode(true))
             })
         }
@@ -416,7 +445,7 @@ export class DataTable {
         }
 
         // Pager(s) / sorting
-        this.wrapper.addEventListener("click", e => {
+        this.wrapper.addEventListener("click", (e: any) => {
             const t = e.target.closest("a")
             if (t && (t.nodeName.toLowerCase() === "a")) {
                 if (t.hasAttribute("data-page")) {
@@ -433,12 +462,12 @@ export class DataTable {
             }
         }, false)
         if (this.options.rowNavigation) {
-            this.dom.addEventListener("keydown", event => {
+            this.dom.addEventListener("keydown", (event: any) => {
                 if (event.key === "ArrowUp") {
                     event.preventDefault()
                     event.stopPropagation()
                     let lastRow
-                    this.pages[this.currentPage-1].find(row => {
+                    this.pages[this.currentPage-1].find((row: any) => {
                         if (row.index===this.rows.cursor) {
                             return true
                         }
@@ -448,13 +477,14 @@ export class DataTable {
                     if (lastRow) {
                         this.rows.setCursor(lastRow.index)
                     } else if (!this.onFirstPage) {
+                        // @ts-expect-error TS(2345): Argument of type '{ lastRowCursor: boolean; }' is ... Remove this comment to see the full error message
                         this.page(this.currentPage-1, {lastRowCursor: true})
                     }
                 } else if (event.key === "ArrowDown") {
                     event.preventDefault()
                     event.stopPropagation()
-                    let foundRow
-                    const nextRow = this.pages[this.currentPage-1].find(row => {
+                    let foundRow: any
+                    const nextRow = this.pages[this.currentPage-1].find((row: any) => {
                         if (foundRow) {
                             return true
                         }
@@ -472,16 +502,20 @@ export class DataTable {
                     this.emit("datatable.selectrow", this.rows.cursor, event)
                 }
             })
-            this.dom.addEventListener("mousedown", event => {
+            this.dom.addEventListener("mousedown", (event: any) => {
                 if (this.dom.matches(":focus")) {
+                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
+                    // @ts-expect-error TS(2554): Expected 1 arguments, but got 3.
                     this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
                 }
 
             })
         } else {
-            this.dom.addEventListener("mousedown", event => {
+            this.dom.addEventListener("mousedown", (event: any) => {
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
+                // @ts-expect-error TS(2554): Expected 1 arguments, but got 3.
                 this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
             })
         }
@@ -546,21 +580,23 @@ export class DataTable {
     }
 
     paginate() {
-        let rows = this.data.data.map((row, index) => ({row,
-            index}))
+        let rows = this.data.data.map((row, index) => ({
+            row,
+            index
+        }))
 
         if (this.searching) {
             rows = []
 
-            this.searchData.forEach(index => rows.push({index,
+            this.searchData.forEach((index: any) => rows.push({index,
                 row: this.data.data[index]}))
         }
 
         if (this.filterStates.length) {
             this.filterStates.forEach(
-                filterState => {
+                (filterState: any) => {
                     rows = rows.filter(
-                        row => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
+                        (row: any) => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
                     )
                 }
             )
@@ -569,8 +605,8 @@ export class DataTable {
         if (this.options.paging) {
             // Check for hidden columns
             this.pages = rows
-                .map((row, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
-                .filter(page => page)
+                .map((row: any, i: any) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .filter((page: any) => page)
         } else {
             this.pages = [rows]
         }
@@ -586,7 +622,7 @@ export class DataTable {
      * Fix column widths
      */
     fixColumns() {
-        const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden)
+        const activeHeadings = this.data.headings.filter((heading: any, index: any) => !this.columnSettings.columns[index]?.hidden)
         if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.length) {
 
             this.columnWidths = []
@@ -598,6 +634,7 @@ export class DataTable {
             if (this.options.header || this.options.footer) {
 
                 if (this.options.scrollY.length) {
+                    // @ts-expect-error TS(2339): Property 'unhideHeader' does not exist on type '{ ... Remove this comment to see the full error message
                     renderOptions.unhideHeader = true
                 }
                 if (this.headerDOM) {
@@ -606,10 +643,12 @@ export class DataTable {
                 }
 
                 // Reset widths
+                // @ts-expect-error TS(2339): Property 'noColumnWidths' does not exist on type '... Remove this comment to see the full error message
                 renderOptions.noColumnWidths = true
                 this.renderTable(renderOptions)
 
                 const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || [])
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth)
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
@@ -674,10 +713,12 @@ export class DataTable {
                 }
 
             } else {
+                // @ts-expect-error TS(2339): Property 'renderHeader' does not exist on type '{ ... Remove this comment to see the full error message
                 renderOptions.renderHeader = true
                 this.renderTable(renderOptions)
 
                 const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || [])
+                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth)
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
@@ -704,7 +745,7 @@ export class DataTable {
     /**
      * Perform a search of the data set
      */
-    search(query) {
+    search(query: any) {
         if (!this.hasRows) return false
 
         query = query.toLowerCase()
@@ -721,11 +762,11 @@ export class DataTable {
             return false
         }
 
-        this.data.data.forEach((row, idx) => {
+        this.data.data.forEach((row: any, idx: any) => {
             const inArray = this.searchData.includes(row)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
-            const doesQueryMatch = query.split(" ").reduce((bool, word) => {
+            const doesQueryMatch = query.split(" ").reduce((bool: any, word: any) => {
                 let includes = false
                 let cell = null
                 let content = null
@@ -765,7 +806,7 @@ export class DataTable {
     /**
      * Change page
      */
-    page(page, lastRowCursor = false) {
+    page(page: any, lastRowCursor = false) {
         // We don't want to load the current page again.
         if (page === this.currentPage) {
             return false
@@ -788,7 +829,7 @@ export class DataTable {
     /**
      * Add new row data
      */
-    insert(data) {
+    insert(data: any) {
         let rows = []
         if (isObject(data)) {
             if (data.headings) {
@@ -803,9 +844,9 @@ export class DataTable {
                 rows = data.data
             }
         } else if (Array.isArray(data)) {
-            const headings = this.data.headings.map(heading => heading.data)
+            const headings = this.data.headings.map((heading: any) => heading.data)
             data.forEach(row => {
-                const r = []
+                const r: any = []
                 Object.entries(row).forEach(([heading, cell]) => {
 
                     const index = headings.indexOf(heading)
@@ -819,7 +860,7 @@ export class DataTable {
         }
 
         if (rows.length) {
-            rows.forEach(row => this.data.data.push(row.map((cell, index) => {
+            rows.forEach((row: any) => this.data.data.push(row.map((cell: any, index: any) => {
                 const cellOut = readDataCell(cell, this.columnSettings.columns[index])
                 return cellOut
             })))
@@ -854,12 +895,15 @@ export class DataTable {
      * Print the table
      */
     print() {
+        // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
         const tableDOM = createElement("table")
         const tableVirtualDOM = {nodeName: "TABLE"}
         const newTableVirtualDOM = dataToVirtualDOM(
             this.data.headings,
-            this.data.data.map((row, index) => ({row,
-                index})),
+            this.data.data.map((row, index) => ({
+                row,
+                index
+            })),
             this.columnSettings,
             this.columnWidths,
             false, // No row cursor
@@ -886,8 +930,8 @@ export class DataTable {
     /**
      * Show a message in the table
      */
-    setMessage(message) {
-        const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden)
+    setMessage(message: any) {
+        const activeHeadings = this.data.headings.filter((heading: any, index: any) => !this.columnSettings.columns[index]?.hidden)
         const colspan = activeHeadings.length || 1
 
         this.wrapper.classList.add("datatable-empty")
@@ -900,7 +944,7 @@ export class DataTable {
 
         const newVirtualDOM = structuredClone(this.virtualDOM)
 
-        const tbody = newVirtualDOM.childNodes.find(node => node.nodeName === "TBODY")
+        const tbody = newVirtualDOM.childNodes.find((node: any) => node.nodeName === "TBODY")
 
         tbody.childNodes = [
             {
@@ -933,8 +977,7 @@ export class DataTable {
     /**
      * Add custom event listener
      */
-    on(event, callback) {
-        this.events = this.events || {}
+    on(event: any, callback: any) {
         this.events[event] = this.events[event] || []
         this.events[event].push(callback)
     }
@@ -942,8 +985,7 @@ export class DataTable {
     /**
      * Remove custom event listener
      */
-    off(event, callback) {
-        this.events = this.events || {}
+    off(event: any, callback: any) {
         if (event in this.events === false) return
         this.events[event].splice(this.events[event].indexOf(callback), 1)
     }
@@ -951,11 +993,10 @@ export class DataTable {
     /**
      * Fire custom event
      */
-    emit(event) {
-        this.events = this.events || {}
+    emit(event: any, ...args) {
         if (event in this.events === false) return
         for (let i = 0; i < this.events[event].length; i++) {
-            this.events[event][i].apply(this, Array.prototype.slice.call(arguments, 1))
+            this.events[event][i](...args)
         }
     }
 }

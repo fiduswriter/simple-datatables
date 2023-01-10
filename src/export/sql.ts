@@ -5,7 +5,7 @@ import {
 /**
  * Export table to SQL
  */
-export const exportSQL = function(dataTable, userOptions = {}) {
+export const exportSQL = function(dataTable: any, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
     const defaults = {
@@ -23,31 +23,37 @@ export const exportSQL = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     }
-    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
-    let rows = []
+    const columnShown = (index: any) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
+    let rows: any = []
     // Selection or whole table
+    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
+        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            rows = rows.concat(dataTable.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.data)))
+        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.data)))
             }
         }
     } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+        rows = rows.concat(dataTable.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.data)))
     }
 
-    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data)
+    const headers = dataTable.data.headings.filter((_heading: any, index: any) => columnShown(index)).map((header: any) => header.data)
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
         let str = `INSERT INTO \`${options.tableName}\` (`
 
         // Convert table headings to column names
-        headers.forEach(header => {
+        headers.forEach((header: any) => {
             str += `\`${header}\`,`
         })
 
@@ -59,9 +65,9 @@ export const exportSQL = function(dataTable, userOptions = {}) {
 
         // Iterate rows and convert cell data to column values
 
-        rows.forEach(row => {
+        rows.forEach((row: any) => {
             str += "("
-            row.forEach(cell => {
+            row.forEach((cell: any) => {
                 if (typeof cell === "string") {
                     str += `"${cell}",`
                 } else {
@@ -91,6 +97,7 @@ export const exportSQL = function(dataTable, userOptions = {}) {
             // Create a link to trigger the download
             const link = document.createElement("a")
             link.href = encodeURI(str)
+            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
             link.download = `${options.filename || "datatable_export"}.sql`
 
             // Append the link

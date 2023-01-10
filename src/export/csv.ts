@@ -3,9 +3,9 @@ import {
 } from "../helpers"
 
 /**
- * Export table to TXT
+ * Export table to CSV
  */
-export const exportTXT = function(dataTable, userOptions = {}) {
+export const exportCSV = function(dataTable: any, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
     const defaults = {
@@ -24,35 +24,38 @@ export const exportTXT = function(dataTable, userOptions = {}) {
         ...defaults,
         ...userOptions
     }
-
-    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
-
+    const columnShown = (index: any) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
     let rows = []
-    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data)
+    const headers = dataTable.data.headings.filter((_heading: any, index: any) => columnShown(index)).map((header: any) => header.data)
     // Include headings
     rows[0] = headers
 
     // Selection or whole table
+    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
+        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            rows = rows.concat(dataTable.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text || cell.data)))
+        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
         } else if (Array.isArray(options.selection)) {
             // Array of page numbers
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text || cell.data)))
             }
         }
     } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)))
+        rows = rows.concat(dataTable.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text || cell.data)))
     }
 
     // Only proceed if we have data
     if (rows.length) {
         let str = ""
-
         rows.forEach(row => {
-            row.forEach(cell => {
+            row.forEach((cell: any) => {
                 if (typeof cell === "string") {
                     cell = cell.trim()
                     cell = cell.replace(/\s{2,}/g, " ")
@@ -71,21 +74,18 @@ export const exportTXT = function(dataTable, userOptions = {}) {
 
             // Apply line delimiter
             str += options.lineDelimiter
-
         })
 
         // Remove trailing line delimiter
         str = str.trim().substring(0, str.length - 1)
 
-        if (options.download) {
-            str = `data:text/csv;charset=utf-8,${str}`
-        }
         // Download
         if (options.download) {
             // Create a link to trigger the download
             const link = document.createElement("a")
-            link.href = encodeURI(str)
-            link.download = `${options.filename || "datatable_export"}.txt`
+            link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`)
+            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
+            link.download = `${options.filename || "datatable_export"}.csv`
 
             // Append the link
             document.body.appendChild(link)
