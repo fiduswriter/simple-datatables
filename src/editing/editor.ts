@@ -9,14 +9,48 @@ import {
 import {
     debounce
 } from "./helpers"
-
+import {DataTable} from "../datatable"
 /**
  * Main lib
  * @param {Object} dataTable Target dataTable
  * @param {Object} options User config
  */
 export class Editor {
-    constructor(dataTable, options = {}) {
+    closed: any
+
+    container: any
+
+    data: any
+
+    disabled: any
+
+    dt: DataTable
+
+    editing: boolean
+
+    editingCell: any
+
+    editingRow: any
+
+    event: any
+
+    events: any
+
+    initialized: any
+
+    limits: any
+
+    menu: any
+
+    modal: any
+
+    options: any
+
+    rect: any
+
+    wrapper: any
+
+    constructor(dataTable: any, options = {}) {
         this.dt = dataTable
         this.options = {
             ...defaultConfig,
@@ -44,7 +78,7 @@ export class Editor {
                 class: this.options.classes.menu
             })
             if (this.options.menuItems && this.options.menuItems.length) {
-                this.options.menuItems.forEach(item => {
+                this.options.menuItems.forEach((item: any) => {
                     const li = createElement("li", {
                         class: item.separator ? this.options.classes.separator : this.options.classes.item
                     })
@@ -56,7 +90,7 @@ export class Editor {
                         })
                         li.appendChild(a)
                         if (item.action && typeof item.action === "function") {
-                            a.addEventListener("click", event => {
+                            a.addEventListener("click", (event: any) => {
                                 event.preventDefault()
                                 item.action(this, event)
                             })
@@ -115,7 +149,7 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    context(event) {
+    context(event: any) {
         this.event = event
         const cell = event.target.closest("tbody td")
         if (this.options.contextMenu && !this.disabled && cell) {
@@ -143,7 +177,7 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    click(event) {
+    click(event: any) {
         if (this.editing && this.data && this.editingCell) {
             this.saveCell(this.data.input.value)
         } else if (!this.editing) {
@@ -160,13 +194,13 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    keydown(event) {
+    keydown(event: any) {
         if (this.modal) {
             if (event.key === "Escape") { // close button
                 this.closeModal()
             } else if (event.key === "Enter") { // save button
                 // Save
-                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row)
+                this.saveRow(this.data.inputs.map((input: any) => input.value.trim()), this.data.row)
             }
         } else if (this.editing && this.data) {
             if (event.key === "Enter") {
@@ -174,7 +208,7 @@ export class Editor {
                 if (this.editingCell) {
                     this.saveCell(this.data.input.value)
                 } else if (this.editingRow) {
-                    this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row)
+                    this.saveRow(this.data.inputs.map((input: any) => input.value.trim()), this.data.row)
                 }
             } else if (event.key === "Escape") {
                 // Escape key reverts
@@ -188,7 +222,7 @@ export class Editor {
      * @param  {Object} td    The HTMLTableCellElement
      * @return {Void}
      */
-    editCell(td) {
+    editCell(td: any) {
         let columnIndex = 0
         let cellIndex = 0
         while (cellIndex < td.cellIndex) {
@@ -243,7 +277,7 @@ export class Editor {
         this.data.input.focus()
         this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length
         // Close / save
-        modal.addEventListener("click", event => {
+        modal.addEventListener("click", (event: any) => {
             if (event.target.hasAttribute("data-editor-close")) { // close button
                 this.closeModal()
             } else if (event.target.hasAttribute("data-editor-save")) { // save button
@@ -260,7 +294,7 @@ export class Editor {
      * @param  {String} value   Cell content
      * @return {Void}
      */
-    saveCell(value) {
+    saveCell(value: string) {
         const oldData = this.data.content
         // Set the cell content
         this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = {data: value.trim()}
@@ -275,7 +309,7 @@ export class Editor {
      * @param  {Object} row    The HTMLTableRowElement
      * @return {Void}
      */
-    editRow(tr) {
+    editRow(tr: any) {
         if (!tr || tr.nodeName !== "TR" || this.editing) return
         const dataIndex = parseInt(tr.dataset.index, 10)
         const row = this.dt.data.data[dataIndex]
@@ -299,9 +333,15 @@ export class Editor {
             html: template
         })
         const inner = modal.firstElementChild
-        const form = inner.lastElementChild.firstElementChild
+        if (!inner) {
+            return
+        }
+        const form = inner.lastElementChild?.firstElementChild
+        if (!form) {
+            return
+        }
         // Add the inputs for each cell
-        row.forEach((cell, i) => {
+        row.forEach((cell: any, i: any) => {
             const columnSettings = this.dt.columnSettings.columns[i] || {}
             if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 form.insertBefore(createElement("div", {
@@ -318,7 +358,7 @@ export class Editor {
         this.modal = modal
         this.openModal()
         // Grab the inputs
-        const inputs = Array.from(form.elements)
+        const inputs = Array.from(form.querySelectorAll("input[type=text]"))
         // Remove save button
         inputs.pop()
         this.data = {
@@ -329,12 +369,12 @@ export class Editor {
         this.editing = true
         this.editingRow = true
         // Close / save
-        modal.addEventListener("click", event => {
+        modal.addEventListener("click", (event: any) => {
             if (event.target.hasAttribute("data-editor-close")) { // close button
                 this.closeModal()
             } else if (event.target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row)
+                this.saveRow(this.data.inputs.map((input: any) => input.value.trim()), this.data.row)
             }
         })
         this.closeMenu()
@@ -346,9 +386,9 @@ export class Editor {
      * @param  {Array} data   Cell data
      * @return {Void}
      */
-    saveRow(data, row) {
+    saveRow(data: any, row: any) {
         // Store the old data for the emitter
-        const oldData = row.map(cell => cell.text || String(cell.data))
+        const oldData = row.map((cell: any) => cell.text || String(cell.data))
         this.dt.rows.updateRow(this.data.dataIndex, data)
         this.data = {}
         this.closeModal()
@@ -381,7 +421,7 @@ export class Editor {
      * @param  {Object} tr The HTMLTableRowElement
      * @return {Void}
      */
-    removeRow(tr) {
+    removeRow(tr: any) {
         if (!tr || tr.nodeName !== "TR" || this.editing) return
         const index = parseInt(tr.dataset.index, 10)
         this.dt.rows.remove(index)
@@ -407,7 +447,7 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    dismiss(event) {
+    dismiss(event: any) {
         let valid = true
         if (this.options.contextMenu) {
             valid = !this.wrapper.contains(event.target)
@@ -469,7 +509,7 @@ export class Editor {
     }
 }
 
-export const makeEditable = function(dataTable, options = {}) {
+export const makeEditable = function(dataTable: any, options = {}) {
     const editor = new Editor(dataTable, options)
     if (dataTable.initialized) {
         editor.init()

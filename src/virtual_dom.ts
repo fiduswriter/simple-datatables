@@ -1,14 +1,31 @@
 import {stringToObj} from "diff-dom"
 
-export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {hiddenHeader, sortable, scrollY}, {noColumnWidths, unhideHeader}) => ({
+import {nodeType, renderType, rowRenderType} from "./interfaces"
+
+
+export const headingsToVirtualHeaderRowDOM = (
+    headings,
+    columnSettings,
+    columnWidths,
+    {
+        hiddenHeader,
+        sortable,
+        scrollY
+    }: any,
+    {
+        noColumnWidths,
+        unhideHeader
+    }: any
+) => ({
     nodeName: "TR",
+
     childNodes: headings.map(
-        (heading, index) => {
+        (heading: any, index: number) : false | nodeType => {
             const column = columnSettings.columns[index] || {}
             if (column.hidden) {
                 return false
             }
-            const attributes = {}
+            const attributes : { [key: string]: string} = {}
             if (!column.notSortable && sortable) {
                 attributes["data-sortable"] = "true"
             }
@@ -55,11 +72,23 @@ export const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWi
                 ]
             }
         }
-    ).filter(column => column)
+    ).filter((column: any) => column)
 })
 
-export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, renderHeader}) => {
-    const table = {
+export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, columnWidths: any, rowCursor: any, {
+    hiddenHeader,
+    header,
+    footer,
+    sortable,
+    scrollY,
+    rowRender,
+    tabIndex
+}: any, {
+    noColumnWidths,
+    unhideHeader,
+    renderHeader
+}: any) => {
+    const table: nodeType = {
         nodeName: "TABLE",
         attributes: {
             class: "datatable-table"
@@ -68,19 +97,22 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
             {
                 nodeName: "TBODY",
                 childNodes: rows.map(
-                    ({row, index}) => {
-                        const tr = {
+                    ({
+                        row,
+                        index
+                    }: any) => {
+                        const tr: nodeType = {
                             nodeName: "TR",
                             attributes: {
                                 "data-index": index
                             },
                             childNodes: row.map(
-                                (cell, cIndex) => {
+                                (cell: any, cIndex: any) => {
                                     const column = columnSettings.columns[cIndex] || {}
                                     if (column.hidden) {
                                         return false
                                     }
-                                    const td = cell.type === "node" ?
+                                    const td : nodeType = cell.type === "node" ?
                                         {
                                             nodeName: "TD",
                                             childNodes: cell.data
@@ -100,12 +132,13 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                         }
                                     }
                                     if (column.render) {
-                                        const renderedCell = column.render(cell.data, td, index, cIndex)
+                                        const renderedCell : renderType = column.render(cell.data, td, index, cIndex)
                                         if (renderedCell) {
                                             if (typeof renderedCell === "string") {
                                                 // Convenience method to make it work similarly to what it did up to version 5.
                                                 const node = stringToObj(`<td>${renderedCell}</td>`)
-                                                if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
+
+                                                if (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
                                                     td.childNodes = node.childNodes
                                                 } else {
                                                     td.childNodes[0].data = renderedCell
@@ -119,13 +152,13 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
                                     }
                                     return td
                                 }
-                            ).filter(column => column)
+                            ).filter((column: any) => column)
                         }
                         if (index===rowCursor) {
                             tr.attributes.class = "datatable-cursor"
                         }
                         if (rowRender) {
-                            const renderedRow = rowRender(row, tr, index)
+                            const renderedRow : rowRenderType = rowRender(row, tr, index)
                             if (renderedRow) {
                                 if (typeof renderedRow === "string") {
                                     // Convenience method to make it work similarly to what it did up to version 5.
@@ -149,13 +182,13 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
     }
 
     if (header || footer || renderHeader) {
-        const headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader,
+        const headerRow: nodeType = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader,
             sortable,
             scrollY}, {noColumnWidths,
             unhideHeader})
 
         if (header || renderHeader) {
-            const thead = {
+            const thead: nodeType = {
                 nodeName: "THEAD",
                 childNodes: [headerRow]
             }
@@ -166,7 +199,7 @@ export const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, r
         }
         if (footer) {
             const footerRow = header ? structuredClone(headerRow) : headerRow
-            const tfoot = {
+            const tfoot: nodeType = {
                 nodeName: "TFOOT",
                 childNodes: [footerRow]
             }

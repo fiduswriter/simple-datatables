@@ -1,16 +1,20 @@
 import {readDataCell} from "./read_data"
-
+import {DataTable} from "./datatable"
 /**
  * Rows API
  */
 export class Rows {
-    constructor(dt) {
+    cursor: (false | number)
+
+    dt: DataTable
+
+    constructor(dt: DataTable) {
         this.dt = dt
 
         this.cursor = false
     }
 
-    setCursor(index=false) {
+    setCursor(index: (false | number) =false) {
         if (index === this.cursor) {
             return
         }
@@ -29,8 +33,8 @@ export class Rows {
     /**
      * Add new row
      */
-    add(data) {
-        const row = data.map((cell, index) => {
+    add(data: any) {
+        const row = data.map((cell: any, index: any) => {
             const columnSettings = this.dt.columnSettings.columns[index] || {}
             return readDataCell(cell, columnSettings)
         })
@@ -48,9 +52,9 @@ export class Rows {
     /**
      * Remove row(s)
      */
-    remove(select) {
+    remove(select: any) {
         if (Array.isArray(select)) {
-            this.dt.data.data = this.dt.data.data.filter((_row, index) => !select.includes(index))
+            this.dt.data.data = this.dt.data.data.filter((_row: any, index: any) => !select.includes(index))
             // We may have emptied the table
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false
@@ -66,18 +70,18 @@ export class Rows {
     /**
      * Find index of row by searching for a value in a column
      */
-    findRowIndex(columnIndex, value) {
+    findRowIndex(columnIndex: any, value: any) {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
         return this.dt.data.data.findIndex(
-            row => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
+            (row: any) => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
         )
     }
 
     /**
      * Find index, row, and column data by searching for a value in a column
      */
-    findRow(columnIndex, value) {
+    findRow(columnIndex: any, value: any) {
         // get the row index
         const index = this.findRowIndex(columnIndex, value)
         // exit if not found
@@ -91,7 +95,7 @@ export class Rows {
         // get the row from data
         const row = this.dt.data.data[index]
         // return innerHTML of each td
-        const cols = row.map(cell => cell.data)
+        const cols = row.map((cell: any) => cell.data)
         // return everything
         return {
             index,
@@ -103,8 +107,8 @@ export class Rows {
     /**
      * Update a row with new data
      */
-    updateRow(select, data) {
-        const row = data.map((cell, index) => {
+    updateRow(select: any, data: any) {
+        const row = data.map((cell: any, index: any) => {
             const columnSettings = this.dt.columnSettings.columns[index] || {}
             return readDataCell(cell, columnSettings)
         })

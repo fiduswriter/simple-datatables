@@ -1,7 +1,11 @@
-export const readColumnSettings = (columnOptions = []) => {
+import {
+    columnSettingsType
+} from "./interfaces"
 
-    const columns = []
-    let sort = false
+export const readColumnSettings = (columnOptions = []) : {columns: (columnSettingsType | undefined)[], sort: (false | {column: number, dir: "asc" | "desc"})} => {
+
+    const columns: (columnSettingsType | undefined)[] = []
+    let sort: (false | {column: number, dir: "asc" | "desc"}) = false
 
     // Check for the columns option
 
@@ -10,7 +14,7 @@ export const readColumnSettings = (columnOptions = []) => {
         // convert single column selection to array
         const columnSelectors = Array.isArray(data.select) ? data.select : [data.select]
 
-        columnSelectors.forEach(selector => {
+        columnSelectors.forEach((selector: any) => {
             if (!columns[selector]) {
                 columns[selector] = {}
             }
@@ -43,6 +47,7 @@ export const readColumnSettings = (columnOptions = []) => {
 
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
+                // @ts-expect-error TS(2322): Type '{ column: any; dir: any; }' is not assignabl... Remove this comment to see the full error message
                 sort = {column,
                     dir: data.sort}
             }

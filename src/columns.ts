@@ -1,17 +1,19 @@
 import {readDataCell} from "./read_data"
-
+import {DataTable} from "./datatable"
 export class Columns {
-    constructor(dt) {
+    dt: DataTable
+
+    constructor(dt: any) {
         this.dt = dt
     }
 
     /**
      * Swap two columns
      */
-    swap(columns) {
+    swap(columns: any) {
         if (columns.length === 2) {
             // Get the current column indexes
-            const cols = this.dt.data.headings.map((_node, index) => index)
+            const cols = this.dt.data.headings.map((_node: any, index: any) => index)
 
             const x = columns[0]
             const y = columns[1]
@@ -26,14 +28,14 @@ export class Columns {
     /**
      * Reorder the columns
      */
-    order(columns) {
+    order(columns: any) {
 
-        this.dt.headings = columns.map(index => this.dt.headings[index])
+        this.dt.data.headings = columns.map((index: any) => this.dt.data.headings[index])
         this.dt.data.data = this.dt.data.data.map(
-            row => columns.map(index => row[index])
+            (row: any) => columns.map((index: any) => row[index])
         )
         this.dt.columnSettings.columns = columns.map(
-            index => this.dt.columnSettings.columns[index]
+            (index: any) => this.dt.columnSettings.columns[index]
         )
 
         // Update
@@ -43,11 +45,11 @@ export class Columns {
     /**
      * Hide columns
      */
-    hide(columns) {
+    hide(columns: any) {
         if (!columns.length) {
             return
         }
-        columns.forEach(index => {
+        columns.forEach((index: any) => {
             if (!this.dt.columnSettings.columns[index]) {
                 this.dt.columnSettings.columns[index] = {}
             }
@@ -61,11 +63,11 @@ export class Columns {
     /**
      * Show columns
      */
-    show(columns) {
+    show(columns: any) {
         if (!columns.length) {
             return
         }
-        columns.forEach(index => {
+        columns.forEach((index: any) => {
             if (!this.dt.columnSettings.columns[index]) {
                 this.dt.columnSettings.columns[index] = {}
             }
@@ -79,7 +81,7 @@ export class Columns {
     /**
      * Check column(s) visibility
      */
-    visible(columns) {
+    visible(columns: any) {
 
         if (Array.isArray(columns)) {
             return columns.map(index => !this.dt.columnSettings.columns[index]?.hidden)
@@ -91,11 +93,11 @@ export class Columns {
     /**
      * Add a new column
      */
-    add(data) {
+    add(data: any) {
         const newColumnSelector = this.dt.data.headings.length
         this.dt.data.headings = this.dt.data.headings.concat([{data: data.heading}])
         this.dt.data.data = this.dt.data.data.map(
-            (row, index) => row.concat([readDataCell(data.data[index], data)])
+            (row: any, index: any) => row.concat([readDataCell(data.data[index], data)])
         )
         if (data.type || data.format || data.sortable || data.render) {
             if (!this.dt.columnSettings.columns[newColumnSelector]) {
@@ -108,8 +110,8 @@ export class Columns {
             if (data.format) {
                 column.format = data.format
             }
-            if (data.sortable) {
-                column.sortable = data.sortable
+            if (data.notSortable) {
+                column.notSortable = data.notSortable
             }
             if (data.filter) {
                 column.filter = data.filter
@@ -125,11 +127,11 @@ export class Columns {
     /**
      * Remove column(s)
      */
-    remove(columns) {
+    remove(columns: number[]) {
         if (Array.isArray(columns)) {
-            this.dt.data.headings = this.dt.data.headings.filter((_heading, index) => !columns.includes(index))
+            this.dt.data.headings = this.dt.data.headings.filter((_heading: any, index: any) => !columns.includes(index))
             this.dt.data.data = this.dt.data.data.map(
-                row => row.filter((_cell, index) => !columns.includes(index))
+                (row: any) => row.filter((_cell: any, index: any) => !columns.includes(index))
             )
             this.dt.update(false)
             this.dt.fixColumns()
@@ -141,18 +143,18 @@ export class Columns {
     /**
      * Filter by column
      */
-    filter(column, init) {
+    filter(column: number, init = false) {
 
         if (!this.dt.columnSettings.columns[column]?.filter?.length) {
             // There is no filter to apply.
             return
         }
 
-        const currentFilter = this.dt.filterStates.find(filterState => filterState.column === column)
+        const currentFilter = this.dt.filterStates.find((filterState: any) => filterState.column === column)
         let newFilterState
         if (currentFilter) {
             let returnNext = false
-            newFilterState = this.dt.columnSettings.columns[column].filter.find(filter => {
+            newFilterState = this.dt.columnSettings.columns[column].filter.find((filter: any) => {
                 if (returnNext) {
                     return true
                 }
@@ -168,7 +170,7 @@ export class Columns {
         if (currentFilter && newFilterState) {
             currentFilter.state = newFilterState
         } else if (currentFilter) {
-            this.dt.filterStates = this.dt.filterStates.filter(filterState => filterState.column !== column)
+            this.dt.filterStates = this.dt.filterStates.filter((filterState: any) => filterState.column !== column)
         } else {
             this.dt.filterStates.push({column,
                 state: newFilterState})
@@ -184,7 +186,7 @@ export class Columns {
     /**
      * Sort by column
      */
-    sort(column, dir, init) {
+    sort(column: number, dir: ("asc" | "desc") = "asc", init = false) {
 
         // If there is a filter for this column, apply it instead of sorting
         if (this.dt.columnSettings.columns[column]?.filter?.length) {
@@ -201,11 +203,11 @@ export class Columns {
         }
 
         // Remove all other sorting
-        this.dt.data.headings.forEach(heading => {
+        this.dt.data.headings.forEach((heading: any) => {
             heading.sorted = false
         })
 
-        this.dt.data.data.sort((row1, row2) => {
+        this.dt.data.data.sort((row1: any, row2: any) => {
             let order1 = row1[column].order || row1[column].data,
                 order2 = row2[column].order || row2[column].data
             if (dir === "desc") {

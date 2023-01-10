@@ -1,12 +1,12 @@
 /**
  * Check is item is object
  */
-export const isObject = val => Object.prototype.toString.call(val) === "[object Object]"
+export const isObject = (val: any) => Object.prototype.toString.call(val) === "[object Object]"
 
 /**
  * Check for valid JSON string
  */
-export const isJson = str => {
+export const isJson = (str: string) => {
     let t = !1
     try {
         t = JSON.parse(str)
@@ -19,7 +19,7 @@ export const isJson = str => {
 /**
  * Create DOM element node
  */
-export const createElement = (nodeName, attrs) => {
+export const createElement = (nodeName: string, attrs?: any) => {
     const dom = document.createElement(nodeName)
     if (attrs && "object" == typeof attrs) {
         for (const attr in attrs) {
@@ -33,7 +33,7 @@ export const createElement = (nodeName, attrs) => {
     return dom
 }
 
-export const flush = el => {
+export const flush = (el: any) => {
     if (el instanceof NodeList) {
         el.forEach(e => flush(e))
     } else {
@@ -44,7 +44,7 @@ export const flush = el => {
 /**
  * Create button helper
  */
-export const button = (className, page, text) => createElement(
+export const button = (className: string, page: any, text: string) => createElement(
     "li",
     {
         class: className,
@@ -55,14 +55,14 @@ export const button = (className, page, text) => createElement(
 /**
  * Pager truncation algorithm
  */
-export const truncate = (a, b, c, d, ellipsis) => {
+export const truncate = (a: any, b: any, c: any, d: any, ellipsis: string) => {
     d = d || 2
-    let j
+    let j: any
     const e = 2 * d
     let f = b - d
     let g = b + d
     const h = []
-    const i = []
+    const i: any = []
     if (b < 4 - d + e) {
         g = 3 + e
     } else if (b > c - (3 - d + e)) {
@@ -96,18 +96,18 @@ export const truncate = (a, b, c, d, ellipsis) => {
 }
 
 
-export const objToText = obj => {
+export const objToText = (obj: any) => {
     if (obj.nodeName==="#text") {
         return obj.data
     }
     if (obj.childNodes) {
-        return obj.childNodes.map(childNode => objToText(childNode)).join("")
+        return obj.childNodes.map((childNode: any) => objToText(childNode)).join("")
     }
     return ""
 }
 
 
-export const escapeText = function(text) {
+export const escapeText = function(text: string) {
     return text
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")

@@ -1,10 +1,13 @@
+import {DataTableOptions} from "./interfaces"
+
 /**
  * Default configuration
  */
-export const defaultConfig = {
+export const defaultConfig: DataTableOptions = {
     sortable: true,
     searchable: true,
     destroyable: true,
+    data: {},
 
     // Pagination
     paging: true,

@@ -6,8 +6,8 @@ dayjs.extend(customParseFormat)
 /**
  * Use dayjs to parse cell contents for sorting
  */
-export const parseDate = (content, format) => {
-    let date = false
+export const parseDate = (content: string, format: string) => {
+    let date: false | number | string = false
 
     // Converting to YYYYMMDD ensures we can accurately sort the column numerically
 

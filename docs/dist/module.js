@@ -1,3 +1,29 @@
+/******************************************************************************
+Copyright (c) Microsoft Corporation.
+
+Permission to use, copy, modify, and/or distribute this software for any
+purpose with or without fee is hereby granted.
+
+THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
+AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
+LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
+OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
+PERFORMANCE OF THIS SOFTWARE.
+***************************************************************************** */
+
+var __assign = function() {
+    __assign = Object.assign || function __assign(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
+
 function objToNode(objNode, insideSvg, options) {
     let node;
     if (objNode.nodeName === "#text") {
@@ -2115,40 +2141,41 @@ class DiffDOM {
     }
 }
 
-const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {hiddenHeader, sortable, scrollY}, {noColumnWidths, unhideHeader}) => ({
-    nodeName: "TR",
-    childNodes: headings.map(
-        (heading, index) => {
-            const column = columnSettings.columns[index] || {};
+var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWidths, _a, _b) {
+    var hiddenHeader = _a.hiddenHeader, sortable = _a.sortable, scrollY = _a.scrollY;
+    var noColumnWidths = _b.noColumnWidths, unhideHeader = _b.unhideHeader;
+    return ({
+        nodeName: "TR",
+        childNodes: headings.map(function (heading, index) {
+            var column = columnSettings.columns[index] || {};
             if (column.hidden) {
-                return false
+                return false;
             }
-            const attributes = {};
+            var attributes = {};
             if (!column.notSortable && sortable) {
                 attributes["data-sortable"] = "true";
             }
             if (heading.sorted) {
-                attributes.class = heading.sorted;
+                attributes["class"] = heading.sorted;
                 attributes["aria-sort"] = heading.sorted === "asc" ? "ascending" : "descending";
             }
-            let style = "";
+            var style = "";
             if (columnWidths[index] && !noColumnWidths) {
-                style += `width: ${columnWidths[index]}%;`;
+                style += "width: ".concat(columnWidths[index], "%;");
             }
             if (scrollY.length && !unhideHeader) {
                 style += "padding-bottom: 0;padding-top: 0;border: 0;";
             }
-
             if (style.length) {
                 attributes.style = style;
             }
             return {
                 nodeName: "TH",
-                attributes,
+                attributes: attributes,
                 childNodes: [
                     ((hiddenHeader || scrollY.length) && !unhideHeader) ?
-                        {nodeName: "#text",
-                            data: ""} :
+                        { nodeName: "#text",
+                            data: "" } :
                         column.notSortable || !sortable ?
                             {
                                 nodeName: "#text",
@@ -2158,7 +2185,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
                                 nodeName: "a",
                                 attributes: {
                                     href: "#",
-                                    class: "datatable-sorter"
+                                    "class": "datatable-sorter"
                                 },
                                 childNodes: [
                                     {
@@ -2168,652 +2195,614 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnWidths, {
                                 ]
                             }
                 ]
-            }
-        }
-    ).filter(column => column)
-});
-
-const dataToVirtualDOM = (headings, rows, columnSettings, columnWidths, rowCursor, {hiddenHeader, header, footer, sortable, scrollY, rowRender, tabIndex}, {noColumnWidths, unhideHeader, renderHeader}) => {
-    const table = {
+            };
+        }).filter(function (column) { return column; })
+    });
+};
+var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, rowCursor, _a, _b) {
+    var hiddenHeader = _a.hiddenHeader, header = _a.header, footer = _a.footer, sortable = _a.sortable, scrollY = _a.scrollY, rowRender = _a.rowRender, tabIndex = _a.tabIndex;
+    var noColumnWidths = _b.noColumnWidths, unhideHeader = _b.unhideHeader, renderHeader = _b.renderHeader;
+    var table = {
         nodeName: "TABLE",
         attributes: {
-            class: "datatable-table"
+            "class": "datatable-table"
         },
         childNodes: [
             {
                 nodeName: "TBODY",
-                childNodes: rows.map(
-                    ({row, index}) => {
-                        const tr = {
-                            nodeName: "TR",
-                            attributes: {
-                                "data-index": index
-                            },
-                            childNodes: row.map(
-                                (cell, cIndex) => {
-                                    const column = columnSettings.columns[cIndex] || {};
-                                    if (column.hidden) {
-                                        return false
-                                    }
-                                    const td = cell.type === "node" ?
+                childNodes: rows.map(function (_a) {
+                    var row = _a.row, index = _a.index;
+                    var tr = {
+                        nodeName: "TR",
+                        attributes: {
+                            "data-index": index
+                        },
+                        childNodes: row.map(function (cell, cIndex) {
+                            var column = columnSettings.columns[cIndex] || {};
+                            if (column.hidden) {
+                                return false;
+                            }
+                            var td = cell.type === "node" ?
+                                {
+                                    nodeName: "TD",
+                                    childNodes: cell.data
+                                } :
+                                {
+                                    nodeName: "TD",
+                                    childNodes: [
                                         {
-                                            nodeName: "TD",
-                                            childNodes: cell.data
-                                        } :
-                                        {
-                                            nodeName: "TD",
-                                            childNodes: [
-                                                {
-                                                    nodeName: "#text",
-                                                    data: String(cell.data)
-                                                }
-                                            ]
-                                        };
-                                    if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
-                                        td.attributes = {
-                                            style: `width: ${columnWidths[cIndex]}%;`
-                                        };
-                                    }
-                                    if (column.render) {
-                                        const renderedCell = column.render(cell.data, td, index, cIndex);
-                                        if (renderedCell) {
-                                            if (typeof renderedCell === "string") {
-                                                // Convenience method to make it work similarly to what it did up to version 5.
-                                                const node = stringToObj(`<td>${renderedCell}</td>`);
-                                                if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
-                                                    td.childNodes = node.childNodes;
-                                                } else {
-                                                    td.childNodes[0].data = renderedCell;
-                                                }
-
-                                            } else {
-                                                return renderedCell
-                                            }
+                                            nodeName: "#text",
+                                            data: String(cell.data)
                                         }
-
+                                    ]
+                                };
+                            if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
+                                td.attributes = {
+                                    style: "width: ".concat(columnWidths[cIndex], "%;")
+                                };
+                            }
+                            if (column.render) {
+                                var renderedCell = column.render(cell.data, td, index, cIndex);
+                                if (renderedCell) {
+                                    if (typeof renderedCell === "string") {
+                                        // Convenience method to make it work similarly to what it did up to version 5.
+                                        var node = stringToObj("<td>".concat(renderedCell, "</td>"));
+                                        if (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
+                                            td.childNodes = node.childNodes;
+                                        }
+                                        else {
+                                            td.childNodes[0].data = renderedCell;
+                                        }
                                     }
-                                    return td
-                                }
-                            ).filter(column => column)
-                        };
-                        if (index===rowCursor) {
-                            tr.attributes.class = "datatable-cursor";
-                        }
-                        if (rowRender) {
-                            const renderedRow = rowRender(row, tr, index);
-                            if (renderedRow) {
-                                if (typeof renderedRow === "string") {
-                                    // Convenience method to make it work similarly to what it did up to version 5.
-                                    const node = stringToObj(`<tr>${renderedRow}</tr>`);
-                                    if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
-                                        tr.childNodes = node.childNodes;
-                                    } else {
-                                        tr.childNodes[0].data = renderedRow;
+                                    else {
+                                        return renderedCell;
                                     }
-
-                                } else {
-                                    return renderedRow
                                 }
                             }
-                        }
-                        return tr
+                            return td;
+                        }).filter(function (column) { return column; })
+                    };
+                    if (index === rowCursor) {
+                        tr.attributes["class"] = "datatable-cursor";
                     }
-                )
+                    if (rowRender) {
+                        var renderedRow = rowRender(row, tr, index);
+                        if (renderedRow) {
+                            if (typeof renderedRow === "string") {
+                                // Convenience method to make it work similarly to what it did up to version 5.
+                                var node = stringToObj("<tr>".concat(renderedRow, "</tr>"));
+                                if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+                                    tr.childNodes = node.childNodes;
+                                }
+                                else {
+                                    tr.childNodes[0].data = renderedRow;
+                                }
+                            }
+                            else {
+                                return renderedRow;
+                            }
+                        }
+                    }
+                    return tr;
+                })
             }
         ]
     };
-
     if (header || footer || renderHeader) {
-        const headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader,
-            sortable,
-            scrollY}, {noColumnWidths,
-            unhideHeader});
-
+        var headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, { hiddenHeader: hiddenHeader, sortable: sortable, scrollY: scrollY }, { noColumnWidths: noColumnWidths, unhideHeader: unhideHeader });
         if (header || renderHeader) {
-            const thead = {
+            var thead = {
                 nodeName: "THEAD",
                 childNodes: [headerRow]
             };
             if ((scrollY.length || hiddenHeader) && !unhideHeader) {
-                thead.attributes = {style: "height: 0px;"};
+                thead.attributes = { style: "height: 0px;" };
             }
             table.childNodes.unshift(thead);
         }
         if (footer) {
-            const footerRow = header ? structuredClone(headerRow) : headerRow;
-            const tfoot = {
+            var footerRow = header ? structuredClone(headerRow) : headerRow;
+            var tfoot = {
                 nodeName: "TFOOT",
                 childNodes: [footerRow]
             };
             if ((scrollY.length || hiddenHeader) && !unhideHeader) {
-                tfoot.attributes = {style: "height: 0px;"};
+                tfoot.attributes = { style: "height: 0px;" };
             }
             table.childNodes.push(tfoot);
         }
-
     }
-
     if (tabIndex !== false) {
         table.attributes.tabindex = String(tabIndex);
     }
-
-    return table
+    return table;
 };
 
-const readColumnSettings = (columnOptions = []) => {
-
-    const columns = [];
-    let sort = false;
-
+var readColumnSettings = function (columnOptions) {
+    if (columnOptions === void 0) { columnOptions = []; }
+    var columns = [];
+    var sort = false;
     // Check for the columns option
-
-    columnOptions.forEach(data => {
-
+    columnOptions.forEach(function (data) {
         // convert single column selection to array
-        const columnSelectors = Array.isArray(data.select) ? data.select : [data.select];
-
-        columnSelectors.forEach(selector => {
+        var columnSelectors = Array.isArray(data.select) ? data.select : [data.select];
+        columnSelectors.forEach(function (selector) {
             if (!columns[selector]) {
                 columns[selector] = {};
             }
-            const column = columns[selector];
-
-
+            var column = columns[selector];
             if (data.render) {
                 column.render = data.render;
             }
-
             if (data.type) {
                 column.type = data.type;
             }
-
             if (data.format) {
                 column.format = data.format;
             }
-
             if (data.sortable === false) {
                 column.notSortable = true;
             }
-
             if (data.hidden) {
                 column.hidden = true;
             }
-
             if (data.filter) {
                 column.filter = data.filter;
             }
-
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
-                sort = {column,
-                    dir: data.sort};
+                // @ts-expect-error TS(2322): Type '{ column: any; dir: any; }' is not assignabl... Remove this comment to see the full error message
+                sort = { column: column, dir: data.sort };
             }
-
         });
-
     });
-
-    return {columns,
-        sort}
-
+    return { columns: columns, sort: sort };
 };
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
-var dayjs_min = {exports: {}};
+var dayjs_minExports = {};
+var dayjs_min = {
+  get exports(){ return dayjs_minExports; },
+  set exports(v){ dayjs_minExports = v; },
+};
 
 (function (module, exports) {
-	!function(t,e){module.exports=e();}(commonjsGlobal,(function(){var t=1e3,e=6e4,n=36e5,r="millisecond",i="second",s="minute",u="hour",a="day",o="week",f="month",h="quarter",c="year",d="date",$="Invalid Date",l=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,y=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,M={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_")},m=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},g={s:m,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+m(r,2,"0")+":"+m(i,2,"0")},m:function t(e,n){if(e.date()<n.date())return -t(n,e);var r=12*(n.year()-e.year())+(n.month()-e.month()),i=e.clone().add(r,f),s=n-i<0,u=e.clone().add(r+(s?-1:1),f);return +(-(r+(n-i)/(s?i-u:u-i))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return {M:f,y:c,w:o,d:a,D:d,h:u,m:s,s:i,ms:r,Q:h}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},v="en",D={};D[v]=M;var p=function(t){return t instanceof _},S=function t(e,n,r){var i;if(!e)return v;if("string"==typeof e){var s=e.toLowerCase();D[s]&&(i=s),n&&(D[s]=n,i=s);var u=e.split("-");if(!i&&u.length>1)return t(u[0])}else {var a=e.name;D[a]=e,i=a;}return !r&&i&&(v=i),i||!r&&v},w=function(t,e){if(p(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new _(n)},O=g;O.l=S,O.i=p,O.w=function(t,e){return w(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var _=function(){function M(t){this.$L=S(t.locale,null,!0),this.parse(t);}var m=M.prototype;return m.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(O.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match(l);if(r){var i=r[2]-1||0,s=(r[7]||"0").substring(0,3);return n?new Date(Date.UTC(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)):new Date(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)}}return new Date(e)}(t),this.$x=t.x||{},this.init();},m.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},m.$utils=function(){return O},m.isValid=function(){return !(this.$d.toString()===$)},m.isSame=function(t,e){var n=w(t);return this.startOf(e)<=n&&n<=this.endOf(e)},m.isAfter=function(t,e){return w(t)<this.startOf(e)},m.isBefore=function(t,e){return this.endOf(e)<w(t)},m.$g=function(t,e,n){return O.u(t)?this[e]:this.set(n,t)},m.unix=function(){return Math.floor(this.valueOf()/1e3)},m.valueOf=function(){return this.$d.getTime()},m.startOf=function(t,e){var n=this,r=!!O.u(e)||e,h=O.p(t),$=function(t,e){var i=O.w(n.$u?Date.UTC(n.$y,e,t):new Date(n.$y,e,t),n);return r?i:i.endOf(a)},l=function(t,e){return O.w(n.toDate()[t].apply(n.toDate("s"),(r?[0,0,0,0]:[23,59,59,999]).slice(e)),n)},y=this.$W,M=this.$M,m=this.$D,g="set"+(this.$u?"UTC":"");switch(h){case c:return r?$(1,0):$(31,11);case f:return r?$(1,M):$(0,M+1);case o:var v=this.$locale().weekStart||0,D=(y<v?y+7:y)-v;return $(r?m-D:m+(6-D),M);case a:case d:return l(g+"Hours",0);case u:return l(g+"Minutes",1);case s:return l(g+"Seconds",2);case i:return l(g+"Milliseconds",3);default:return this.clone()}},m.endOf=function(t){return this.startOf(t,!1)},m.$set=function(t,e){var n,o=O.p(t),h="set"+(this.$u?"UTC":""),$=(n={},n[a]=h+"Date",n[d]=h+"Date",n[f]=h+"Month",n[c]=h+"FullYear",n[u]=h+"Hours",n[s]=h+"Minutes",n[i]=h+"Seconds",n[r]=h+"Milliseconds",n)[o],l=o===a?this.$D+(e-this.$W):e;if(o===f||o===c){var y=this.clone().set(d,1);y.$d[$](l),y.init(),this.$d=y.set(d,Math.min(this.$D,y.daysInMonth())).$d;}else $&&this.$d[$](l);return this.init(),this},m.set=function(t,e){return this.clone().$set(t,e)},m.get=function(t){return this[O.p(t)]()},m.add=function(r,h){var d,$=this;r=Number(r);var l=O.p(h),y=function(t){var e=w($);return O.w(e.date(e.date()+Math.round(t*r)),$)};if(l===f)return this.set(f,this.$M+r);if(l===c)return this.set(c,this.$y+r);if(l===a)return y(1);if(l===o)return y(7);var M=(d={},d[s]=e,d[u]=n,d[i]=t,d)[l]||1,m=this.$d.getTime()+r*M;return O.w(m,this)},m.subtract=function(t,e){return this.add(-1*t,e)},m.format=function(t){var e=this,n=this.$locale();if(!this.isValid())return n.invalidDate||$;var r=t||"YYYY-MM-DDTHH:mm:ssZ",i=O.z(this),s=this.$H,u=this.$m,a=this.$M,o=n.weekdays,f=n.months,h=function(t,n,i,s){return t&&(t[n]||t(e,r))||i[n].slice(0,s)},c=function(t){return O.s(s%12||12,t,"0")},d=n.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},l={YY:String(this.$y).slice(-2),YYYY:this.$y,M:a+1,MM:O.s(a+1,2,"0"),MMM:h(n.monthsShort,a,f,3),MMMM:h(f,a),D:this.$D,DD:O.s(this.$D,2,"0"),d:String(this.$W),dd:h(n.weekdaysMin,this.$W,o,2),ddd:h(n.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(s),HH:O.s(s,2,"0"),h:c(1),hh:c(2),a:d(s,u,!0),A:d(s,u,!1),m:String(u),mm:O.s(u,2,"0"),s:String(this.$s),ss:O.s(this.$s,2,"0"),SSS:O.s(this.$ms,3,"0"),Z:i};return r.replace(y,(function(t,e){return e||l[t]||i.replace(":","")}))},m.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},m.diff=function(r,d,$){var l,y=O.p(d),M=w(r),m=(M.utcOffset()-this.utcOffset())*e,g=this-M,v=O.m(this,M);return v=(l={},l[c]=v/12,l[f]=v,l[h]=v/3,l[o]=(g-m)/6048e5,l[a]=(g-m)/864e5,l[u]=g/n,l[s]=g/e,l[i]=g/t,l)[y]||g,$?v:O.a(v)},m.daysInMonth=function(){return this.endOf(f).$D},m.$locale=function(){return D[this.$L]},m.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=S(t,e,!0);return r&&(n.$L=r),n},m.clone=function(){return O.w(this.$d,this)},m.toDate=function(){return new Date(this.valueOf())},m.toJSON=function(){return this.isValid()?this.toISOString():null},m.toISOString=function(){return this.$d.toISOString()},m.toString=function(){return this.$d.toUTCString()},M}(),T=_.prototype;return w.prototype=T,[["$ms",r],["$s",i],["$m",s],["$H",u],["$W",a],["$M",f],["$y",c],["$D",d]].forEach((function(t){T[t[1]]=function(e){return this.$g(e,t[0],t[1])};})),w.extend=function(t,e){return t.$i||(t(e,_,w),t.$i=!0),w},w.locale=S,w.isDayjs=p,w.unix=function(t){return w(1e3*t)},w.en=D[v],w.Ls=D,w.p={},w}));
+	!function(t,e){module.exports=e();}(commonjsGlobal,(function(){var t=1e3,e=6e4,n=36e5,r="millisecond",i="second",s="minute",u="hour",a="day",o="week",f="month",h="quarter",c="year",d="date",l="Invalid Date",$=/^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/,y=/\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g,M={name:"en",weekdays:"Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"),months:"January_February_March_April_May_June_July_August_September_October_November_December".split("_"),ordinal:function(t){var e=["th","st","nd","rd"],n=t%100;return "["+t+(e[(n-20)%10]||e[n]||e[0])+"]"}},m=function(t,e,n){var r=String(t);return !r||r.length>=e?t:""+Array(e+1-r.length).join(n)+t},v={s:m,z:function(t){var e=-t.utcOffset(),n=Math.abs(e),r=Math.floor(n/60),i=n%60;return (e<=0?"+":"-")+m(r,2,"0")+":"+m(i,2,"0")},m:function t(e,n){if(e.date()<n.date())return -t(n,e);var r=12*(n.year()-e.year())+(n.month()-e.month()),i=e.clone().add(r,f),s=n-i<0,u=e.clone().add(r+(s?-1:1),f);return +(-(r+(n-i)/(s?i-u:u-i))||0)},a:function(t){return t<0?Math.ceil(t)||0:Math.floor(t)},p:function(t){return {M:f,y:c,w:o,d:a,D:d,h:u,m:s,s:i,ms:r,Q:h}[t]||String(t||"").toLowerCase().replace(/s$/,"")},u:function(t){return void 0===t}},g="en",D={};D[g]=M;var p=function(t){return t instanceof _},S=function t(e,n,r){var i;if(!e)return g;if("string"==typeof e){var s=e.toLowerCase();D[s]&&(i=s),n&&(D[s]=n,i=s);var u=e.split("-");if(!i&&u.length>1)return t(u[0])}else {var a=e.name;D[a]=e,i=a;}return !r&&i&&(g=i),i||!r&&g},w=function(t,e){if(p(t))return t.clone();var n="object"==typeof e?e:{};return n.date=t,n.args=arguments,new _(n)},O=v;O.l=S,O.i=p,O.w=function(t,e){return w(t,{locale:e.$L,utc:e.$u,x:e.$x,$offset:e.$offset})};var _=function(){function M(t){this.$L=S(t.locale,null,!0),this.parse(t);}var m=M.prototype;return m.parse=function(t){this.$d=function(t){var e=t.date,n=t.utc;if(null===e)return new Date(NaN);if(O.u(e))return new Date;if(e instanceof Date)return new Date(e);if("string"==typeof e&&!/Z$/i.test(e)){var r=e.match($);if(r){var i=r[2]-1||0,s=(r[7]||"0").substring(0,3);return n?new Date(Date.UTC(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)):new Date(r[1],i,r[3]||1,r[4]||0,r[5]||0,r[6]||0,s)}}return new Date(e)}(t),this.$x=t.x||{},this.init();},m.init=function(){var t=this.$d;this.$y=t.getFullYear(),this.$M=t.getMonth(),this.$D=t.getDate(),this.$W=t.getDay(),this.$H=t.getHours(),this.$m=t.getMinutes(),this.$s=t.getSeconds(),this.$ms=t.getMilliseconds();},m.$utils=function(){return O},m.isValid=function(){return !(this.$d.toString()===l)},m.isSame=function(t,e){var n=w(t);return this.startOf(e)<=n&&n<=this.endOf(e)},m.isAfter=function(t,e){return w(t)<this.startOf(e)},m.isBefore=function(t,e){return this.endOf(e)<w(t)},m.$g=function(t,e,n){return O.u(t)?this[e]:this.set(n,t)},m.unix=function(){return Math.floor(this.valueOf()/1e3)},m.valueOf=function(){return this.$d.getTime()},m.startOf=function(t,e){var n=this,r=!!O.u(e)||e,h=O.p(t),l=function(t,e){var i=O.w(n.$u?Date.UTC(n.$y,e,t):new Date(n.$y,e,t),n);return r?i:i.endOf(a)},$=function(t,e){return O.w(n.toDate()[t].apply(n.toDate("s"),(r?[0,0,0,0]:[23,59,59,999]).slice(e)),n)},y=this.$W,M=this.$M,m=this.$D,v="set"+(this.$u?"UTC":"");switch(h){case c:return r?l(1,0):l(31,11);case f:return r?l(1,M):l(0,M+1);case o:var g=this.$locale().weekStart||0,D=(y<g?y+7:y)-g;return l(r?m-D:m+(6-D),M);case a:case d:return $(v+"Hours",0);case u:return $(v+"Minutes",1);case s:return $(v+"Seconds",2);case i:return $(v+"Milliseconds",3);default:return this.clone()}},m.endOf=function(t){return this.startOf(t,!1)},m.$set=function(t,e){var n,o=O.p(t),h="set"+(this.$u?"UTC":""),l=(n={},n[a]=h+"Date",n[d]=h+"Date",n[f]=h+"Month",n[c]=h+"FullYear",n[u]=h+"Hours",n[s]=h+"Minutes",n[i]=h+"Seconds",n[r]=h+"Milliseconds",n)[o],$=o===a?this.$D+(e-this.$W):e;if(o===f||o===c){var y=this.clone().set(d,1);y.$d[l]($),y.init(),this.$d=y.set(d,Math.min(this.$D,y.daysInMonth())).$d;}else l&&this.$d[l]($);return this.init(),this},m.set=function(t,e){return this.clone().$set(t,e)},m.get=function(t){return this[O.p(t)]()},m.add=function(r,h){var d,l=this;r=Number(r);var $=O.p(h),y=function(t){var e=w(l);return O.w(e.date(e.date()+Math.round(t*r)),l)};if($===f)return this.set(f,this.$M+r);if($===c)return this.set(c,this.$y+r);if($===a)return y(1);if($===o)return y(7);var M=(d={},d[s]=e,d[u]=n,d[i]=t,d)[$]||1,m=this.$d.getTime()+r*M;return O.w(m,this)},m.subtract=function(t,e){return this.add(-1*t,e)},m.format=function(t){var e=this,n=this.$locale();if(!this.isValid())return n.invalidDate||l;var r=t||"YYYY-MM-DDTHH:mm:ssZ",i=O.z(this),s=this.$H,u=this.$m,a=this.$M,o=n.weekdays,f=n.months,h=function(t,n,i,s){return t&&(t[n]||t(e,r))||i[n].slice(0,s)},c=function(t){return O.s(s%12||12,t,"0")},d=n.meridiem||function(t,e,n){var r=t<12?"AM":"PM";return n?r.toLowerCase():r},$={YY:String(this.$y).slice(-2),YYYY:this.$y,M:a+1,MM:O.s(a+1,2,"0"),MMM:h(n.monthsShort,a,f,3),MMMM:h(f,a),D:this.$D,DD:O.s(this.$D,2,"0"),d:String(this.$W),dd:h(n.weekdaysMin,this.$W,o,2),ddd:h(n.weekdaysShort,this.$W,o,3),dddd:o[this.$W],H:String(s),HH:O.s(s,2,"0"),h:c(1),hh:c(2),a:d(s,u,!0),A:d(s,u,!1),m:String(u),mm:O.s(u,2,"0"),s:String(this.$s),ss:O.s(this.$s,2,"0"),SSS:O.s(this.$ms,3,"0"),Z:i};return r.replace(y,(function(t,e){return e||$[t]||i.replace(":","")}))},m.utcOffset=function(){return 15*-Math.round(this.$d.getTimezoneOffset()/15)},m.diff=function(r,d,l){var $,y=O.p(d),M=w(r),m=(M.utcOffset()-this.utcOffset())*e,v=this-M,g=O.m(this,M);return g=($={},$[c]=g/12,$[f]=g,$[h]=g/3,$[o]=(v-m)/6048e5,$[a]=(v-m)/864e5,$[u]=v/n,$[s]=v/e,$[i]=v/t,$)[y]||v,l?g:O.a(g)},m.daysInMonth=function(){return this.endOf(f).$D},m.$locale=function(){return D[this.$L]},m.locale=function(t,e){if(!t)return this.$L;var n=this.clone(),r=S(t,e,!0);return r&&(n.$L=r),n},m.clone=function(){return O.w(this.$d,this)},m.toDate=function(){return new Date(this.valueOf())},m.toJSON=function(){return this.isValid()?this.toISOString():null},m.toISOString=function(){return this.$d.toISOString()},m.toString=function(){return this.$d.toUTCString()},M}(),T=_.prototype;return w.prototype=T,[["$ms",r],["$s",i],["$m",s],["$H",u],["$W",a],["$M",f],["$y",c],["$D",d]].forEach((function(t){T[t[1]]=function(e){return this.$g(e,t[0],t[1])};})),w.extend=function(t,e){return t.$i||(t(e,_,w),t.$i=!0),w},w.locale=S,w.isDayjs=p,w.unix=function(t){return w(1e3*t)},w.en=D[g],w.Ls=D,w.p={},w}));
 } (dayjs_min));
 
-var dayjs = dayjs_min.exports;
+var dayjs = dayjs_minExports;
 
-var customParseFormat$1 = {exports: {}};
+var customParseFormatExports = {};
+var customParseFormat$1 = {
+  get exports(){ return customParseFormatExports; },
+  set exports(v){ customParseFormatExports = v; },
+};
 
 (function (module, exports) {
 	!function(e,t){module.exports=t();}(commonjsGlobal,(function(){var e={LTS:"h:mm:ss A",LT:"h:mm A",L:"MM/DD/YYYY",LL:"MMMM D, YYYY",LLL:"MMMM D, YYYY h:mm A",LLLL:"dddd, MMMM D, YYYY h:mm A"},t=/(\[[^[]*\])|([-_:/.,()\s]+)|(A|a|YYYY|YY?|MM?M?M?|Do|DD?|hh?|HH?|mm?|ss?|S{1,3}|z|ZZ?)/g,n=/\d\d/,r=/\d\d?/,i=/\d*[^-_:/,()\s\d]+/,o={},s=function(e){return (e=+e)+(e>68?1900:2e3)};var a=function(e){return function(t){this[e]=+t;}},f=[/[+-]\d\d:?(\d\d)?|Z/,function(e){(this.zone||(this.zone={})).offset=function(e){if(!e)return 0;if("Z"===e)return 0;var t=e.match(/([+-]|\d\d)/g),n=60*t[1]+(+t[2]||0);return 0===n?0:"+"===t[0]?-n:n}(e);}],h=function(e){var t=o[e];return t&&(t.indexOf?t:t.s.concat(t.f))},u=function(e,t){var n,r=o.meridiem;if(r){for(var i=1;i<=24;i+=1)if(e.indexOf(r(i,0,t))>-1){n=i>12;break}}else n=e===(t?"pm":"PM");return n},d={A:[i,function(e){this.afternoon=u(e,!1);}],a:[i,function(e){this.afternoon=u(e,!0);}],S:[/\d/,function(e){this.milliseconds=100*+e;}],SS:[n,function(e){this.milliseconds=10*+e;}],SSS:[/\d{3}/,function(e){this.milliseconds=+e;}],s:[r,a("seconds")],ss:[r,a("seconds")],m:[r,a("minutes")],mm:[r,a("minutes")],H:[r,a("hours")],h:[r,a("hours")],HH:[r,a("hours")],hh:[r,a("hours")],D:[r,a("day")],DD:[n,a("day")],Do:[i,function(e){var t=o.ordinal,n=e.match(/\d+/);if(this.day=n[0],t)for(var r=1;r<=31;r+=1)t(r).replace(/\[|\]/g,"")===e&&(this.day=r);}],M:[r,a("month")],MM:[n,a("month")],MMM:[i,function(e){var t=h("months"),n=(h("monthsShort")||t.map((function(e){return e.slice(0,3)}))).indexOf(e)+1;if(n<1)throw new Error;this.month=n%12||n;}],MMMM:[i,function(e){var t=h("months").indexOf(e)+1;if(t<1)throw new Error;this.month=t%12||t;}],Y:[/[+-]?\d+/,a("year")],YY:[n,function(e){this.year=s(e);}],YYYY:[/\d{4}/,a("year")],Z:f,ZZ:f};function c(n){var r,i;r=n,i=o&&o.formats;for(var s=(n=r.replace(/(\[[^\]]+])|(LTS?|l{1,4}|L{1,4})/g,(function(t,n,r){var o=r&&r.toUpperCase();return n||i[r]||e[r]||i[o].replace(/(\[[^\]]+])|(MMMM|MM|DD|dddd)/g,(function(e,t,n){return t||n.slice(1)}))}))).match(t),a=s.length,f=0;f<a;f+=1){var h=s[f],u=d[h],c=u&&u[0],l=u&&u[1];s[f]=l?{regex:c,parser:l}:h.replace(/^\[|\]$/g,"");}return function(e){for(var t={},n=0,r=0;n<a;n+=1){var i=s[n];if("string"==typeof i)r+=i.length;else {var o=i.regex,f=i.parser,h=e.slice(r),u=o.exec(h)[0];f.call(t,u),e=e.replace(u,"");}}return function(e){var t=e.afternoon;if(void 0!==t){var n=e.hours;t?n<12&&(e.hours+=12):12===n&&(e.hours=0),delete e.afternoon;}}(t),t}}return function(e,t,n){n.p.customParseFormat=!0,e&&e.parseTwoDigitYear&&(s=e.parseTwoDigitYear);var r=t.prototype,i=r.parse;r.parse=function(e){var t=e.date,r=e.utc,s=e.args;this.$u=r;var a=s[1];if("string"==typeof a){var f=!0===s[2],h=!0===s[3],u=f||h,d=s[2];h&&(d=s[2]),o=this.$locale(),!f&&d&&(o=n.Ls[d]),this.$d=function(e,t,n){try{if(["x","X"].indexOf(t)>-1)return new Date(("X"===t?1e3:1)*e);var r=c(t)(e),i=r.year,o=r.month,s=r.day,a=r.hours,f=r.minutes,h=r.seconds,u=r.milliseconds,d=r.zone,l=new Date,m=s||(i||o?1:l.getDate()),M=i||l.getFullYear(),Y=0;i&&!o||(Y=o>0?o-1:l.getMonth());var p=a||0,v=f||0,D=h||0,g=u||0;return d?new Date(Date.UTC(M,Y,m,p,v,D,g+60*d.offset*1e3)):n?new Date(Date.UTC(M,Y,m,p,v,D,g)):new Date(M,Y,m,p,v,D,g)}catch(e){return new Date("")}}(t,a,r),this.init(),d&&!0!==d&&(this.$L=this.locale(d).$L),u&&t!=this.format(a)&&(this.$d=new Date("")),o={};}else if(a instanceof Array)for(var l=a.length,m=1;m<=l;m+=1){s[1]=a[m-1];var M=n.apply(this,s);if(M.isValid()){this.$d=M.$d,this.$L=M.$L,this.init();break}m===l&&(this.$d=new Date(""));}else i.call(this,e);};}}));
 } (customParseFormat$1));
 
-var customParseFormat = customParseFormat$1.exports;
+var customParseFormat = customParseFormatExports;
 
 dayjs.extend(customParseFormat);
-
 /**
  * Use dayjs to parse cell contents for sorting
  */
-const parseDate = (content, format) => {
-    let date = false;
-
+var parseDate = function (content, format) {
+    var date = false;
     // Converting to YYYYMMDD ensures we can accurately sort the column numerically
-
     if (format) {
         switch (format) {
-        case "ISO_8601":
-            // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
-            date = content;
-            break
-        case "RFC_2822":
-            date = dayjs(content.slice(5), "DD MMM YYYY HH:mm:ss ZZ").unix();
-            break
-        case "MYSQL":
-            date = dayjs(content, "YYYY-MM-DD hh:mm:ss").unix();
-            break
-        case "UNIX":
-            date = dayjs(content).unix();
-            break
-        // User defined format using the data-format attribute or columns[n].format option
-        default:
-            date = dayjs(content, format, true).valueOf();
-            break
+            case "ISO_8601":
+                // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
+                date = content;
+                break;
+            case "RFC_2822":
+                date = dayjs(content.slice(5), "DD MMM YYYY HH:mm:ss ZZ").unix();
+                break;
+            case "MYSQL":
+                date = dayjs(content, "YYYY-MM-DD hh:mm:ss").unix();
+                break;
+            case "UNIX":
+                date = dayjs(content).unix();
+                break;
+            // User defined format using the data-format attribute or columns[n].format option
+            default:
+                date = dayjs(content, format, true).valueOf();
+                break;
         }
     }
-    return date
+    return date;
 };
 
 /**
  * Check is item is object
  */
-const isObject = val => Object.prototype.toString.call(val) === "[object Object]";
-
+var isObject = function (val) { return Object.prototype.toString.call(val) === "[object Object]"; };
 /**
  * Check for valid JSON string
  */
-const isJson = str => {
-    let t = !1;
+var isJson = function (str) {
+    var t = !1;
     try {
         t = JSON.parse(str);
-    } catch (e) {
-        return !1
     }
-    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t
+    catch (e) {
+        return !1;
+    }
+    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t;
 };
-
 /**
  * Create DOM element node
  */
-const createElement = (nodeName, attrs) => {
-    const dom = document.createElement(nodeName);
+var createElement = function (nodeName, attrs) {
+    var dom = document.createElement(nodeName);
     if (attrs && "object" == typeof attrs) {
-        for (const attr in attrs) {
+        for (var attr in attrs) {
             if ("html" === attr) {
                 dom.innerHTML = attrs[attr];
-            } else {
+            }
+            else {
                 dom.setAttribute(attr, attrs[attr]);
             }
         }
     }
-    return dom
+    return dom;
 };
-
-const flush = el => {
+var flush = function (el) {
     if (el instanceof NodeList) {
-        el.forEach(e => flush(e));
-    } else {
+        el.forEach(function (e) { return flush(e); });
+    }
+    else {
         el.innerHTML = "";
     }
 };
-
 /**
  * Create button helper
  */
-const button = (className, page, text) => createElement(
-    "li",
-    {
-        class: className,
-        html: `<a href="#" data-page="${page}">${text}</a>`
-    }
-);
-
+var button = function (className, page, text) { return createElement("li", {
+    "class": className,
+    html: "<a href=\"#\" data-page=\"".concat(page, "\">").concat(text, "</a>")
+}); };
 /**
  * Pager truncation algorithm
  */
-const truncate = (a, b, c, d, ellipsis) => {
+var truncate = function (a, b, c, d, ellipsis) {
     d = d || 2;
-    let j;
-    const e = 2 * d;
-    let f = b - d;
-    let g = b + d;
-    const h = [];
-    const i = [];
+    var j;
+    var e = 2 * d;
+    var f = b - d;
+    var g = b + d;
+    var h = [];
+    var i = [];
     if (b < 4 - d + e) {
         g = 3 + e;
-    } else if (b > c - (3 - d + e)) {
+    }
+    else if (b > c - (3 - d + e)) {
         f = c - (2 + e);
     }
-    for (let k = 1; k <= c; k++) {
+    for (var k = 1; k <= c; k++) {
         if (1 == k || k == c || (k >= f && k <= g)) {
-            const l = a[k - 1];
+            var l = a[k - 1];
             l.classList.remove("active");
             h.push(l);
         }
     }
-    h.forEach(c => {
-        const d = c.children[0].getAttribute("data-page");
+    h.forEach(function (c) {
+        var d = c.children[0].getAttribute("data-page");
         if (j) {
-            const e = j.children[0].getAttribute("data-page");
-            if (d - e == 2) i.push(a[e]);
-            else if (d - e != 1) {
-                const f = createElement("li", {
-                    class: "ellipsis",
-                    html: `<a href="#">${ellipsis}</a>`
+            var e_1 = j.children[0].getAttribute("data-page");
+            if (d - e_1 == 2)
+                i.push(a[e_1]);
+            else if (d - e_1 != 1) {
+                var f_1 = createElement("li", {
+                    "class": "ellipsis",
+                    html: "<a href=\"#\">".concat(ellipsis, "</a>")
                 });
-                i.push(f);
+                i.push(f_1);
             }
         }
         i.push(c);
         j = c;
     });
-
-    return i
+    return i;
 };
-
-
-const objToText = obj => {
-    if (obj.nodeName==="#text") {
-        return obj.data
+var objToText = function (obj) {
+    if (obj.nodeName === "#text") {
+        return obj.data;
     }
     if (obj.childNodes) {
-        return obj.childNodes.map(childNode => objToText(childNode)).join("")
+        return obj.childNodes.map(function (childNode) { return objToText(childNode); }).join("");
     }
-    return ""
+    return "";
 };
-
-
-const escapeText = function(text) {
+var escapeText = function (text) {
     return text
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
+        .replace(/"/g, "&quot;");
 };
 
-const readDataCell = (cell, columnSettings = {}) => {
-    if (cell.constructor == Object) {
-        return cell
+var readDataCell = function (cell, columnSettings) {
+    if (columnSettings === void 0) { columnSettings = {}; }
+    if (cell.constructor == Object && cell instanceof Object) {
+        return cell;
     }
-    const cellData = {
+    var cellData = {
         data: cell
     };
     if (typeof cell === "string" && cell.length) {
-        const node = stringToObj(`<td>${cell}</td>`);
+        var node = stringToObj("<td>".concat(cell, "</td>"));
         if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
             cellData.data = node.childNodes;
             cellData.type = "node";
-            const text = objToText(node);
+            var text = objToText(node);
             cellData.text = text;
             cellData.order = text;
         }
     }
+    // @ts-expect-error TS(2339): Property 'type' does not exist on type '{}'.
     if (columnSettings.type === "date" && columnSettings.format) {
+        // @ts-expect-error TS(2339): Property 'order' does not exist on type '{ data: a... Remove this comment to see the full error message
         cellData.order = parseDate(cell, columnSettings.format);
     }
-
-    return cellData
+    return cellData;
 };
-
-
-const readTableData = (dataOption, dom=false, columnSettings) => {
-    const data = {
+var readTableData = function (dataOption, dom, columnSettings) {
+    var _a, _b;
+    if (dom === void 0) { dom = false; }
+    var data = {
         data: [],
         headings: []
     };
-    if (dataOption?.data) {
-        data.data = dataOption.data.map(row => row.map((cell, index) => readDataCell(cell, columnSettings.columns[index])));
-    } else if (dom?.tBodies.length) {
+    if (dataOption.data) {
+        data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings.columns[index]); }); });
+        // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
+    }
+    else if ((_a = dom === null || dom === void 0 ? void 0 : dom.tBodies) === null || _a === void 0 ? void 0 : _a.length) {
+        // @ts-expect-error TS(2322): Type 'any[][]' is not assignable to type 'never[]'... Remove this comment to see the full error message
         data.data = Array.from(dom.tBodies[0].rows).map(
-            row => Array.from(row.cells).map(
-                (cell, index) => readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index])
-            )
-        );
+        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+        function (row) { return Array.from(row.cells).map(
+        // @ts-expect-error TS(2571): Object is of type 'unknown'.
+        function (cell, index) { return readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index]); }); });
     }
-    if (dataOption?.headings) {
-        data.headings = dataOption.headings.map(heading => ({data: heading,
-            sorted: false}));
-    } else if (dom?.tHead) {
-        data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(th => {
-            const heading = {data: th.innerHTML,
-                sorted: false};
+    if (dataOption.headings) {
+        data.headings = dataOption.headings.map(function (heading) { return ({
+            data: heading,
+            sorted: false
+        }); });
+        // @ts-expect-error TS(2339): Property 'tHead' does not exist on type 'boolean'.
+    }
+    else if (dom === null || dom === void 0 ? void 0 : dom.tHead) {
+        // @ts-expect-error TS(2322): Type '{ data: any; sorted: boolean; }[]' is not as... Remove this comment to see the full error message
+        data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(function (th) {
+            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+            var heading = { data: th.innerHTML,
+                sorted: false };
+            // @ts-expect-error TS(2339): Property 'sortable' does not exist on type '{ data... Remove this comment to see the full error message
             heading.sortable = th.dataset.sortable !== "false";
-            return heading
+            return heading;
         });
-    } else if (dataOption?.data?.data?.length) {
-        data.headings = dataOption.data.data[0].map(_cell => "");
-    } else if (dom?.tBodies.length) {
-        data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(_cell => "");
     }
-
+    else if ((_b = dataOption.data) === null || _b === void 0 ? void 0 : _b.length) {
+        data.headings = dataOption.data[0].map(function (_cell) { return ""; });
+        // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
+    }
+    else if (dom === null || dom === void 0 ? void 0 : dom.tBodies.length) {
+        // @ts-expect-error TS(2322): Type 'string[]' is not assignable to type 'never[]... Remove this comment to see the full error message
+        data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(function (_cell) { return ""; });
+    }
     if (data.data.length && data.data[0].length !== data.headings.length) {
-        throw new Error(
-            "Data heading length mismatch."
-        )
+        throw new Error("Data heading length mismatch.");
     }
-    return data
+    return data;
 };
 
 /**
  * Rows API
  */
-class Rows {
-    constructor(dt) {
+var Rows = /** @class */ (function () {
+    function Rows(dt) {
         this.dt = dt;
-
         this.cursor = false;
     }
-
-    setCursor(index=false) {
+    Rows.prototype.setCursor = function (index) {
+        if (index === void 0) { index = false; }
         if (index === this.cursor) {
-            return
+            return;
         }
-        const oldCursor = this.cursor;
+        var oldCursor = this.cursor;
         this.cursor = index;
         this.dt.renderTable();
         if (index !== false && this.dt.options.scrollY) {
-            const cursorDOM = this.dt.dom.querySelector("tr.datatable-cursor");
+            var cursorDOM = this.dt.dom.querySelector("tr.datatable-cursor");
             if (cursorDOM) {
-                cursorDOM.scrollIntoView({block: "nearest"});
+                cursorDOM.scrollIntoView({ block: "nearest" });
             }
         }
         this.dt.emit("datatable.cursormove", this.cursor, oldCursor);
-    }
-
+    };
     /**
      * Add new row
      */
-    add(data) {
-        const row = data.map((cell, index) => {
-            const columnSettings = this.dt.columnSettings.columns[index] || {};
-            return readDataCell(cell, columnSettings)
+    Rows.prototype.add = function (data) {
+        var _this = this;
+        var row = data.map(function (cell, index) {
+            var columnSettings = _this.dt.columnSettings.columns[index] || {};
+            return readDataCell(cell, columnSettings);
         });
         this.dt.data.data.push(row);
-
         // We may have added data to an empty table
-        if ( this.dt.data.data.length ) {
+        if (this.dt.data.data.length) {
             this.dt.hasRows = true;
         }
         this.dt.update(false);
         this.dt.fixColumns();
-
-    }
-
+    };
     /**
      * Remove row(s)
      */
-    remove(select) {
+    Rows.prototype.remove = function (select) {
         if (Array.isArray(select)) {
-            this.dt.data.data = this.dt.data.data.filter((_row, index) => !select.includes(index));
+            this.dt.data.data = this.dt.data.data.filter(function (_row, index) { return !select.includes(index); });
             // We may have emptied the table
-            if ( !this.dt.data.data.length ) {
+            if (!this.dt.data.data.length) {
                 this.dt.hasRows = false;
             }
             this.dt.update(false);
             this.dt.fixColumns();
-        } else {
-            return this.remove([select])
         }
-    }
-
-
+        else {
+            return this.remove([select]);
+        }
+    };
     /**
      * Find index of row by searching for a value in a column
      */
-    findRowIndex(columnIndex, value) {
+    Rows.prototype.findRowIndex = function (columnIndex, value) {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
-        return this.dt.data.data.findIndex(
-            row => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
-        )
-    }
-
+        return this.dt.data.data.findIndex(function (row) { return String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase()); });
+    };
     /**
      * Find index, row, and column data by searching for a value in a column
      */
-    findRow(columnIndex, value) {
+    Rows.prototype.findRow = function (columnIndex, value) {
         // get the row index
-        const index = this.findRowIndex(columnIndex, value);
+        var index = this.findRowIndex(columnIndex, value);
         // exit if not found
         if (index < 0) {
             return {
                 index: -1,
                 row: null,
                 cols: []
-            }
+            };
         }
         // get the row from data
-        const row = this.dt.data.data[index];
+        var row = this.dt.data.data[index];
         // return innerHTML of each td
-        const cols = row.map(cell => cell.data);
+        var cols = row.map(function (cell) { return cell.data; });
         // return everything
         return {
-            index,
-            row,
-            cols
-        }
-    }
-
+            index: index,
+            row: row,
+            cols: cols
+        };
+    };
     /**
      * Update a row with new data
      */
-    updateRow(select, data) {
-        const row = data.map((cell, index) => {
-            const columnSettings = this.dt.columnSettings.columns[index] || {};
-            return readDataCell(cell, columnSettings)
+    Rows.prototype.updateRow = function (select, data) {
+        var _this = this;
+        var row = data.map(function (cell, index) {
+            var columnSettings = _this.dt.columnSettings.columns[index] || {};
+            return readDataCell(cell, columnSettings);
         });
         this.dt.data.data.splice(select, 1, row);
         this.dt.update(false);
         this.dt.fixColumns();
-    }
-}
+    };
+    return Rows;
+}());
 
-class Columns {
-    constructor(dt) {
+var Columns = /** @class */ (function () {
+    function Columns(dt) {
         this.dt = dt;
     }
-
     /**
      * Swap two columns
      */
-    swap(columns) {
+    Columns.prototype.swap = function (columns) {
         if (columns.length === 2) {
             // Get the current column indexes
-            const cols = this.dt.data.headings.map((_node, index) => index);
-
-            const x = columns[0];
-            const y = columns[1];
-            const b = cols[y];
+            var cols = this.dt.data.headings.map(function (_node, index) { return index; });
+            var x = columns[0];
+            var y = columns[1];
+            var b = cols[y];
             cols[y] = cols[x];
             cols[x] = b;
-
-            return this.order(cols)
+            return this.order(cols);
         }
-    }
-
+    };
     /**
      * Reorder the columns
      */
-    order(columns) {
-
-        this.dt.headings = columns.map(index => this.dt.headings[index]);
-        this.dt.data.data = this.dt.data.data.map(
-            row => columns.map(index => row[index])
-        );
-        this.dt.columnSettings.columns = columns.map(
-            index => this.dt.columnSettings.columns[index]
-        );
-
+    Columns.prototype.order = function (columns) {
+        var _this = this;
+        this.dt.data.headings = columns.map(function (index) { return _this.dt.data.headings[index]; });
+        this.dt.data.data = this.dt.data.data.map(function (row) { return columns.map(function (index) { return row[index]; }); });
+        this.dt.columnSettings.columns = columns.map(function (index) { return _this.dt.columnSettings.columns[index]; });
         // Update
         this.dt.update();
-    }
-
+    };
     /**
      * Hide columns
      */
-    hide(columns) {
+    Columns.prototype.hide = function (columns) {
+        var _this = this;
         if (!columns.length) {
-            return
+            return;
         }
-        columns.forEach(index => {
-            if (!this.dt.columnSettings.columns[index]) {
-                this.dt.columnSettings.columns[index] = {};
+        columns.forEach(function (index) {
+            if (!_this.dt.columnSettings.columns[index]) {
+                _this.dt.columnSettings.columns[index] = {};
             }
-            const column = this.dt.columnSettings.columns[index];
+            var column = _this.dt.columnSettings.columns[index];
             column.hidden = true;
         });
-
         this.dt.update();
-    }
-
+    };
     /**
      * Show columns
      */
-    show(columns) {
+    Columns.prototype.show = function (columns) {
+        var _this = this;
         if (!columns.length) {
-            return
+            return;
         }
-        columns.forEach(index => {
-            if (!this.dt.columnSettings.columns[index]) {
-                this.dt.columnSettings.columns[index] = {};
+        columns.forEach(function (index) {
+            if (!_this.dt.columnSettings.columns[index]) {
+                _this.dt.columnSettings.columns[index] = {};
             }
-            const column = this.dt.columnSettings.columns[index];
+            var column = _this.dt.columnSettings.columns[index];
             delete column.hidden;
         });
-
         this.dt.update();
-    }
-
+    };
     /**
      * Check column(s) visibility
      */
-    visible(columns) {
-
+    Columns.prototype.visible = function (columns) {
+        var _this = this;
+        var _a;
         if (Array.isArray(columns)) {
-            return columns.map(index => !this.dt.columnSettings.columns[index]?.hidden)
+            return columns.map(function (index) { var _a; return !((_a = _this.dt.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
         }
-        return !this.dt.columnSettings.columns[columns]?.hidden
-
-    }
-
+        return !((_a = this.dt.columnSettings.columns[columns]) === null || _a === void 0 ? void 0 : _a.hidden);
+    };
     /**
      * Add a new column
      */
-    add(data) {
-        const newColumnSelector = this.dt.data.headings.length;
-        this.dt.data.headings = this.dt.data.headings.concat([{data: data.heading}]);
-        this.dt.data.data = this.dt.data.data.map(
-            (row, index) => row.concat([readDataCell(data.data[index], data)])
-        );
+    Columns.prototype.add = function (data) {
+        var newColumnSelector = this.dt.data.headings.length;
+        this.dt.data.headings = this.dt.data.headings.concat([{ data: data.heading }]);
+        this.dt.data.data = this.dt.data.data.map(function (row, index) { return row.concat([readDataCell(data.data[index], data)]); });
         if (data.type || data.format || data.sortable || data.render) {
             if (!this.dt.columnSettings.columns[newColumnSelector]) {
                 this.dt.columnSettings.columns[newColumnSelector] = {};
             }
-            const column = this.dt.columnSettings.columns[newColumnSelector];
+            var column = this.dt.columnSettings.columns[newColumnSelector];
             if (data.type) {
                 column.type = data.type;
             }
             if (data.format) {
                 column.format = data.format;
             }
-            if (data.sortable) {
-                column.sortable = data.sortable;
+            if (data.notSortable) {
+                column.notSortable = data.notSortable;
             }
             if (data.filter) {
                 column.filter = data.filter;
@@ -2824,127 +2813,117 @@ class Columns {
         }
         this.dt.update(false);
         this.dt.fixColumns();
-    }
-
+    };
     /**
      * Remove column(s)
      */
-    remove(columns) {
+    Columns.prototype.remove = function (columns) {
         if (Array.isArray(columns)) {
-            this.dt.data.headings = this.dt.data.headings.filter((_heading, index) => !columns.includes(index));
-            this.dt.data.data = this.dt.data.data.map(
-                row => row.filter((_cell, index) => !columns.includes(index))
-            );
+            this.dt.data.headings = this.dt.data.headings.filter(function (_heading, index) { return !columns.includes(index); });
+            this.dt.data.data = this.dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return !columns.includes(index); }); });
             this.dt.update(false);
             this.dt.fixColumns();
-        } else {
-            return this.remove([columns])
         }
-    }
-
+        else {
+            return this.remove([columns]);
+        }
+    };
     /**
      * Filter by column
      */
-    filter(column, init) {
-
-        if (!this.dt.columnSettings.columns[column]?.filter?.length) {
+    Columns.prototype.filter = function (column, init) {
+        var _a, _b;
+        if (init === void 0) { init = false; }
+        if (!((_b = (_a = this.dt.columnSettings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length)) {
             // There is no filter to apply.
-            return
+            return;
         }
-
-        const currentFilter = this.dt.filterStates.find(filterState => filterState.column === column);
-        let newFilterState;
+        var currentFilter = this.dt.filterStates.find(function (filterState) { return filterState.column === column; });
+        var newFilterState;
         if (currentFilter) {
-            let returnNext = false;
-            newFilterState = this.dt.columnSettings.columns[column].filter.find(filter => {
-                if (returnNext) {
-                    return true
+            var returnNext_1 = false;
+            newFilterState = this.dt.columnSettings.columns[column].filter.find(function (filter) {
+                if (returnNext_1) {
+                    return true;
                 }
                 if (filter === currentFilter.state) {
-                    returnNext = true;
+                    returnNext_1 = true;
                 }
-                return false
+                return false;
             });
-        } else {
+        }
+        else {
             newFilterState = this.dt.columnSettings.columns[column].filter[0];
         }
-
         if (currentFilter && newFilterState) {
             currentFilter.state = newFilterState;
-        } else if (currentFilter) {
-            this.dt.filterStates = this.dt.filterStates.filter(filterState => filterState.column !== column);
-        } else {
-            this.dt.filterStates.push({column,
-                state: newFilterState});
         }
-
+        else if (currentFilter) {
+            this.dt.filterStates = this.dt.filterStates.filter(function (filterState) { return filterState.column !== column; });
+        }
+        else {
+            this.dt.filterStates.push({ column: column, state: newFilterState });
+        }
         this.dt.update();
-
         if (!init) {
             this.dt.emit("datatable.filter", column, newFilterState);
         }
-    }
-
+    };
     /**
      * Sort by column
      */
-    sort(column, dir, init) {
-
+    Columns.prototype.sort = function (column, dir, init) {
+        var _a, _b;
+        if (dir === void 0) { dir = 'asc'; }
+        if (init === void 0) { init = false; }
         // If there is a filter for this column, apply it instead of sorting
-        if (this.dt.columnSettings.columns[column]?.filter?.length) {
-            return this.filter(column, init)
+        if ((_b = (_a = this.dt.columnSettings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length) {
+            return this.filter(column, init);
         }
-
         if (!init) {
             this.dt.emit("datatable.sorting", column, dir);
         }
-
         if (!dir) {
-            const currentDir = this.dt.data.headings[column].sorted;
+            var currentDir = this.dt.data.headings[column].sorted;
             dir = currentDir === "asc" ? "desc" : "asc";
         }
-
         // Remove all other sorting
-        this.dt.data.headings.forEach(heading => {
+        this.dt.data.headings.forEach(function (heading) {
             heading.sorted = false;
         });
-
-        this.dt.data.data.sort((row1, row2) => {
-            let order1 = row1[column].order || row1[column].data,
-                order2 = row2[column].order || row2[column].data;
+        this.dt.data.data.sort(function (row1, row2) {
+            var order1 = row1[column].order || row1[column].data, order2 = row2[column].order || row2[column].data;
             if (dir === "desc") {
-                const temp = order1;
+                var temp = order1;
                 order1 = order2;
                 order2 = temp;
             }
             if (order1 < order2) {
-                return -1
-            } else if (order1 > order2) {
-                return 1
+                return -1;
             }
-            return 0
+            else if (order1 > order2) {
+                return 1;
+            }
+            return 0;
         });
-
         this.dt.data.headings[column].sorted = dir;
-
         this.dt.update(!init);
-
         if (!init) {
-            this.dt.columnSettings.sort = {column,
-                dir};
+            this.dt.columnSettings.sort = { column: column, dir: dir };
             this.dt.emit("datatable.sort", column, dir);
         }
-    }
-}
+    };
+    return Columns;
+}());
 
 /**
  * Default configuration
  */
-const defaultConfig$1 = {
+var defaultConfig$1 = {
     sortable: true,
     searchable: true,
     destroyable: true,
-
+    data: {},
     // Pagination
     paging: true,
     perPage: 10,
@@ -2960,29 +2939,23 @@ const defaultConfig$1 = {
     descText: "▾",
     truncatePager: true,
     pagerDelta: 2,
-
     scrollY: "",
-
     fixedColumns: true,
     fixedHeight: false,
-
     header: true,
     hiddenHeader: false,
     footer: false,
-
     tabIndex: false,
     rowNavigation: false,
     rowRender: false,
-
     // Customise the display text
     labels: {
-        placeholder: "Search...", // The search input placeholder
-        perPage: "{select} entries per page", // per-page dropdown label
-        noRows: "No entries found", // Message shown when there are no records to show
-        noResults: "No results match your search query", // Message shown when there are no search results
+        placeholder: "Search...",
+        perPage: "{select} entries per page",
+        noRows: "No entries found",
+        noResults: "No results match your search query",
         info: "Showing {start} to {end} of {rows} entries" //
     },
-
     // Customise the layout
     layout: {
         top: "{select}{search}",
@@ -2990,42 +2963,26 @@ const defaultConfig$1 = {
     }
 };
 
-class DataTable {
-    constructor(table, options = {}) {
-
+var DataTable = /** @class */ (function () {
+    function DataTable(table, options) {
+        if (options === void 0) { options = {}; }
+        var _this = this;
         this.dom = typeof table === "string" ? document.querySelector(table) : table;
-
         // user options
-        this.options = {
-            ...defaultConfig$1,
-            ...options,
-            layout: {
-                ...defaultConfig$1.layout,
-                ...options.layout
-            },
-            labels: {
-                ...defaultConfig$1.labels,
-                ...options.labels
-            }
-        };
-
+        this.options = __assign(__assign(__assign({}, defaultConfig$1), options), { layout: __assign(__assign({}, defaultConfig$1.layout), options.layout), labels: __assign(__assign({}, defaultConfig$1.labels), options.labels) });
         this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : ""; // preserve in case of later destruction
-
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex;
-        } else if (this.options.rowNavigation && this.dom.tabIndex === -1) {
+        }
+        else if (this.options.rowNavigation && this.dom.tabIndex === -1) {
             this.dom.tabIndex = 0;
         }
-
         this.listeners = {
-            onResize: event => this.onResize(event)
+            onResize: function (event) { return _this.onResize(); }
         };
-
         this.dd = new DiffDOM();
-
-        // Initialize other variables
         this.initialized = false;
-        this.data = false;
+        this.events = {};
         this.virtualDOM = false;
         this.virtualHeaderDOM = false;
         this.headerDOM = false;
@@ -3033,233 +2990,178 @@ class DataTable {
         this.onFirstPage = true;
         this.hasHeadings = false;
         this.hasRows = false;
-
         this.columnWidths = [];
-        this.columnSettings = false;
         this.filterStates = [];
-
         this.init();
     }
-
     /**
      * Initialize the instance
      */
-    init() {
+    DataTable.prototype.init = function () {
+        var _this = this;
         if (this.initialized || this.dom.classList.contains("datatable-table")) {
-            return false
+            return false;
         }
-
         this.rows = new Rows(this);
         this.columns = new Columns(this);
-
-        // // Disable manual sorting if no header is present (#4)
-        // if (this.dom.tHead === null && !this.options.data?.headings) {
-        //     this.options.sortable = false
-        // }
-        //
-        // if (this.dom.tBodies.length && !this.dom.tBodies[0].rows.length && this.options.data && !this.options.data.data) {
-        //     throw new Error(
-        //         "You seem to be using the data option, but you've not defined any rows."
-        //     )
-        // }
-
         this.columnSettings = readColumnSettings(this.options.columns);
         this.data = readTableData(this.options.data, this.dom, this.columnSettings);
         this.hasRows = Boolean(this.data.data.length);
         this.hasHeadings = Boolean(this.data.headings.length);
-
         this.virtualDOM = nodeToObj(this.dom);
-
         this.render();
-
-        setTimeout(() => {
-            this.emit("datatable.init");
-            this.initialized = true;
+        setTimeout(function () {
+            _this.emit("datatable.init");
+            _this.initialized = true;
         }, 10);
-    }
-
-
+    };
     /**
      * Render the instance
      */
-    render() {
-
+    DataTable.prototype.render = function () {
+        var _this = this;
         // Build
         this.wrapper = createElement("div", {
-            class: "datatable-wrapper datatable-loading"
+            "class": "datatable-wrapper datatable-loading"
         });
-
         // Template for custom layouts
-        let template = "";
+        var template = "";
         template += "<div class='datatable-top'>";
         template += this.options.layout.top;
         template += "</div>";
         if (this.options.scrollY.length) {
-            template += `<div class='datatable-container' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`;
-        } else {
+            template += "<div class='datatable-container' style='height: ".concat(this.options.scrollY, "; overflow-Y: auto;'></div>");
+        }
+        else {
             template += "<div class='datatable-container'></div>";
         }
         template += "<div class='datatable-bottom'>";
         template += this.options.layout.bottom;
         template += "</div>";
-
         // Info placement
         template = template.replace("{info}", this.options.paging ? "<div class='datatable-info'></div>" : "");
-
         // Per Page Select
         if (this.options.paging && this.options.perPageSelect) {
-            let wrap = "<div class='datatable-dropdown'><label>";
+            var wrap = "<div class='datatable-dropdown'><label>";
             wrap += this.options.labels.perPage;
             wrap += "</label></div>";
-
             // Create the select
-            const select = createElement("select", {
-                class: "datatable-selector"
+            var select_1 = createElement("select", {
+                "class": "datatable-selector"
             });
-
             // Create the options
-            this.options.perPageSelect.forEach(val => {
-                const selected = val === this.options.perPage;
-                const option = new Option(val, val, selected, selected);
-                select.add(option);
+            this.options.perPageSelect.forEach(function (val) {
+                var selected = val === _this.options.perPage;
+                var option = new Option(val, val, selected, selected);
+                select_1.appendChild(option);
             });
-
             // Custom label
-            wrap = wrap.replace("{select}", select.outerHTML);
-
+            wrap = wrap.replace("{select}", select_1.outerHTML);
             // Selector placement
             template = template.replace("{select}", wrap);
-        } else {
+        }
+        else {
             template = template.replace("{select}", "");
         }
-
         // Searchable
         if (this.options.searchable) {
-            const form =
-                `<div class='datatable-search'><input class='datatable-input' placeholder='${this.options.labels.placeholder}' type='text'></div>`;
-
+            var form = "<div class='datatable-search'><input class='datatable-input' placeholder='".concat(this.options.labels.placeholder, "' type='text'></div>");
             // Search input placement
             template = template.replace("{search}", form);
-        } else {
+        }
+        else {
             template = template.replace("{search}", "");
         }
-
         // Paginator
-        const paginatorWrapper = createElement("nav", {
-            class: "datatable-pagination"
+        var paginatorWrapper = createElement("nav", {
+            "class": "datatable-pagination"
         });
-        const paginator = createElement("ul", {
-            class: "datatable-pagination-list"
+        var paginator = createElement("ul", {
+            "class": "datatable-pagination-list"
         });
         paginatorWrapper.appendChild(paginator);
-
         // Pager(s) placement
         template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML);
         this.wrapper.innerHTML = template;
-
         this.container = this.wrapper.querySelector(".datatable-container");
-
-        this.pagers = this.wrapper.querySelectorAll(".datatable-pagination-list");
-
+        this.pagers = Array.from(this.wrapper.querySelectorAll("ul.datatable-pagination-list"));
         this.label = this.wrapper.querySelector(".datatable-info");
-
         // Insert in to DOM tree
         this.dom.parentNode.replaceChild(this.wrapper, this.dom);
         this.container.appendChild(this.dom);
-
         // Store the table dimensions
         this.rect = this.dom.getBoundingClientRect();
-
         // // Update
         this.update(false);
         //
         // // Fix height
         this.fixHeight();
         //
-
-
         // Class names
         if (!this.options.header) {
             this.wrapper.classList.add("no-header");
         }
-
         if (!this.options.footer) {
             this.wrapper.classList.add("no-footer");
         }
-
         if (this.options.sortable) {
             this.wrapper.classList.add("sortable");
         }
-
         if (this.options.searchable) {
             this.wrapper.classList.add("searchable");
         }
-
         if (this.options.fixedHeight) {
             this.wrapper.classList.add("fixed-height");
         }
-
         if (this.options.fixedColumns) {
             this.wrapper.classList.add("fixed-columns");
         }
-
         this.bindEvents();
-
         if (this.columnSettings.sort) {
             this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true);
         }
-
         // // Fix columns
         this.fixColumns();
-    }
-
-    renderTable(renderOptions={}) {
-        const newVirtualDOM = dataToVirtualDOM(
-            this.data.headings,
-            this.options.paging && this.currentPage && !renderOptions.noPaging ?
-                this.pages[this.currentPage - 1] :
-                this.data.data.map((row, index) => ({row,
-                    index})),
-            this.columnSettings,
-            this.columnWidths,
-            this.rows.cursor,
-            this.options,
-            renderOptions
-        );
-
-        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
+    };
+    DataTable.prototype.renderTable = function (renderOptions) {
+        if (renderOptions === void 0) { renderOptions = {}; }
+        var newVirtualDOM = dataToVirtualDOM(this.data.headings, this.options.paging && this.currentPage && !renderOptions.noPaging ?
+            this.pages[this.currentPage - 1] :
+            this.data.data.map(function (row, index) { return ({
+                row: row,
+                index: index
+            }); }), this.columnSettings, this.columnWidths, this.rows.cursor, this.options, renderOptions);
+        var diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
         this.dd.apply(this.dom, diff);
         this.virtualDOM = newVirtualDOM;
-    }
-
+    };
     /**
      * Render the page
      * @return {Void}
      */
-    renderPage(renderTable=true, lastRowCursor=false) {
+    DataTable.prototype.renderPage = function (renderTable, lastRowCursor) {
+        var _this = this;
+        if (renderTable === void 0) { renderTable = true; }
+        if (lastRowCursor === void 0) { lastRowCursor = false; }
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
                 this.currentPage = 1;
             }
-
             // Use a fragment to limit touching the DOM
             if (renderTable) {
                 this.renderTable();
             }
-
             this.onFirstPage = this.currentPage === 1;
             this.onLastPage = this.currentPage === this.lastPage;
-        } else {
+        }
+        else {
             this.setMessage(this.options.labels.noRows);
         }
-
         // Update the info
-        let current = 0;
-
-        let f = 0;
-        let t = 0;
-        let items;
-
+        var current = 0;
+        var f = 0;
+        var t = 0;
+        var items;
         if (this.totalPages) {
             current = this.currentPage - 1;
             f = current * this.options.perPage;
@@ -3267,311 +3169,270 @@ class DataTable {
             f = f + 1;
             items = this.searching ? this.searchData.length : this.data.data.length;
         }
-
         if (this.label && this.options.labels.info.length) {
             // CUSTOM LABELS
-            const string = this.options.labels.info
-                .replace("{start}", f)
-                .replace("{end}", t)
-                .replace("{page}", this.currentPage)
-                .replace("{pages}", this.totalPages)
-                .replace("{rows}", items);
-
+            var string = this.options.labels.info
+                .replace("{start}", String(f))
+                .replace("{end}", String(t))
+                .replace("{page}", String(this.currentPage))
+                .replace("{pages}", String(this.totalPages))
+                .replace("{rows}", String(items));
             this.label.innerHTML = items ? string : "";
         }
-
         if (this.currentPage == 1) {
             this.fixHeight();
         }
-
         if (this.options.rowNavigation) {
-            if (!this.rows.cursor || !this.pages[this.currentPage-1].find(page => page.index === this.rows.cursor)) {
-                const rows = this.pages[this.currentPage-1];
+            if (!this.rows.cursor || !this.pages[this.currentPage - 1].find(function (page) { return page.index === _this.rows.cursor; })) {
+                var rows = this.pages[this.currentPage - 1];
                 if (lastRowCursor) {
-                    this.rows.setCursor(rows[rows.length-1].index);
-                } else {
+                    this.rows.setCursor(rows[rows.length - 1].index);
+                }
+                else {
                     this.rows.setCursor(rows[0].index);
                 }
-
             }
         }
-    }
-
+    };
     /**
      * Render the pager(s)
      * @return {Void}
      */
-    renderPager() {
+    DataTable.prototype.renderPager = function () {
         flush(this.pagers);
-
         if (this.totalPages > 1) {
-            const c = "pager";
-            const frag = document.createDocumentFragment();
-            const prev = this.onFirstPage ? 1 : this.currentPage - 1;
-            const next = this.onLastPage ? this.totalPages : this.currentPage + 1;
-
+            var c = "pager";
+            var frag_1 = document.createDocumentFragment();
+            var prev = this.onFirstPage ? 1 : this.currentPage - 1;
+            var next = this.onLastPage ? this.totalPages : this.currentPage + 1;
             // first button
             if (this.options.firstLast) {
-                frag.appendChild(button(c, 1, this.options.firstText));
+                frag_1.appendChild(button(c, 1, this.options.firstText));
             }
-
             // prev button
             if (this.options.nextPrev && !this.onFirstPage) {
-                frag.appendChild(button(c, prev, this.options.prevText));
+                frag_1.appendChild(button(c, prev, this.options.prevText));
             }
-
-            let pager = this.links;
-
+            var pager = this.links;
             // truncate the links
             if (this.options.truncatePager) {
-                pager = truncate(
-                    this.links,
-                    this.currentPage,
-                    this.pages.length,
-                    this.options.pagerDelta,
-                    this.options.ellipsisText
-                );
+                pager = truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta, this.options.ellipsisText);
             }
-
             // active page link
             this.links[this.currentPage - 1].classList.add("active");
-
             // append the links
-            pager.forEach(p => {
+            pager.forEach(function (p) {
                 p.classList.remove("active");
-                frag.appendChild(p);
+                frag_1.appendChild(p);
             });
-
             this.links[this.currentPage - 1].classList.add("active");
-
             // next button
             if (this.options.nextPrev && !this.onLastPage) {
-                frag.appendChild(button(c, next, this.options.nextText));
+                frag_1.appendChild(button(c, next, this.options.nextText));
             }
-
             // first button
             if (this.options.firstLast) {
-                frag.appendChild(button(c, this.totalPages, this.options.lastText));
+                frag_1.appendChild(button(c, this.totalPages, this.options.lastText));
             }
-
             // We may have more than one pager
-            this.pagers.forEach(pager => {
-                pager.appendChild(frag.cloneNode(true));
+            this.pagers.forEach(function (pager) {
+                pager.appendChild(frag_1.cloneNode(true));
             });
         }
-    }
-
+    };
     /**
      * Bind event listeners
      * @return {[type]} [description]
      */
-    bindEvents() {
+    DataTable.prototype.bindEvents = function () {
+        var _this = this;
         // Per page selector
         if (this.options.perPageSelect) {
-            const selector = this.wrapper.querySelector(".datatable-selector");
-            if (selector) {
+            var selector_1 = this.wrapper.querySelector("select.datatable-selector");
+            if (selector_1 && selector_1 instanceof HTMLSelectElement) {
                 // Change per page
-                selector.addEventListener("change", () => {
-                    this.options.perPage = parseInt(selector.value, 10);
-                    this.update();
-
-                    this.fixHeight();
-
-                    this.emit("datatable.perpage", this.options.perPage);
+                selector_1.addEventListener("change", function () {
+                    _this.options.perPage = parseInt(selector_1.value, 10);
+                    _this.update();
+                    _this.fixHeight();
+                    _this.emit("datatable.perpage", _this.options.perPage);
                 }, false);
             }
         }
-
         // Search input
         if (this.options.searchable) {
             this.input = this.wrapper.querySelector(".datatable-input");
             if (this.input) {
-                this.input.addEventListener("keyup", () => this.search(this.input.value), false);
+                this.input.addEventListener("keyup", function () { return _this.search(_this.input.value); }, false);
             }
         }
-
         // Pager(s) / sorting
-        this.wrapper.addEventListener("click", e => {
-            const t = e.target.closest("a");
+        this.wrapper.addEventListener("click", function (e) {
+            var t = e.target.closest("a");
             if (t && (t.nodeName.toLowerCase() === "a")) {
                 if (t.hasAttribute("data-page")) {
-                    this.page(t.getAttribute("data-page"));
+                    _this.page(parseInt(t.getAttribute("data-page"), 10));
                     e.preventDefault();
-                } else if (
-                    this.options.sortable &&
+                }
+                else if (_this.options.sortable &&
                     t.classList.contains("datatable-sorter") &&
-                    t.parentNode.getAttribute("data-sortable") != "false"
-                ) {
-                    this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode));
+                    t.parentNode.getAttribute("data-sortable") != "false") {
+                    _this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode));
                     e.preventDefault();
                 }
             }
         }, false);
         if (this.options.rowNavigation) {
-            this.dom.addEventListener("keydown", event => {
+            this.dom.addEventListener("keydown", function (event) {
                 if (event.key === "ArrowUp") {
                     event.preventDefault();
                     event.stopPropagation();
-                    let lastRow;
-                    this.pages[this.currentPage-1].find(row => {
-                        if (row.index===this.rows.cursor) {
-                            return true
+                    var lastRow_1;
+                    _this.pages[_this.currentPage - 1].find(function (row) {
+                        if (row.index === _this.rows.cursor) {
+                            return true;
                         }
-                        lastRow = row;
-                        return false
+                        lastRow_1 = row;
+                        return false;
                     });
-                    if (lastRow) {
-                        this.rows.setCursor(lastRow.index);
-                    } else if (!this.onFirstPage) {
-                        this.page(this.currentPage-1, {lastRowCursor: true});
+                    if (lastRow_1) {
+                        _this.rows.setCursor(lastRow_1.index);
                     }
-                } else if (event.key === "ArrowDown") {
+                    else if (!_this.onFirstPage) {
+                        _this.page(_this.currentPage - 1, true);
+                    }
+                }
+                else if (event.key === "ArrowDown") {
                     event.preventDefault();
                     event.stopPropagation();
-                    let foundRow;
-                    const nextRow = this.pages[this.currentPage-1].find(row => {
-                        if (foundRow) {
-                            return true
+                    var foundRow_1;
+                    var nextRow = _this.pages[_this.currentPage - 1].find(function (row) {
+                        if (foundRow_1) {
+                            return true;
                         }
-                        if (row.index===this.rows.cursor) {
-                            foundRow = true;
+                        if (row.index === _this.rows.cursor) {
+                            foundRow_1 = true;
                         }
-                        return false
+                        return false;
                     });
                     if (nextRow) {
-                        this.rows.setCursor(nextRow.index);
-                    } else if (!this.onLastPage) {
-                        this.page(this.currentPage+1);
+                        _this.rows.setCursor(nextRow.index);
                     }
-                } else if (["Enter", " "].includes(event.key)) {
-                    this.emit("datatable.selectrow", this.rows.cursor, event);
+                    else if (!_this.onLastPage) {
+                        _this.page(_this.currentPage + 1);
+                    }
+                }
+                else if (["Enter", " "].includes(event.key)) {
+                    _this.emit("datatable.selectrow", _this.rows.cursor, event);
                 }
             });
-            this.dom.addEventListener("mousedown", event => {
-                if (this.dom.matches(":focus")) {
-                    const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target));
-                    this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
+            this.dom.addEventListener("mousedown", function (event) {
+                if (_this.dom.matches(":focus")) {
+                    var row = Array.from(_this.dom.querySelectorAll("body tr")).find(function (row) { return row.contains(event.target); });
+                    if (row && row instanceof HTMLElement) {
+                        _this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
+                    }
                 }
-
-            });
-        } else {
-            this.dom.addEventListener("mousedown", event => {
-                const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target));
-                this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
             });
         }
-
+        else {
+            this.dom.addEventListener("mousedown", function (event) {
+                var row = Array.from(_this.dom.querySelectorAll("body tr")).find(function (row) { return row.contains(event.target); });
+                if (row && row instanceof HTMLElement) {
+                    _this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
+                }
+            });
+        }
         window.addEventListener("resize", this.listeners.onResize);
-    }
-
+    };
     /**
      * execute on resize
      */
-    onResize() {
+    DataTable.prototype.onResize = function () {
         this.rect = this.container.getBoundingClientRect();
         if (!this.rect.width) {
             // No longer shown, likely no longer part of DOM. Give up.
-            return
+            return;
         }
         this.fixColumns();
-    }
-
+    };
     /**
      * Destroy the instance
      * @return {void}
      */
-    destroy() {
+    DataTable.prototype.destroy = function () {
         if (!this.options.destroyable) {
-            return
+            return;
         }
         this.dom.innerHTML = this.initialInnerHTML;
-
         // Remove the className
         this.dom.classList.remove("datatable-table");
-
         // Remove the containers
         this.wrapper.parentNode.replaceChild(this.dom, this.wrapper);
-
         this.initialized = false;
-
         window.removeEventListener("resize", this.listeners.onResize);
-    }
-
+    };
     /**
      * Update the instance
      * @return {Void}
      */
-    update(renderTable = true) {
+    DataTable.prototype.update = function (renderTable) {
+        if (renderTable === void 0) { renderTable = true; }
         this.wrapper.classList.remove("datatable-empty");
-
         this.paginate();
         this.renderPage(renderTable);
-
         this.links = [];
-
-        let i = this.pages.length;
+        var i = this.pages.length;
         while (i--) {
-            const num = i + 1;
+            var num = i + 1;
             this.links[i] = button(i === 0 ? "active" : "", num, num);
         }
-
         this.renderPager();
-
         this.emit("datatable.update");
-    }
-
-    paginate() {
-        let rows = this.data.data.map((row, index) => ({row,
-            index}));
-
+    };
+    DataTable.prototype.paginate = function () {
+        var _this = this;
+        var rows = this.data.data.map(function (row, index) { return ({
+            row: row,
+            index: index
+        }); });
         if (this.searching) {
             rows = [];
-
-            this.searchData.forEach(index => rows.push({index,
-                row: this.data.data[index]}));
+            this.searchData.forEach(function (index) { return rows.push({ index: index, row: _this.data.data[index] }); });
         }
-
         if (this.filterStates.length) {
-            this.filterStates.forEach(
-                filterState => {
-                    rows = rows.filter(
-                        row => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
-                    );
-                }
-            );
+            this.filterStates.forEach(function (filterState) {
+                rows = rows.filter(function (row) { return typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state; });
+            });
         }
-
         if (this.options.paging) {
             // Check for hidden columns
             this.pages = rows
-                .map((row, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
-                .filter(page => page);
-        } else {
+                .map(function (row, i) { return i % _this.options.perPage === 0 ? rows.slice(i, i + _this.options.perPage) : null; })
+                .filter(function (page) { return page; });
+        }
+        else {
             this.pages = [rows];
         }
-
         this.totalPages = this.lastPage = this.pages.length;
-
         this.currentPage = 1;
-
-        return this.totalPages
-    }
-
+        return this.totalPages;
+    };
     /**
      * Fix column widths
      */
-    fixColumns() {
-        const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden);
-        if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.length) {
-
+    DataTable.prototype.fixColumns = function () {
+        var _this = this;
+        var _a, _b, _c, _d;
+        var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
+        if ((this.options.scrollY.length || this.options.fixedColumns) && (activeHeadings === null || activeHeadings === void 0 ? void 0 : activeHeadings.length)) {
             this.columnWidths = [];
-            const renderOptions = {
+            var renderOptions = {
                 noPaging: true
             };
             // If we have headings we need only set the widths on them
             // otherwise we need a temp header and the widths need applying to all cells
             if (this.options.header || this.options.footer) {
-
                 if (this.options.scrollY.length) {
                     renderOptions.unhideHeader = true;
                 }
@@ -3579,192 +3440,158 @@ class DataTable {
                     // Remove headerDOM for accurate measurements
                     this.headerDOM.parentElement.removeChild(this.headerDOM);
                 }
-
                 // Reset widths
                 renderOptions.noColumnWidths = true;
                 this.renderTable(renderOptions);
-
-                const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || []);
-                const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth);
-                const totalOffsetWidth = absoluteColumnWidths.reduce(
-                    (total, cellWidth) => total + cellWidth,
-                    0
-                );
-                this.columnWidths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100);
-
-
+                var activeDOMHeadings = Array.from(((_b = (_a = this.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll('th')) || []);
+                var absoluteColumnWidths = activeDOMHeadings.map(function (cell) { return cell.offsetWidth; });
+                var totalOffsetWidth_1 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
+                this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
                 if (this.options.scrollY.length) {
-                    const container = this.dom.parentElement;
+                    var container = this.dom.parentElement;
                     if (!this.headerDOM) {
                         this.headerDOM = document.createElement("div");
                         this.virtualHeaderDOM = {
                             nodeName: "DIV"
                         };
-
                     }
                     container.parentElement.insertBefore(this.headerDOM, container);
-                    const newVirtualHeaderDOM = {
+                    var newVirtualHeaderDOM = {
                         nodeName: "DIV",
                         attributes: {
-                            class: "datatable-headercontainer"
+                            "class": "datatable-headercontainer"
                         },
                         childNodes: [
                             {
                                 nodeName: "TABLE",
                                 attributes: {
-                                    class: "datatable-table"
+                                    "class": "datatable-table"
                                 },
                                 childNodes: [
                                     {
                                         nodeName: "THEAD",
                                         childNodes: [
-                                            headingsToVirtualHeaderRowDOM(
-                                                this.data.headings, this.columnSettings, this.columnWidths, this.options, {unhideHeader: true})
+                                            headingsToVirtualHeaderRowDOM(this.data.headings, this.columnSettings, this.columnWidths, this.options, { unhideHeader: true })
                                         ]
-
                                     }
-
                                 ]
                             }
                         ]
                     };
-                    const diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
+                    var diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
                     this.dd.apply(this.headerDOM, diff);
                     this.virtualHeaderDOM = newVirtualHeaderDOM;
-
                     // Compensate for scrollbars
-                    const paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth;
+                    var paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth;
                     if (paddingRight) {
-                        const paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM);
-                        paddedVirtualHeaderDOM.attributes.style = `padding-right: ${paddingRight}px;`;
-                        const diff = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM);
-                        this.dd.apply(this.headerDOM, diff);
+                        var paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM);
+                        paddedVirtualHeaderDOM.attributes.style = "padding-right: ".concat(paddingRight, "px;");
+                        var diff_1 = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM);
+                        this.dd.apply(this.headerDOM, diff_1);
                         this.virtualHeaderDOM = paddedVirtualHeaderDOM;
                     }
-
                     if (container.scrollHeight > container.clientHeight) {
                         // scrollbars on one page means scrollbars on all pages.
                         container.style.overflowY = "scroll";
                     }
                 }
-
-            } else {
+            }
+            else {
                 renderOptions.renderHeader = true;
                 this.renderTable(renderOptions);
-
-                const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || []);
-                const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth);
-                const totalOffsetWidth = absoluteColumnWidths.reduce(
-                    (total, cellWidth) => total + cellWidth,
-                    0
-                );
-                this.columnWidths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100);
+                var activeDOMHeadings = Array.from(((_d = (_c = this.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll('th')) || []);
+                var absoluteColumnWidths = activeDOMHeadings.map(function (cell) { return cell.offsetWidth; });
+                var totalOffsetWidth_2 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
+                this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });
             }
             // render table without options for measurements
             this.renderTable();
         }
-    }
-
+    };
     /**
      * Fix the container height
      */
-    fixHeight() {
+    DataTable.prototype.fixHeight = function () {
         if (this.options.fixedHeight) {
             this.container.style.height = null;
             this.rect = this.container.getBoundingClientRect();
-            this.container.style.height = `${this.rect.height}px`;
+            this.container.style.height = "".concat(this.rect.height, "px");
         }
-    }
-
+    };
     /**
      * Perform a search of the data set
      */
-    search(query) {
-        if (!this.hasRows) return false
-
+    DataTable.prototype.search = function (query) {
+        var _this = this;
+        if (!this.hasRows)
+            return false;
         query = query.toLowerCase();
-
         this.currentPage = 1;
         this.searching = true;
         this.searchData = [];
-
         if (!query.length) {
             this.searching = false;
             this.update();
             this.emit("datatable.search", query, this.searchData);
             this.wrapper.classList.remove("search-results");
-            return false
+            return false;
         }
-
-        this.data.data.forEach((row, idx) => {
-            const inArray = this.searchData.includes(row);
-
+        this.data.data.forEach(function (row, idx) {
+            var inArray = _this.searchData.includes(idx);
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
-            const doesQueryMatch = query.split(" ").reduce((bool, word) => {
-                let includes = false;
-                let cell = null;
-                let content = null;
-
-                for (let x = 0; x < row.length; x++) {
+            var doesQueryMatch = query.split(" ").reduce(function (bool, word) {
+                var includes = false;
+                var cell = null;
+                var content = null;
+                for (var x = 0; x < row.length; x++) {
                     cell = row[x];
                     content = cell.text || String(cell.data);
-                    if (
-                        this.columns.visible(x) && content.toLowerCase().includes(word)
-                    ) {
+                    if (_this.columns.visible(x) && content.toLowerCase().includes(word)) {
                         includes = true;
-                        break
+                        break;
                     }
                 }
-
-                return bool && includes
+                return bool && includes;
             }, true);
-
             if (doesQueryMatch && !inArray) {
-                this.searchData.push(idx);
+                _this.searchData.push(idx);
             }
         });
-
         this.wrapper.classList.add("search-results");
-
         if (!this.searchData.length) {
             this.wrapper.classList.remove("search-results");
-
             this.setMessage(this.options.labels.noResults);
-        } else {
+        }
+        else {
             this.update();
         }
-
         this.emit("datatable.search", query, this.searchData);
-    }
-
+    };
     /**
      * Change page
      */
-    page(page, lastRowCursor = false) {
+    DataTable.prototype.page = function (page, lastRowCursor) {
+        if (lastRowCursor === void 0) { lastRowCursor = false; }
         // We don't want to load the current page again.
         if (page === this.currentPage) {
-            return false
+            return false;
         }
-
         if (!isNaN(page)) {
-            this.currentPage = parseInt(page, 10);
+            this.currentPage = page;
         }
-
         if (page > this.pages.length || page < 0) {
-            return false
+            return false;
         }
-
         this.renderPage(undefined, lastRowCursor);
         this.renderPager();
-
         this.emit("datatable.page", page);
-    }
-
+    };
     /**
      * Add new row data
      */
-    insert(data) {
-        let rows = [];
+    DataTable.prototype.insert = function (data) {
+        var _this = this;
+        var rows = [];
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
@@ -3773,18 +3600,17 @@ class DataTable {
                     this.hasHeadings = Boolean(this.data.headings.length);
                 }
             }
-
             if (data.data && Array.isArray(data.data)) {
                 rows = data.data;
             }
-        } else if (Array.isArray(data)) {
-            const headings = this.data.headings.map(heading => heading.data);
-            data.forEach(row => {
-                const r = [];
-                Object.entries(row).forEach(([heading, cell]) => {
-
-                    const index = headings.indexOf(heading);
-
+        }
+        else if (Array.isArray(data)) {
+            var headings_1 = this.data.headings.map(function (heading) { return heading.data; });
+            data.forEach(function (row) {
+                var r = [];
+                Object.entries(row).forEach(function (_a) {
+                    var heading = _a[0], cell = _a[1];
+                    var index = headings_1.indexOf(heading);
                     if (index > -1) {
                         r[index] = cell;
                     }
@@ -3792,28 +3618,25 @@ class DataTable {
                 rows.push(r);
             });
         }
-
         if (rows.length) {
-            rows.forEach(row => this.data.data.push(row.map((cell, index) => {
-                const cellOut = readDataCell(cell, this.columnSettings.columns[index]);
-                return cellOut
-            })));
+            rows.forEach(function (row) { return _this.data.data.push(row.map(function (cell, index) {
+                var cellOut = readDataCell(cell, _this.columnSettings.columns[index]);
+                return cellOut;
+            })); });
             this.hasRows = true;
         }
-
-
         if (this.columnSettings.sort) {
             this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true);
-        } else {
+        }
+        else {
             this.update(false);
         }
         this.fixColumns();
-    }
-
+    };
     /**
      * Refresh the instance
      */
-    refresh() {
+    DataTable.prototype.refresh = function () {
         if (this.options.searchable) {
             this.input.value = "";
             this.searching = false;
@@ -3821,62 +3644,46 @@ class DataTable {
         this.currentPage = 1;
         this.onFirstPage = true;
         this.update();
-
         this.emit("datatable.refresh");
-    }
-
+    };
     /**
      * Print the table
      */
-    print() {
-        const tableDOM = createElement("table");
-        const tableVirtualDOM = {nodeName: "TABLE"};
-        const newTableVirtualDOM = dataToVirtualDOM(
-            this.data.headings,
-            this.data.data.map((row, index) => ({row,
-                index})),
-            this.columnSettings,
-            this.columnWidths,
-            false, // No row cursor
-            this.options,
-            {
-                noColumnWidths: true,
-                unhideHeader: true
-            }
-        );
-
-        const diff = this.dd.diff(tableVirtualDOM, newTableVirtualDOM);
+    DataTable.prototype.print = function () {
+        var tableDOM = createElement("table");
+        var tableVirtualDOM = { nodeName: "TABLE" };
+        var newTableVirtualDOM = dataToVirtualDOM(this.data.headings, this.data.data.map(function (row, index) { return ({
+            row: row,
+            index: index
+        }); }), this.columnSettings, this.columnWidths, false, // No row cursor
+        this.options, {
+            noColumnWidths: true,
+            unhideHeader: true
+        });
+        var diff = this.dd.diff(tableVirtualDOM, newTableVirtualDOM);
         this.dd.apply(tableDOM, diff);
-
         // Open new window
-        const w = window.open();
-
+        var w = window.open();
         // Append the table to the body
         w.document.body.appendChild(tableDOM);
-
         // Print
         w.print();
-    }
-
+    };
     /**
      * Show a message in the table
      */
-    setMessage(message) {
-        const activeHeadings = this.data.headings.filter((heading, index) => !this.columnSettings.columns[index]?.hidden);
-        const colspan = activeHeadings.length || 1;
-
+    DataTable.prototype.setMessage = function (message) {
+        var _this = this;
+        var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
+        var colspan = activeHeadings.length || 1;
         this.wrapper.classList.add("datatable-empty");
-
         if (this.label) {
             this.label.innerHTML = "";
         }
         this.totalPages = 0;
         this.renderPager();
-
-        const newVirtualDOM = structuredClone(this.virtualDOM);
-
-        const tbody = newVirtualDOM.childNodes.find(node => node.nodeName === "TBODY");
-
+        var newVirtualDOM = structuredClone(this.virtualDOM);
+        var tbody = newVirtualDOM.childNodes.find(function (node) { return node.nodeName === "TBODY"; });
         tbody.childNodes = [
             {
                 nodeName: "TR",
@@ -3884,8 +3691,8 @@ class DataTable {
                     {
                         nodeName: "TD",
                         attributes: {
-                            class: "dataTables-empty",
-                            colspan
+                            "class": "dataTables-empty",
+                            colspan: colspan
                         },
                         childNodes: [
                             {
@@ -3897,109 +3704,103 @@ class DataTable {
                 ]
             }
         ];
-
-
-        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
+        var diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
         this.dd.apply(this.dom, diff);
         this.virtualDOM = newVirtualDOM;
-
-    }
-
+    };
     /**
      * Add custom event listener
      */
-    on(event, callback) {
-        this.events = this.events || {};
+    DataTable.prototype.on = function (event, callback) {
         this.events[event] = this.events[event] || [];
         this.events[event].push(callback);
-    }
-
+    };
     /**
      * Remove custom event listener
      */
-    off(event, callback) {
-        this.events = this.events || {};
-        if (event in this.events === false) return
+    DataTable.prototype.off = function (event, callback) {
+        if (event in this.events === false)
+            return;
         this.events[event].splice(this.events[event].indexOf(callback), 1);
-    }
-
+    };
     /**
      * Fire custom event
      */
-    emit(event) {
-        this.events = this.events || {};
-        if (event in this.events === false) return
-        for (let i = 0; i < this.events[event].length; i++) {
-            this.events[event][i].apply(this, Array.prototype.slice.call(arguments, 1));
+    DataTable.prototype.emit = function (event) {
+        var _a;
+        var args = [];
+        for (var _i = 1; _i < arguments.length; _i++) {
+            args[_i - 1] = arguments[_i];
         }
-    }
-}
+        if (event in this.events === false)
+            return;
+        for (var i = 0; i < this.events[event].length; i++) {
+            (_a = this.events[event])[i].apply(_a, args);
+        }
+    };
+    return DataTable;
+}());
 
 /**
  * Convert CSV data to fit the format used in the table.
  * @param  {Object} userOptions User options
  * @return {Boolean}
  */
-const convertCSV = function(userOptions = {}) {
-    let obj = false;
-    const defaults = {
+var convertCSV = function (userOptions) {
+    if (userOptions === void 0) { userOptions = {}; }
+    var obj = false;
+    var defaults = {
         lineDelimiter: "\n",
         columnDelimiter: ",",
         removeDoubleQuotes: false
     };
-
     // Check for the options object
     if (!isObject(userOptions)) {
-        return false
+        return false;
     }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
+    var options = __assign(__assign({}, defaults), userOptions);
+    // @ts-expect-error TS(2339): Property 'data' does not exist on type '{ lineDeli... Remove this comment to see the full error message
     if (options.data.length || isObject(options.data)) {
         // Import CSV
+        // @ts-expect-error TS(2322): Type '{ data: never[]; }' is not assignable to typ... Remove this comment to see the full error message
         obj = {
             data: []
         };
-
         // Split the string into rows
-        const rows = options.data.split(options.lineDelimiter);
-
+        // @ts-expect-error TS(2339): Property 'data' does not exist on type '{ lineDeli... Remove this comment to see the full error message
+        var rows = options.data.split(options.lineDelimiter);
         if (rows.length) {
-
+            // @ts-expect-error TS(2339): Property 'headings' does not exist on type '{ line... Remove this comment to see the full error message
             if (options.headings) {
+                // @ts-expect-error TS(2339): Property 'headings' does not exist on type 'boolea... Remove this comment to see the full error message
                 obj.headings = rows[0].split(options.columnDelimiter);
                 if (options.removeDoubleQuotes) {
-                    obj.headings = obj.headings.map(e => e.trim().replace(/(^"|"$)/g, ""));
+                    // @ts-expect-error TS(2339): Property 'headings' does not exist on type 'boolea... Remove this comment to see the full error message
+                    obj.headings = obj.headings.map(function (e) { return e.trim().replace(/(^"|"$)/g, ""); });
                 }
                 rows.shift();
             }
-
-            rows.forEach((row, i) => {
+            rows.forEach(function (row, i) {
+                // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
                 obj.data[i] = [];
-
                 // Split the rows into values
-                const values = row.split(options.columnDelimiter);
-
+                var values = row.split(options.columnDelimiter);
                 if (values.length) {
-                    values.forEach(value => {
+                    values.forEach(function (value) {
                         if (options.removeDoubleQuotes) {
                             value = value.trim().replace(/(^"|"$)/g, "");
                         }
-                        obj.data[i].push({data: value});
+                        // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
+                        obj.data[i].push({ data: value });
                     });
                 }
             });
         }
-
         if (obj) {
-            return obj
+            return obj;
         }
     }
-
-    return false
+    return false;
 };
 
 /**
@@ -4007,105 +3808,109 @@ const convertCSV = function(userOptions = {}) {
  * @param  {Object} userOptions User options
  * @return {Boolean}
  */
-const convertJSON = function(userOptions = {}) {
-    let obj = false;
-    const defaults = {};
-
+var convertJSON = function (userOptions) {
+    if (userOptions === void 0) { userOptions = {}; }
+    var obj = false;
+    var defaults = {
+        data: ""
+    };
     // Check for the options object
     if (!isObject(userOptions)) {
-        return false
+        return false;
     }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
+    var options = __assign(__assign({}, defaults), userOptions);
     if (options.data.length || isObject(options.data)) {
         // Import CSV
-        const json = isJson(options.data);
-
+        var json = isJson(options.data);
         // Valid JSON string
         if (json) {
+            // @ts-expect-error TS(2322): Type '{ headings: never[]; data: never[]; }' is no... Remove this comment to see the full error message
             obj = {
                 headings: [],
                 data: []
             };
-
-            json.forEach((data, i) => {
+            // @ts-expect-error TS(2339): Property 'forEach' does not exist on type 'true'.
+            json.forEach(function (data, i) {
+                // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
                 obj.data[i] = [];
-                Object.entries(data).forEach(([column, value]) => {
+                Object.entries(data).forEach(function (_a) {
+                    var column = _a[0], value = _a[1];
+                    // @ts-expect-error TS(2339): Property 'headings' does not exist on type 'boolea... Remove this comment to see the full error message
                     if (!obj.headings.includes(column)) {
+                        // @ts-expect-error TS(2339): Property 'headings' does not exist on type 'boolea... Remove this comment to see the full error message
                         obj.headings.push(column);
                     }
-                    if (value.constructor == Object) {
+                    if ((value === null || value === void 0 ? void 0 : value.constructor) == Object) {
+                        // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
                         obj.data[i].push(value);
-                    } else {
-                        obj.data[i].push({data: value});
                     }
-
+                    else {
+                        // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
+                        obj.data[i].push({ data: value });
+                    }
                 });
             });
-        } else {
+        }
+        else {
             console.warn("That's not valid JSON!");
         }
-
         if (obj) {
-            return obj
+            return obj;
         }
     }
-
-    return false
+    return false;
 };
 
 /**
  * Export table to CSV
  */
-const exportCSV = function(dataTable, userOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const defaults = {
+var exportCSV = function (dataTable, userOptions) {
+    if (userOptions === void 0) { userOptions = {}; }
+    if (!dataTable.hasHeadings && !dataTable.hasRows)
+        return false;
+    var defaults = {
         download: true,
         skipColumn: [],
         lineDelimiter: "\n",
         columnDelimiter: ","
     };
-
     // Check for the options object
     if (!isObject(userOptions)) {
-        return false
+        return false;
     }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
-    let rows = [];
-    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
+    var options = __assign(__assign({}, defaults), userOptions);
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var rows = [];
+    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
     // Include headings
     rows[0] = headers;
-
     // Selection or whole table
+    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
+        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
-        } else if (Array.isArray(options.selection)) {
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+        }
+        else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            for (var i = 0; i < options.selection.length; i++) {
+                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
             }
         }
-    } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.text || cell.data)));
     }
-
+    else {
+        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
+    }
     // Only proceed if we have data
     if (rows.length) {
-        let str = "";
-        rows.forEach(row => {
-            row.forEach(cell => {
+        var str_1 = "";
+        rows.forEach(function (row) {
+            row.forEach(function (cell) {
                 if (typeof cell === "string") {
                     cell = cell.trim();
                     cell = cell.replace(/\s{2,}/g, " ");
@@ -4114,293 +3919,261 @@ const exportCSV = function(dataTable, userOptions = {}) {
                     //have to manually encode "#" as encodeURI leaves it as is.
                     cell = cell.replace(/#/g, "%23");
                     if (cell.includes(",")) {
-                        cell = `"${cell}"`;
+                        cell = "\"".concat(cell, "\"");
                     }
                 }
-                str += cell + options.columnDelimiter;
+                str_1 += cell + options.columnDelimiter;
             });
             // Remove trailing column delimiter
-            str = str.trim().substring(0, str.length - 1);
-
+            str_1 = str_1.trim().substring(0, str_1.length - 1);
             // Apply line delimiter
-            str += options.lineDelimiter;
+            str_1 += options.lineDelimiter;
         });
-
         // Remove trailing line delimiter
-        str = str.trim().substring(0, str.length - 1);
-
+        str_1 = str_1.trim().substring(0, str_1.length - 1);
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            const link = document.createElement("a");
-            link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`);
-            link.download = `${options.filename || "datatable_export"}.csv`;
-
+            var link = document.createElement("a");
+            link.href = encodeURI("data:text/csv;charset=utf-8,".concat(str_1));
+            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
+            link.download = "".concat(options.filename || "datatable_export", ".csv");
             // Append the link
             document.body.appendChild(link);
-
             // Trigger the download
             link.click();
-
             // Remove the link
             document.body.removeChild(link);
         }
-
-        return str
+        return str_1;
     }
-
-    return false
+    return false;
 };
 
 /**
  * Export table to JSON
  */
-const exportJSON = function(dataTable, userOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-
-    const defaults = {
+var exportJSON = function (dataTable, userOptions) {
+    if (userOptions === void 0) { userOptions = {}; }
+    if (!dataTable.hasHeadings && !dataTable.hasRows)
+        return false;
+    var defaults = {
         download: true,
         skipColumn: [],
         replacer: null,
         space: 4
     };
-
     // Check for the options object
     if (!isObject(userOptions)) {
-        return false
+        return false;
     }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
-    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
-
-    let rows = [];
+    var options = __assign(__assign({}, defaults), userOptions);
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var rows = [];
     // Selection or whole table
+    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
+        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
-        } else if (Array.isArray(options.selection)) {
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+        }
+        else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            for (var i = 0; i < options.selection.length; i++) {
+                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
             }
         }
-    } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.type === "node" ? cell : cell.data)));
     }
-
-    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
-
+    else {
+        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
+    }
+    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
     // Only proceed if we have data
     if (rows.length) {
-        const arr = [];
-        rows.forEach((row, x) => {
-            arr[x] = arr[x] || {};
-            row.forEach((cell, i) => {
-                arr[x][headers[i]] = cell;
+        var arr_1 = [];
+        rows.forEach(function (row, x) {
+            arr_1[x] = arr_1[x] || {};
+            row.forEach(function (cell, i) {
+                arr_1[x][headers[i]] = cell;
             });
         });
-
         // Convert the array of objects to JSON string
-        const str = JSON.stringify(arr, options.replacer, options.space);
-
+        var str = JSON.stringify(arr_1, options.replacer, options.space);
         // Download
         if (options.download) {
             // Create a link to trigger the download
-
-            const blob = new Blob(
-                [str],
-                {
-                    type: "data:application/json;charset=utf-8"
-                }
-            );
-            const url = URL.createObjectURL(blob);
-
-
-            const link = document.createElement("a");
+            var blob = new Blob([str], {
+                type: "data:application/json;charset=utf-8"
+            });
+            var url = URL.createObjectURL(blob);
+            var link = document.createElement("a");
             link.href = url;
-            link.download = `${options.filename || "datatable_export"}.json`;
-
+            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
+            link.download = "".concat(options.filename || "datatable_export", ".json");
             // Append the link
             document.body.appendChild(link);
-
             // Trigger the download
             link.click();
-
             // Remove the link
             document.body.removeChild(link);
             URL.revokeObjectURL(url);
         }
-
-        return str
+        return str;
     }
-
-    return false
+    return false;
 };
 
 /**
  * Export table to SQL
  */
-const exportSQL = function(dataTable, userOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const defaults = {
+var exportSQL = function (dataTable, userOptions) {
+    if (userOptions === void 0) { userOptions = {}; }
+    if (!dataTable.hasHeadings && !dataTable.hasRows)
+        return false;
+    var defaults = {
         download: true,
         skipColumn: [],
         tableName: "myTable"
     };
-
     // Check for the options object
     if (!isObject(userOptions)) {
-        return false
+        return false;
     }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
-    let rows = [];
+    var options = __assign(__assign({}, defaults), userOptions);
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var rows = [];
     // Selection or whole table
+    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
+        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
-        } else if (Array.isArray(options.selection)) {
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+        }
+        else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            for (var i = 0; i < options.selection.length; i++) {
+                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
             }
         }
-    } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
     }
-
-    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
+    else {
+        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+    }
+    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
-        let str = `INSERT INTO \`${options.tableName}\` (`;
-
+        var str_1 = "INSERT INTO `".concat(options.tableName, "` (");
         // Convert table headings to column names
-        headers.forEach(header => {
-            str += `\`${header}\`,`;
+        headers.forEach(function (header) {
+            str_1 += "`".concat(header, "`,");
         });
-
         // Remove trailing comma
-        str = str.trim().substring(0, str.length - 1);
-
+        str_1 = str_1.trim().substring(0, str_1.length - 1);
         // Begin VALUES
-        str += ") VALUES ";
-
+        str_1 += ") VALUES ";
         // Iterate rows and convert cell data to column values
-
-        rows.forEach(row => {
-            str += "(";
-            row.forEach(cell => {
+        rows.forEach(function (row) {
+            str_1 += "(";
+            row.forEach(function (cell) {
                 if (typeof cell === "string") {
-                    str += `"${cell}",`;
-                } else {
-                    str += `${cell},`;
+                    str_1 += "\"".concat(cell, "\",");
+                }
+                else {
+                    str_1 += "".concat(cell, ",");
                 }
             });
             // Remove trailing comma
-            str = str.trim().substring(0, str.length - 1);
-
+            str_1 = str_1.trim().substring(0, str_1.length - 1);
             // end VALUES
-            str += "),";
-
+            str_1 += "),";
         });
-
         // Remove trailing comma
-        str = str.trim().substring(0, str.length - 1);
-
+        str_1 = str_1.trim().substring(0, str_1.length - 1);
         // Add trailing colon
-        str += ";";
-
+        str_1 += ";";
         if (options.download) {
-            str = `data:application/sql;charset=utf-8,${str}`;
+            str_1 = "data:application/sql;charset=utf-8,".concat(str_1);
         }
-
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            const link = document.createElement("a");
-            link.href = encodeURI(str);
-            link.download = `${options.filename || "datatable_export"}.sql`;
-
+            var link = document.createElement("a");
+            link.href = encodeURI(str_1);
+            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
+            link.download = "".concat(options.filename || "datatable_export", ".sql");
             // Append the link
             document.body.appendChild(link);
-
             // Trigger the download
             link.click();
-
             // Remove the link
             document.body.removeChild(link);
         }
-
-        return str
+        return str_1;
     }
-
-    return false
+    return false;
 };
 
 /**
  * Export table to TXT
  */
-const exportTXT = function(dataTable, userOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
-
-    const defaults = {
+var exportTXT = function (dataTable, userOptions) {
+    if (userOptions === void 0) { userOptions = {}; }
+    if (!dataTable.hasHeadings && !dataTable.hasRows)
+        return false;
+    var defaults = {
         download: true,
         skipColumn: [],
         lineDelimiter: "\n",
         columnDelimiter: ","
     };
-
     // Check for the options object
     if (!isObject(userOptions)) {
-        return false
+        return false;
     }
-
-    const options = {
-        ...defaults,
-        ...userOptions
-    };
-
-    const columnShown = index => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden;
-
-    let rows = [];
-    const headers = dataTable.data.headings.filter((_heading, index) => columnShown(index)).map(header => header.data);
+    var options = __assign(__assign({}, defaults), userOptions);
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var rows = [];
+    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
     // Include headings
     rows[0] = headers;
-
     // Selection or whole table
+    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
+        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
         if (!isNaN(options.selection)) {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
-        } else if (Array.isArray(options.selection)) {
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+        }
+        else if (Array.isArray(options.selection)) {
             // Array of page numbers
-            for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(row => row.row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
+            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+            for (var i = 0; i < options.selection.length; i++) {
+                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
             }
         }
-    } else {
-        rows = rows.concat(dataTable.data.data.map(row => row.filter((_cell, index) => columnShown(index)).map(cell => cell.data)));
     }
-
+    else {
+        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+    }
     // Only proceed if we have data
     if (rows.length) {
-        let str = "";
-
-        rows.forEach(row => {
-            row.forEach(cell => {
+        var str_1 = "";
+        rows.forEach(function (row) {
+            row.forEach(function (cell) {
                 if (typeof cell === "string") {
                     cell = cell.trim();
                     cell = cell.replace(/\s{2,}/g, " ");
@@ -4409,53 +4182,45 @@ const exportTXT = function(dataTable, userOptions = {}) {
                     //have to manually encode "#" as encodeURI leaves it as is.
                     cell = cell.replace(/#/g, "%23");
                     if (cell.includes(",")) {
-                        cell = `"${cell}"`;
+                        cell = "\"".concat(cell, "\"");
                     }
                 }
-                str += cell + options.columnDelimiter;
+                str_1 += cell + options.columnDelimiter;
             });
             // Remove trailing column delimiter
-            str = str.trim().substring(0, str.length - 1);
-
+            str_1 = str_1.trim().substring(0, str_1.length - 1);
             // Apply line delimiter
-            str += options.lineDelimiter;
-
+            str_1 += options.lineDelimiter;
         });
-
         // Remove trailing line delimiter
-        str = str.trim().substring(0, str.length - 1);
-
+        str_1 = str_1.trim().substring(0, str_1.length - 1);
         if (options.download) {
-            str = `data:text/csv;charset=utf-8,${str}`;
+            str_1 = "data:text/csv;charset=utf-8,".concat(str_1);
         }
         // Download
         if (options.download) {
             // Create a link to trigger the download
-            const link = document.createElement("a");
-            link.href = encodeURI(str);
-            link.download = `${options.filename || "datatable_export"}.txt`;
-
+            var link = document.createElement("a");
+            link.href = encodeURI(str_1);
+            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
+            link.download = "".concat(options.filename || "datatable_export", ".txt");
             // Append the link
             document.body.appendChild(link);
-
             // Trigger the download
             link.click();
-
             // Remove the link
             document.body.removeChild(link);
         }
-
-        return str
+        return str_1;
     }
-
-    return false
+    return false;
 };
 
 /**
 * Default config
 * @type {Object}
 */
-const defaultConfig = {
+var defaultConfig = {
     classes: {
         row: "datatable-editor-row",
         form: "datatable-editor-form",
@@ -4475,50 +4240,44 @@ const defaultConfig = {
         container: "datatable-editor-container",
         separator: "datatable-editor-separator"
     },
-
     labels: {
         editCell: "Edit Cell",
         editRow: "Edit Row",
         removeRow: "Remove Row",
         reallyRemove: "Are you sure?"
     },
-
     // include hidden columns in the editor
     hiddenColumns: false,
-
     // enable the context menu
     contextMenu: true,
-
     // event to start editing
     clickEvent: "dblclick",
-
     // indexes of columns not to be edited
     excludeColumns: [],
-
     // set the context menu items
     menuItems: [
         {
-            text: editor => editor.options.labels.editCell,
-            action: (editor, _event) => {
-                const cell = editor.event.target.closest("td");
-                return editor.editCell(cell)
+            text: function (editor) { return editor.options.labels.editCell; },
+            action: function (editor, _event) {
+                var cell = editor.event.target.closest("td");
+                return editor.editCell(cell);
             }
         },
         {
-            text: editor => editor.options.labels.editRow,
-            action: (editor, _event) => {
-                const row = editor.event.target.closest("tr");
-                return editor.editRow(row)
+            text: function (editor) { return editor.options.labels.editRow; },
+            action: function (editor, _event) {
+                var row = editor.event.target.closest("tr");
+                return editor.editRow(row);
             }
         },
         {
             separator: true
         },
         {
-            text: editor => editor.options.labels.removeRow,
-            action: (editor, _event) => {
+            text: function (editor) { return editor.options.labels.removeRow; },
+            action: function (editor, _event) {
                 if (confirm(editor.options.labels.reallyRemove)) {
-                    const row = editor.event.target.closest("tr");
+                    var row = editor.event.target.closest("tr");
                     editor.removeRow(row);
                 }
             }
@@ -4527,15 +4286,20 @@ const defaultConfig = {
 };
 
 // Source: https://www.freecodecamp.org/news/javascript-debounce-example/
-
-const debounce = function(func, timeout = 300) {
-    let timer;
-    return (...args) => {
+var debounce = function (func, timeout) {
+    var _this = this;
+    if (timeout === void 0) { timeout = 300; }
+    var timer;
+    return function () {
+        var args = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            args[_i] = arguments[_i];
+        }
         clearTimeout(timer);
-        timer = setTimeout(() => {
-            func.apply(this, args);
+        timer = setTimeout(function () {
+            func.apply(_this, args);
         }, timeout);
-    }
+    };
 };
 
 /**
@@ -4543,22 +4307,20 @@ const debounce = function(func, timeout = 300) {
  * @param {Object} dataTable Target dataTable
  * @param {Object} options User config
  */
-class Editor {
-    constructor(dataTable, options = {}) {
+var Editor = /** @class */ (function () {
+    function Editor(dataTable, options) {
+        if (options === void 0) { options = {}; }
         this.dt = dataTable;
-        this.options = {
-            ...defaultConfig,
-            ...options
-        };
+        this.options = __assign(__assign({}, defaultConfig), options);
     }
-
     /**
      * Init instance
      * @return {Void}
      */
-    init() {
+    Editor.prototype.init = function () {
+        var _this = this;
         if (this.initialized) {
-            return
+            return;
         }
         this.dt.wrapper.classList.add(this.options.classes.editable);
         if (this.options.contextMenu) {
@@ -4566,31 +4328,31 @@ class Editor {
                 id: this.options.classes.container
             });
             this.wrapper = createElement("div", {
-                class: this.options.classes.wrapper
+                "class": this.options.classes.wrapper
             });
             this.menu = createElement("ul", {
-                class: this.options.classes.menu
+                "class": this.options.classes.menu
             });
             if (this.options.menuItems && this.options.menuItems.length) {
-                this.options.menuItems.forEach(item => {
-                    const li = createElement("li", {
-                        class: item.separator ? this.options.classes.separator : this.options.classes.item
+                this.options.menuItems.forEach(function (item) {
+                    var li = createElement("li", {
+                        "class": item.separator ? _this.options.classes.separator : _this.options.classes.item
                     });
                     if (!item.separator) {
-                        const a = createElement("a", {
-                            class: this.options.classes.action,
+                        var a = createElement("a", {
+                            "class": _this.options.classes.action,
                             href: item.url || "#",
-                            html: typeof item.text === "function" ? item.text(this) : item.text
+                            html: typeof item.text === "function" ? item.text(_this) : item.text
                         });
                         li.appendChild(a);
                         if (item.action && typeof item.action === "function") {
-                            a.addEventListener("click", event => {
+                            a.addEventListener("click", function (event) {
                                 event.preventDefault();
-                                item.action(this, event);
+                                item.action(_this, event);
                             });
                         }
                     }
-                    this.menu.appendChild(li);
+                    _this.menu.appendChild(li);
                 });
             }
             this.wrapper.appendChild(this.menu);
@@ -4603,17 +4365,16 @@ class Editor {
         this.editingRow = false;
         this.editingCell = false;
         this.bindEvents();
-        setTimeout(() => {
-            this.initialized = true;
-            this.dt.emit("editable.init");
+        setTimeout(function () {
+            _this.initialized = true;
+            _this.dt.emit("editable.init");
         }, 10);
-    }
-
+    };
     /**
      * Bind events to DOM
      * @return {Void}
      */
-    bindEvents() {
+    Editor.prototype.bindEvents = function () {
         this.events = {
             context: this.context.bind(this),
             update: this.update.bind(this),
@@ -4629,28 +4390,26 @@ class Editor {
         document.addEventListener("keydown", this.events.keydown);
         if (this.options.contextMenu) {
             // listen for right-click
-
             this.dt.dom.addEventListener("contextmenu", this.events.context);
             // reset
             this.events.reset = debounce(this.events.update, 50);
             window.addEventListener("resize", this.events.reset);
             window.addEventListener("scroll", this.events.reset);
         }
-    }
-
+    };
     /**
      * contextmenu listener
      * @param  {Object} event Event
      * @return {Void}
      */
-    context(event) {
+    Editor.prototype.context = function (event) {
         this.event = event;
-        const cell = event.target.closest("tbody td");
+        var cell = event.target.closest("tbody td");
         if (this.options.contextMenu && !this.disabled && cell) {
             event.preventDefault();
             // get the mouse position
-            let x = event.pageX;
-            let y = event.pageY;
+            var x = event.pageX;
+            var y = event.pageY;
             // check if we're near the right edge of window
             if (x > this.limits.x) {
                 x -= this.rect.width;
@@ -4659,68 +4418,71 @@ class Editor {
             if (y > this.limits.y) {
                 y -= this.rect.height;
             }
-            this.wrapper.style.top = `${y}px`;
-            this.wrapper.style.left = `${x}px`;
+            this.wrapper.style.top = "".concat(y, "px");
+            this.wrapper.style.left = "".concat(x, "px");
             this.openMenu();
             this.update();
         }
-    }
-
+    };
     /**
      * dblclick listener
      * @param  {Object} event Event
      * @return {Void}
      */
-    click(event) {
+    Editor.prototype.click = function (event) {
         if (this.editing && this.data && this.editingCell) {
             this.saveCell(this.data.input.value);
-        } else if (!this.editing) {
-            const cell = event.target.closest("tbody td");
+        }
+        else if (!this.editing) {
+            var cell = event.target.closest("tbody td");
             if (cell) {
                 this.editCell(cell);
                 event.preventDefault();
             }
         }
-    }
-
+    };
     /**
      * keydown listener
      * @param  {Object} event Event
      * @return {Void}
      */
-    keydown(event) {
+    Editor.prototype.keydown = function (event) {
         if (this.modal) {
             if (event.key === "Escape") { // close button
                 this.closeModal();
-            } else if (event.key === "Enter") { // save button
-                // Save
-                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
             }
-        } else if (this.editing && this.data) {
+            else if (event.key === "Enter") { // save button
+                // Save
+                this.saveRow(this.data.inputs.map(function (input) { return input.value.trim(); }), this.data.row);
+            }
+        }
+        else if (this.editing && this.data) {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
                     this.saveCell(this.data.input.value);
-                } else if (this.editingRow) {
-                    this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
                 }
-            } else if (event.key === "Escape") {
+                else if (this.editingRow) {
+                    this.saveRow(this.data.inputs.map(function (input) { return input.value.trim(); }), this.data.row);
+                }
+            }
+            else if (event.key === "Escape") {
                 // Escape key reverts
                 this.saveCell(this.data.content);
             }
         }
-    }
-
+    };
     /**
      * Edit cell
      * @param  {Object} td    The HTMLTableCellElement
      * @return {Void}
      */
-    editCell(td) {
-        let columnIndex = 0;
-        let cellIndex = 0;
+    Editor.prototype.editCell = function (td) {
+        var _this = this;
+        var columnIndex = 0;
+        var cellIndex = 0;
         while (cellIndex < td.cellIndex) {
-            const columnSettings = this.dt.columnSettings.columns[columnIndex] || {};
+            var columnSettings = this.dt.columnSettings.columns[columnIndex] || {};
             if (!columnSettings.hidden) {
                 cellIndex += 1;
             }
@@ -4728,39 +4490,38 @@ class Editor {
         }
         if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu();
-            return
+            return;
         }
-        const rowIndex = parseInt(td.parentNode.dataset.index, 10);
-        const row = this.dt.data.data[rowIndex];
-        const cell = row[columnIndex];
-
+        var rowIndex = parseInt(td.parentNode.dataset.index, 10);
+        var row = this.dt.data.data[rowIndex];
+        var cell = row[columnIndex];
         this.data = {
-            cell,
-            rowIndex,
-            columnIndex,
+            cell: cell,
+            rowIndex: rowIndex,
+            columnIndex: columnIndex,
             content: cell.text || String(cell.data)
         };
-        const template = [
-            `<div class='${this.options.classes.inner}'>`,
-            `<div class='${this.options.classes.header}'>`,
+        var template = [
+            "<div class='".concat(this.options.classes.inner, "'>"),
+            "<div class='".concat(this.options.classes.header, "'>"),
             "<h4>Editing cell</h4>",
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            "<button class='".concat(this.options.classes.close, "' type='button' data-editor-close>\u00D7</button>"),
             " </div>",
-            `<div class='${this.options.classes.block}'>`,
-            `<form class='${this.options.classes.form}'>`,
-            `<div class='${this.options.classes.row}'>`,
-            `<label class='${this.options.classes.label}'>${escapeText(this.dt.data.headings[columnIndex].data)}</label>`,
-            `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
+            "<div class='".concat(this.options.classes.block, "'>"),
+            "<form class='".concat(this.options.classes.form, "'>"),
+            "<div class='".concat(this.options.classes.row, "'>"),
+            "<label class='".concat(this.options.classes.label, "'>").concat(escapeText(this.dt.data.headings[columnIndex].data), "</label>"),
+            "<input class='".concat(this.options.classes.input, "' value='").concat(escapeText(cell.text || String(cell.data) || ""), "' type='text'>"),
             "</div>",
-            `<div class='${this.options.classes.row}'>`,
-            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            "<div class='".concat(this.options.classes.row, "'>"),
+            "<button class='".concat(this.options.classes.save, "' type='button' data-editor-save>Save</button>"),
             "</div>",
             "</form>",
             "</div>",
             "</div>"
         ].join("");
-        const modal = createElement("div", {
-            class: this.options.classes.modal,
+        var modal = createElement("div", {
+            "class": this.options.classes.modal,
             html: template
         });
         this.modal = modal;
@@ -4771,73 +4532,81 @@ class Editor {
         this.data.input.focus();
         this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length;
         // Close / save
-        modal.addEventListener("click", event => {
+        modal.addEventListener("click", function (event) {
             if (event.target.hasAttribute("data-editor-close")) { // close button
-                this.closeModal();
-            } else if (event.target.hasAttribute("data-editor-save")) { // save button
+                _this.closeModal();
+            }
+            else if (event.target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveCell(this.data.input.value);
+                _this.saveCell(_this.data.input.value);
             }
         });
         this.closeMenu();
-    }
-
+    };
     /**
      * Save edited cell
      * @param  {Object} row    The HTMLTableCellElement
      * @param  {String} value   Cell content
      * @return {Void}
      */
-    saveCell(value) {
-        const oldData = this.data.content;
+    Editor.prototype.saveCell = function (value) {
+        var oldData = this.data.content;
         // Set the cell content
-        this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = {data: value.trim()};
+        this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = { data: value.trim() };
         this.closeModal();
         this.dt.fixColumns();
         this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex);
         this.data = {};
-    }
-
+    };
     /**
      * Edit row
      * @param  {Object} row    The HTMLTableRowElement
      * @return {Void}
      */
-    editRow(tr) {
-        if (!tr || tr.nodeName !== "TR" || this.editing) return
-        const dataIndex = parseInt(tr.dataset.index, 10);
-        const row = this.dt.data.data[dataIndex];
-        const template = [
-            `<div class='${this.options.classes.inner}'>`,
-            `<div class='${this.options.classes.header}'>`,
+    Editor.prototype.editRow = function (tr) {
+        var _this = this;
+        var _a;
+        if (!tr || tr.nodeName !== "TR" || this.editing)
+            return;
+        var dataIndex = parseInt(tr.dataset.index, 10);
+        var row = this.dt.data.data[dataIndex];
+        var template = [
+            "<div class='".concat(this.options.classes.inner, "'>"),
+            "<div class='".concat(this.options.classes.header, "'>"),
             "<h4>Editing row</h4>",
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            "<button class='".concat(this.options.classes.close, "' type='button' data-editor-close>\u00D7</button>"),
             " </div>",
-            `<div class='${this.options.classes.block}'>`,
-            `<form class='${this.options.classes.form}'>`,
-            `<div class='${this.options.classes.row}'>`,
-            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            "<div class='".concat(this.options.classes.block, "'>"),
+            "<form class='".concat(this.options.classes.form, "'>"),
+            "<div class='".concat(this.options.classes.row, "'>"),
+            "<button class='".concat(this.options.classes.save, "' type='button' data-editor-save>Save</button>"),
             "</div>",
             "</form>",
             "</div>",
             "</div>"
         ].join("");
-        const modal = createElement("div", {
-            class: this.options.classes.modal,
+        var modal = createElement("div", {
+            "class": this.options.classes.modal,
             html: template
         });
-        const inner = modal.firstElementChild;
-        const form = inner.lastElementChild.firstElementChild;
+        var inner = modal.firstElementChild;
+        if (!inner) {
+            return;
+        }
+        var form = (_a = inner.lastElementChild) === null || _a === void 0 ? void 0 : _a.firstElementChild;
+        if (!form) {
+            return;
+        }
         // Add the inputs for each cell
-        row.forEach((cell, i) => {
-            const columnSettings = this.dt.columnSettings.columns[i] || {};
-            if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
+        row.forEach(function (cell, i) {
+            var columnSettings = _this.dt.columnSettings.columns[i] || {};
+            if ((!columnSettings.hidden || (columnSettings.hidden && _this.options.hiddenColumns)) && !_this.options.excludeColumns.includes(i)) {
                 form.insertBefore(createElement("div", {
-                    class: this.options.classes.row,
+                    "class": _this.options.classes.row,
                     html: [
-                        `<div class='${this.options.classes.row}'>`,
-                        `<label class='${this.options.classes.label}'>${escapeText(this.dt.data.headings[i].data)}</label>`,
-                        `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
+                        "<div class='".concat(_this.options.classes.row, "'>"),
+                        "<label class='".concat(_this.options.classes.label, "'>").concat(escapeText(_this.dt.data.headings[i].data), "</label>"),
+                        "<input class='".concat(_this.options.classes.input, "' value='").concat(escapeText(cell.text || String(cell.data) || ""), "' type='text'>"),
                         "</div>"
                     ].join("")
                 }), form.lastElementChild);
@@ -4846,97 +4615,93 @@ class Editor {
         this.modal = modal;
         this.openModal();
         // Grab the inputs
-        const inputs = Array.from(form.elements);
+        var inputs = Array.from(form.querySelectorAll("input[type=text]"));
         // Remove save button
         inputs.pop();
         this.data = {
-            row,
-            inputs,
-            dataIndex
+            row: row,
+            inputs: inputs,
+            dataIndex: dataIndex
         };
         this.editing = true;
         this.editingRow = true;
         // Close / save
-        modal.addEventListener("click", event => {
+        modal.addEventListener("click", function (event) {
             if (event.target.hasAttribute("data-editor-close")) { // close button
-                this.closeModal();
-            } else if (event.target.hasAttribute("data-editor-save")) { // save button
+                _this.closeModal();
+            }
+            else if (event.target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
+                _this.saveRow(_this.data.inputs.map(function (input) { return input.value.trim(); }), _this.data.row);
             }
         });
         this.closeMenu();
-    }
-
+    };
     /**
      * Save edited row
      * @param  {Object} row    The HTMLTableRowElement
      * @param  {Array} data   Cell data
      * @return {Void}
      */
-    saveRow(data, row) {
+    Editor.prototype.saveRow = function (data, row) {
         // Store the old data for the emitter
-        const oldData = row.map(cell => cell.text || String(cell.data));
+        var oldData = row.map(function (cell) { return cell.text || String(cell.data); });
         this.dt.rows.updateRow(this.data.dataIndex, data);
         this.data = {};
         this.closeModal();
         this.dt.emit("editable.save.row", data, oldData, row);
-    }
-
+    };
     /**
      * Open the row editor modal
      * @return {Void}
      */
-    openModal() {
+    Editor.prototype.openModal = function () {
         if (!this.editing && this.modal) {
             document.body.appendChild(this.modal);
         }
-    }
-
+    };
     /**
      * Close the row editor modal
      * @return {Void}
      */
-    closeModal() {
+    Editor.prototype.closeModal = function () {
         if (this.editing && this.modal) {
             document.body.removeChild(this.modal);
             this.modal = this.editing = this.editingRow = this.editingCell = false;
         }
-    }
-
+    };
     /**
      * Remove a row
      * @param  {Object} tr The HTMLTableRowElement
      * @return {Void}
      */
-    removeRow(tr) {
-        if (!tr || tr.nodeName !== "TR" || this.editing) return
-        const index = parseInt(tr.dataset.index, 10);
+    Editor.prototype.removeRow = function (tr) {
+        if (!tr || tr.nodeName !== "TR" || this.editing)
+            return;
+        var index = parseInt(tr.dataset.index, 10);
         this.dt.rows.remove(index);
         this.closeMenu();
-    }
-
+    };
     /**
      * Update context menu position
      * @return {Void}
      */
-    update() {
-        const scrollX = window.scrollX || window.pageXOffset;
-        const scrollY = window.scrollY || window.pageYOffset;
+    Editor.prototype.update = function () {
+        var scrollX = window.scrollX || window.pageXOffset;
+        var scrollY = window.scrollY || window.pageYOffset;
         this.rect = this.wrapper.getBoundingClientRect();
         this.limits = {
             x: window.innerWidth + scrollX - this.rect.width,
             y: window.innerHeight + scrollY - this.rect.height
         };
-    }
-
+    };
     /**
      * Dismiss the context menu
      * @param  {Object} event Event
      * @return {Void}
      */
-    dismiss(event) {
-        let valid = true;
+    Editor.prototype.dismiss = function (event) {
+        var valid = true;
         if (this.options.contextMenu) {
             valid = !this.wrapper.contains(event.target);
             if (this.editing) {
@@ -4950,13 +4715,12 @@ class Editor {
             }
             this.closeMenu();
         }
-    }
-
+    };
     /**
      * Open the context menu
      * @return {Void}
      */
-    openMenu() {
+    Editor.prototype.openMenu = function () {
         if (this.editing && this.data && this.editingCell) {
             this.saveCell(this.data.input.value);
         }
@@ -4965,25 +4729,23 @@ class Editor {
             this.closed = false;
             this.dt.emit("editable.context.open");
         }
-    }
-
+    };
     /**
      * Close the context menu
      * @return {Void}
      */
-    closeMenu() {
+    Editor.prototype.closeMenu = function () {
         if (this.options.contextMenu && !this.closed) {
             this.closed = true;
             document.body.removeChild(this.container);
             this.dt.emit("editable.context.close");
         }
-    }
-
+    };
     /**
      * Destroy the instance
      * @return {Void}
      */
-    destroy() {
+    Editor.prototype.destroy = function () {
         this.dt.dom.removeEventListener(this.options.clickEvent, this.events.click);
         this.dt.dom.removeEventListener("contextmenu", this.events.context);
         document.removeEventListener("click", this.events.dismiss);
@@ -4994,18 +4756,19 @@ class Editor {
             document.body.removeChild(this.container);
         }
         this.initialized = false;
-    }
-}
-
-const makeEditable = function(dataTable, options = {}) {
-    const editor = new Editor(dataTable, options);
+    };
+    return Editor;
+}());
+var makeEditable = function (dataTable, options) {
+    if (options === void 0) { options = {}; }
+    var editor = new Editor(dataTable, options);
     if (dataTable.initialized) {
         editor.init();
-    } else {
-        dataTable.on("datatable.init", () => editor.init());
     }
-
-    return editor
+    else {
+        dataTable.on("datatable.init", function () { return editor.init(); });
+    }
+    return editor;
 };
 
 export { DataTable, convertCSV, convertJSON, createElement, exportCSV, exportJSON, exportSQL, exportTXT, isJson, isObject, makeEditable };
