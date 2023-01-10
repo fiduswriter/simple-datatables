@@ -1,7 +1,8 @@
 import {readDataCell} from "./read_data"
 
 export class Columns {
-    dt: any;
+    dt: any
+
     constructor(dt: any) {
         this.dt = dt
     }

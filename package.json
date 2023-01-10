@@ -50,6 +50,8 @@
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-terser": "^0.3.0",
     "@types/node": "^18.11.18",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1",
     "browserify": "^17.0.0",
     "eslint": "^8.31.0",
     "eslint-plugin-htm": "^0.5.2",

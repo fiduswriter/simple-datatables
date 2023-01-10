@@ -4,8 +4,10 @@ import {readDataCell} from "./read_data"
  * Rows API
  */
 export class Rows {
-    cursor: any;
-    dt: any;
+    cursor: any
+
+    dt: any
+
     constructor(dt: any) {
         this.dt = dt
 
@@ -73,7 +75,7 @@ export class Rows {
         // inside the td innerText at specific column index
         return this.dt.data.data.findIndex(
             (row: any) => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
-        );
+        )
     }
 
     /**

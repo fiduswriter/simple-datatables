@@ -7,5 +7,5 @@ export const debounce = function(this: any, func: any, timeout = 300) {
         timer = setTimeout(() => {
             func.apply(this, args)
         }, timeout)
-    };
+    }
 }

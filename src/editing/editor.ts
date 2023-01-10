@@ -16,23 +16,40 @@ import {
  * @param {Object} options User config
  */
 export class Editor {
-    closed: any;
-    container: any;
-    data: any;
-    disabled: any;
-    dt: any;
-    editing: any;
-    editingCell: any;
-    editingRow: any;
-    event: any;
-    events: any;
-    initialized: any;
-    limits: any;
-    menu: any;
-    modal: any;
-    options: any;
-    rect: any;
-    wrapper: any;
+    closed: any
+
+    container: any
+
+    data: any
+
+    disabled: any
+
+    dt: any
+
+    editing: any
+
+    editingCell: any
+
+    editingRow: any
+
+    event: any
+
+    events: any
+
+    initialized: any
+
+    limits: any
+
+    menu: any
+
+    modal: any
+
+    options: any
+
+    rect: any
+
+    wrapper: any
+
     constructor(dataTable: any, options = {}) {
         this.dt = dataTable
         this.options = {
@@ -341,7 +358,7 @@ export class Editor {
         this.modal = modal
         this.openModal()
         // Grab the inputs
-        const inputs = Array.from(form.querySelectorAll('input[type=text]'))
+        const inputs = Array.from(form.querySelectorAll("input[type=text]"))
         // Remove save button
         inputs.pop()
         this.data = {

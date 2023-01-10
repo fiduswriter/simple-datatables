@@ -1,7 +1,8 @@
 module.exports = {
     "plugins": [
         "html",
-        "@html-eslint"
+        "@html-eslint",
+        "@typescript-eslint",
     ],
     "overrides": [
         {
@@ -14,7 +15,11 @@ module.exports = {
         "browser": true,
         "es6": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:@typescript-eslint/eslint-recommended",
+        "plugin:@typescript-eslint/recommended",
+    ],
     "parserOptions": {
         "ecmaVersion": 2021,
         "sourceType": "module"
@@ -325,6 +330,8 @@ module.exports = {
         "wrap-iife": "error",
         "wrap-regex": "off",
         "yield-star-spacing": "error",
-        "yoda": "off"
+        "yoda": "off",
+        "@typescript-eslint/no-explicit-any": ["warn", { "ignoreRestArgs": true }],
+        "@typescript-eslint/no-unused-vars": "off"
     }
 };

@@ -11,7 +11,7 @@ import {
 export const convertJSON = function(userOptions = {}) {
     let obj = false
     const defaults = {
-        data: ''
+        data: ""
     }
 
     // Check for the options object

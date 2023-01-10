@@ -101,7 +101,7 @@ export const objToText = (obj: any) => {
         return obj.data
     }
     if (obj.childNodes) {
-        return obj.childNodes.map((childNode: any) => objToText(childNode)).join("");
+        return obj.childNodes.map((childNode: any) => objToText(childNode)).join("")
     }
     return ""
 }
@@ -112,5 +112,5 @@ export const escapeText = function(text: string) {
         .replace(/&/g, "&amp;")
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
+        .replace(/"/g, "&quot;")
 }

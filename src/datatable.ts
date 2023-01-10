@@ -16,39 +16,72 @@ import {
 
 
 export class DataTable {
-    columnSettings: any;
-    columnWidths: any;
-    columns: any;
-    container: HTMLDivElement;
-    currentPage: number;
-    data: any;
-    dd: any;
-    dom: HTMLTableElement;
-    events: any;
-    filterStates: any;
-    hasHeadings: boolean;
-    hasRows: boolean;
-    headerDOM: HTMLDivElement | false;
-    initialInnerHTML: string;
-    initialized: boolean;
-    input: HTMLInputElement;
-    label: HTMLElement;
-    lastPage: any;
-    links: any;
-    listeners: any;
-    onFirstPage: boolean;
-    onLastPage: boolean;
-    options: any;
-    pagers: HTMLUListElement[];
-    pages: any;
-    rect: any;
-    rows: any;
-    searchData: number[];
-    searching: boolean;
-    totalPages: number;
-    virtualDOM: any;
-    virtualHeaderDOM: any;
-    wrapper: HTMLElement;
+    columnSettings: any
+
+    columnWidths: any
+
+    columns: any
+
+    container: HTMLDivElement
+
+    currentPage: number
+
+    data: any
+
+    dd: any
+
+    dom: HTMLTableElement
+
+    events: any
+
+    filterStates: any
+
+    hasHeadings: boolean
+
+    hasRows: boolean
+
+    headerDOM: HTMLDivElement | false
+
+    initialInnerHTML: string
+
+    initialized: boolean
+
+    input: HTMLInputElement
+
+    label: HTMLElement
+
+    lastPage: any
+
+    links: any
+
+    listeners: any
+
+    onFirstPage: boolean
+
+    onLastPage: boolean
+
+    options: any
+
+    pagers: HTMLUListElement[]
+
+    pages: any
+
+    rect: any
+
+    rows: any
+
+    searchData: number[]
+
+    searching: boolean
+
+    totalPages: number
+
+    virtualDOM: any
+
+    virtualHeaderDOM: any
+
+    wrapper: HTMLElement
+
     constructor(table: HTMLTableElement | string, options = {}) {
 
         this.dom = typeof table === "string" ? document.querySelector(table) : table
