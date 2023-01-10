@@ -2451,7 +2451,7 @@ var createElement = function (nodeName, attrs) {
     return dom;
 };
 var flush = function (el) {
-    if (el instanceof NodeList) {
+    if (Array.isArray(el)) {
         el.forEach(function (e) { return flush(e); });
     }
     else {
@@ -2874,7 +2874,7 @@ var Columns = /** @class */ (function () {
      */
     Columns.prototype.sort = function (column, dir, init) {
         var _a, _b;
-        if (dir === void 0) { dir = 'asc'; }
+        if (dir === void 0) { dir = "asc"; }
         if (init === void 0) { init = false; }
         // If there is a filter for this column, apply it instead of sorting
         if ((_b = (_a = this.dt.columnSettings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length) {
@@ -2978,7 +2978,7 @@ var DataTable = /** @class */ (function () {
             this.dom.tabIndex = 0;
         }
         this.listeners = {
-            onResize: function (event) { return _this.onResize(); }
+            onResize: function () { return _this.onResize(); }
         };
         this.dd = new DiffDOM();
         this.initialized = false;
@@ -3443,7 +3443,7 @@ var DataTable = /** @class */ (function () {
                 // Reset widths
                 renderOptions.noColumnWidths = true;
                 this.renderTable(renderOptions);
-                var activeDOMHeadings = Array.from(((_b = (_a = this.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll('th')) || []);
+                var activeDOMHeadings = Array.from(((_b = (_a = this.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll("th")) || []);
                 var absoluteColumnWidths = activeDOMHeadings.map(function (cell) { return cell.offsetWidth; });
                 var totalOffsetWidth_1 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
                 this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
@@ -3499,7 +3499,7 @@ var DataTable = /** @class */ (function () {
             else {
                 renderOptions.renderHeader = true;
                 this.renderTable(renderOptions);
-                var activeDOMHeadings = Array.from(((_d = (_c = this.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll('th')) || []);
+                var activeDOMHeadings = Array.from(((_d = (_c = this.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll("th")) || []);
                 var absoluteColumnWidths = activeDOMHeadings.map(function (cell) { return cell.offsetWidth; });
                 var totalOffsetWidth_2 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
                 this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });

@@ -33,8 +33,8 @@ export const createElement = (nodeName: string, attrs?: any) => {
     return dom
 }
 
-export const flush = (el: any) => {
-    if (el instanceof NodeList) {
+export const flush = (el: HTMLElement | HTMLElement[]) => {
+    if (Array.isArray(el)) {
         el.forEach(e => flush(e))
     } else {
         el.innerHTML = ""
