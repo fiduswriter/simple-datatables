@@ -1,7 +1,11 @@
-export const readColumnSettings = (columnOptions = []) => {
+import {
+    columnSettingsType
+} from "./interfaces"
 
-    const columns: any = []
-    let sort = false
+export const readColumnSettings = (columnOptions = []) : {columns: (columnSettingsType | undefined)[], sort: (false | {column: number, dir: "asc" | "desc"})} => {
+
+    const columns: (columnSettingsType | undefined)[] = []
+    let sort: (false | {column: number, dir: "asc" | "desc"}) = false
 
     // Check for the columns option
 

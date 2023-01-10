@@ -14,22 +14,27 @@ import {
     truncate
 } from "./helpers"
 import {
-    DataTableOptions
+    columnSettingsType,
+    DataTableOptions,
+    TableDataType
 } from "./interfaces"
 
 
 export class DataTable {
-    columnSettings: any
+    columnSettings: {
+        sort: false | {column: number, dir: "asc" | "desc"},
+        columns: (columnSettingsType | undefined)[]
+    }
 
-    columnWidths: any
+    columnWidths: number[]
 
-    columns: any
+    columns: Columns
 
     container: HTMLDivElement
 
     currentPage: number
 
-    data: any
+    data: TableDataType
 
     dd: any
 
@@ -71,7 +76,7 @@ export class DataTable {
 
     rect: any
 
-    rows: any
+    rows: Rows
 
     searchData: number[]
 
@@ -112,16 +117,13 @@ export class DataTable {
         }
 
         this.listeners = {
-            // @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
-            onResize: (event: any) => this.onResize(event)
+            onResize: () => this.onResize()
         }
 
         this.dd = new DiffDOM()
 
-        // Initialize other variables
         this.initialized = false
         this.events = {}
-        this.data = false
         this.virtualDOM = false
         this.virtualHeaderDOM = false
         this.headerDOM = false
@@ -131,7 +133,6 @@ export class DataTable {
         this.hasRows = false
 
         this.columnWidths = []
-        this.columnSettings = false
         this.filterStates = []
 
         this.init()
@@ -298,10 +299,9 @@ export class DataTable {
         this.fixColumns()
     }
 
-    renderTable(renderOptions={}) {
+    renderTable(renderOptions: {noPaging?: true, noColumnWidths?: true, unhideHeader?: true, renderHeader?: true}={}) {
         const newVirtualDOM = dataToVirtualDOM(
             this.data.headings,
-            // @ts-expect-error TS(2339): Property 'noPaging' does not exist on type '{}'.
             this.options.paging && this.currentPage && !renderOptions.noPaging ?
                 this.pages[this.currentPage - 1] :
                 this.data.data.map((row, index) => ({
@@ -483,7 +483,7 @@ export class DataTable {
             const t = e.target.closest("a")
             if (t && (t.nodeName.toLowerCase() === "a")) {
                 if (t.hasAttribute("data-page")) {
-                    this.page(t.getAttribute("data-page"))
+                    this.page(parseInt(t.getAttribute("data-page"), 10))
                     e.preventDefault()
                 } else if (
                     this.options.sortable &&
@@ -511,8 +511,7 @@ export class DataTable {
                     if (lastRow) {
                         this.rows.setCursor(lastRow.index)
                     } else if (!this.onFirstPage) {
-                        // @ts-expect-error TS(2345): Argument of type '{ lastRowCursor: boolean; }' is ... Remove this comment to see the full error message
-                        this.page(this.currentPage-1, {lastRowCursor: true})
+                        this.page(this.currentPage-1, true)
                     }
                 } else if (event.key === "ArrowDown") {
                     event.preventDefault()
@@ -660,7 +659,7 @@ export class DataTable {
         if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.length) {
 
             this.columnWidths = []
-            const renderOptions = {
+            const renderOptions: {noPaging?: true, noColumnWidths?: true, unhideHeader?: true, renderHeader?: true} = {
                 noPaging: true
             }
             // If we have headings we need only set the widths on them
@@ -668,7 +667,6 @@ export class DataTable {
             if (this.options.header || this.options.footer) {
 
                 if (this.options.scrollY.length) {
-                    // @ts-expect-error TS(2339): Property 'unhideHeader' does not exist on type '{ ... Remove this comment to see the full error message
                     renderOptions.unhideHeader = true
                 }
                 if (this.headerDOM) {
@@ -677,12 +675,10 @@ export class DataTable {
                 }
 
                 // Reset widths
-                // @ts-expect-error TS(2339): Property 'noColumnWidths' does not exist on type '... Remove this comment to see the full error message
                 renderOptions.noColumnWidths = true
                 this.renderTable(renderOptions)
 
-                const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || [])
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                const activeDOMHeadings : HTMLTableCellElement[] = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
                 const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth)
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
@@ -747,12 +743,10 @@ export class DataTable {
                 }
 
             } else {
-                // @ts-expect-error TS(2339): Property 'renderHeader' does not exist on type '{ ... Remove this comment to see the full error message
                 renderOptions.renderHeader = true
                 this.renderTable(renderOptions)
 
-                const activeDOMHeadings = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.children || [])
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                const activeDOMHeadings: HTMLTableCellElement[] = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
                 const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth)
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
@@ -840,14 +834,14 @@ export class DataTable {
     /**
      * Change page
      */
-    page(page: any, lastRowCursor = false) {
+    page(page: number, lastRowCursor = false) {
         // We don't want to load the current page again.
         if (page === this.currentPage) {
             return false
         }
 
         if (!isNaN(page)) {
-            this.currentPage = parseInt(page, 10)
+            this.currentPage = page
         }
 
         if (page > this.pages.length || page < 0) {

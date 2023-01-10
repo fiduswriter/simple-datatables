@@ -1,7 +1,7 @@
 import {readDataCell} from "./read_data"
-
+import {DataTable} from "./datatable"
 export class Columns {
-    dt: any
+    dt: DataTable
 
     constructor(dt: any) {
         this.dt = dt
@@ -30,7 +30,7 @@ export class Columns {
      */
     order(columns: any) {
 
-        this.dt.headings = columns.map((index: any) => this.dt.headings[index])
+        this.dt.data.headings = columns.map((index: any) => this.dt.data.headings[index])
         this.dt.data.data = this.dt.data.data.map(
             (row: any) => columns.map((index: any) => row[index])
         )
@@ -110,8 +110,8 @@ export class Columns {
             if (data.format) {
                 column.format = data.format
             }
-            if (data.sortable) {
-                column.sortable = data.sortable
+            if (data.notSortable) {
+                column.notSortable = data.notSortable
             }
             if (data.filter) {
                 column.filter = data.filter
@@ -127,7 +127,7 @@ export class Columns {
     /**
      * Remove column(s)
      */
-    remove(columns: any) {
+    remove(columns: number[]) {
         if (Array.isArray(columns)) {
             this.dt.data.headings = this.dt.data.headings.filter((_heading: any, index: any) => !columns.includes(index))
             this.dt.data.data = this.dt.data.data.map(
@@ -143,7 +143,7 @@ export class Columns {
     /**
      * Filter by column
      */
-    filter(column: any, init: any) {
+    filter(column: number, init = false) {
 
         if (!this.dt.columnSettings.columns[column]?.filter?.length) {
             // There is no filter to apply.
@@ -186,7 +186,7 @@ export class Columns {
     /**
      * Sort by column
      */
-    sort(column: any, dir: any, init: any) {
+    sort(column: number, dir: ("asc" | "desc") = "asc", init = false) {
 
         // If there is a filter for this column, apply it instead of sorting
         if (this.dt.columnSettings.columns[column]?.filter?.length) {

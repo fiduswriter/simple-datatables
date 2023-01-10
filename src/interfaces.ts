@@ -24,6 +24,16 @@ interface DataOption{
     data?: inputCellType[][] ;
 }
 
+interface headingType {
+    data: string,
+    sorted?: false | "asc" | "desc",
+}
+
+interface TableDataType{
+    headings: headingType[];
+    data: cellType[][] ;
+}
+
 type renderType = ((cellData: any, td: object, rowIndex: number, cellIndex: number) => object | void);
 
 interface ColumnOption{
@@ -307,12 +317,25 @@ interface DataTableOptions{
 
 }
 
+interface columnSettingsType {
+    render?: renderType,
+    type?: "date",
+    format?: string,
+    notSortable?: boolean,
+    hidden?: boolean,
+    filter?: object[],
+    sort?: "asc" | "desc"
+}
+
+
 export {
     cellType,
+    columnSettingsType,
     DataOption,
     DataTableOptions,
     inputCellType,
     nodeType,
     renderType,
-    rowRenderType
+    rowRenderType,
+    TableDataType
 }

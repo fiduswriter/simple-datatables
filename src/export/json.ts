@@ -1,11 +1,11 @@
 import {
     isObject
 } from "../helpers"
-
+import {DataTable} from "../datatable"
 /**
  * Export table to JSON
  */
-export const exportJSON = function(dataTable: any, userOptions = {}) {
+export const exportJSON = function(dataTable: DataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
 

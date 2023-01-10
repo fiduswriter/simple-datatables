@@ -1,11 +1,11 @@
 import {
     isObject
 } from "../helpers"
-
+import {DataTable} from "../datatable"
 /**
  * Export table to SQL
  */
-export const exportSQL = function(dataTable: any, userOptions = {}) {
+export const exportSQL = function(dataTable: DataTable, userOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
     const defaults = {

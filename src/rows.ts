@@ -1,20 +1,20 @@
 import {readDataCell} from "./read_data"
-
+import {DataTable} from "./datatable"
 /**
  * Rows API
  */
 export class Rows {
-    cursor: any
+    cursor: (false | number)
 
-    dt: any
+    dt: DataTable
 
-    constructor(dt: any) {
+    constructor(dt: DataTable) {
         this.dt = dt
 
         this.cursor = false
     }
 
-    setCursor(index=false) {
+    setCursor(index: (false | number) =false) {
         if (index === this.cursor) {
             return
         }

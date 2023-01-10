@@ -9,7 +9,7 @@ import {
 import {
     debounce
 } from "./helpers"
-
+import {DataTable} from "../datatable"
 /**
  * Main lib
  * @param {Object} dataTable Target dataTable
@@ -24,9 +24,9 @@ export class Editor {
 
     disabled: any
 
-    dt: any
+    dt: DataTable
 
-    editing: any
+    editing: boolean
 
     editingCell: any
 

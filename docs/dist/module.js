@@ -2537,12 +2537,9 @@ var readDataCell = function (cell, columnSettings) {
         var node = stringToObj("<td>".concat(cell, "</td>"));
         if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
             cellData.data = node.childNodes;
-            // @ts-expect-error TS(2339): Property 'type' does not exist on type '{ data: an... Remove this comment to see the full error message
             cellData.type = "node";
             var text = objToText(node);
-            // @ts-expect-error TS(2339): Property 'text' does not exist on type '{ data: an... Remove this comment to see the full error message
             cellData.text = text;
-            // @ts-expect-error TS(2339): Property 'order' does not exist on type '{ data: a... Remove this comment to see the full error message
             cellData.order = text;
         }
     }
@@ -2735,7 +2732,7 @@ var Columns = /** @class */ (function () {
      */
     Columns.prototype.order = function (columns) {
         var _this = this;
-        this.dt.headings = columns.map(function (index) { return _this.dt.headings[index]; });
+        this.dt.data.headings = columns.map(function (index) { return _this.dt.data.headings[index]; });
         this.dt.data.data = this.dt.data.data.map(function (row) { return columns.map(function (index) { return row[index]; }); });
         this.dt.columnSettings.columns = columns.map(function (index) { return _this.dt.columnSettings.columns[index]; });
         // Update
@@ -2804,8 +2801,8 @@ var Columns = /** @class */ (function () {
             if (data.format) {
                 column.format = data.format;
             }
-            if (data.sortable) {
-                column.sortable = data.sortable;
+            if (data.notSortable) {
+                column.notSortable = data.notSortable;
             }
             if (data.filter) {
                 column.filter = data.filter;
@@ -2836,6 +2833,7 @@ var Columns = /** @class */ (function () {
      */
     Columns.prototype.filter = function (column, init) {
         var _a, _b;
+        if (init === void 0) { init = false; }
         if (!((_b = (_a = this.dt.columnSettings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length)) {
             // There is no filter to apply.
             return;
@@ -2876,6 +2874,8 @@ var Columns = /** @class */ (function () {
      */
     Columns.prototype.sort = function (column, dir, init) {
         var _a, _b;
+        if (dir === void 0) { dir = 'asc'; }
+        if (init === void 0) { init = false; }
         // If there is a filter for this column, apply it instead of sorting
         if ((_b = (_a = this.dt.columnSettings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length) {
             return this.filter(column, init);
@@ -2978,14 +2978,11 @@ var DataTable = /** @class */ (function () {
             this.dom.tabIndex = 0;
         }
         this.listeners = {
-            // @ts-expect-error TS(2554): Expected 0 arguments, but got 1.
-            onResize: function (event) { return _this.onResize(event); }
+            onResize: function (event) { return _this.onResize(); }
         };
         this.dd = new DiffDOM();
-        // Initialize other variables
         this.initialized = false;
         this.events = {};
-        this.data = false;
         this.virtualDOM = false;
         this.virtualHeaderDOM = false;
         this.headerDOM = false;
@@ -2994,7 +2991,6 @@ var DataTable = /** @class */ (function () {
         this.hasHeadings = false;
         this.hasRows = false;
         this.columnWidths = [];
-        this.columnSettings = false;
         this.filterStates = [];
         this.init();
     }
@@ -3129,9 +3125,7 @@ var DataTable = /** @class */ (function () {
     };
     DataTable.prototype.renderTable = function (renderOptions) {
         if (renderOptions === void 0) { renderOptions = {}; }
-        var newVirtualDOM = dataToVirtualDOM(this.data.headings, 
-        // @ts-expect-error TS(2339): Property 'noPaging' does not exist on type '{}'.
-        this.options.paging && this.currentPage && !renderOptions.noPaging ?
+        var newVirtualDOM = dataToVirtualDOM(this.data.headings, this.options.paging && this.currentPage && !renderOptions.noPaging ?
             this.pages[this.currentPage - 1] :
             this.data.data.map(function (row, index) { return ({
                 row: row,
@@ -3277,7 +3271,7 @@ var DataTable = /** @class */ (function () {
             var t = e.target.closest("a");
             if (t && (t.nodeName.toLowerCase() === "a")) {
                 if (t.hasAttribute("data-page")) {
-                    _this.page(t.getAttribute("data-page"));
+                    _this.page(parseInt(t.getAttribute("data-page"), 10));
                     e.preventDefault();
                 }
                 else if (_this.options.sortable &&
@@ -3305,8 +3299,7 @@ var DataTable = /** @class */ (function () {
                         _this.rows.setCursor(lastRow_1.index);
                     }
                     else if (!_this.onFirstPage) {
-                        // @ts-expect-error TS(2345): Argument of type '{ lastRowCursor: boolean; }' is ... Remove this comment to see the full error message
-                        _this.page(_this.currentPage - 1, { lastRowCursor: true });
+                        _this.page(_this.currentPage - 1, true);
                     }
                 }
                 else if (event.key === "ArrowDown") {
@@ -3441,7 +3434,6 @@ var DataTable = /** @class */ (function () {
             // otherwise we need a temp header and the widths need applying to all cells
             if (this.options.header || this.options.footer) {
                 if (this.options.scrollY.length) {
-                    // @ts-expect-error TS(2339): Property 'unhideHeader' does not exist on type '{ ... Remove this comment to see the full error message
                     renderOptions.unhideHeader = true;
                 }
                 if (this.headerDOM) {
@@ -3449,11 +3441,9 @@ var DataTable = /** @class */ (function () {
                     this.headerDOM.parentElement.removeChild(this.headerDOM);
                 }
                 // Reset widths
-                // @ts-expect-error TS(2339): Property 'noColumnWidths' does not exist on type '... Remove this comment to see the full error message
                 renderOptions.noColumnWidths = true;
                 this.renderTable(renderOptions);
-                var activeDOMHeadings = Array.from(((_b = (_a = this.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.children) || []);
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                var activeDOMHeadings = Array.from(((_b = (_a = this.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll('th')) || []);
                 var absoluteColumnWidths = activeDOMHeadings.map(function (cell) { return cell.offsetWidth; });
                 var totalOffsetWidth_1 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
                 this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
@@ -3507,11 +3497,9 @@ var DataTable = /** @class */ (function () {
                 }
             }
             else {
-                // @ts-expect-error TS(2339): Property 'renderHeader' does not exist on type '{ ... Remove this comment to see the full error message
                 renderOptions.renderHeader = true;
                 this.renderTable(renderOptions);
-                var activeDOMHeadings = Array.from(((_d = (_c = this.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.children) || []);
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
+                var activeDOMHeadings = Array.from(((_d = (_c = this.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll('th')) || []);
                 var absoluteColumnWidths = activeDOMHeadings.map(function (cell) { return cell.offsetWidth; });
                 var totalOffsetWidth_2 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
                 this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });
@@ -3589,7 +3577,7 @@ var DataTable = /** @class */ (function () {
             return false;
         }
         if (!isNaN(page)) {
-            this.currentPage = parseInt(page, 10);
+            this.currentPage = page;
         }
         if (page > this.pages.length || page < 0) {
             return false;
