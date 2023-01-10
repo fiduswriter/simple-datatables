@@ -2,7 +2,7 @@
 
 A lightweight, extendable, JavaScript HTML table library. Similar to jQuery DataTables **for use in modern browsers**, but without the jQuery dependency. Note: If you want a version that works in very old browsers (IE, etc.), then head over to https://github.com/fiduswriter/simple-datatables-classic .
 
-Originally a fork of [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in ES2018.
+Originally a fork of [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in TypeScript and transpilled to Vanilla JavaScript.
 
 See the demos [here](https://fiduswriter.github.io/simple-datatables/).
 
@@ -14,8 +14,6 @@ To use the CDN version of simple-datatables use either [https://cdn.jsdelivr.net
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
 <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" type="text/javascript"></script>
 ```
-
-
 
 ### License
 
@@ -34,6 +32,7 @@ LGPL
 * Control column visibility
 * Reorder or swap columns
 * dayjs integration for sorting columns with datetime strings
+* Using [diffDOM](https://github.com/fiduswriter/diffDOM) for updating the DOM
 
 
 [simple-datatables Documentation](https://github.com/fiduswriter/simple-datatables/wiki)
