@@ -3,6 +3,7 @@
   "version": "5.0.3",
   "description": "A lightweight, dependency-free JavaScript HTML table plugin.",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
   "jsdelivr": "dist/umd/simple-datatables.js",
   "unpkg": "dist/umd/simple-datatables.js",
   "module": "src/index.js",
@@ -15,7 +16,7 @@
     "build_js_umd": "browserify dist/index.js --standalone simpleDatatables -o dist/umd/simple-datatables.js",
     "build_css": "cp -R src/css dist/",
     "build_docs": "npm run build_docs_js && cp -R src/css docs/dist/",
-    "build_docs_js": "rollup -c rollup.docs.config.js",
+    "build_docs_js": "rollup -c rollup.docs.config.mjs",
     "postbuild_docs": "cp -r dist/umd/simple-datatables.js docs/dist/umd.js",
     "prepare": "npm run build"
   },
@@ -41,26 +42,28 @@
   },
   "homepage": "https://github.com/fiduswriter/simple-datatables#readme",
   "devDependencies": {
-    "@babel/core": "^7.18.9",
+    "@babel/core": "^7.20.12",
     "@html-eslint/eslint-plugin": "^0.15.0",
     "@html-eslint/parser": "^0.15.0",
-    "@rollup/plugin-babel": "^5.3.1",
-    "@rollup/plugin-commonjs": "^22.0.1",
-    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-babel": "^6.0.3",
+    "@rollup/plugin-commonjs": "^24.0.0",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.3.0",
     "@types/node": "^18.11.18",
     "browserify": "^17.0.0",
-    "eslint": "^8.28.0",
+    "eslint": "^8.31.0",
     "eslint-plugin-htm": "^0.5.2",
     "eslint-plugin-html": "^7.1.0",
     "pre-commit": "^1.2.2",
-    "rollup": "^2.77.0",
-    "rollup-plugin-polyfill-node": "^0.10.2",
-    "rollup-plugin-terser": "^7.0.2",
-    "rollup-plugin-tsc": "^1.1.16",
-    "updates": "^13.1.2"
+    "rollup": "^3.9.1",
+    "rollup-plugin-dts": "^5.1.1",
+    "rollup-plugin-polyfill-node": "^0.11.0",
+    "rollup-plugin-typescript2": "^0.34.1",
+    "tslib": "^2.4.1",
+    "typescript": "^4.9.4"
   },
   "dependencies": {
-    "dayjs": "^1.11.4",
+    "dayjs": "^1.11.7",
     "diff-dom": "^4.2.8"
   }
 }

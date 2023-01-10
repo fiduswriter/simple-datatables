@@ -19,37 +19,37 @@ export class DataTable {
     columnSettings: any;
     columnWidths: any;
     columns: any;
-    container: any;
-    currentPage: any;
+    container: HTMLDivElement;
+    currentPage: number;
     data: any;
     dd: any;
-    dom: any;
+    dom: HTMLTableElement;
     events: any;
     filterStates: any;
-    hasHeadings: any;
-    hasRows: any;
-    headerDOM: any;
-    initialInnerHTML: any;
-    initialized: any;
-    input: any;
-    label: any;
+    hasHeadings: boolean;
+    hasRows: boolean;
+    headerDOM: HTMLDivElement | false;
+    initialInnerHTML: string;
+    initialized: boolean;
+    input: HTMLInputElement;
+    label: HTMLElement;
     lastPage: any;
     links: any;
     listeners: any;
-    onFirstPage: any;
-    onLastPage: any;
+    onFirstPage: boolean;
+    onLastPage: boolean;
     options: any;
-    pagers: any;
+    pagers: HTMLUListElement[];
     pages: any;
     rect: any;
     rows: any;
-    searchData: any;
-    searching: any;
-    totalPages: any;
+    searchData: number[];
+    searching: boolean;
+    totalPages: number;
     virtualDOM: any;
     virtualHeaderDOM: any;
-    wrapper: any;
-    constructor(table: any, options = {}) {
+    wrapper: HTMLElement;
+    constructor(table: HTMLTableElement | string, options = {}) {
 
         this.dom = typeof table === "string" ? document.querySelector(table) : table
 
@@ -210,7 +210,7 @@ export class DataTable {
 
         this.container = this.wrapper.querySelector(".datatable-container")
 
-        this.pagers = this.wrapper.querySelectorAll(".datatable-pagination-list")
+        this.pagers = Array.from(this.wrapper.querySelectorAll("ul.datatable-pagination-list"))
 
         this.label = this.wrapper.querySelector(".datatable-info")
 
@@ -422,8 +422,8 @@ export class DataTable {
     bindEvents() {
         // Per page selector
         if (this.options.perPageSelect) {
-            const selector = this.wrapper.querySelector(".datatable-selector")
-            if (selector) {
+            const selector = this.wrapper.querySelector("select.datatable-selector")
+            if (selector && selector instanceof HTMLSelectElement) {
                 // Change per page
                 selector.addEventListener("change", () => {
                     this.options.perPage = parseInt(selector.value, 10)
@@ -504,19 +504,19 @@ export class DataTable {
             })
             this.dom.addEventListener("mousedown", (event: any) => {
                 if (this.dom.matches(":focus")) {
-                    // @ts-expect-error TS(2571): Object is of type 'unknown'.
                     const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
-                    // @ts-expect-error TS(2554): Expected 1 arguments, but got 3.
-                    this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
+                    if (row && row instanceof HTMLElement) {
+                        this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
+                    }
                 }
 
             })
         } else {
             this.dom.addEventListener("mousedown", (event: any) => {
-                // @ts-expect-error TS(2571): Object is of type 'unknown'.
                 const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
-                // @ts-expect-error TS(2554): Expected 1 arguments, but got 3.
-                this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
+                if (row && row instanceof HTMLElement) {
+                    this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
+                }
             })
         }
 
@@ -762,8 +762,8 @@ export class DataTable {
             return false
         }
 
-        this.data.data.forEach((row: any, idx: any) => {
-            const inArray = this.searchData.includes(row)
+        this.data.data.forEach((row: any, idx: number) => {
+            const inArray = this.searchData.includes(idx)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
             const doesQueryMatch = query.split(" ").reduce((bool: any, word: any) => {
@@ -895,7 +895,6 @@ export class DataTable {
      * Print the table
      */
     print() {
-        // @ts-expect-error TS(2554): Expected 2 arguments, but got 1.
         const tableDOM = createElement("table")
         const tableVirtualDOM = {nodeName: "TABLE"}
         const newTableVirtualDOM = dataToVirtualDOM(

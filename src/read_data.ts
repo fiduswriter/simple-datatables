@@ -32,7 +32,7 @@ export const readDataCell = (cell: any, columnSettings = {}) => {
 }
 
 
-export const readTableData = (dataOption: any, dom=false, columnSettings: any) => {
+export const readTableData = (dataOption: any, dom: HTMLTableElement | false=false, columnSettings: any) => {
     const data = {
         data: [],
         headings: []
@@ -40,7 +40,7 @@ export const readTableData = (dataOption: any, dom=false, columnSettings: any) =
     if (dataOption?.data) {
         data.data = dataOption.data.map((row: any) => row.map((cell: any, index: any) => readDataCell(cell, columnSettings.columns[index])))
     // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
-    } else if (dom?.tBodies.length) {
+    } else if (dom?.tBodies?.length) {
         // @ts-expect-error TS(2322): Type 'any[][]' is not assignable to type 'never[]'... Remove this comment to see the full error message
         data.data = Array.from(dom.tBodies[0].rows).map(
             // @ts-expect-error TS(2571): Object is of type 'unknown'.

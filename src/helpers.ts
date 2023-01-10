@@ -19,7 +19,7 @@ export const isJson = (str: string) => {
 /**
  * Create DOM element node
  */
-export const createElement = (nodeName: string, attrs: any) => {
+export const createElement = (nodeName: string, attrs?: any) => {
     const dom = document.createElement(nodeName)
     if (attrs && "object" == typeof attrs) {
         for (const attr in attrs) {
