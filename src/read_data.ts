@@ -1,24 +1,22 @@
 import {stringToObj} from "diff-dom"
 import {parseDate} from "./date"
 import {objToText} from "./helpers"
+import {cellType, DataOption, inputCellType} from "./interfaces"
 
-export const readDataCell = (cell: any, columnSettings = {}) => {
-    if (cell.constructor == Object) {
+export const readDataCell = (cell: inputCellType, columnSettings = {}) : cellType => {
+    if (cell.constructor == Object && cell instanceof Object) {
         return cell
     }
-    const cellData = {
+    const cellData : cellType = {
         data: cell
     }
     if (typeof cell === "string" && cell.length) {
         const node = stringToObj(`<td>${cell}</td>`)
         if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
             cellData.data = node.childNodes
-            // @ts-expect-error TS(2339): Property 'type' does not exist on type '{ data: an... Remove this comment to see the full error message
             cellData.type = "node"
             const text = objToText(node)
-            // @ts-expect-error TS(2339): Property 'text' does not exist on type '{ data: an... Remove this comment to see the full error message
             cellData.text = text
-            // @ts-expect-error TS(2339): Property 'order' does not exist on type '{ data: a... Remove this comment to see the full error message
             cellData.order = text
         }
     }
@@ -32,12 +30,12 @@ export const readDataCell = (cell: any, columnSettings = {}) => {
 }
 
 
-export const readTableData = (dataOption: any, dom: HTMLTableElement | false=false, columnSettings: any) => {
+export const readTableData = (dataOption: DataOption, dom: HTMLTableElement | false=false, columnSettings: any) => {
     const data = {
         data: [],
         headings: []
     }
-    if (dataOption?.data) {
+    if (dataOption.data) {
         data.data = dataOption.data.map((row: any) => row.map((cell: any, index: any) => readDataCell(cell, columnSettings.columns[index])))
     // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
     } else if (dom?.tBodies?.length) {
@@ -50,7 +48,7 @@ export const readTableData = (dataOption: any, dom: HTMLTableElement | false=fal
             )
         )
     }
-    if (dataOption?.headings) {
+    if (dataOption.headings) {
         data.headings = dataOption.headings.map((heading: any) => ({
             data: heading,
             sorted: false
@@ -66,8 +64,8 @@ export const readTableData = (dataOption: any, dom: HTMLTableElement | false=fal
             heading.sortable = th.dataset.sortable !== "false"
             return heading
         })
-    } else if (dataOption?.data?.data?.length) {
-        data.headings = dataOption.data.data[0].map((_cell: any) => "")
+    } else if (dataOption.data?.length) {
+        data.headings = dataOption.data[0].map((_cell: any) => "")
     // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
     } else if (dom?.tBodies.length) {
         // @ts-expect-error TS(2322): Type 'string[]' is not assignable to type 'never[]... Remove this comment to see the full error message

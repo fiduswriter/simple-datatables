@@ -13,6 +13,9 @@ import {
     button,
     truncate
 } from "./helpers"
+import {
+    DataTableOptions
+} from "./interfaces"
 
 
 export class DataTable {
@@ -60,7 +63,7 @@ export class DataTable {
 
     onLastPage: boolean
 
-    options: any
+    options: DataTableOptions
 
     pagers: HTMLUListElement[]
 
@@ -82,7 +85,7 @@ export class DataTable {
 
     wrapper: HTMLElement
 
-    constructor(table: HTMLTableElement | string, options = {}) {
+    constructor(table: HTMLTableElement | string, options: DataTableOptions = {}) {
 
         this.dom = typeof table === "string" ? document.querySelector(table) : table
 
@@ -92,12 +95,10 @@ export class DataTable {
             ...options,
             layout: {
                 ...defaultConfig.layout,
-                // @ts-expect-error TS(2339): Property 'layout' does not exist on type '{}'.
                 ...options.layout
             },
             labels: {
                 ...defaultConfig.labels,
-                // @ts-expect-error TS(2339): Property 'labels' does not exist on type '{}'.
                 ...options.labels
             }
         }
@@ -358,11 +359,11 @@ export class DataTable {
         if (this.label && this.options.labels.info.length) {
             // CUSTOM LABELS
             const string = this.options.labels.info
-                .replace("{start}", f)
-                .replace("{end}", t)
-                .replace("{page}", this.currentPage)
-                .replace("{pages}", this.totalPages)
-                .replace("{rows}", items)
+                .replace("{start}", String(f))
+                .replace("{end}", String(t))
+                .replace("{page}", String(this.currentPage))
+                .replace("{pages}", String(this.totalPages))
+                .replace("{rows}", String(items))
 
             this.label.innerHTML = items ? string : ""
         }

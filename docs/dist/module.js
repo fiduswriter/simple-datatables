@@ -2156,7 +2156,6 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                 attributes["data-sortable"] = "true";
             }
             if (heading.sorted) {
-                // @ts-expect-error TS(2339): Property 'class' does not exist on type '{}'.
                 attributes["class"] = heading.sorted;
                 attributes["aria-sort"] = heading.sorted === "asc" ? "ascending" : "descending";
             }
@@ -2168,7 +2167,6 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                 style += "padding-bottom: 0;padding-top: 0;border: 0;";
             }
             if (style.length) {
-                // @ts-expect-error TS(2339): Property 'style' does not exist on type '{}'.
                 attributes.style = style;
             }
             return {
@@ -2239,7 +2237,6 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                                     ]
                                 };
                             if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
-                                // @ts-expect-error TS(2339): Property 'attributes' does not exist on type '{ no... Remove this comment to see the full error message
                                 td.attributes = {
                                     style: "width: ".concat(columnWidths[cIndex], "%;")
                                 };
@@ -2250,8 +2247,7 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                                     if (typeof renderedCell === "string") {
                                         // Convenience method to make it work similarly to what it did up to version 5.
                                         var node = stringToObj("<td>".concat(renderedCell, "</td>"));
-                                        // @ts-expect-error TS(2367): This condition will always return 'true' since the... Remove this comment to see the full error message
-                                        if (!node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
+                                        if (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text") {
                                             td.childNodes = node.childNodes;
                                         }
                                         else {
@@ -2267,7 +2263,6 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                         }).filter(function (column) { return column; })
                     };
                     if (index === rowCursor) {
-                        // @ts-expect-error TS(2339): Property 'class' does not exist on type '{ "data-i... Remove this comment to see the full error message
                         tr.attributes["class"] = "datatable-cursor";
                     }
                     if (rowRender) {
@@ -2301,7 +2296,6 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                 childNodes: [headerRow]
             };
             if ((scrollY.length || hiddenHeader) && !unhideHeader) {
-                // @ts-expect-error TS(2339): Property 'attributes' does not exist on type '{ no... Remove this comment to see the full error message
                 thead.attributes = { style: "height: 0px;" };
             }
             table.childNodes.unshift(thead);
@@ -2313,14 +2307,12 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                 childNodes: [footerRow]
             };
             if ((scrollY.length || hiddenHeader) && !unhideHeader) {
-                // @ts-expect-error TS(2339): Property 'attributes' does not exist on type '{ no... Remove this comment to see the full error message
                 tfoot.attributes = { style: "height: 0px;" };
             }
             table.childNodes.push(tfoot);
         }
     }
     if (tabIndex !== false) {
-        // @ts-expect-error TS(2339): Property 'tabindex' does not exist on type '{ clas... Remove this comment to see the full error message
         table.attributes.tabindex = String(tabIndex);
     }
     return table;
@@ -2535,7 +2527,7 @@ var escapeText = function (text) {
 
 var readDataCell = function (cell, columnSettings) {
     if (columnSettings === void 0) { columnSettings = {}; }
-    if (cell.constructor == Object) {
+    if (cell.constructor == Object && cell instanceof Object) {
         return cell;
     }
     var cellData = {
@@ -2562,13 +2554,13 @@ var readDataCell = function (cell, columnSettings) {
     return cellData;
 };
 var readTableData = function (dataOption, dom, columnSettings) {
-    var _a, _b, _c;
+    var _a, _b;
     if (dom === void 0) { dom = false; }
     var data = {
         data: [],
         headings: []
     };
-    if (dataOption === null || dataOption === void 0 ? void 0 : dataOption.data) {
+    if (dataOption.data) {
         data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings.columns[index]); }); });
         // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
     }
@@ -2580,7 +2572,7 @@ var readTableData = function (dataOption, dom, columnSettings) {
         // @ts-expect-error TS(2571): Object is of type 'unknown'.
         function (cell, index) { return readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index]); }); });
     }
-    if (dataOption === null || dataOption === void 0 ? void 0 : dataOption.headings) {
+    if (dataOption.headings) {
         data.headings = dataOption.headings.map(function (heading) { return ({
             data: heading,
             sorted: false
@@ -2598,8 +2590,8 @@ var readTableData = function (dataOption, dom, columnSettings) {
             return heading;
         });
     }
-    else if ((_c = (_b = dataOption === null || dataOption === void 0 ? void 0 : dataOption.data) === null || _b === void 0 ? void 0 : _b.data) === null || _c === void 0 ? void 0 : _c.length) {
-        data.headings = dataOption.data.data[0].map(function (_cell) { return ""; });
+    else if ((_b = dataOption.data) === null || _b === void 0 ? void 0 : _b.length) {
+        data.headings = dataOption.data[0].map(function (_cell) { return ""; });
         // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tBodies.length) {
@@ -2931,6 +2923,7 @@ var defaultConfig$1 = {
     sortable: true,
     searchable: true,
     destroyable: true,
+    data: {},
     // Pagination
     paging: true,
     perPage: 10,
@@ -3185,11 +3178,11 @@ var DataTable = /** @class */ (function () {
         if (this.label && this.options.labels.info.length) {
             // CUSTOM LABELS
             var string = this.options.labels.info
-                .replace("{start}", f)
-                .replace("{end}", t)
-                .replace("{page}", this.currentPage)
-                .replace("{pages}", this.totalPages)
-                .replace("{rows}", items);
+                .replace("{start}", String(f))
+                .replace("{end}", String(t))
+                .replace("{page}", String(this.currentPage))
+                .replace("{pages}", String(this.totalPages))
+                .replace("{rows}", String(items));
             this.label.innerHTML = items ? string : "";
         }
         if (this.currentPage == 1) {
@@ -3831,7 +3824,7 @@ var convertJSON = function (userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
     var obj = false;
     var defaults = {
-        data: ''
+        data: ""
     };
     // Check for the options object
     if (!isObject(userOptions)) {
@@ -4634,7 +4627,7 @@ var Editor = /** @class */ (function () {
         this.modal = modal;
         this.openModal();
         // Grab the inputs
-        var inputs = Array.from(form.querySelectorAll('input[type=text]'));
+        var inputs = Array.from(form.querySelectorAll("input[type=text]"));
         // Remove save button
         inputs.pop();
         this.data = {
