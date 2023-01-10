@@ -10,6 +10,7 @@ labels: {
     perPage: "{select} entries per page",
     noRows: "No entries to found",
     info: "Showing {start} to {end} of {rows} entries",
+    noResults: "No results match your search query",
 }
 ```
 
