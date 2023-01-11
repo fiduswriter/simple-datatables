@@ -975,7 +975,12 @@ export class DataTable {
 
         const newVirtualDOM = structuredClone(this.virtualDOM)
 
-        const tbody = newVirtualDOM.childNodes.find((node: any) => node.nodeName === "TBODY")
+        let tbody = newVirtualDOM.childNodes.find((node: any) => node.nodeName === "TBODY")
+
+        if (!tbody) {
+            tbody = {nodeName: "TBODY"}
+            newVirtualDOM.childNodes = [tbody]
+        }
 
         tbody.childNodes = [
             {

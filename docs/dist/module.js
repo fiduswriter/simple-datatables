@@ -2172,26 +2172,32 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
             }
             var headerNodes = heading.type === "node" ?
                 heading.data :
-                [{
+                [
+                    {
                         nodeName: "#text",
                         data: heading.text || String(heading.data)
-                    }];
+                    }
+                ];
             return {
                 nodeName: "TH",
                 attributes: attributes,
                 childNodes: ((hiddenHeader || scrollY.length) && !unhideHeader) ?
-                    [{ nodeName: "#text",
-                            data: "" }] :
+                    [
+                        { nodeName: "#text",
+                            data: "" }
+                    ] :
                     column.notSortable || !sortable ?
                         headerNodes :
-                        [{
+                        [
+                            {
                                 nodeName: "a",
                                 attributes: {
                                     href: "#",
                                     "class": classes.sorter
                                 },
                                 childNodes: headerNodes
-                            }]
+                            }
+                        ]
             };
         }).filter(function (column) { return column; })
     });
@@ -2554,7 +2560,7 @@ var readDataCell = function (cell, columnSettings) {
     }
     return cellData;
 };
-var readHeaderCell = function (cell, columnSettings) {
+var readHeaderCell = function (cell) {
     if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell;
     }
@@ -3733,6 +3739,10 @@ var DataTable = /** @class */ (function () {
         this.renderPager();
         var newVirtualDOM = structuredClone(this.virtualDOM);
         var tbody = newVirtualDOM.childNodes.find(function (node) { return node.nodeName === "TBODY"; });
+        if (!tbody) {
+            tbody = { nodeName: "TBODY" };
+            newVirtualDOM.childNodes = [tbody];
+        }
         tbody.childNodes = [
             {
                 nodeName: "TR",
