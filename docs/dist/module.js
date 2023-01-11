@@ -2586,7 +2586,7 @@ var readTableData = function (dataOption, dom, columnSettings) {
                 }
                 columnSettings.columns[index].notSortable = true;
             }
-            if (th.dataset.hidden === "true" || th.getAttribute('hidden') === "true") {
+            if (th.dataset.hidden === "true" || th.getAttribute("hidden") === "true") {
                 if (!columnSettings.columns[index]) {
                     columnSettings.columns[index] = {};
                 }
@@ -2815,6 +2815,9 @@ var Columns = /** @class */ (function () {
             }
             if (data.type) {
                 column.type = data.type;
+            }
+            if (data.render) {
+                column.render = data.render;
             }
         }
         this.dt.update(false);

@@ -119,6 +119,9 @@ export class Columns {
             if (data.type) {
                 column.type = data.type
             }
+            if (data.render) {
+                column.render = data.render
+            }
         }
         this.dt.update(false)
         this.dt.fixColumns()

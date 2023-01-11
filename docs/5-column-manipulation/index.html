@@ -61,34 +61,29 @@
                         fetch("datatable.column.json").then(response => response.json())
                             .then(column => {
                                 // Render a button
-                                column.render = (data, cell, row) => `${data}<button type='button' data-id='${row.dataIndex}' class='btn btn-sm btn-primary pull-right notify'>Click Me</button>`
+                                column.render = (value, _td, rowIndex, _cellIndex) => `${value}<button type='button' data-id='${rowIndex}' class='btn btn-sm btn-primary pull-right notify'>Click Me</button>`
                                 // the dataIndex property is the correct index of the row in the data array, not the rowIndex
                                 // which will be -1 if not rendered or wrong if the we're not on page 1
+                                console.log({column})
                                 datatable.columns.add(column)
                             })
                     })
-                    datatable.body.addEventListener("click", e => {
+                    datatable.dom.addEventListener("click", e => {
                         if (e.target.nodeName === "BUTTON") {
                             const index = parseInt(e.target.getAttribute("data-id"), 10)
-                            const row = datatable.activeRows[index]
+                            const row = datatable.data.data[index]
                             let message = [
                                 "This is row ",
-                                (row.rowIndex), " of ",
+                                (e.target.closest("tr").rowIndex + 1), " of ",
                                 datatable.options.perPage, " rendered rows and row ",
                                 (index + 1), " of ",
                                 datatable.data.length, " total rows."
                             ]
-                            const data = [].slice.call(row.cells).map(cell => cell.data)
+                            const data = [].slice.call(row).map(cell => cell.data)
                             message = message.join("")
                             message = `${message}\n\nThe row data is:\n${JSON.stringify(data)}`
                             alert(message)
                         }
-                    })
-                    datatable.on("datatable.sort", () => {
-                    // Update the ids on the buttons
-                        datatable.activeRows.forEach(row => {
-                            row.cells[row.cells.length - 1].lastElementChild.setAttribute("data-id", row.dataIndex)
-                        })
                     })
                 }
             )
