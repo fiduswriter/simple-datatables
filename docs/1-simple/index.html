@@ -733,7 +733,17 @@
         <script type="module">
             import {DataTable} from "../dist/module.js"
             new DataTable("table", {
-                perPageSelect: [5, 10, 15, ["All", -1]]
+                perPageSelect: [5, 10, 15, ["All", -1]],
+                columns: [
+                    {
+                        select: 2,
+                        sortSequence: ["desc", "asc"]
+                    },
+                    {
+                        select: 3,
+                        sortSequence: ["desc"]
+                    }
+                ]
             })
         </script>
     </body>

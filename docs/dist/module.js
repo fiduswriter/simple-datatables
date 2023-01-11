@@ -2352,6 +2352,9 @@ var readColumnSettings = function (columnOptions) {
             if (data.filter) {
                 column.filter = data.filter;
             }
+            if (data.sortSequence) {
+                column.sortSequence = data.sortSequence;
+            }
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
                 sort = { column: selector,
@@ -2917,16 +2920,32 @@ var Columns = /** @class */ (function () {
         var _a, _b;
         if (dir === void 0) { dir = undefined; }
         if (init === void 0) { init = false; }
+        var columnSettings = this.dt.columnSettings.columns[column];
         // If there is a filter for this column, apply it instead of sorting
-        if ((_b = (_a = this.dt.columnSettings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length) {
+        if ((_a = columnSettings === null || columnSettings === void 0 ? void 0 : columnSettings.filter) === null || _a === void 0 ? void 0 : _a.length) {
             return this.filter(column, init);
         }
         if (!init) {
             this.dt.emit("datatable.sorting", column, dir);
         }
         if (!dir) {
-            var currentDir = this.dt.columnSettings.sort ? this.dt.columnSettings.sort.dir : false;
-            dir = currentDir === "asc" ? "desc" : "asc";
+            var currentDir = this.dt.columnSettings.sort ? (_b = this.dt.columnSettings.sort) === null || _b === void 0 ? void 0 : _b.dir : false;
+            var sortSequence = (columnSettings === null || columnSettings === void 0 ? void 0 : columnSettings.sortSequence) || ["asc", "desc"];
+            if (!currentDir) {
+                dir = sortSequence.length ? sortSequence[0] : "asc";
+            }
+            else {
+                var currentDirIndex = sortSequence.indexOf(currentDir);
+                if (currentDirIndex === -1) {
+                    dir = "asc";
+                }
+                else if (currentDirIndex === sortSequence.length - 1) {
+                    dir = sortSequence[0];
+                }
+                else {
+                    dir = sortSequence[currentDirIndex + 1];
+                }
+            }
         }
         this.dt.data.data.sort(function (row1, row2) {
             var order1 = row1[column].order || row1[column].data, order2 = row2[column].order || row2[column].data;
@@ -2943,9 +2962,9 @@ var Columns = /** @class */ (function () {
             }
             return 0;
         });
+        this.dt.columnSettings.sort = { column: column, dir: dir };
         this.dt.update(!init);
         if (!init) {
-            this.dt.columnSettings.sort = { column: column, dir: dir };
             this.dt.emit("datatable.sort", column, dir);
         }
     };

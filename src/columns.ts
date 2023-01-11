@@ -190,9 +190,9 @@ export class Columns {
      * Sort by column
      */
     sort(column: number, dir: ("asc" | "desc" | undefined) = undefined, init = false) {
-
+        const columnSettings = this.dt.columnSettings.columns[column]
         // If there is a filter for this column, apply it instead of sorting
-        if (this.dt.columnSettings.columns[column]?.filter?.length) {
+        if (columnSettings?.filter?.length) {
             return this.filter(column, init)
         }
 
@@ -201,8 +201,21 @@ export class Columns {
         }
 
         if (!dir) {
-            const currentDir = this.dt.columnSettings.sort ? this.dt.columnSettings.sort.dir : false
-            dir = currentDir === "asc" ? "desc" : "asc"
+            const currentDir = this.dt.columnSettings.sort ? this.dt.columnSettings.sort?.dir : false
+            const sortSequence = columnSettings?.sortSequence || ["asc", "desc"]
+            if (!currentDir) {
+                dir = sortSequence.length ? sortSequence[0] : "asc"
+            } else {
+                const currentDirIndex = sortSequence.indexOf(currentDir)
+                if (currentDirIndex === -1) {
+                    dir = "asc"
+                } else if (currentDirIndex === sortSequence.length -1) {
+                    dir = sortSequence[0]
+                } else {
+                    dir = sortSequence[currentDirIndex + 1]
+                }
+            }
+
         }
 
         this.dt.data.data.sort((row1: any, row2: any) => {
@@ -221,11 +234,12 @@ export class Columns {
             return 0
         })
 
+        this.dt.columnSettings.sort = {column,
+            dir}
+
         this.dt.update(!init)
 
         if (!init) {
-            this.dt.columnSettings.sort = {column,
-                dir}
             this.dt.emit("datatable.sort", column, dir)
         }
     }

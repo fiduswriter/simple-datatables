@@ -45,6 +45,10 @@ export const readColumnSettings = (columnOptions = []) : {columns: (columnSettin
                 column.filter = data.filter
             }
 
+            if (data.sortSequence) {
+                column.sortSequence = data.sortSequence
+            }
+
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
                 sort = {column: selector,

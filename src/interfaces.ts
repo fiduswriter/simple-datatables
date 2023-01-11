@@ -353,7 +353,8 @@ interface columnSettingsType {
     notSortable?: boolean,
     hidden?: boolean,
     filter?: object[],
-    sort?: "asc" | "desc"
+    sort?: "asc" | "desc",
+    sortSequence?: ("asc" | "desc")[],
 }
 
 
