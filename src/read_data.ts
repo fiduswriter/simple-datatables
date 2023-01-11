@@ -66,7 +66,7 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                 }
                 columnSettings.columns[index].notSortable = true
             }
-            if (th.dataset.hidden === "true" || th.getAttribute('hidden') === "true") {
+            if (th.dataset.hidden === "true" || th.getAttribute("hidden") === "true") {
                 if (!columnSettings.columns[index]) {
                     columnSettings.columns[index] = {}
                 }
