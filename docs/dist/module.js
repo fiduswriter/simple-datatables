@@ -2883,7 +2883,7 @@ var Columns = /** @class */ (function () {
      */
     Columns.prototype.sort = function (column, dir, init) {
         var _a, _b;
-        if (dir === void 0) { dir = "asc"; }
+        if (dir === void 0) { dir = undefined; }
         if (init === void 0) { init = false; }
         // If there is a filter for this column, apply it instead of sorting
         if ((_b = (_a = this.dt.columnSettings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length) {
@@ -2895,6 +2895,7 @@ var Columns = /** @class */ (function () {
         if (!dir) {
             var currentDir = this.dt.data.headings[column].sorted;
             dir = currentDir === "asc" ? "desc" : "asc";
+            console.log({ currentDir: currentDir });
         }
         // Remove all other sorting
         this.dt.data.headings.forEach(function (heading) {
@@ -2916,6 +2917,7 @@ var Columns = /** @class */ (function () {
             return 0;
         });
         this.dt.data.headings[column].sorted = dir;
+        console.log(this.dt.data.headings[column]);
         this.dt.update(!init);
         if (!init) {
             this.dt.columnSettings.sort = { column: column, dir: dir };

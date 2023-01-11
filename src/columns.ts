@@ -189,7 +189,7 @@ export class Columns {
     /**
      * Sort by column
      */
-    sort(column: number, dir: ("asc" | "desc") = "asc", init = false) {
+    sort(column: number, dir: ("asc" | "desc" | undefined) = undefined, init = false) {
 
         // If there is a filter for this column, apply it instead of sorting
         if (this.dt.columnSettings.columns[column]?.filter?.length) {
@@ -227,7 +227,6 @@ export class Columns {
         })
 
         this.dt.data.headings[column].sorted = dir
-
         this.dt.update(!init)
 
         if (!init) {
