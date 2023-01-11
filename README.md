@@ -6,9 +6,21 @@ Originally a fork of [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-Dat
 
 See the demos [here](https://fiduswriter.github.io/simple-datatables/).
 
+
+
+### Upgrading
+
+For upgrading from one major version to another, check the Wiki:
+https://github.com/fiduswriter/simple-datatables/wiki/Upgrading
+
+**Note**: The upgrade from version 5 version 6 is the most complicated upgrade so far. Please read through the instructions before filing complaints. If you run simple-datatables from a CDN, make sure that you have fixed it to a specific major or minor version so that you do not accidentally upload to a new version that requires you to do lots of manual adjustments.
+
+
 # CDN
 
 To use the CDN version of simple-datatables use either [https://cdn.jsdelivr.net/npm/simple-datatables@latest](https://cdn.jsdelivr.net/npm/simple-datatables@latest) or [https://unpkg.com/simple-datatables](https://unpkg.com/simple-datatables). You also need to add the CSS styling, so the elements you'll add to html head element can for example be these:
+
+**Note:** For production websites, specify a specific major version. For example [https://cdn.jsdelivr.net/npm/simple-datatables@5](https://cdn.jsdelivr.net/npm/simple-datatables@5) for the latest version in the 5.x.x series or [https://cdn.jsdelivr.net/npm/simple-datatables@5.0](https://cdn.jsdelivr.net/npm/simple-datatables@5.0) for the latest version in the 5.0.x series.
 
 ```html
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
@@ -90,8 +102,3 @@ const dataTable = new simpleDatatables.DataTable("#myTable", {
 	...
 })
 ```
-
-### Upgrading
-
-For upgrading from one major version to another, check the Wiki:
-https://github.com/fiduswriter/simple-datatables/wiki/Upgrading
