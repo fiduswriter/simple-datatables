@@ -2142,7 +2142,7 @@ class DiffDOM {
 }
 
 var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWidths, _a, _b) {
-    var hiddenHeader = _a.hiddenHeader, sortable = _a.sortable, scrollY = _a.scrollY;
+    var classes = _a.classes, hiddenHeader = _a.hiddenHeader, sortable = _a.sortable, scrollY = _a.scrollY;
     var noColumnWidths = _b.noColumnWidths, unhideHeader = _b.unhideHeader;
     return ({
         nodeName: "TR",
@@ -2185,7 +2185,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                                 nodeName: "a",
                                 attributes: {
                                     href: "#",
-                                    "class": "datatable-sorter"
+                                    "class": classes.sorter
                                 },
                                 childNodes: [
                                     {
@@ -2200,12 +2200,12 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
     });
 };
 var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, rowCursor, _a, _b) {
-    var hiddenHeader = _a.hiddenHeader, header = _a.header, footer = _a.footer, sortable = _a.sortable, scrollY = _a.scrollY, rowRender = _a.rowRender, tabIndex = _a.tabIndex;
+    var classes = _a.classes, hiddenHeader = _a.hiddenHeader, header = _a.header, footer = _a.footer, sortable = _a.sortable, scrollY = _a.scrollY, rowRender = _a.rowRender, tabIndex = _a.tabIndex;
     var noColumnWidths = _b.noColumnWidths, unhideHeader = _b.unhideHeader, renderHeader = _b.renderHeader;
     var table = {
         nodeName: "TABLE",
         attributes: {
-            "class": "datatable-table"
+            "class": classes.table
         },
         childNodes: [
             {
@@ -2263,7 +2263,7 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                         }).filter(function (column) { return column; })
                     };
                     if (index === rowCursor) {
-                        tr.attributes["class"] = "datatable-cursor";
+                        tr.attributes["class"] = classes.cursor;
                     }
                     if (rowRender) {
                         var renderedRow = rowRender(row, tr, index);
@@ -2289,7 +2289,7 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
         ]
     };
     if (header || footer || renderHeader) {
-        var headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, { hiddenHeader: hiddenHeader, sortable: sortable, scrollY: scrollY }, { noColumnWidths: noColumnWidths, unhideHeader: unhideHeader });
+        var headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, { classes: classes, hiddenHeader: hiddenHeader, sortable: sortable, scrollY: scrollY }, { noColumnWidths: noColumnWidths, unhideHeader: unhideHeader });
         if (header || renderHeader) {
             var thead = {
                 nodeName: "THEAD",
@@ -2618,7 +2618,7 @@ var Rows = /** @class */ (function () {
         this.cursor = index;
         this.dt.renderTable();
         if (index !== false && this.dt.options.scrollY) {
-            var cursorDOM = this.dt.dom.querySelector("tr.datatable-cursor");
+            var cursorDOM = this.dt.dom.querySelector("tr.".concat(this.dt.options.classes.cursor));
             if (cursorDOM) {
                 cursorDOM.scrollIntoView({ block: "nearest" });
             }
@@ -2960,6 +2960,25 @@ var defaultConfig$1 = {
     layout: {
         top: "{select}{search}",
         bottom: "{info}{pager}"
+    },
+    classes: {
+        bottom: "datatable-bottom",
+        container: "datatable-container",
+        cursor: "datatable-cursor",
+        dropdown: "datatable-dropdown",
+        empty: "datatable-empty",
+        headercontainer: "datatable-headercontainer",
+        info: "datatable-info",
+        input: "datatable-input",
+        loading: "datatable-loading",
+        pagination: "datatable-pagination",
+        paginationList: "datatable-pagination-list",
+        search: "datatable-search",
+        selector: "datatable-selector",
+        sorter: "datatable-sorter",
+        table: "datatable-table",
+        top: "datatable-top",
+        wrapper: "datatable-wrapper"
     }
 };
 
@@ -2969,7 +2988,7 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         this.dom = typeof table === "string" ? document.querySelector(table) : table;
         // user options
-        this.options = __assign(__assign(__assign({}, defaultConfig$1), options), { layout: __assign(__assign({}, defaultConfig$1.layout), options.layout), labels: __assign(__assign({}, defaultConfig$1.labels), options.labels) });
+        this.options = __assign(__assign(__assign({}, defaultConfig$1), options), { layout: __assign(__assign({}, defaultConfig$1.layout), options.layout), labels: __assign(__assign({}, defaultConfig$1.labels), options.labels), classes: __assign(__assign({}, defaultConfig$1.classes), options.classes) });
         this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : ""; // preserve in case of later destruction
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex;
@@ -2999,7 +3018,7 @@ var DataTable = /** @class */ (function () {
      */
     DataTable.prototype.init = function () {
         var _this = this;
-        if (this.initialized || this.dom.classList.contains("datatable-table")) {
+        if (this.initialized || this.dom.classList.contains(this.options.classes.table)) {
             return false;
         }
         this.rows = new Rows(this);
@@ -3022,32 +3041,32 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         // Build
         this.wrapper = createElement("div", {
-            "class": "datatable-wrapper datatable-loading"
+            "class": "".concat(this.options.classes.wrapper, " ").concat(this.options.classes.loading)
         });
         // Template for custom layouts
         var template = "";
-        template += "<div class='datatable-top'>";
+        template += "<div class='".concat(this.options.classes.top, "'>");
         template += this.options.layout.top;
         template += "</div>";
         if (this.options.scrollY.length) {
-            template += "<div class='datatable-container' style='height: ".concat(this.options.scrollY, "; overflow-Y: auto;'></div>");
+            template += "<div class='".concat(this.options.classes.container, "' style='height: ").concat(this.options.scrollY, "; overflow-Y: auto;'></div>");
         }
         else {
-            template += "<div class='datatable-container'></div>";
+            template += "<div class='".concat(this.options.classes.container, "'></div>");
         }
-        template += "<div class='datatable-bottom'>";
+        template += "<div class='".concat(this.options.classes.bottom, "'>");
         template += this.options.layout.bottom;
         template += "</div>";
         // Info placement
-        template = template.replace("{info}", this.options.paging ? "<div class='datatable-info'></div>" : "");
+        template = template.replace("{info}", this.options.paging ? "<div class='".concat(this.options.classes.info, "'></div>") : "");
         // Per Page Select
         if (this.options.paging && this.options.perPageSelect) {
-            var wrap = "<div class='datatable-dropdown'><label>";
+            var wrap = "<div class='".concat(this.options.classes.dropdown, "'><label>");
             wrap += this.options.labels.perPage;
             wrap += "</label></div>";
             // Create the select
             var select_1 = createElement("select", {
-                "class": "datatable-selector"
+                "class": this.options.classes.selector
             });
             // Create the options
             this.options.perPageSelect.forEach(function (val) {
@@ -3065,7 +3084,7 @@ var DataTable = /** @class */ (function () {
         }
         // Searchable
         if (this.options.searchable) {
-            var form = "<div class='datatable-search'><input class='datatable-input' placeholder='".concat(this.options.labels.placeholder, "' type='text'></div>");
+            var form = "<div class='".concat(this.options.classes.search, "'><input class='").concat(this.options.classes.input, "' placeholder='").concat(this.options.labels.placeholder, "' type='text'></div>");
             // Search input placement
             template = template.replace("{search}", form);
         }
@@ -3074,18 +3093,18 @@ var DataTable = /** @class */ (function () {
         }
         // Paginator
         var paginatorWrapper = createElement("nav", {
-            "class": "datatable-pagination"
+            "class": this.options.classes.pagination
         });
         var paginator = createElement("ul", {
-            "class": "datatable-pagination-list"
+            "class": this.options.classes.paginationList
         });
         paginatorWrapper.appendChild(paginator);
         // Pager(s) placement
         template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML);
         this.wrapper.innerHTML = template;
-        this.container = this.wrapper.querySelector(".datatable-container");
-        this.pagers = Array.from(this.wrapper.querySelectorAll("ul.datatable-pagination-list"));
-        this.label = this.wrapper.querySelector(".datatable-info");
+        this.container = this.wrapper.querySelector(".".concat(this.options.classes.container));
+        this.pagers = Array.from(this.wrapper.querySelectorAll("ul.".concat(this.options.classes.paginationList)));
+        this.label = this.wrapper.querySelector(".".concat(this.options.classes.info));
         // Insert in to DOM tree
         this.dom.parentNode.replaceChild(this.wrapper, this.dom);
         this.container.appendChild(this.dom);
@@ -3248,7 +3267,7 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         // Per page selector
         if (this.options.perPageSelect) {
-            var selector_1 = this.wrapper.querySelector("select.datatable-selector");
+            var selector_1 = this.wrapper.querySelector("select.".concat(this.options.classes.selector));
             if (selector_1 && selector_1 instanceof HTMLSelectElement) {
                 // Change per page
                 selector_1.addEventListener("change", function () {
@@ -3261,7 +3280,7 @@ var DataTable = /** @class */ (function () {
         }
         // Search input
         if (this.options.searchable) {
-            this.input = this.wrapper.querySelector(".datatable-input");
+            this.input = this.wrapper.querySelector(".".concat(this.options.classes.input));
             if (this.input) {
                 this.input.addEventListener("keyup", function () { return _this.search(_this.input.value); }, false);
             }
@@ -3275,7 +3294,7 @@ var DataTable = /** @class */ (function () {
                     e.preventDefault();
                 }
                 else if (_this.options.sortable &&
-                    t.classList.contains("datatable-sorter") &&
+                    t.classList.contains(_this.options.classes.sorter) &&
                     t.parentNode.getAttribute("data-sortable") != "false") {
                     _this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode));
                     e.preventDefault();
@@ -3366,7 +3385,7 @@ var DataTable = /** @class */ (function () {
         }
         this.dom.innerHTML = this.initialInnerHTML;
         // Remove the className
-        this.dom.classList.remove("datatable-table");
+        this.dom.classList.remove(this.options.classes.table);
         // Remove the containers
         this.wrapper.parentNode.replaceChild(this.dom, this.wrapper);
         this.initialized = false;
@@ -3378,7 +3397,7 @@ var DataTable = /** @class */ (function () {
      */
     DataTable.prototype.update = function (renderTable) {
         if (renderTable === void 0) { renderTable = true; }
-        this.wrapper.classList.remove("datatable-empty");
+        this.wrapper.classList.remove(this.options.classes.empty);
         this.paginate();
         this.renderPage(renderTable);
         this.links = [];
@@ -3459,13 +3478,13 @@ var DataTable = /** @class */ (function () {
                     var newVirtualHeaderDOM = {
                         nodeName: "DIV",
                         attributes: {
-                            "class": "datatable-headercontainer"
+                            "class": this.options.classes.headercontainer
                         },
                         childNodes: [
                             {
                                 nodeName: "TABLE",
                                 attributes: {
-                                    "class": "datatable-table"
+                                    "class": this.options.classes.table
                                 },
                                 childNodes: [
                                     {
@@ -3676,7 +3695,7 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
         var colspan = activeHeadings.length || 1;
-        this.wrapper.classList.add("datatable-empty");
+        this.wrapper.classList.add(this.options.classes.empty);
         if (this.label) {
             this.label.innerHTML = "";
         }

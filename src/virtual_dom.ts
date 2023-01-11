@@ -8,6 +8,7 @@ export const headingsToVirtualHeaderRowDOM = (
     columnSettings,
     columnWidths,
     {
+        classes,
         hiddenHeader,
         sortable,
         scrollY
@@ -60,7 +61,7 @@ export const headingsToVirtualHeaderRowDOM = (
                                 nodeName: "a",
                                 attributes: {
                                     href: "#",
-                                    class: "datatable-sorter"
+                                    class: classes.sorter
                                 },
                                 childNodes: [
                                     {
@@ -76,6 +77,7 @@ export const headingsToVirtualHeaderRowDOM = (
 })
 
 export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, columnWidths: any, rowCursor: any, {
+    classes,
     hiddenHeader,
     header,
     footer,
@@ -91,7 +93,7 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
     const table: nodeType = {
         nodeName: "TABLE",
         attributes: {
-            class: "datatable-table"
+            class: classes.table
         },
         childNodes: [
             {
@@ -155,7 +157,7 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
                             ).filter((column: any) => column)
                         }
                         if (index===rowCursor) {
-                            tr.attributes.class = "datatable-cursor"
+                            tr.attributes.class = classes.cursor
                         }
                         if (rowRender) {
                             const renderedRow : rowRenderType = rowRender(row, tr, index)
@@ -182,7 +184,8 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
     }
 
     if (header || footer || renderHeader) {
-        const headerRow: nodeType = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {hiddenHeader,
+        const headerRow: nodeType = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {classes,
+            hiddenHeader,
             sortable,
             scrollY}, {noColumnWidths,
             unhideHeader})

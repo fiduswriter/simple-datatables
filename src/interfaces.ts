@@ -125,6 +125,27 @@ interface LayoutOptions {
     bottom?:string;
 }
 
+
+interface ClassOptions {
+    bottom?: string;
+    container?: string;
+    cursor?: string;
+    dropdown?: string;
+    empty?: string;
+    headercontainer?: string;
+    info?: string;
+    input?: string;
+    loading?: string;
+    pagination?: string;
+    paginationList?: string;
+    search?: string;
+    selector?: string;
+    sorter?: string;
+    table?: string;
+    top?: string;
+    wrapper?: string;
+}
+
 type rowRenderType = ((row: object, tr: object, index: number) => object | void);
 
 interface DataTableOptions{
@@ -136,6 +157,7 @@ interface DataTableOptions{
     /**
     * Default: "▴"
     */
+    classes?:ClassOptions;
     columns?:ColumnOption[];
     /**
      * Pass an object of data to populate the table.
