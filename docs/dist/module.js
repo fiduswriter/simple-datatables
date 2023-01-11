@@ -2527,7 +2527,7 @@ var escapeText = function (text) {
 
 var readDataCell = function (cell, columnSettings) {
     if (columnSettings === void 0) { columnSettings = {}; }
-    if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty('data') && (typeof cell.text === "string" || typeof cell.data === "string")) {
+    if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell;
     }
     var cellData = {
@@ -2580,11 +2580,17 @@ var readTableData = function (dataOption, dom, columnSettings) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(function (th, index) {
             var heading = { data: th.innerHTML,
                 sorted: false };
-            if (th.dataset.sortable === "false") {
+            if (th.dataset.sortable === "false" || th.dataset.sort === "false") {
                 if (!columnSettings.columns[index]) {
                     columnSettings.columns[index] = {};
                 }
                 columnSettings.columns[index].notSortable = true;
+            }
+            if (th.dataset.hidden === "true" || th.getAttribute('hidden') === "true") {
+                if (!columnSettings.columns[index]) {
+                    columnSettings.columns[index] = {};
+                }
+                columnSettings.columns[index].hidden = true;
             }
             return heading;
         });

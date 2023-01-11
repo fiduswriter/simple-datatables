@@ -60,11 +60,17 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
             const heading = {data: th.innerHTML,
                 sorted: false}
-            if (th.dataset.sortable === "false") {
+            if (th.dataset.sortable === "false" || th.dataset.sort === "false") {
                 if (!columnSettings.columns[index]) {
                     columnSettings.columns[index] = {}
                 }
                 columnSettings.columns[index].notSortable = true
+            }
+            if (th.dataset.hidden === "true" || th.getAttribute('hidden') === "true") {
+                if (!columnSettings.columns[index]) {
+                    columnSettings.columns[index] = {}
+                }
+                columnSettings.columns[index].hidden = true
             }
             return heading
         })
