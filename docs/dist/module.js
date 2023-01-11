@@ -2895,7 +2895,6 @@ var Columns = /** @class */ (function () {
         if (!dir) {
             var currentDir = this.dt.data.headings[column].sorted;
             dir = currentDir === "asc" ? "desc" : "asc";
-            console.log({ currentDir: currentDir });
         }
         // Remove all other sorting
         this.dt.data.headings.forEach(function (heading) {
@@ -2917,7 +2916,6 @@ var Columns = /** @class */ (function () {
             return 0;
         });
         this.dt.data.headings[column].sorted = dir;
-        console.log(this.dt.data.headings[column]);
         this.dt.update(!init);
         if (!init) {
             this.dt.columnSettings.sort = { column: column, dir: dir };
