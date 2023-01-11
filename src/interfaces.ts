@@ -60,7 +60,10 @@ interface ColumnOption{
      *
      */
     render?:renderType;
-
+    /**
+     * A filter to be used instead of sorting for the selected column(s).
+     */
+    filter?: (string | number | boolean | ((arg: (string | number | boolean)) => boolean))[];
 }
 
 interface LabelsOptions {
