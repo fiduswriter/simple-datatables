@@ -297,7 +297,7 @@ interface DataTableOptions{
      *
      *   Setting this to false will hide the dropdown.
      */
-    perPageSelect?: number[];
+    perPageSelect?: (number | [string, number])[];
     /**
      * default: '&lsaquo;'
      * Set the content on the previous button.

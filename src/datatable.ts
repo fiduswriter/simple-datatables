@@ -208,9 +208,10 @@ export class DataTable {
             })
 
             // Create the options
-            this.options.perPageSelect.forEach((val: any) => {
+            this.options.perPageSelect.forEach((choice: number | [string, number]) => {
+                const [lab, val] = Array.isArray(choice) ? [choice[0], choice[1]] : [String(choice), choice]
                 const selected = val === this.options.perPage
-                const option = new Option(val, val, selected, selected)
+                const option = new Option(lab, String(val), selected, selected)
                 select.appendChild(option)
             })
 
@@ -639,7 +640,7 @@ export class DataTable {
             )
         }
 
-        if (this.options.paging) {
+        if (this.options.paging && this.options.perPage > 0) {
             // Check for hidden columns
             this.pages = rows
                 .map((row: any, i: any) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)

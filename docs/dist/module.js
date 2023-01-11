@@ -3105,9 +3105,10 @@ var DataTable = /** @class */ (function () {
                 "class": this.options.classes.selector
             });
             // Create the options
-            this.options.perPageSelect.forEach(function (val) {
+            this.options.perPageSelect.forEach(function (choice) {
+                var _a = Array.isArray(choice) ? [choice[0], choice[1]] : [String(choice), choice], lab = _a[0], val = _a[1];
                 var selected = val === _this.options.perPage;
-                var option = new Option(val, val, selected, selected);
+                var option = new Option(lab, String(val), selected, selected);
                 select_1.appendChild(option);
             });
             // Custom label
@@ -3460,7 +3461,7 @@ var DataTable = /** @class */ (function () {
                 rows = rows.filter(function (row) { return typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state; });
             });
         }
-        if (this.options.paging) {
+        if (this.options.paging && this.options.perPage > 0) {
             // Check for hidden columns
             this.pages = rows
                 .map(function (row, i) { return i % _this.options.perPage === 0 ? rows.slice(i, i + _this.options.perPage) : null; })
