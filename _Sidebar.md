@@ -20,6 +20,7 @@
 * [datatable.selectrow](https://github.com/fiduswriter/simple-datatables/wiki/Events#datatableselectrow)
 
 #### Options
+* [classes](https://github.com/fiduswriter/simple-datatables/wiki/classes)
 * [columns](https://github.com/fiduswriter/simple-datatables/wiki/columns)
 * [data](https://github.com/fiduswriter/simple-datatables/wiki/data)
 * [firstLast](https://github.com/fiduswriter/simple-datatables/wiki/firstLast)
