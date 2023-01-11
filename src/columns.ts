@@ -201,14 +201,9 @@ export class Columns {
         }
 
         if (!dir) {
-            const currentDir = this.dt.data.headings[column].sorted
+            const currentDir = this.dt.columnSettings.sort ? this.dt.columnSettings.sort.dir : false
             dir = currentDir === "asc" ? "desc" : "asc"
         }
-
-        // Remove all other sorting
-        this.dt.data.headings.forEach((heading: any) => {
-            heading.sorted = false
-        })
 
         this.dt.data.data.sort((row1: any, row2: any) => {
             let order1 = row1[column].order || row1[column].data,
@@ -226,7 +221,6 @@ export class Columns {
             return 0
         })
 
-        this.dt.data.headings[column].sorted = dir
         this.dt.update(!init)
 
         if (!init) {

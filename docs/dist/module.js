@@ -2147,6 +2147,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
     return ({
         nodeName: "TR",
         childNodes: headings.map(function (heading, index) {
+            var _a;
             var column = columnSettings.columns[index] || {};
             if (column.hidden) {
                 return false;
@@ -2155,9 +2156,9 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
             if (!column.notSortable && sortable) {
                 attributes["data-sortable"] = "true";
             }
-            if (heading.sorted) {
-                attributes["class"] = heading.sorted;
-                attributes["aria-sort"] = heading.sorted === "asc" ? "ascending" : "descending";
+            if (((_a = columnSettings.sort) === null || _a === void 0 ? void 0 : _a.column) === index) {
+                attributes["class"] = columnSettings.sort.dir;
+                attributes["aria-sort"] = columnSettings.sort.dir === "asc" ? "ascending" : "descending";
             }
             var style = "";
             if (columnWidths[index] && !noColumnWidths) {
@@ -2169,32 +2170,28 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
             if (style.length) {
                 attributes.style = style;
             }
+            var headerNodes = heading.type === "node" ?
+                heading.data :
+                [{
+                        nodeName: "#text",
+                        data: heading.text || String(heading.data)
+                    }];
             return {
                 nodeName: "TH",
                 attributes: attributes,
-                childNodes: [
-                    ((hiddenHeader || scrollY.length) && !unhideHeader) ?
-                        { nodeName: "#text",
-                            data: "" } :
-                        column.notSortable || !sortable ?
-                            {
-                                nodeName: "#text",
-                                data: heading.data
-                            } :
-                            {
+                childNodes: ((hiddenHeader || scrollY.length) && !unhideHeader) ?
+                    [{ nodeName: "#text",
+                            data: "" }] :
+                    column.notSortable || !sortable ?
+                        headerNodes :
+                        [{
                                 nodeName: "a",
                                 attributes: {
                                     href: "#",
                                     "class": classes.sorter
                                 },
-                                childNodes: [
-                                    {
-                                        nodeName: "#text",
-                                        data: heading.data
-                                    }
-                                ]
-                            }
-                ]
+                                childNodes: headerNodes
+                            }]
             };
         }).filter(function (column) { return column; })
     });
@@ -2232,7 +2229,7 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                                     childNodes: [
                                         {
                                             nodeName: "#text",
-                                            data: String(cell.data)
+                                            data: cell.text || String(cell.data)
                                         }
                                     ]
                                 };
@@ -2557,6 +2554,32 @@ var readDataCell = function (cell, columnSettings) {
     }
     return cellData;
 };
+var readHeaderCell = function (cell, columnSettings) {
+    if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
+        return cell;
+    }
+    var cellData = {
+        data: cell
+    };
+    if (typeof cell === "string") {
+        if (cell.length) {
+            var node = stringToObj("<th>".concat(cell, "</th>"));
+            if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+                cellData.data = node.childNodes;
+                cellData.type = "node";
+                var text = objToText(node);
+                cellData.text = text;
+            }
+        }
+    }
+    else if (["null", "undefined"].includes(typeof cell)) {
+        cellData.text = "";
+    }
+    else {
+        cellData.text = JSON.stringify(cell);
+    }
+    return cellData;
+};
 var readTableData = function (dataOption, dom, columnSettings) {
     var _a, _b;
     if (dom === void 0) { dom = undefined; }
@@ -2564,42 +2587,45 @@ var readTableData = function (dataOption, dom, columnSettings) {
         data: [],
         headings: []
     };
-    if (dataOption.data) {
-        data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings.columns[index]); }); });
-    }
-    else if ((_a = dom === null || dom === void 0 ? void 0 : dom.tBodies) === null || _a === void 0 ? void 0 : _a.length) {
-        data.data = Array.from(dom.tBodies[0].rows).map(function (row) { return Array.from(row.cells).map(function (cell, index) { return readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index]); }); });
-    }
     if (dataOption.headings) {
-        data.headings = dataOption.headings.map(function (heading) { return ({
-            data: heading,
-            sorted: false
-        }); });
+        data.headings = dataOption.headings.map(function (heading) { return readHeaderCell(heading); });
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(function (th, index) {
-            var heading = { data: th.innerHTML,
-                sorted: false };
+            var heading = readHeaderCell(th.innerHTML);
+            var settings = {};
             if (th.dataset.sortable === "false" || th.dataset.sort === "false") {
-                if (!columnSettings.columns[index]) {
-                    columnSettings.columns[index] = {};
-                }
-                columnSettings.columns[index].notSortable = true;
+                settings.notSortable = true;
             }
             if (th.dataset.hidden === "true" || th.getAttribute("hidden") === "true") {
+                settings.hidden = true;
+            }
+            if (th.dataset.type === "date") {
+                settings.type = "date";
+                if (th.dataset.format) {
+                    settings.format = th.dataset.format;
+                }
+            }
+            if (Object.keys(settings).length) {
                 if (!columnSettings.columns[index]) {
                     columnSettings.columns[index] = {};
                 }
-                columnSettings.columns[index].hidden = true;
+                columnSettings.columns[index] = __assign(__assign({}, columnSettings.columns[index]), settings);
             }
             return heading;
         });
     }
-    else if ((_b = dataOption.data) === null || _b === void 0 ? void 0 : _b.length) {
+    else if ((_a = dataOption.data) === null || _a === void 0 ? void 0 : _a.length) {
         data.headings = dataOption.data[0].map(function (_cell) { return ""; });
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tBodies.length) {
         data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(function (_cell) { return ""; });
+    }
+    if (dataOption.data) {
+        data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings.columns[index]); }); });
+    }
+    else if ((_b = dom === null || dom === void 0 ? void 0 : dom.tBodies) === null || _b === void 0 ? void 0 : _b.length) {
+        data.data = Array.from(dom.tBodies[0].rows).map(function (row) { return Array.from(row.cells).map(function (cell, index) { return readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index]); }); });
     }
     if (data.data.length && data.data[0].length !== data.headings.length) {
         throw new Error("Data heading length mismatch.");
@@ -2893,13 +2919,9 @@ var Columns = /** @class */ (function () {
             this.dt.emit("datatable.sorting", column, dir);
         }
         if (!dir) {
-            var currentDir = this.dt.data.headings[column].sorted;
+            var currentDir = this.dt.columnSettings.sort ? this.dt.columnSettings.sort.dir : false;
             dir = currentDir === "asc" ? "desc" : "asc";
         }
-        // Remove all other sorting
-        this.dt.data.headings.forEach(function (heading) {
-            heading.sorted = false;
-        });
         this.dt.data.data.sort(function (row1, row2) {
             var order1 = row1[column].order || row1[column].data, order2 = row2[column].order || row2[column].data;
             if (dir === "desc") {
@@ -2915,7 +2937,6 @@ var Columns = /** @class */ (function () {
             }
             return 0;
         });
-        this.dt.data.headings[column].sorted = dir;
         this.dt.update(!init);
         if (!init) {
             this.dt.columnSettings.sort = { column: column, dir: dir };
@@ -4468,6 +4489,7 @@ var Editor = /** @class */ (function () {
             columnIndex: columnIndex,
             content: cell.text || String(cell.data)
         };
+        var label = this.dt.data.headings[columnIndex].text || String(this.dt.data.headings[columnIndex].data);
         var template = [
             "<div class='".concat(this.options.classes.inner, "'>"),
             "<div class='".concat(this.options.classes.header, "'>"),
@@ -4477,7 +4499,7 @@ var Editor = /** @class */ (function () {
             "<div class='".concat(this.options.classes.block, "'>"),
             "<form class='".concat(this.options.classes.form, "'>"),
             "<div class='".concat(this.options.classes.row, "'>"),
-            "<label class='".concat(this.options.classes.label, "'>").concat(escapeText(this.dt.data.headings[columnIndex].data), "</label>"),
+            "<label class='".concat(this.options.classes.label, "'>").concat(escapeText(label), "</label>"),
             "<input class='".concat(this.options.classes.input, "' value='").concat(escapeText(cell.text || String(cell.data) || ""), "' type='text'>"),
             "</div>",
             "<div class='".concat(this.options.classes.row, "'>"),
@@ -4568,11 +4590,12 @@ var Editor = /** @class */ (function () {
         row.forEach(function (cell, i) {
             var columnSettings = _this.dt.columnSettings.columns[i] || {};
             if ((!columnSettings.hidden || (columnSettings.hidden && _this.options.hiddenColumns)) && !_this.options.excludeColumns.includes(i)) {
+                var label = _this.dt.data.headings[i].text || String(_this.dt.data.headings[i].data);
                 form.insertBefore(createElement("div", {
                     "class": _this.options.classes.row,
                     html: [
                         "<div class='".concat(_this.options.classes.row, "'>"),
-                        "<label class='".concat(_this.options.classes.label, "'>").concat(escapeText(_this.dt.data.headings[i].data), "</label>"),
+                        "<label class='".concat(_this.options.classes.label, "'>").concat(escapeText(label), "</label>"),
                         "<input class='".concat(_this.options.classes.input, "' value='").concat(escapeText(cell.text || String(cell.data) || ""), "' type='text'>"),
                         "</div>"
                     ].join("")

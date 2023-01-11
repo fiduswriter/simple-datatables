@@ -246,6 +246,7 @@ export class Editor {
             columnIndex,
             content: cell.text || String(cell.data)
         }
+        const label = this.dt.data.headings[columnIndex].text || String(this.dt.data.headings[columnIndex].data)
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
@@ -255,7 +256,7 @@ export class Editor {
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
             `<div class='${this.options.classes.row}'>`,
-            `<label class='${this.options.classes.label}'>${escapeText(this.dt.data.headings[columnIndex].data)}</label>`,
+            `<label class='${this.options.classes.label}'>${escapeText(label)}</label>`,
             `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
             "</div>",
             `<div class='${this.options.classes.row}'>`,
@@ -344,11 +345,12 @@ export class Editor {
         row.forEach((cell: any, i: any) => {
             const columnSettings = this.dt.columnSettings.columns[i] || {}
             if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
+                const label = this.dt.data.headings[i].text || String(this.dt.data.headings[i].data)
                 form.insertBefore(createElement("div", {
                     class: this.options.classes.row,
                     html: [
                         `<div class='${this.options.classes.row}'>`,
-                        `<label class='${this.options.classes.label}'>${escapeText(this.dt.data.headings[i].data)}</label>`,
+                        `<label class='${this.options.classes.label}'>${escapeText(label)}</label>`,
                         `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
                         "</div>"
                     ].join("")

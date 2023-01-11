@@ -30,9 +30,9 @@ export const headingsToVirtualHeaderRowDOM = (
             if (!column.notSortable && sortable) {
                 attributes["data-sortable"] = "true"
             }
-            if (heading.sorted) {
-                attributes.class = heading.sorted
-                attributes["aria-sort"] = heading.sorted === "asc" ? "ascending" : "descending"
+            if (columnSettings.sort?.column === index) {
+                attributes.class = columnSettings.sort.dir
+                attributes["aria-sort"] = columnSettings.sort.dir === "asc" ? "ascending" : "descending"
             }
             let style = ""
             if (columnWidths[index] && !noColumnWidths) {
@@ -45,32 +45,35 @@ export const headingsToVirtualHeaderRowDOM = (
             if (style.length) {
                 attributes.style = style
             }
+            const headerNodes : nodeType[] = heading.type === "node" ?
+                heading.data :
+                [
+                    {
+                        nodeName: "#text",
+                        data: heading.text || String(heading.data)
+                    }
+                ]
             return {
                 nodeName: "TH",
                 attributes,
-                childNodes: [
+                childNodes:
                     ((hiddenHeader || scrollY.length) && !unhideHeader) ?
-                        {nodeName: "#text",
-                            data: ""} :
+                        [
+                            {nodeName: "#text",
+                                data: ""}
+                        ] :
                         column.notSortable || !sortable ?
-                            {
-                                nodeName: "#text",
-                                data: heading.data
-                            } :
-                            {
-                                nodeName: "a",
-                                attributes: {
-                                    href: "#",
-                                    class: classes.sorter
-                                },
-                                childNodes: [
-                                    {
-                                        nodeName: "#text",
-                                        data: heading.data
-                                    }
-                                ]
-                            }
-                ]
+                            headerNodes :
+                            [
+                                {
+                                    nodeName: "a",
+                                    attributes: {
+                                        href: "#",
+                                        class: classes.sorter
+                                    },
+                                    childNodes: headerNodes
+                                }
+                            ]
             }
         }
     ).filter((column: any) => column)
@@ -124,7 +127,7 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
                                             childNodes: [
                                                 {
                                                     nodeName: "#text",
-                                                    data: String(cell.data)
+                                                    data: cell.text || String(cell.data)
                                                 }
                                             ]
                                         }

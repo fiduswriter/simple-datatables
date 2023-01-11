@@ -11,7 +11,7 @@ interface nodeType {
 }
 
 interface cellType {
-    data: any;
+    data: string | number | boolean | nodeType[] | object;
     type?: "node";
     text?: string;
     order?: string | number;
@@ -19,18 +19,22 @@ interface cellType {
 
 type inputCellType = cellType | string | number | boolean;
 
+interface headerCellType {
+    data: string | number | boolean | nodeType[] | object;
+    type?: "node";
+    text?: string;
+}
+
+type inputHeaderCellType = headerCellType | string | number | boolean;
+
+
 interface DataOption{
     headings?: string[];
     data?: inputCellType[][] ;
 }
 
-interface headingType {
-    data: string,
-    sorted?: false | "asc" | "desc",
-}
-
 interface TableDataType{
-    headings: headingType[];
+    headings: headerCellType[];
     data: cellType[][] ;
 }
 
@@ -358,7 +362,9 @@ export {
     columnSettingsType,
     DataOption,
     DataTableOptions,
+    headerCellType,
     inputCellType,
+    inputHeaderCellType,
     nodeType,
     renderType,
     rowRenderType,

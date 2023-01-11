@@ -42,7 +42,7 @@ export const exportJSON = function(dataTable: DataTable, userOptions: jsonUserOp
 
     const columnShown = (index: any) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
 
-    let rows: (string | number | boolean | {data: (string | number | boolean | nodeType[]), text?: string, order: (number | string)})[][] = []
+    let rows: (string | number | boolean | {data: (string | number | boolean | undefined | null | nodeType[]), text?: string, order: (number | string)})[][] = []
     // Selection or whole table
     if (options.selection) {
         // Page number
