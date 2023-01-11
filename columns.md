@@ -11,6 +11,17 @@ An integer or array of integers representing the column(s) to be manipulated.
 
 Automatically sort the selected column. Can only be applied if a single column is selected.
 
+#### `sortSequence`
+
+An array of "asc" and "desc" describing the order sort will be executed as the user clicks on the column header. Note that each can only be mentioned up to one time. So effectively you have these options:
+
+```js
+["asc", "desc"] // default
+["desc", "asc"]
+["asc"]
+["desc"]
+``` 
+
 #### `sortable`
 
 When set to `false` the column(s) cannot be sorted.
@@ -21,16 +32,18 @@ When set to `true` the column(s) will not be visible and will be excluded from s
 
 #### `type`
 
-A `string` reperesenting the type of data in the column(s) cells. Choose from the following options:
+A `string` representing the type of data in the column(s) cells. Choose from the following options:
 
-* `string` - lexical ordering (default)
-* `number` - any `string` with currency symbols, `.` or `,` thousand seperators, `%`, etc
 * `date` - a valid `datetime` string
+* `none` (default)
 
 #### `format`
 
 A string representing the `datetime` format when using the `date` type.
 
+#### `filter`
+
+Instead of ordering the row, clicking on the header will filter it. Specify an array of items to filter for. The array can also contain functions that will be executed on the data item of the cell to determine whether to include it in the filtered content.
 
 #### `render`
 
