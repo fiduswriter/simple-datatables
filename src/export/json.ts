@@ -2,10 +2,24 @@ import {
     isObject
 } from "../helpers"
 import {DataTable} from "../datatable"
+import {
+    nodeType
+} from "../interfaces"
 /**
  * Export table to JSON
  */
-export const exportJSON = function(dataTable: DataTable, userOptions = {}) {
+
+ interface jsonUserOptions {
+   download?: boolean,
+   skipColumn?: number[],
+   replacer?: null | ((arg:any) => string) | (string | number)[],
+   space?: number,
+   selection?: number | number[],
+   filename?: string,
+ }
+
+
+export const exportJSON = function(dataTable: DataTable, userOptions: jsonUserOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
 
@@ -28,23 +42,17 @@ export const exportJSON = function(dataTable: DataTable, userOptions = {}) {
 
     const columnShown = (index: any) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
 
-    let rows: any = []
+    let rows: (string | number | boolean | {data: (string | number | boolean | nodeType[]), text?: string, order: (number | string)})[][] = []
     // Selection or whole table
-    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
-        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        if (!isNaN(options.selection)) {
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-            rows = rows.concat(dataTable.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.type === "node" ? cell : cell.data)))
-        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        } else if (Array.isArray(options.selection)) {
+        if (Array.isArray(options.selection)) {
             // Array of page numbers
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
             for (let i = 0; i < options.selection.length; i++) {
-                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
                 rows = rows.concat(dataTable.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.type === "node" ? cell : cell.data)))
             }
+        } else {
+            rows = rows.concat(dataTable.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.type === "node" ? cell : cell.data)))
         }
     } else {
         rows = rows.concat(dataTable.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.type === "node" ? cell : cell.data)))
@@ -80,7 +88,6 @@ export const exportJSON = function(dataTable: DataTable, userOptions = {}) {
 
             const link = document.createElement("a")
             link.href = url
-            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
             link.download = `${options.filename || "datatable_export"}.json`
 
             // Append the link

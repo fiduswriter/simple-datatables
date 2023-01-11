@@ -47,8 +47,7 @@ export const readColumnSettings = (columnOptions = []) : {columns: (columnSettin
 
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
-                // @ts-expect-error TS(2322): Type '{ column: any; dir: any; }' is not assignabl... Remove this comment to see the full error message
-                sort = {column,
+                sort = {column: selector,
                     dir: data.sort}
             }
 

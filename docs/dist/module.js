@@ -2351,8 +2351,8 @@ var readColumnSettings = function (columnOptions) {
             }
             if (data.sort) {
                 // We only allow one. The last one will overwrite all other options
-                // @ts-expect-error TS(2322): Type '{ column: any; dir: any; }' is not assignabl... Remove this comment to see the full error message
-                sort = { column: column, dir: data.sort };
+                sort = { column: selector,
+                    dir: data.sort };
             }
         });
     });
@@ -2390,7 +2390,7 @@ dayjs.extend(customParseFormat);
  * Use dayjs to parse cell contents for sorting
  */
 var parseDate = function (content, format) {
-    var date = false;
+    var date;
     // Converting to YYYYMMDD ensures we can accurately sort the column numerically
     if (format) {
         switch (format) {
@@ -2527,72 +2527,72 @@ var escapeText = function (text) {
 
 var readDataCell = function (cell, columnSettings) {
     if (columnSettings === void 0) { columnSettings = {}; }
-    if (cell.constructor == Object && cell instanceof Object) {
+    if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty('data') && (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell;
     }
     var cellData = {
         data: cell
     };
-    if (typeof cell === "string" && cell.length) {
-        var node = stringToObj("<td>".concat(cell, "</td>"));
-        if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
-            cellData.data = node.childNodes;
-            cellData.type = "node";
-            var text = objToText(node);
-            cellData.text = text;
-            cellData.order = text;
+    if (typeof cell === "string") {
+        if (cell.length) {
+            var node = stringToObj("<td>".concat(cell, "</td>"));
+            if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+                cellData.data = node.childNodes;
+                cellData.type = "node";
+                var text = objToText(node);
+                cellData.text = text;
+                cellData.order = text;
+            }
         }
     }
-    // @ts-expect-error TS(2339): Property 'type' does not exist on type '{}'.
+    else if (["null", "undefined"].includes(typeof cell)) {
+        cellData.text = "";
+        cellData.order = "";
+    }
+    else {
+        cellData.text = JSON.stringify(cell);
+    }
     if (columnSettings.type === "date" && columnSettings.format) {
-        // @ts-expect-error TS(2339): Property 'order' does not exist on type '{ data: a... Remove this comment to see the full error message
-        cellData.order = parseDate(cell, columnSettings.format);
+        cellData.order = parseDate(String(cell), columnSettings.format);
     }
     return cellData;
 };
 var readTableData = function (dataOption, dom, columnSettings) {
     var _a, _b;
-    if (dom === void 0) { dom = false; }
+    if (dom === void 0) { dom = undefined; }
     var data = {
         data: [],
         headings: []
     };
     if (dataOption.data) {
         data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings.columns[index]); }); });
-        // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
     }
     else if ((_a = dom === null || dom === void 0 ? void 0 : dom.tBodies) === null || _a === void 0 ? void 0 : _a.length) {
-        // @ts-expect-error TS(2322): Type 'any[][]' is not assignable to type 'never[]'... Remove this comment to see the full error message
-        data.data = Array.from(dom.tBodies[0].rows).map(
-        // @ts-expect-error TS(2571): Object is of type 'unknown'.
-        function (row) { return Array.from(row.cells).map(
-        // @ts-expect-error TS(2571): Object is of type 'unknown'.
-        function (cell, index) { return readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index]); }); });
+        data.data = Array.from(dom.tBodies[0].rows).map(function (row) { return Array.from(row.cells).map(function (cell, index) { return readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index]); }); });
     }
     if (dataOption.headings) {
         data.headings = dataOption.headings.map(function (heading) { return ({
             data: heading,
             sorted: false
         }); });
-        // @ts-expect-error TS(2339): Property 'tHead' does not exist on type 'boolean'.
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tHead) {
-        // @ts-expect-error TS(2322): Type '{ data: any; sorted: boolean; }[]' is not as... Remove this comment to see the full error message
-        data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(function (th) {
-            // @ts-expect-error TS(2571): Object is of type 'unknown'.
+        data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(function (th, index) {
             var heading = { data: th.innerHTML,
                 sorted: false };
-            // @ts-expect-error TS(2339): Property 'sortable' does not exist on type '{ data... Remove this comment to see the full error message
-            heading.sortable = th.dataset.sortable !== "false";
+            if (th.dataset.sortable === "false") {
+                if (!columnSettings.columns[index]) {
+                    columnSettings.columns[index] = {};
+                }
+                columnSettings.columns[index].notSortable = true;
+            }
             return heading;
         });
     }
     else if ((_b = dataOption.data) === null || _b === void 0 ? void 0 : _b.length) {
         data.headings = dataOption.data[0].map(function (_cell) { return ""; });
-        // @ts-expect-error TS(2339): Property 'tBodies' does not exist on type 'boolean... Remove this comment to see the full error message
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tBodies.length) {
-        // @ts-expect-error TS(2322): Type 'string[]' is not assignable to type 'never[]... Remove this comment to see the full error message
         data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(function (_cell) { return ""; });
     }
     if (data.data.length && data.data[0].length !== data.headings.length) {
@@ -3762,12 +3762,9 @@ var DataTable = /** @class */ (function () {
 
 /**
  * Convert CSV data to fit the format used in the table.
- * @param  {Object} userOptions User options
- * @return {Boolean}
  */
 var convertCSV = function (userOptions) {
-    if (userOptions === void 0) { userOptions = {}; }
-    var obj = false;
+    var obj;
     var defaults = {
         lineDelimiter: "\n",
         columnDelimiter: ",",
@@ -3778,29 +3775,22 @@ var convertCSV = function (userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    // @ts-expect-error TS(2339): Property 'data' does not exist on type '{ lineDeli... Remove this comment to see the full error message
-    if (options.data.length || isObject(options.data)) {
+    if (options.data.length) {
         // Import CSV
-        // @ts-expect-error TS(2322): Type '{ data: never[]; }' is not assignable to typ... Remove this comment to see the full error message
         obj = {
             data: []
         };
         // Split the string into rows
-        // @ts-expect-error TS(2339): Property 'data' does not exist on type '{ lineDeli... Remove this comment to see the full error message
         var rows = options.data.split(options.lineDelimiter);
         if (rows.length) {
-            // @ts-expect-error TS(2339): Property 'headings' does not exist on type '{ line... Remove this comment to see the full error message
             if (options.headings) {
-                // @ts-expect-error TS(2339): Property 'headings' does not exist on type 'boolea... Remove this comment to see the full error message
                 obj.headings = rows[0].split(options.columnDelimiter);
                 if (options.removeDoubleQuotes) {
-                    // @ts-expect-error TS(2339): Property 'headings' does not exist on type 'boolea... Remove this comment to see the full error message
                     obj.headings = obj.headings.map(function (e) { return e.trim().replace(/(^"|"$)/g, ""); });
                 }
                 rows.shift();
             }
             rows.forEach(function (row, i) {
-                // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
                 obj.data[i] = [];
                 // Split the rows into values
                 var values = row.split(options.columnDelimiter);
@@ -3809,7 +3799,6 @@ var convertCSV = function (userOptions) {
                         if (options.removeDoubleQuotes) {
                             value = value.trim().replace(/(^"|"$)/g, "");
                         }
-                        // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
                         obj.data[i].push({ data: value });
                     });
                 }
@@ -3824,12 +3813,9 @@ var convertCSV = function (userOptions) {
 
 /**
  * Convert JSON data to fit the format used in the table.
- * @param  {Object} userOptions User options
- * @return {Boolean}
  */
 var convertJSON = function (userOptions) {
-    if (userOptions === void 0) { userOptions = {}; }
-    var obj = false;
+    var obj;
     var defaults = {
         data: ""
     };
@@ -3839,32 +3825,25 @@ var convertJSON = function (userOptions) {
     }
     var options = __assign(__assign({}, defaults), userOptions);
     if (options.data.length || isObject(options.data)) {
-        // Import CSV
-        var json = isJson(options.data);
+        // Import JSON
+        var json = isJson(options.data) ? JSON.parse(options.data) : false;
         // Valid JSON string
         if (json) {
-            // @ts-expect-error TS(2322): Type '{ headings: never[]; data: never[]; }' is no... Remove this comment to see the full error message
             obj = {
                 headings: [],
                 data: []
             };
-            // @ts-expect-error TS(2339): Property 'forEach' does not exist on type 'true'.
             json.forEach(function (data, i) {
-                // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
                 obj.data[i] = [];
                 Object.entries(data).forEach(function (_a) {
                     var column = _a[0], value = _a[1];
-                    // @ts-expect-error TS(2339): Property 'headings' does not exist on type 'boolea... Remove this comment to see the full error message
                     if (!obj.headings.includes(column)) {
-                        // @ts-expect-error TS(2339): Property 'headings' does not exist on type 'boolea... Remove this comment to see the full error message
                         obj.headings.push(column);
                     }
                     if ((value === null || value === void 0 ? void 0 : value.constructor) == Object) {
-                        // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
                         obj.data[i].push(value);
                     }
                     else {
-                        // @ts-expect-error TS(2339): Property 'data' does not exist on type 'boolean'.
                         obj.data[i].push({ data: value });
                     }
                 });
@@ -3880,9 +3859,6 @@ var convertJSON = function (userOptions) {
     return false;
 };
 
-/**
- * Export table to CSV
- */
 var exportCSV = function (dataTable, userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
     if (!dataTable.hasHeadings && !dataTable.hasRows)
@@ -3904,22 +3880,16 @@ var exportCSV = function (dataTable, userOptions) {
     // Include headings
     rows[0] = headers;
     // Selection or whole table
-    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
-        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        if (!isNaN(options.selection)) {
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        }
-        else if (Array.isArray(options.selection)) {
+        if (Array.isArray(options.selection)) {
             // Array of page numbers
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
             for (var i = 0; i < options.selection.length; i++) {
-                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
                 rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
             }
+        }
+        else {
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
         }
     }
     else {
@@ -3955,7 +3925,6 @@ var exportCSV = function (dataTable, userOptions) {
             // Create a link to trigger the download
             var link = document.createElement("a");
             link.href = encodeURI("data:text/csv;charset=utf-8,".concat(str_1));
-            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
             link.download = "".concat(options.filename || "datatable_export", ".csv");
             // Append the link
             document.body.appendChild(link);
@@ -3969,9 +3938,6 @@ var exportCSV = function (dataTable, userOptions) {
     return false;
 };
 
-/**
- * Export table to JSON
- */
 var exportJSON = function (dataTable, userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
     if (!dataTable.hasHeadings && !dataTable.hasRows)
@@ -3990,22 +3956,16 @@ var exportJSON = function (dataTable, userOptions) {
     var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
     // Selection or whole table
-    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
-        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        if (!isNaN(options.selection)) {
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        }
-        else if (Array.isArray(options.selection)) {
+        if (Array.isArray(options.selection)) {
             // Array of page numbers
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
             for (var i = 0; i < options.selection.length; i++) {
-                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
                 rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
             }
+        }
+        else {
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
         }
     }
     else {
@@ -4032,7 +3992,6 @@ var exportJSON = function (dataTable, userOptions) {
             var url = URL.createObjectURL(blob);
             var link = document.createElement("a");
             link.href = url;
-            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
             link.download = "".concat(options.filename || "datatable_export", ".json");
             // Append the link
             document.body.appendChild(link);
@@ -4047,9 +4006,6 @@ var exportJSON = function (dataTable, userOptions) {
     return false;
 };
 
-/**
- * Export table to SQL
- */
 var exportSQL = function (dataTable, userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
     if (!dataTable.hasHeadings && !dataTable.hasRows)
@@ -4067,22 +4023,16 @@ var exportSQL = function (dataTable, userOptions) {
     var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
     // Selection or whole table
-    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
-        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        if (!isNaN(options.selection)) {
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        }
-        else if (Array.isArray(options.selection)) {
+        if (Array.isArray(options.selection)) {
             // Array of page numbers
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
             for (var i = 0; i < options.selection.length; i++) {
-                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
                 rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
             }
+        }
+        else {
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
         }
     }
     else {
@@ -4129,7 +4079,6 @@ var exportSQL = function (dataTable, userOptions) {
             // Create a link to trigger the download
             var link = document.createElement("a");
             link.href = encodeURI(str_1);
-            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
             link.download = "".concat(options.filename || "datatable_export", ".sql");
             // Append the link
             document.body.appendChild(link);
@@ -4143,9 +4092,6 @@ var exportSQL = function (dataTable, userOptions) {
     return false;
 };
 
-/**
- * Export table to TXT
- */
 var exportTXT = function (dataTable, userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
     if (!dataTable.hasHeadings && !dataTable.hasRows)
@@ -4167,22 +4113,16 @@ var exportTXT = function (dataTable, userOptions) {
     // Include headings
     rows[0] = headers;
     // Selection or whole table
-    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
-        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        if (!isNaN(options.selection)) {
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        }
-        else if (Array.isArray(options.selection)) {
+        if (Array.isArray(options.selection)) {
             // Array of page numbers
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
             for (var i = 0; i < options.selection.length; i++) {
-                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
                 rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
             }
+        }
+        else {
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
         }
     }
     else {
@@ -4221,7 +4161,6 @@ var exportTXT = function (dataTable, userOptions) {
             // Create a link to trigger the download
             var link = document.createElement("a");
             link.href = encodeURI(str_1);
-            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
             link.download = "".concat(options.filename || "datatable_export", ".txt");
             // Append the link
             document.body.appendChild(link);

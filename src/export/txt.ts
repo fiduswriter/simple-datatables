@@ -5,7 +5,17 @@ import {DataTable} from "../datatable"
 /**
  * Export table to TXT
  */
-export const exportTXT = function(dataTable: DataTable, userOptions = {}) {
+ interface txtUserOptions {
+   download?: boolean,
+   skipColumn?: number[],
+   lineDelimiter?: string,
+   columnDelimiter?: string,
+   selection?: number | number[],
+   filename?: string,
+ }
+
+
+export const exportTXT = function(dataTable: DataTable, userOptions : txtUserOptions = {}) {
     if (!dataTable.hasHeadings && !dataTable.hasRows) return false
 
     const defaults = {
@@ -27,27 +37,21 @@ export const exportTXT = function(dataTable: DataTable, userOptions = {}) {
 
     const columnShown = (index: any) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
 
-    let rows = []
+    let rows : (string | number | boolean)[][] = []
     const headers = dataTable.data.headings.filter((_heading: any, index: any) => columnShown(index)).map((header: any) => header.data)
     // Include headings
     rows[0] = headers
 
     // Selection or whole table
-    // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
     if (options.selection) {
         // Page number
-        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        if (!isNaN(options.selection)) {
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-            rows = rows.concat(dataTable.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.data)))
-        // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
-        } else if (Array.isArray(options.selection)) {
+        if (Array.isArray(options.selection)) {
             // Array of page numbers
-            // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
             for (let i = 0; i < options.selection.length; i++) {
-                // @ts-expect-error TS(2339): Property 'selection' does not exist on type '{ dow... Remove this comment to see the full error message
                 rows = rows.concat(dataTable.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.data)))
             }
+        } else {
+            rows = rows.concat(dataTable.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.data)))
         }
     } else {
         rows = rows.concat(dataTable.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.data)))
@@ -91,7 +95,6 @@ export const exportTXT = function(dataTable: DataTable, userOptions = {}) {
             // Create a link to trigger the download
             const link = document.createElement("a")
             link.href = encodeURI(str)
-            // @ts-expect-error TS(2339): Property 'filename' does not exist on type '{ down... Remove this comment to see the full error message
             link.download = `${options.filename || "datatable_export"}.txt`
 
             // Append the link
