@@ -50,7 +50,7 @@ export const headingsToVirtualHeaderRowDOM = (
                 [
                     {
                         nodeName: "#text",
-                        data: heading.text || String(heading.data)
+                        data: heading.text ?? String(heading.data)
                     }
                 ] as nodeType[]
             return {
@@ -79,7 +79,7 @@ export const headingsToVirtualHeaderRowDOM = (
     ).filter((column: (nodeType | void)) => column)
 })
 
-export const dataToVirtualDOM = (headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: any, columnWidths: number[], rowCursor: (number | false), {
+export const dataToVirtualDOM = (id: string, headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: any, columnWidths: number[], rowCursor: (number | false), {
     classes,
     hiddenHeader,
     header,
@@ -127,7 +127,7 @@ export const dataToVirtualDOM = (headings: headerCellType[], rows: {row: cellTyp
                                             childNodes: [
                                                 {
                                                     nodeName: "#text",
-                                                    data: cell.text || String(cell.data)
+                                                    data: cell.text ?? String(cell.data)
                                                 }
                                             ]
                                         } as nodeType
@@ -184,6 +184,10 @@ export const dataToVirtualDOM = (headings: headerCellType[], rows: {row: cellTyp
                 )
             } as nodeType
         ]
+    }
+
+    if (id.length) {
+        table.attributes.id = id
     }
 
     if (header || footer || renderHeader) {

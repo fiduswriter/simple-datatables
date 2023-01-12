@@ -2147,7 +2147,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
     return ({
         nodeName: "TR",
         childNodes: headings.map(function (heading, index) {
-            var _a;
+            var _a, _b;
             var column = columnSettings.columns[index] || {};
             if (column.hidden) {
                 return;
@@ -2175,7 +2175,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                 [
                     {
                         nodeName: "#text",
-                        data: heading.text || String(heading.data)
+                        data: (_b = heading.text) !== null && _b !== void 0 ? _b : String(heading.data)
                     }
                 ];
             return {
@@ -2202,7 +2202,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
         }).filter(function (column) { return column; })
     });
 };
-var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, rowCursor, _a, _b) {
+var dataToVirtualDOM = function (id, headings, rows, columnSettings, columnWidths, rowCursor, _a, _b) {
     var classes = _a.classes, hiddenHeader = _a.hiddenHeader, header = _a.header, footer = _a.footer, sortable = _a.sortable, scrollY = _a.scrollY, rowRender = _a.rowRender, tabIndex = _a.tabIndex;
     var noColumnWidths = _b.noColumnWidths, unhideHeader = _b.unhideHeader, renderHeader = _b.renderHeader;
     var table = {
@@ -2221,6 +2221,7 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                             "data-index": String(index)
                         },
                         childNodes: row.map(function (cell, cIndex) {
+                            var _a;
                             var column = columnSettings.columns[cIndex] || {};
                             if (column.hidden) {
                                 return;
@@ -2235,7 +2236,7 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                                     childNodes: [
                                         {
                                             nodeName: "#text",
-                                            data: cell.text || String(cell.data)
+                                            data: (_a = cell.text) !== null && _a !== void 0 ? _a : String(cell.data)
                                         }
                                     ]
                                 };
@@ -2291,6 +2292,9 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
             }
         ]
     };
+    if (id.length) {
+        table.attributes.id = id;
+    }
     if (header || footer || renderHeader) {
         var headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, { classes: classes, hiddenHeader: hiddenHeader, sortable: sortable, scrollY: scrollY }, { noColumnWidths: noColumnWidths, unhideHeader: unhideHeader });
         if (header || renderHeader) {
@@ -3042,6 +3046,7 @@ var DataTable = /** @class */ (function () {
         if (options === void 0) { options = {}; }
         var _this = this;
         this.dom = typeof table === "string" ? document.querySelector(table) : table;
+        this.id = this.dom.id;
         // user options
         this.options = __assign(__assign(__assign({}, defaultConfig$1), options), { layout: __assign(__assign({}, defaultConfig$1.layout), options.layout), labels: __assign(__assign({}, defaultConfig$1.labels), options.labels), classes: __assign(__assign({}, defaultConfig$1.classes), options.classes) });
         this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : ""; // preserve in case of later destruction
@@ -3197,7 +3202,7 @@ var DataTable = /** @class */ (function () {
     };
     DataTable.prototype.renderTable = function (renderOptions) {
         if (renderOptions === void 0) { renderOptions = {}; }
-        var newVirtualDOM = dataToVirtualDOM(this.data.headings, this.options.paging && this.currentPage && !renderOptions.noPaging ?
+        var newVirtualDOM = dataToVirtualDOM(this.id, this.data.headings, this.options.paging && this.currentPage && !renderOptions.noPaging ?
             this.pages[this.currentPage - 1] :
             this.data.data.map(function (row, index) { return ({
                 row: row,
@@ -3728,7 +3733,7 @@ var DataTable = /** @class */ (function () {
     DataTable.prototype.print = function () {
         var tableDOM = createElement("table");
         var tableVirtualDOM = { nodeName: "TABLE" };
-        var newTableVirtualDOM = dataToVirtualDOM(this.data.headings, this.data.data.map(function (row, index) { return ({
+        var newTableVirtualDOM = dataToVirtualDOM(this.id, this.data.headings, this.data.data.map(function (row, index) { return ({
             row: row,
             index: index
         }); }), this.columnSettings, this.columnWidths, false, // No row cursor
@@ -3938,7 +3943,7 @@ var exportCSV = function (dataTable, userOptions) {
     var options = __assign(__assign({}, defaults), userOptions);
     var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
-    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
+    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
     // Include headings
     rows[0] = headers;
     // Selection or whole table
@@ -3947,15 +3952,15 @@ var exportCSV = function (dataTable, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.text || cell.data; }); }));
+        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
     }
     // Only proceed if we have data
     if (rows.length) {
@@ -4090,17 +4095,17 @@ var exportSQL = function (dataTable, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
     }
-    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
+    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
@@ -4171,7 +4176,7 @@ var exportTXT = function (dataTable, userOptions) {
     var options = __assign(__assign({}, defaults), userOptions);
     var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
-    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
+    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
     // Include headings
     rows[0] = headers;
     // Selection or whole table
@@ -4180,15 +4185,15 @@ var exportTXT = function (dataTable, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
+        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
     }
     // Only proceed if we have data
     if (rows.length) {

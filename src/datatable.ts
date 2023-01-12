@@ -52,6 +52,8 @@ export class DataTable {
 
     headerDOM: HTMLDivElement
 
+    id: string
+
     initialInnerHTML: string
 
     initialized: boolean
@@ -95,6 +97,8 @@ export class DataTable {
     constructor(table: HTMLTableElement | string, options: DataTableOptions = {}) {
 
         this.dom = typeof table === "string" ? document.querySelector(table) : table
+
+        this.id = this.dom.id
 
         // user options
         this.options = {
@@ -306,7 +310,9 @@ export class DataTable {
     }
 
     renderTable(renderOptions: renderOptions ={}) {
+
         const newVirtualDOM = dataToVirtualDOM(
+            this.id,
             this.data.headings,
             this.options.paging && this.currentPage && !renderOptions.noPaging ?
                 this.pages[this.currentPage - 1] :
@@ -935,6 +941,7 @@ export class DataTable {
         const tableDOM = createElement("table")
         const tableVirtualDOM = {nodeName: "TABLE"}
         const newTableVirtualDOM = dataToVirtualDOM(
+            this.id,
             this.data.headings,
             this.data.data.map((row, index) => ({
                 row,

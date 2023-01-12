@@ -32,7 +32,6 @@ export const readDataCell = (cell: inputCellType, columnSettings : {type?: "date
     if (columnSettings.type === "date" && columnSettings.format) {
         cellData.order = parseDate(String(cell), columnSettings.format)
     }
-
     return cellData
 }
 
@@ -60,7 +59,6 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
     } else {
         cellData.text = JSON.stringify(cell)
     }
-
     return cellData
 }
 
