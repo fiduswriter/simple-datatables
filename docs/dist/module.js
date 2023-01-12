@@ -2150,7 +2150,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
             var _a;
             var column = columnSettings.columns[index] || {};
             if (column.hidden) {
-                return false;
+                return;
             }
             var attributes = {};
             if (!column.notSortable && sortable) {
@@ -2223,7 +2223,7 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                         childNodes: row.map(function (cell, cIndex) {
                             var column = columnSettings.columns[cIndex] || {};
                             if (column.hidden) {
-                                return false;
+                                return;
                             }
                             var td = cell.type === "node" ?
                                 {

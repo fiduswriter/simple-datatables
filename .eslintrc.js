@@ -31,7 +31,7 @@ module.exports = {
             "error",
             "never"
         ],
-        "array-callback-return": "error",
+        "array-callback-return": "off",
         "array-element-newline": "off",
         "arrow-body-style": "error",
         "arrow-parens": [

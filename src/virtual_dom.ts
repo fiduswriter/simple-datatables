@@ -1,6 +1,6 @@
 import {stringToObj} from "diff-dom"
 
-import {cellType, headerCellType, nodeType} from "./interfaces"
+import {cellType, DataTableOptions, headerCellType, nodeType, renderOptions} from "./interfaces"
 
 
 export const headingsToVirtualHeaderRowDOM = (
@@ -12,19 +12,19 @@ export const headingsToVirtualHeaderRowDOM = (
         hiddenHeader,
         sortable,
         scrollY
-    }: any,
+    }: DataTableOptions,
     {
         noColumnWidths,
         unhideHeader
-    }: any
+    }: renderOptions
 ) => ({
     nodeName: "TR",
 
     childNodes: headings.map(
-        (heading: any, index: number) : false | nodeType => {
+        (heading: headerCellType, index: number) : nodeType | void => {
             const column = columnSettings.columns[index] || {}
             if (column.hidden) {
-                return false
+                return
             }
             const attributes : { [key: string]: string} = {}
             if (!column.notSortable && sortable) {
@@ -46,13 +46,13 @@ export const headingsToVirtualHeaderRowDOM = (
                 attributes.style = style
             }
             const headerNodes : nodeType[] = heading.type === "node" ?
-                heading.data :
+                heading.data as nodeType[] :
                 [
                     {
                         nodeName: "#text",
                         data: heading.text || String(heading.data)
                     }
-                ]
+                ] as nodeType[]
             return {
                 nodeName: "TH",
                 attributes,
@@ -76,10 +76,10 @@ export const headingsToVirtualHeaderRowDOM = (
                             ]
             }
         }
-    ).filter((column: any) => column)
+    ).filter((column: (nodeType | void)) => column)
 })
 
-export const dataToVirtualDOM = (headings: headerCellType[], rows: cellType[][], columnSettings: any, columnWidths: number[], rowCursor: (number | false), {
+export const dataToVirtualDOM = (headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: any, columnWidths: number[], rowCursor: (number | false), {
     classes,
     hiddenHeader,
     header,
@@ -88,11 +88,11 @@ export const dataToVirtualDOM = (headings: headerCellType[], rows: cellType[][],
     scrollY,
     rowRender,
     tabIndex
-}: any, {
+}: DataTableOptions, {
     noColumnWidths,
     unhideHeader,
     renderHeader
-}: any) => {
+}: renderOptions) => {
     const table: nodeType = {
         nodeName: "TABLE",
         attributes: {
@@ -105,7 +105,7 @@ export const dataToVirtualDOM = (headings: headerCellType[], rows: cellType[][],
                     ({
                         row,
                         index
-                    }: any) => {
+                    }: {row: cellType[], index: number}) => {
                         const tr: nodeType = {
                             nodeName: "TR",
                             attributes: {
@@ -115,7 +115,7 @@ export const dataToVirtualDOM = (headings: headerCellType[], rows: cellType[][],
                                 (cell: cellType, cIndex: number) => {
                                     const column = columnSettings.columns[cIndex] || {}
                                     if (column.hidden) {
-                                        return false
+                                        return
                                     }
                                     const td : nodeType = cell.type === "node" ?
                                         {
@@ -157,7 +157,7 @@ export const dataToVirtualDOM = (headings: headerCellType[], rows: cellType[][],
                                     }
                                     return td
                                 }
-                            ).filter((column: any) => column)
+                            ).filter((column: (nodeType | void)) => column)
                         }
                         if (index===rowCursor) {
                             tr.attributes.class = classes.cursor

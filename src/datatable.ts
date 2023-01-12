@@ -17,6 +17,7 @@ import {
     columnSettingsType,
     DataTableOptions,
     nodeType,
+    renderOptions,
     TableDataType
 } from "./interfaces"
 
@@ -304,7 +305,7 @@ export class DataTable {
         this.fixColumns()
     }
 
-    renderTable(renderOptions: {noPaging?: true, noColumnWidths?: true, unhideHeader?: true, renderHeader?: true}={}) {
+    renderTable(renderOptions: renderOptions ={}) {
         const newVirtualDOM = dataToVirtualDOM(
             this.data.headings,
             this.options.paging && this.currentPage && !renderOptions.noPaging ?

@@ -39,7 +39,7 @@ interface TableDataType{
     data: cellType[][] ;
 }
 
-type renderType = ((cellData: any, td: object, rowIndex: number, cellIndex: number) => object | void);
+type renderType = ((cellData: any, td: object, rowIndex: number, cellIndex: number) => nodeType | string | void);
 
 interface ColumnOption{
     /**An integer or array of integers representing the column(s) to be manipulated. */
@@ -151,7 +151,7 @@ interface ClassOptions {
     wrapper?: string;
 }
 
-type rowRenderType = ((row: object, tr: object, index: number) => object | void);
+type rowRenderType = ((row: object, tr: object, index: number) => nodeType | void);
 
 interface DataTableOptions{
     /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
@@ -358,6 +358,13 @@ interface columnSettingsType {
     sortSequence?: ("asc" | "desc")[],
 }
 
+interface renderOptions {
+    noPaging?: true;
+    noColumnWidths?: true;
+    unhideHeader?: true;
+    renderHeader?: true
+}
+
 
 export {
     cellType,
@@ -368,6 +375,7 @@ export {
     inputCellType,
     inputHeaderCellType,
     nodeType,
+    renderOptions,
     renderType,
     rowRenderType,
     TableDataType
