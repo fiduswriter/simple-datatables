@@ -31,7 +31,7 @@ DataTable("#table", {
   columns: [
     {
       select: 1,
-      render: (data, td, rowIndex, cellIndex) => data + "<button data-row='" + dataIndex + "'>Buy Now</button>"
+      render: (data, td, dataIndex, cellIndex) => data + "<button data-row='" + dataIndex + "'>Buy Now</button>"
     }
   ]
 }
