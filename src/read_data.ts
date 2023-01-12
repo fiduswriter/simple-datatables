@@ -22,9 +22,9 @@ export const readDataCell = (cell: inputCellType, columnSettings : {type?: "date
             }
         }
 
-    } else if (["null", "undefined"].includes(typeof cell)) {
+    } else if ([null, undefined].includes(cell)) {
         cellData.text = ""
-        cellData.order = ""
+        cellData.order = 0
     } else {
         cellData.text = JSON.stringify(cell)
     }
@@ -55,7 +55,7 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
             }
         }
 
-    } else if (["null", "undefined"].includes(typeof cell)) {
+    } else if ([null, undefined].includes(cell)) {
         cellData.text = ""
     } else {
         cellData.text = JSON.stringify(cell)

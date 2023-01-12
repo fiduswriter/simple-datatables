@@ -1,9 +1,10 @@
-interface textNodeType {
+type textNodeType = {
     nodeName: "#text";
     data: string;
+    childNodes?: never
 }
 
-interface nodeType {
+type nodeType = {
     nodeName: string;
     attributes?: { [key: string]: string};
     childNodes?: (nodeType | textNodeType)[];

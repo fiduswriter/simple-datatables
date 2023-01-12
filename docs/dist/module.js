@@ -2218,7 +2218,7 @@ var dataToVirtualDOM = function (headings, rows, columnSettings, columnWidths, r
                     var tr = {
                         nodeName: "TR",
                         attributes: {
-                            "data-index": index
+                            "data-index": String(index)
                         },
                         childNodes: row.map(function (cell, cIndex) {
                             var column = columnSettings.columns[cIndex] || {};
@@ -2551,9 +2551,9 @@ var readDataCell = function (cell, columnSettings) {
             }
         }
     }
-    else if (["null", "undefined"].includes(typeof cell)) {
+    else if ([null, undefined].includes(cell)) {
         cellData.text = "";
-        cellData.order = "";
+        cellData.order = 0;
     }
     else {
         cellData.text = JSON.stringify(cell);
@@ -2581,7 +2581,7 @@ var readHeaderCell = function (cell) {
             }
         }
     }
-    else if (["null", "undefined"].includes(typeof cell)) {
+    else if ([null, undefined].includes(cell)) {
         cellData.text = "";
     }
     else {
@@ -3057,9 +3057,6 @@ var DataTable = /** @class */ (function () {
         this.dd = new DiffDOM();
         this.initialized = false;
         this.events = {};
-        this.virtualDOM = false;
-        this.virtualHeaderDOM = false;
-        this.headerDOM = false;
         this.currentPage = 0;
         this.onFirstPage = true;
         this.hasHeadings = false;
@@ -3076,13 +3073,13 @@ var DataTable = /** @class */ (function () {
         if (this.initialized || this.dom.classList.contains(this.options.classes.table)) {
             return false;
         }
+        this.virtualDOM = nodeToObj(this.dom);
         this.rows = new Rows(this);
         this.columns = new Columns(this);
         this.columnSettings = readColumnSettings(this.options.columns);
         this.data = readTableData(this.options.data, this.dom, this.columnSettings);
         this.hasRows = Boolean(this.data.data.length);
         this.hasHeadings = Boolean(this.data.headings.length);
-        this.virtualDOM = nodeToObj(this.dom);
         this.render();
         setTimeout(function () {
             _this.emit("datatable.init");
@@ -3443,7 +3440,9 @@ var DataTable = /** @class */ (function () {
         // Remove the className
         this.dom.classList.remove(this.options.classes.table);
         // Remove the containers
-        this.wrapper.parentNode.replaceChild(this.dom, this.wrapper);
+        if (this.wrapper.parentNode) {
+            this.wrapper.parentNode.replaceChild(this.dom, this.wrapper);
+        }
         this.initialized = false;
         window.removeEventListener("resize", this.listeners.onResize);
     };
@@ -3749,6 +3748,7 @@ var DataTable = /** @class */ (function () {
      */
     DataTable.prototype.setMessage = function (message) {
         var _this = this;
+        var _a;
         var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
         var colspan = activeHeadings.length || 1;
         this.wrapper.classList.add(this.options.classes.empty);
@@ -3758,7 +3758,7 @@ var DataTable = /** @class */ (function () {
         this.totalPages = 0;
         this.renderPager();
         var newVirtualDOM = structuredClone(this.virtualDOM);
-        var tbody = newVirtualDOM.childNodes.find(function (node) { return node.nodeName === "TBODY"; });
+        var tbody = (_a = newVirtualDOM.childNodes) === null || _a === void 0 ? void 0 : _a.find(function (node) { return node.nodeName === "TBODY"; });
         if (!tbody) {
             tbody = { nodeName: "TBODY" };
             newVirtualDOM.childNodes = [tbody];
@@ -3770,8 +3770,8 @@ var DataTable = /** @class */ (function () {
                     {
                         nodeName: "TD",
                         attributes: {
-                            "class": "dataTables-empty",
-                            colspan: colspan
+                            "class": this.options.classes.empty,
+                            colspan: String(colspan)
                         },
                         childNodes: [
                             {

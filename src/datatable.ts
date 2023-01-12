@@ -16,6 +16,7 @@ import {
 import {
     columnSettingsType,
     DataTableOptions,
+    nodeType,
     TableDataType
 } from "./interfaces"
 
@@ -48,7 +49,7 @@ export class DataTable {
 
     hasRows: boolean
 
-    headerDOM: HTMLDivElement | false
+    headerDOM: HTMLDivElement
 
     initialInnerHTML: string
 
@@ -84,9 +85,9 @@ export class DataTable {
 
     totalPages: number
 
-    virtualDOM: any
+    virtualDOM: nodeType
 
-    virtualHeaderDOM: any
+    virtualHeaderDOM: nodeType
 
     wrapper: HTMLElement
 
@@ -128,9 +129,7 @@ export class DataTable {
 
         this.initialized = false
         this.events = {}
-        this.virtualDOM = false
-        this.virtualHeaderDOM = false
-        this.headerDOM = false
+
         this.currentPage = 0
         this.onFirstPage = true
         this.hasHeadings = false
@@ -150,6 +149,8 @@ export class DataTable {
             return false
         }
 
+        this.virtualDOM = nodeToObj(this.dom)
+
         this.rows = new Rows(this)
         this.columns = new Columns(this)
 
@@ -158,7 +159,6 @@ export class DataTable {
         this.hasRows = Boolean(this.data.data.length)
         this.hasHeadings = Boolean(this.data.headings.length)
 
-        this.virtualDOM = nodeToObj(this.dom)
 
         this.render()
 
@@ -587,7 +587,9 @@ export class DataTable {
         this.dom.classList.remove(this.options.classes.table)
 
         // Remove the containers
-        this.wrapper.parentNode.replaceChild(this.dom, this.wrapper)
+        if (this.wrapper.parentNode) {
+            this.wrapper.parentNode.replaceChild(this.dom, this.wrapper)
+        }
 
         this.initialized = false
 
@@ -976,7 +978,7 @@ export class DataTable {
 
         const newVirtualDOM = structuredClone(this.virtualDOM)
 
-        let tbody = newVirtualDOM.childNodes.find((node: any) => node.nodeName === "TBODY")
+        let tbody : nodeType = newVirtualDOM.childNodes?.find((node: nodeType) => node.nodeName === "TBODY") as nodeType
 
         if (!tbody) {
             tbody = {nodeName: "TBODY"}
@@ -990,8 +992,8 @@ export class DataTable {
                     {
                         nodeName: "TD",
                         attributes: {
-                            class: "dataTables-empty",
-                            colspan
+                            class: this.options.classes.empty,
+                            colspan: String(colspan)
                         },
                         childNodes: [
                             {

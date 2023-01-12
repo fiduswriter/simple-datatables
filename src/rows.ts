@@ -1,5 +1,6 @@
 import {readDataCell} from "./read_data"
 import {DataTable} from "./datatable"
+import {cellType} from "./interfaces"
 /**
  * Rows API
  */
@@ -33,8 +34,8 @@ export class Rows {
     /**
      * Add new row
      */
-    add(data: any) {
-        const row = data.map((cell: any, index: any) => {
+    add(data: cellType[]) {
+        const row = data.map((cell: cellType, index: number) => {
             const columnSettings = this.dt.columnSettings.columns[index] || {}
             return readDataCell(cell, columnSettings)
         })
@@ -52,7 +53,7 @@ export class Rows {
     /**
      * Remove row(s)
      */
-    remove(select: any) {
+    remove(select: number | number[]) {
         if (Array.isArray(select)) {
             this.dt.data.data = this.dt.data.data.filter((_row: any, index: any) => !select.includes(index))
             // We may have emptied the table
@@ -70,11 +71,11 @@ export class Rows {
     /**
      * Find index of row by searching for a value in a column
      */
-    findRowIndex(columnIndex: any, value: any) {
+    findRowIndex(columnIndex: number, value: any) {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
         return this.dt.data.data.findIndex(
-            (row: any) => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
+            (row: cellType[]) => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
         )
     }
 

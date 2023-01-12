@@ -1,6 +1,6 @@
 import {stringToObj} from "diff-dom"
 
-import {nodeType, renderType, rowRenderType} from "./interfaces"
+import {cellType, headerCellType, nodeType} from "./interfaces"
 
 
 export const headingsToVirtualHeaderRowDOM = (
@@ -79,7 +79,7 @@ export const headingsToVirtualHeaderRowDOM = (
     ).filter((column: any) => column)
 })
 
-export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, columnWidths: any, rowCursor: any, {
+export const dataToVirtualDOM = (headings: headerCellType[], rows: cellType[][], columnSettings: any, columnWidths: number[], rowCursor: (number | false), {
     classes,
     hiddenHeader,
     header,
@@ -109,10 +109,10 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
                         const tr: nodeType = {
                             nodeName: "TR",
                             attributes: {
-                                "data-index": index
+                                "data-index": String(index)
                             },
                             childNodes: row.map(
-                                (cell: any, cIndex: any) => {
+                                (cell: cellType, cIndex: number) => {
                                     const column = columnSettings.columns[cIndex] || {}
                                     if (column.hidden) {
                                         return false
@@ -121,7 +121,7 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
                                         {
                                             nodeName: "TD",
                                             childNodes: cell.data
-                                        } :
+                                        } as nodeType:
                                         {
                                             nodeName: "TD",
                                             childNodes: [
@@ -130,14 +130,14 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
                                                     data: cell.text || String(cell.data)
                                                 }
                                             ]
-                                        }
+                                        } as nodeType
                                     if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
                                         td.attributes = {
                                             style: `width: ${columnWidths[cIndex]}%;`
                                         }
                                     }
                                     if (column.render) {
-                                        const renderedCell : renderType = column.render(cell.data, td, index, cIndex)
+                                        const renderedCell : (nodeType | void) = column.render(cell.data, td, index, cIndex)
                                         if (renderedCell) {
                                             if (typeof renderedCell === "string") {
                                                 // Convenience method to make it work similarly to what it did up to version 5.
@@ -163,7 +163,7 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
                             tr.attributes.class = classes.cursor
                         }
                         if (rowRender) {
-                            const renderedRow : rowRenderType = rowRender(row, tr, index)
+                            const renderedRow : (nodeType | void) = rowRender(row, tr, index)
                             if (renderedRow) {
                                 if (typeof renderedRow === "string") {
                                     // Convenience method to make it work similarly to what it did up to version 5.
@@ -182,7 +182,7 @@ export const dataToVirtualDOM = (headings: any, rows: any, columnSettings: any, 
                         return tr
                     }
                 )
-            }
+            } as nodeType
         ]
     }
 

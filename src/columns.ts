@@ -1,19 +1,21 @@
 import {readDataCell} from "./read_data"
 import {DataTable} from "./datatable"
+import {cellType, headerCellType} from "./interfaces"
+
 export class Columns {
     dt: DataTable
 
-    constructor(dt: any) {
+    constructor(dt: DataTable) {
         this.dt = dt
     }
 
     /**
      * Swap two columns
      */
-    swap(columns: any) {
+    swap(columns: [number, number]) {
         if (columns.length === 2) {
             // Get the current column indexes
-            const cols = this.dt.data.headings.map((_node: any, index: any) => index)
+            const cols = this.dt.data.headings.map((_node: headerCellType, index: number) => index)
 
             const x = columns[0]
             const y = columns[1]
@@ -28,14 +30,14 @@ export class Columns {
     /**
      * Reorder the columns
      */
-    order(columns: any) {
+    order(columns: number[]) {
 
-        this.dt.data.headings = columns.map((index: any) => this.dt.data.headings[index])
+        this.dt.data.headings = columns.map((index: number) => this.dt.data.headings[index])
         this.dt.data.data = this.dt.data.data.map(
-            (row: any) => columns.map((index: any) => row[index])
+            (row: cellType[]) => columns.map((index: any) => row[index])
         )
         this.dt.columnSettings.columns = columns.map(
-            (index: any) => this.dt.columnSettings.columns[index]
+            (index: number) => this.dt.columnSettings.columns[index]
         )
 
         // Update
@@ -45,11 +47,11 @@ export class Columns {
     /**
      * Hide columns
      */
-    hide(columns: any) {
+    hide(columns: number[]) {
         if (!columns.length) {
             return
         }
-        columns.forEach((index: any) => {
+        columns.forEach((index: number) => {
             if (!this.dt.columnSettings.columns[index]) {
                 this.dt.columnSettings.columns[index] = {}
             }
@@ -63,11 +65,11 @@ export class Columns {
     /**
      * Show columns
      */
-    show(columns: any) {
+    show(columns: number[]) {
         if (!columns.length) {
             return
         }
-        columns.forEach((index: any) => {
+        columns.forEach((index: number) => {
             if (!this.dt.columnSettings.columns[index]) {
                 this.dt.columnSettings.columns[index] = {}
             }
@@ -81,7 +83,7 @@ export class Columns {
     /**
      * Check column(s) visibility
      */
-    visible(columns: any) {
+    visible(columns: number | number[]) {
 
         if (Array.isArray(columns)) {
             return columns.map(index => !this.dt.columnSettings.columns[index]?.hidden)
@@ -218,7 +220,7 @@ export class Columns {
 
         }
 
-        this.dt.data.data.sort((row1: any, row2: any) => {
+        this.dt.data.data.sort((row1: cellType[], row2: cellType[]) => {
             let order1 = row1[column].order || row1[column].data,
                 order2 = row2[column].order || row2[column].data
             if (dir === "desc") {
