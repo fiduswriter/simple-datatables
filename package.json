@@ -14,7 +14,7 @@
     "build": "npm run build_js && npm run build_js_umd && npm run build_css && npm run build_docs",
     "build_js": "rollup -c",
     "build_js_umd": "browserify dist/index.js --standalone simpleDatatables -o dist/umd/simple-datatables.js",
-    "build_css": "cp -R src/css/ dist/",
+    "build_css": "cp -R src/css/* dist/",
     "build_docs": "npm run build_docs_js && cp -R src/css docs/dist/",
     "build_docs_js": "rollup -c rollup.docs.config.mjs",
     "postbuild_docs": "cp -r dist/umd/simple-datatables.js docs/dist/umd.js",
