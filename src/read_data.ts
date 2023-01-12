@@ -4,7 +4,7 @@ import {objToText} from "./helpers"
 import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, columnSettingsType} from "./interfaces"
 
 export const readDataCell = (cell: inputCellType, columnSettings : {type?: "date", format?: string, } = {}) : cellType => {
-    if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
+    if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell
     }
     const cellData : cellType = {
@@ -38,7 +38,7 @@ export const readDataCell = (cell: inputCellType, columnSettings : {type?: "date
 
 
 export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
-    if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
+    if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell
     }
     const cellData : headerCellType = {

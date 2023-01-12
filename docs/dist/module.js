@@ -2533,7 +2533,7 @@ var escapeText = function (text) {
 
 var readDataCell = function (cell, columnSettings) {
     if (columnSettings === void 0) { columnSettings = {}; }
-    if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
+    if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell;
     }
     var cellData = {
@@ -2564,7 +2564,7 @@ var readDataCell = function (cell, columnSettings) {
     return cellData;
 };
 var readHeaderCell = function (cell) {
-    if (cell.constructor == Object && cell instanceof Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
+    if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell;
     }
     var cellData = {
