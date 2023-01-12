@@ -2625,10 +2625,10 @@ var readTableData = function (dataOption, dom, columnSettings) {
         });
     }
     else if ((_a = dataOption.data) === null || _a === void 0 ? void 0 : _a.length) {
-        data.headings = dataOption.data[0].map(function (_cell) { return ""; });
+        data.headings = dataOption.data[0].map(function (_cell) { return readHeaderCell(""); });
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tBodies.length) {
-        data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(function (_cell) { return ""; });
+        data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(function (_cell) { return readHeaderCell(""); });
     }
     if (dataOption.data) {
         data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings.columns[index]); }); });

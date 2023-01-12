@@ -99,12 +99,12 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
             return heading
         })
     } else if (dataOption.data?.length) {
-        data.headings = dataOption.data[0].map((_cell: any) => "")
+        data.headings = dataOption.data[0].map((_cell: inputCellType) => readHeaderCell(""))
     } else if (dom?.tBodies.length) {
-        data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(_cell => "")
+        data.headings = Array.from(dom.tBodies[0].rows[0].cells).map((_cell: HTMLElement) => readHeaderCell(""))
     }
     if (dataOption.data) {
-        data.data = dataOption.data.map((row: any) => row.map((cell: any, index: any) => readDataCell(cell, columnSettings.columns[index])))
+        data.data = dataOption.data.map((row: any) => row.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings.columns[index])))
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(
             row => Array.from(row.cells).map(
