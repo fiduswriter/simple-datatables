@@ -3254,14 +3254,16 @@ var DataTable = /** @class */ (function () {
         if (this.currentPage == 1) {
             this.fixHeight();
         }
-        if (this.options.rowNavigation) {
+        if (this.options.rowNavigation && this.currentPage) {
             if (!this.rows.cursor || !this.pages[this.currentPage - 1].find(function (page) { return page.index === _this.rows.cursor; })) {
                 var rows = this.pages[this.currentPage - 1];
-                if (lastRowCursor) {
-                    this.rows.setCursor(rows[rows.length - 1].index);
-                }
-                else {
-                    this.rows.setCursor(rows[0].index);
+                if (rows.length) {
+                    if (lastRowCursor) {
+                        this.rows.setCursor(rows[rows.length - 1].index);
+                    }
+                    else {
+                        this.rows.setCursor(rows[0].index);
+                    }
                 }
             }
         }
