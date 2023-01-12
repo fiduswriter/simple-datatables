@@ -2534,6 +2534,18 @@ var escapeText = function (text) {
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;");
 };
+var visibleToColumnIndex = function (visibleIndex, columns) {
+    var counter = 0;
+    var columnIndex = 0;
+    while (counter < (visibleIndex + 1)) {
+        var columnSettings = columns[columnIndex] || {};
+        if (!columnSettings.hidden) {
+            counter += 1;
+        }
+        columnIndex += 1;
+    }
+    return columnIndex - 1;
+};
 
 var readDataCell = function (cell, columnSettings) {
     if (columnSettings === void 0) { columnSettings = {}; }
@@ -3356,7 +3368,9 @@ var DataTable = /** @class */ (function () {
                 else if (_this.options.sortable &&
                     t.classList.contains(_this.options.classes.sorter) &&
                     t.parentNode.getAttribute("data-sortable") != "false") {
-                    _this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode));
+                    var visibleIndex = Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode);
+                    var columnIndex = visibleToColumnIndex(visibleIndex, _this.columnSettings.columns);
+                    _this.columns.sort(columnIndex);
                     e.preventDefault();
                 }
             }
@@ -4504,15 +4518,7 @@ var Editor = /** @class */ (function () {
      */
     Editor.prototype.editCell = function (td) {
         var _this = this;
-        var columnIndex = 0;
-        var cellIndex = 0;
-        while (cellIndex < td.cellIndex) {
-            var columnSettings = this.dt.columnSettings.columns[columnIndex] || {};
-            if (!columnSettings.hidden) {
-                cellIndex += 1;
-            }
-            columnIndex += 1;
-        }
+        var columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columnSettings.columns);
         if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu();
             return;

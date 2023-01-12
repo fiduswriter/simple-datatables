@@ -1,3 +1,5 @@
+import {columnSettingsType} from "./interfaces"
+
 /**
  * Check is item is object
  */
@@ -113,4 +115,18 @@ export const escapeText = function(text: string) {
         .replace(/</g, "&lt;")
         .replace(/>/g, "&gt;")
         .replace(/"/g, "&quot;")
+}
+
+
+export const visibleToColumnIndex = function(visibleIndex: number, columns: columnSettingsType[]) {
+    let counter = 0
+    let columnIndex = 0
+    while (counter < (visibleIndex+1)) {
+        const columnSettings = columns[columnIndex] || {}
+        if (!columnSettings.hidden) {
+            counter += 1
+        }
+        columnIndex += 1
+    }
+    return columnIndex-1
 }

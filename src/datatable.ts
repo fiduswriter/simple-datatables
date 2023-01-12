@@ -11,7 +11,8 @@ import {
     createElement,
     flush,
     button,
-    truncate
+    truncate,
+    visibleToColumnIndex
 } from "./helpers"
 import {
     columnSettingsType,
@@ -503,7 +504,9 @@ export class DataTable {
                     t.classList.contains(this.options.classes.sorter) &&
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
-                    this.columns.sort(Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode))
+                    const visibleIndex = Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode)
+                    const columnIndex = visibleToColumnIndex(visibleIndex, this.columnSettings.columns)
+                    this.columns.sort(columnIndex)
                     e.preventDefault()
                 }
             }

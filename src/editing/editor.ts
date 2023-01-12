@@ -1,6 +1,7 @@
 import {
     createElement,
-    escapeText
+    escapeText,
+    visibleToColumnIndex
 } from "../helpers"
 
 import {
@@ -223,15 +224,7 @@ export class Editor {
      * @return {Void}
      */
     editCell(td: any) {
-        let columnIndex = 0
-        let cellIndex = 0
-        while (cellIndex < td.cellIndex) {
-            const columnSettings = this.dt.columnSettings.columns[columnIndex] || {}
-            if (!columnSettings.hidden) {
-                cellIndex += 1
-            }
-            columnIndex += 1
-        }
+        const columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columnSettings.columns)
         if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu()
             return
