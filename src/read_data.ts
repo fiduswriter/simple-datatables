@@ -1,7 +1,7 @@
 import {stringToObj} from "diff-dom"
 import {parseDate} from "./date"
 import {objToText} from "./helpers"
-import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, columnSettingsType} from "./interfaces"
+import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, singleColumnSettingsType} from "./interfaces"
 
 export const readDataCell = (cell: inputCellType, columnSettings : {type?: "date", format?: string, } = {}) : cellType => {
     if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
@@ -72,7 +72,7 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
     } else if (dom?.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
             const heading = readHeaderCell(th.innerHTML)
-            const settings : columnSettingsType = {}
+            const settings : singleColumnSettingsType = {}
             if (th.dataset.sortable === "false" || th.dataset.sort === "false") {
                 settings.notSortable = true
             }
@@ -102,7 +102,7 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         data.headings = Array.from(dom.tBodies[0].rows[0].cells).map((_cell: HTMLElement) => readHeaderCell(""))
     }
     if (dataOption.data) {
-        data.data = dataOption.data.map((row: any) => row.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings.columns[index])))
+        data.data = dataOption.data.map((row: inputCellType[]) => row.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings.columns[index])))
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(
             row => Array.from(row.cells).map(

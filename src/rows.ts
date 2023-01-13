@@ -1,6 +1,6 @@
 import {readDataCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {cellType} from "./interfaces"
+import {cellType, inputCellType} from "./interfaces"
 /**
  * Rows API
  */
@@ -55,7 +55,7 @@ export class Rows {
      */
     remove(select: number | number[]) {
         if (Array.isArray(select)) {
-            this.dt.data.data = this.dt.data.data.filter((_row: any, index: any) => !select.includes(index))
+            this.dt.data.data = this.dt.data.data.filter((_row: cellType[], index: number) => !select.includes(index))
             // We may have emptied the table
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false
@@ -71,18 +71,18 @@ export class Rows {
     /**
      * Find index of row by searching for a value in a column
      */
-    findRowIndex(columnIndex: number, value: any) {
+    findRowIndex(columnIndex: number, value: string | boolean | number) {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
         return this.dt.data.data.findIndex(
-            (row: cellType[]) => String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase())
+            (row: cellType[]) => (row[columnIndex].text ?? String(row[columnIndex].data)).toLowerCase().includes(String(value).toLowerCase())
         )
     }
 
     /**
      * Find index, row, and column data by searching for a value in a column
      */
-    findRow(columnIndex: any, value: any) {
+    findRow(columnIndex: number, value: string | boolean | number) {
         // get the row index
         const index = this.findRowIndex(columnIndex, value)
         // exit if not found
@@ -96,7 +96,7 @@ export class Rows {
         // get the row from data
         const row = this.dt.data.data[index]
         // return innerHTML of each td
-        const cols = row.map((cell: any) => cell.data)
+        const cols = row.map((cell: cellType) => cell.data)
         // return everything
         return {
             index,
@@ -108,8 +108,8 @@ export class Rows {
     /**
      * Update a row with new data
      */
-    updateRow(select: any, data: any) {
-        const row = data.map((cell: any, index: any) => {
+    updateRow(select: number, data: inputCellType[]) {
+        const row = data.map((cell: inputCellType, index: number) => {
             const columnSettings = this.dt.columnSettings.columns[index] || {}
             return readDataCell(cell, columnSettings)
         })

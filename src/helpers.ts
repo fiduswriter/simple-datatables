@@ -1,4 +1,4 @@
-import {columnSettingsType} from "./interfaces"
+import {nodeType, singleColumnSettingsType, textNodeType} from "./interfaces"
 
 /**
  * Check is item is object
@@ -98,12 +98,12 @@ export const truncate = (a: any, b: any, c: any, d: any, ellipsis: string) => {
 }
 
 
-export const objToText = (obj: any) => {
+export const objToText = (obj: (nodeType| textNodeType)) => {
     if (obj.nodeName==="#text") {
         return obj.data
     }
     if (obj.childNodes) {
-        return obj.childNodes.map((childNode: any) => objToText(childNode)).join("")
+        return obj.childNodes.map((childNode: (nodeType | textNodeType)) => objToText(childNode)).join("")
     }
     return ""
 }
@@ -118,7 +118,7 @@ export const escapeText = function(text: string) {
 }
 
 
-export const visibleToColumnIndex = function(visibleIndex: number, columns: columnSettingsType[]) {
+export const visibleToColumnIndex = function(visibleIndex: number, columns: singleColumnSettingsType[]) {
     let counter = 0
     let columnIndex = 0
     while (counter < (visibleIndex+1)) {

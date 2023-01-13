@@ -15,7 +15,7 @@ import {
     visibleToColumnIndex
 } from "./helpers"
 import {
-    columnSettingsType,
+    singleColumnSettingsType,
     DataTableOptions,
     headerCellType,
     nodeType,
@@ -27,7 +27,7 @@ import {
 export class DataTable {
     columnSettings: {
         sort: false | {column: number, dir: "asc" | "desc"},
-        columns: (columnSettingsType | undefined)[]
+        columns: (singleColumnSettingsType | undefined)[]
     }
 
     columnWidths: number[]

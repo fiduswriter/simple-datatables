@@ -2722,7 +2722,7 @@ var Rows = /** @class */ (function () {
     Rows.prototype.findRowIndex = function (columnIndex, value) {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
-        return this.dt.data.data.findIndex(function (row) { return String(row[columnIndex].data).toLowerCase().includes(String(value).toLowerCase()); });
+        return this.dt.data.data.findIndex(function (row) { var _a; return ((_a = row[columnIndex].text) !== null && _a !== void 0 ? _a : String(row[columnIndex].data)).toLowerCase().includes(String(value).toLowerCase()); });
     };
     /**
      * Find index, row, and column data by searching for a value in a column
@@ -3551,11 +3551,9 @@ var DataTable = /** @class */ (function () {
                     if ((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
                         return 0;
                     }
-                    else {
-                        var width = activeDOMHeadings_1[domCounter_1].offsetWidth;
-                        domCounter_1 += 1;
-                        return width;
-                    }
+                    var width = activeDOMHeadings_1[domCounter_1].offsetWidth;
+                    domCounter_1 += 1;
+                    return width;
                 });
                 var totalOffsetWidth_1 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
                 this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
@@ -3618,11 +3616,9 @@ var DataTable = /** @class */ (function () {
                     if ((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
                         return 0;
                     }
-                    else {
-                        var width = activeDOMHeadings_2[domCounter_2].offsetWidth;
-                        domCounter_2 += 1;
-                        return width;
-                    }
+                    var width = activeDOMHeadings_2[domCounter_2].offsetWidth;
+                    domCounter_2 += 1;
+                    return width;
                 });
                 var totalOffsetWidth_2 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
                 this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });

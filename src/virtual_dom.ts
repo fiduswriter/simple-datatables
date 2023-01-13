@@ -1,6 +1,6 @@
 import {stringToObj} from "diff-dom"
 
-import {cellType, DataTableOptions, headerCellType, nodeType, renderOptions} from "./interfaces"
+import {allColumnSettingsType, cellType, DataTableOptions, headerCellType, nodeType, renderOptions} from "./interfaces"
 
 
 export const headingsToVirtualHeaderRowDOM = (
@@ -79,7 +79,7 @@ export const headingsToVirtualHeaderRowDOM = (
     ).filter((column: (nodeType | void)) => column)
 })
 
-export const dataToVirtualDOM = (id: string, headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: any, columnWidths: number[], rowCursor: (number | false), {
+export const dataToVirtualDOM = (id: string, headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: allColumnSettingsType, columnWidths: number[], rowCursor: (number | false), {
     classes,
     hiddenHeader,
     header,
@@ -137,7 +137,7 @@ export const dataToVirtualDOM = (id: string, headings: headerCellType[], rows: {
                                         }
                                     }
                                     if (column.render) {
-                                        const renderedCell : (nodeType | void) = column.render(cell.data, td, index, cIndex)
+                                        const renderedCell : (string | nodeType | void) = column.render(cell.data, td, index, cIndex)
                                         if (renderedCell) {
                                             if (typeof renderedCell === "string") {
                                                 // Convenience method to make it work similarly to what it did up to version 5.

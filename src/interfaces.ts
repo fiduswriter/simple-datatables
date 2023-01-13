@@ -347,7 +347,7 @@ interface DataTableOptions{
 
 }
 
-interface columnSettingsType {
+interface singleColumnSettingsType {
     render?: renderType,
     type?: "date",
     format?: string,
@@ -356,6 +356,11 @@ interface columnSettingsType {
     filter?: object[],
     sort?: "asc" | "desc",
     sortSequence?: ("asc" | "desc")[],
+}
+
+interface allColumnSettingsType {
+    columns: (singleColumnSettingsType | undefined)[],
+    sort: (false | {column: number, dir: "asc" | "desc"})
 }
 
 interface renderOptions {
@@ -367,8 +372,8 @@ interface renderOptions {
 
 
 export {
+    allColumnSettingsType,
     cellType,
-    columnSettingsType,
     DataOption,
     DataTableOptions,
     headerCellType,
@@ -378,5 +383,7 @@ export {
     renderOptions,
     renderType,
     rowRenderType,
-    TableDataType
+    singleColumnSettingsType,
+    TableDataType,
+    textNodeType
 }
