@@ -17,7 +17,7 @@ export default [
             commonjs()
         ],
         output: {
-            file: "docs/dist/module.js",
+            file: "docs/demos/dist/module.js",
             inlineDynamicImports: true,
             format: "es",
             sourcemap: true
