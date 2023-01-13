@@ -224,7 +224,7 @@ export class Editor {
      * @return {Void}
      */
     editCell(td: any) {
-        const columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columnSettings.columns)
+        const columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columns.settings.columns)
         if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu()
             return
@@ -293,7 +293,8 @@ export class Editor {
         // Set the cell content
         this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = {data: value.trim()}
         this.closeModal()
-        this.dt.fixColumns()
+        this.dt.columns.measureWidths()
+        this.dt.update()
         this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex)
         this.data = {}
     }
@@ -336,7 +337,7 @@ export class Editor {
         }
         // Add the inputs for each cell
         row.forEach((cell: any, i: any) => {
-            const columnSettings = this.dt.columnSettings.columns[i] || {}
+            const columnSettings = this.dt.columns.settings.columns[i] || {}
             if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 const label = this.dt.data.headings[i].text || String(this.dt.data.headings[i].data)
                 form.insertBefore(createElement("div", {

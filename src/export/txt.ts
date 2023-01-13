@@ -15,8 +15,8 @@ import {DataTable} from "../datatable"
  }
 
 
-export const exportTXT = function(dataTable: DataTable, userOptions : txtUserOptions = {}) {
-    if (!dataTable.hasHeadings && !dataTable.hasRows) return false
+export const exportTXT = function(dt: DataTable, userOptions : txtUserOptions = {}) {
+    if (!dt.hasHeadings && !dt.hasRows) return false
 
     const defaults = {
         download: true,
@@ -35,10 +35,10 @@ export const exportTXT = function(dataTable: DataTable, userOptions : txtUserOpt
         ...userOptions
     }
 
-    const columnShown = (index: any) => !options.skipColumn.includes(index) && !dataTable.columnSettings.columns[index]?.hidden
+    const columnShown = (index: any) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
 
     let rows : (string | number | boolean)[][] = []
-    const headers = dataTable.data.headings.filter((_heading: any, index: any) => columnShown(index)).map((header: any) => header.text ?? header.data)
+    const headers = dt.data.headings.filter((_heading: any, index: any) => columnShown(index)).map((header: any) => header.text ?? header.data)
     // Include headings
     rows[0] = headers
 
@@ -48,13 +48,13 @@ export const exportTXT = function(dataTable: DataTable, userOptions : txtUserOpt
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
             }
         } else {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+            rows = rows.concat(dt.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
         }
     } else {
-        rows = rows.concat(dataTable.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+        rows = rows.concat(dt.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
     }
 
     // Only proceed if we have data

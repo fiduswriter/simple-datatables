@@ -1,7 +1,6 @@
 import {DiffDOM, nodeToObj} from "diff-dom"
 
 import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
-import {readColumnSettings} from "./column_settings"
 import {readTableData, readDataCell} from "./read_data"
 import {Rows} from "./rows"
 import {Columns} from "./columns"
@@ -15,9 +14,7 @@ import {
     visibleToColumnIndex
 } from "./helpers"
 import {
-    singleColumnSettingsType,
     DataTableOptions,
-    headerCellType,
     nodeType,
     renderOptions,
     TableDataType
@@ -25,12 +22,6 @@ import {
 
 
 export class DataTable {
-    columnSettings: {
-        sort: false | {column: number, dir: "asc" | "desc"},
-        columns: (singleColumnSettingsType | undefined)[]
-    }
-
-    columnWidths: number[]
 
     columns: Columns
 
@@ -142,7 +133,6 @@ export class DataTable {
         this.hasHeadings = false
         this.hasRows = false
 
-        this.columnWidths = []
         this.filterStates = []
 
         this.init()
@@ -161,8 +151,7 @@ export class DataTable {
         this.rows = new Rows(this)
         this.columns = new Columns(this)
 
-        this.columnSettings = readColumnSettings(this.options.columns)
-        this.data = readTableData(this.options.data, this.dom, this.columnSettings)
+        this.data = readTableData(this.options.data, this.dom, this.columns.settings)
         this.hasRows = Boolean(this.data.data.length)
         this.hasHeadings = Boolean(this.data.headings.length)
 
@@ -303,12 +292,13 @@ export class DataTable {
 
         this.bindEvents()
 
-        if (this.columnSettings.sort) {
-            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true)
+        if (this.columns.settings.sort) {
+            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
         }
 
         // // Fix columns
-        this.fixColumns()
+        this.columns.measureWidths()
+        this.update()
     }
 
     renderTable(renderOptions: renderOptions ={}) {
@@ -322,8 +312,8 @@ export class DataTable {
                     row,
                     index
                 })),
-            this.columnSettings,
-            this.columnWidths,
+            this.columns.settings,
+            this.columns.widths,
             this.rows.cursor,
             this.options,
             renderOptions
@@ -464,6 +454,63 @@ export class DataTable {
         }
     }
 
+    // Render header that is not in the same table element as the remainder
+    // of the table. Used for tables with scrollY.
+    renderSeparateHeader() {
+        const container = this.dom.parentElement
+        if (!this.headerDOM) {
+            this.headerDOM = document.createElement("div")
+            this.virtualHeaderDOM = {
+                nodeName: "DIV"
+            }
+
+        }
+        container.parentElement.insertBefore(this.headerDOM, container)
+        const newVirtualHeaderDOM = {
+            nodeName: "DIV",
+            attributes: {
+                class: this.options.classes.headercontainer
+            },
+            childNodes: [
+                {
+                    nodeName: "TABLE",
+                    attributes: {
+                        class: this.options.classes.table
+                    },
+                    childNodes: [
+                        {
+                            nodeName: "THEAD",
+                            childNodes: [
+                                headingsToVirtualHeaderRowDOM(
+                                    this.data.headings, this.columns.settings, this.columns.widths, this.options, {unhideHeader: true})
+                            ]
+
+                        }
+
+                    ]
+                }
+            ]
+        }
+        const diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM)
+        this.dd.apply(this.headerDOM, diff)
+        this.virtualHeaderDOM = newVirtualHeaderDOM
+
+        // Compensate for scrollbars
+        const paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth
+        if (paddingRight) {
+            const paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM)
+            paddedVirtualHeaderDOM.attributes.style = `padding-right: ${paddingRight}px;`
+            const diff = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM)
+            this.dd.apply(this.headerDOM, diff)
+            this.virtualHeaderDOM = paddedVirtualHeaderDOM
+        }
+
+        if (container.scrollHeight > container.clientHeight) {
+            // scrollbars on one page means scrollbars on all pages.
+            container.style.overflowY = "scroll"
+        }
+    }
+
     /**
      * Bind event listeners
      * @return {[type]} [description]
@@ -506,7 +553,7 @@ export class DataTable {
                     t.parentNode.getAttribute("data-sortable") != "false"
                 ) {
                     const visibleIndex = Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode)
-                    const columnIndex = visibleToColumnIndex(visibleIndex, this.columnSettings.columns)
+                    const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings.columns)
                     this.columns.sort(columnIndex)
                     e.preventDefault()
                 }
@@ -582,7 +629,8 @@ export class DataTable {
             // No longer shown, likely no longer part of DOM. Give up.
             return
         }
-        this.fixColumns()
+        this.columns.measureWidths()
+        this.update()
     }
 
     /**
@@ -628,6 +676,10 @@ export class DataTable {
 
         this.renderPager()
 
+        if (this.options.scrollY.length) {
+            this.renderSeparateHeader()
+        }
+
         this.emit("datatable.update")
     }
 
@@ -668,132 +720,6 @@ export class DataTable {
         this.currentPage = 1
 
         return this.totalPages
-    }
-
-    /**
-     * Fix column widths
-     */
-    fixColumns() {
-        const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columnSettings.columns[index]?.hidden)
-        if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.length) {
-
-            this.columnWidths = []
-            const renderOptions: {noPaging?: true, noColumnWidths?: true, unhideHeader?: true, renderHeader?: true} = {
-                noPaging: true
-            }
-            // If we have headings we need only set the widths on them
-            // otherwise we need a temp header and the widths need applying to all cells
-            if (this.options.header || this.options.footer) {
-
-                if (this.options.scrollY.length) {
-                    renderOptions.unhideHeader = true
-                }
-                if (this.headerDOM) {
-                    // Remove headerDOM for accurate measurements
-                    this.headerDOM.parentElement.removeChild(this.headerDOM)
-                }
-
-                // Reset widths
-                renderOptions.noColumnWidths = true
-                this.renderTable(renderOptions)
-
-                const activeDOMHeadings : HTMLTableCellElement[] = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
-                let domCounter = 0
-                const absoluteColumnWidths = this.data.headings.map((_heading: headerCellType, index: number) => {
-                    if (this.columnSettings.columns[index]?.hidden) {
-                        return 0
-                    }
-                    const width = activeDOMHeadings[domCounter].offsetWidth
-                    domCounter += 1
-                    return width
-
-                })
-                const totalOffsetWidth = absoluteColumnWidths.reduce(
-                    (total, cellWidth) => total + cellWidth,
-                    0
-                )
-                this.columnWidths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
-
-
-                if (this.options.scrollY.length) {
-                    const container = this.dom.parentElement
-                    if (!this.headerDOM) {
-                        this.headerDOM = document.createElement("div")
-                        this.virtualHeaderDOM = {
-                            nodeName: "DIV"
-                        }
-
-                    }
-                    container.parentElement.insertBefore(this.headerDOM, container)
-                    const newVirtualHeaderDOM = {
-                        nodeName: "DIV",
-                        attributes: {
-                            class: this.options.classes.headercontainer
-                        },
-                        childNodes: [
-                            {
-                                nodeName: "TABLE",
-                                attributes: {
-                                    class: this.options.classes.table
-                                },
-                                childNodes: [
-                                    {
-                                        nodeName: "THEAD",
-                                        childNodes: [
-                                            headingsToVirtualHeaderRowDOM(
-                                                this.data.headings, this.columnSettings, this.columnWidths, this.options, {unhideHeader: true})
-                                        ]
-
-                                    }
-
-                                ]
-                            }
-                        ]
-                    }
-                    const diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM)
-                    this.dd.apply(this.headerDOM, diff)
-                    this.virtualHeaderDOM = newVirtualHeaderDOM
-
-                    // Compensate for scrollbars
-                    const paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth
-                    if (paddingRight) {
-                        const paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM)
-                        paddedVirtualHeaderDOM.attributes.style = `padding-right: ${paddingRight}px;`
-                        const diff = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM)
-                        this.dd.apply(this.headerDOM, diff)
-                        this.virtualHeaderDOM = paddedVirtualHeaderDOM
-                    }
-
-                    if (container.scrollHeight > container.clientHeight) {
-                        // scrollbars on one page means scrollbars on all pages.
-                        container.style.overflowY = "scroll"
-                    }
-                }
-
-            } else {
-                renderOptions.renderHeader = true
-                this.renderTable(renderOptions)
-
-                const activeDOMHeadings: HTMLTableCellElement[] = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
-                let domCounter = 0
-                const absoluteColumnWidths = this.data.headings.map((_heading: headerCellType, index: number) => {
-                    if (this.columnSettings.columns[index]?.hidden) {
-                        return 0
-                    }
-                    const width = activeDOMHeadings[domCounter].offsetWidth
-                    domCounter += 1
-                    return width
-
-                })
-                const totalOffsetWidth = absoluteColumnWidths.reduce(
-                    (total, cellWidth) => total + cellWidth,
-                    0
-                )
-                this.columnWidths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
-            }
-            // render table without options for measurements
-            this.renderTable()
-        }
     }
 
     /**
@@ -899,7 +825,7 @@ export class DataTable {
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(data, undefined, this.columnSettings)
+                    this.data = readTableData(data, undefined, this.columns.settings)
                     this.hasRows = Boolean(this.data.data.length)
                     this.hasHeadings = Boolean(this.data.headings.length)
                 }
@@ -926,19 +852,19 @@ export class DataTable {
 
         if (rows.length) {
             rows.forEach((row: any) => this.data.data.push(row.map((cell: any, index: any) => {
-                const cellOut = readDataCell(cell, this.columnSettings.columns[index])
+                const cellOut = readDataCell(cell, this.columns.settings.columns[index])
                 return cellOut
             })))
             this.hasRows = true
         }
 
 
-        if (this.columnSettings.sort) {
-            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true)
+        if (this.columns.settings.sort) {
+            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
         } else {
             this.update(false)
         }
-        this.fixColumns()
+        this.columns.measureWidths()
     }
 
     /**
@@ -969,8 +895,8 @@ export class DataTable {
                 row,
                 index
             })),
-            this.columnSettings,
-            this.columnWidths,
+            this.columns.settings,
+            this.columns.widths,
             false, // No row cursor
             this.options,
             {
@@ -996,7 +922,7 @@ export class DataTable {
      * Show a message in the table
      */
     setMessage(message: any) {
-        const activeHeadings = this.data.headings.filter((heading: any, index: any) => !this.columnSettings.columns[index]?.hidden)
+        const activeHeadings = this.data.headings.filter((heading: any, index: any) => !this.columns.settings.columns[index]?.hidden)
         const colspan = activeHeadings.length || 1
 
         this.wrapper.classList.add(this.options.classes.empty)

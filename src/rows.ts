@@ -36,7 +36,7 @@ export class Rows {
      */
     add(data: cellType[]) {
         const row = data.map((cell: cellType, index: number) => {
-            const columnSettings = this.dt.columnSettings.columns[index] || {}
+            const columnSettings = this.dt.columns.settings.columns[index] || {}
             return readDataCell(cell, columnSettings)
         })
         this.dt.data.data.push(row)
@@ -45,9 +45,8 @@ export class Rows {
         if ( this.dt.data.data.length ) {
             this.dt.hasRows = true
         }
-        this.dt.update(false)
-        this.dt.fixColumns()
-
+        this.dt.columns.measureWidths()
+        this.dt.update()
     }
 
     /**
@@ -60,8 +59,8 @@ export class Rows {
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false
             }
-            this.dt.update(false)
-            this.dt.fixColumns()
+            this.dt.columns.measureWidths()
+            this.dt.update()
         } else {
             return this.remove([select])
         }
@@ -110,11 +109,11 @@ export class Rows {
      */
     updateRow(select: number, data: inputCellType[]) {
         const row = data.map((cell: inputCellType, index: number) => {
-            const columnSettings = this.dt.columnSettings.columns[index] || {}
+            const columnSettings = this.dt.columns.settings.columns[index] || {}
             return readDataCell(cell, columnSettings)
         })
         this.dt.data.data.splice(select, 1, row)
-        this.dt.update(false)
-        this.dt.fixColumns()
+        this.dt.columns.measureWidths()
+        this.dt.update()
     }
 }

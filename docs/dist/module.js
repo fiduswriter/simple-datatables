@@ -2325,50 +2325,6 @@ var dataToVirtualDOM = function (id, headings, rows, columnSettings, columnWidth
     return table;
 };
 
-var readColumnSettings = function (columnOptions) {
-    if (columnOptions === void 0) { columnOptions = []; }
-    var columns = [];
-    var sort = false;
-    // Check for the columns option
-    columnOptions.forEach(function (data) {
-        // convert single column selection to array
-        var columnSelectors = Array.isArray(data.select) ? data.select : [data.select];
-        columnSelectors.forEach(function (selector) {
-            if (!columns[selector]) {
-                columns[selector] = {};
-            }
-            var column = columns[selector];
-            if (data.render) {
-                column.render = data.render;
-            }
-            if (data.type) {
-                column.type = data.type;
-            }
-            if (data.format) {
-                column.format = data.format;
-            }
-            if (data.sortable === false) {
-                column.notSortable = true;
-            }
-            if (data.hidden) {
-                column.hidden = true;
-            }
-            if (data.filter) {
-                column.filter = data.filter;
-            }
-            if (data.sortSequence) {
-                column.sortSequence = data.sortSequence;
-            }
-            if (data.sort) {
-                // We only allow one. The last one will overwrite all other options
-                sort = { column: selector,
-                    dir: data.sort };
-            }
-        });
-    });
-    return { columns: columns, sort: sort };
-};
-
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 var dayjs_minExports = {};
@@ -2688,7 +2644,7 @@ var Rows = /** @class */ (function () {
     Rows.prototype.add = function (data) {
         var _this = this;
         var row = data.map(function (cell, index) {
-            var columnSettings = _this.dt.columnSettings.columns[index] || {};
+            var columnSettings = _this.dt.columns.settings.columns[index] || {};
             return readDataCell(cell, columnSettings);
         });
         this.dt.data.data.push(row);
@@ -2696,8 +2652,8 @@ var Rows = /** @class */ (function () {
         if (this.dt.data.data.length) {
             this.dt.hasRows = true;
         }
-        this.dt.update(false);
-        this.dt.fixColumns();
+        this.dt.columns.measureWidths();
+        this.dt.update();
     };
     /**
      * Remove row(s)
@@ -2709,8 +2665,8 @@ var Rows = /** @class */ (function () {
             if (!this.dt.data.data.length) {
                 this.dt.hasRows = false;
             }
-            this.dt.update(false);
-            this.dt.fixColumns();
+            this.dt.columns.measureWidths();
+            this.dt.update();
         }
         else {
             return this.remove([select]);
@@ -2755,20 +2711,69 @@ var Rows = /** @class */ (function () {
     Rows.prototype.updateRow = function (select, data) {
         var _this = this;
         var row = data.map(function (cell, index) {
-            var columnSettings = _this.dt.columnSettings.columns[index] || {};
+            var columnSettings = _this.dt.columns.settings.columns[index] || {};
             return readDataCell(cell, columnSettings);
         });
         this.dt.data.data.splice(select, 1, row);
-        this.dt.update(false);
-        this.dt.fixColumns();
+        this.dt.columns.measureWidths();
+        this.dt.update();
     };
     return Rows;
 }());
 
+var readColumnSettings = function (columnOptions) {
+    if (columnOptions === void 0) { columnOptions = []; }
+    var columns = [];
+    var sort = false;
+    // Check for the columns option
+    columnOptions.forEach(function (data) {
+        // convert single column selection to array
+        var columnSelectors = Array.isArray(data.select) ? data.select : [data.select];
+        columnSelectors.forEach(function (selector) {
+            if (!columns[selector]) {
+                columns[selector] = {};
+            }
+            var column = columns[selector];
+            if (data.render) {
+                column.render = data.render;
+            }
+            if (data.type) {
+                column.type = data.type;
+            }
+            if (data.format) {
+                column.format = data.format;
+            }
+            if (data.sortable === false) {
+                column.notSortable = true;
+            }
+            if (data.hidden) {
+                column.hidden = true;
+            }
+            if (data.filter) {
+                column.filter = data.filter;
+            }
+            if (data.sortSequence) {
+                column.sortSequence = data.sortSequence;
+            }
+            if (data.sort) {
+                // We only allow one. The last one will overwrite all other options
+                sort = { column: selector,
+                    dir: data.sort };
+            }
+        });
+    });
+    return { columns: columns, sort: sort };
+};
+
 var Columns = /** @class */ (function () {
     function Columns(dt) {
         this.dt = dt;
+        this.widths = [];
+        this.init();
     }
+    Columns.prototype.init = function () {
+        this.settings = readColumnSettings(this.dt.options.columns);
+    };
     /**
      * Swap two columns
      */
@@ -2791,7 +2796,7 @@ var Columns = /** @class */ (function () {
         var _this = this;
         this.dt.data.headings = columns.map(function (index) { return _this.dt.data.headings[index]; });
         this.dt.data.data = this.dt.data.data.map(function (row) { return columns.map(function (index) { return row[index]; }); });
-        this.dt.columnSettings.columns = columns.map(function (index) { return _this.dt.columnSettings.columns[index]; });
+        this.settings.columns = columns.map(function (index) { return _this.settings.columns[index]; });
         // Update
         this.dt.update();
     };
@@ -2804,10 +2809,10 @@ var Columns = /** @class */ (function () {
             return;
         }
         columns.forEach(function (index) {
-            if (!_this.dt.columnSettings.columns[index]) {
-                _this.dt.columnSettings.columns[index] = {};
+            if (!_this.settings.columns[index]) {
+                _this.settings.columns[index] = {};
             }
-            var column = _this.dt.columnSettings.columns[index];
+            var column = _this.settings.columns[index];
             column.hidden = true;
         });
         this.dt.update();
@@ -2821,10 +2826,10 @@ var Columns = /** @class */ (function () {
             return;
         }
         columns.forEach(function (index) {
-            if (!_this.dt.columnSettings.columns[index]) {
-                _this.dt.columnSettings.columns[index] = {};
+            if (!_this.settings.columns[index]) {
+                _this.settings.columns[index] = {};
             }
-            var column = _this.dt.columnSettings.columns[index];
+            var column = _this.settings.columns[index];
             delete column.hidden;
         });
         this.dt.update();
@@ -2836,9 +2841,9 @@ var Columns = /** @class */ (function () {
         var _this = this;
         var _a;
         if (Array.isArray(columns)) {
-            return columns.map(function (index) { var _a; return !((_a = _this.dt.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
+            return columns.map(function (index) { var _a; return !((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
         }
-        return !((_a = this.dt.columnSettings.columns[columns]) === null || _a === void 0 ? void 0 : _a.hidden);
+        return !((_a = this.settings.columns[columns]) === null || _a === void 0 ? void 0 : _a.hidden);
     };
     /**
      * Add a new column
@@ -2848,10 +2853,10 @@ var Columns = /** @class */ (function () {
         this.dt.data.headings = this.dt.data.headings.concat([{ data: data.heading }]);
         this.dt.data.data = this.dt.data.data.map(function (row, index) { return row.concat([readDataCell(data.data[index], data)]); });
         if (data.type || data.format || data.sortable || data.render) {
-            if (!this.dt.columnSettings.columns[newColumnSelector]) {
-                this.dt.columnSettings.columns[newColumnSelector] = {};
+            if (!this.settings.columns[newColumnSelector]) {
+                this.settings.columns[newColumnSelector] = {};
             }
-            var column = this.dt.columnSettings.columns[newColumnSelector];
+            var column = this.settings.columns[newColumnSelector];
             if (data.type) {
                 column.type = data.type;
             }
@@ -2871,8 +2876,8 @@ var Columns = /** @class */ (function () {
                 column.render = data.render;
             }
         }
-        this.dt.update(false);
-        this.dt.fixColumns();
+        this.measureWidths();
+        this.dt.update();
     };
     /**
      * Remove column(s)
@@ -2881,8 +2886,8 @@ var Columns = /** @class */ (function () {
         if (Array.isArray(columns)) {
             this.dt.data.headings = this.dt.data.headings.filter(function (_heading, index) { return !columns.includes(index); });
             this.dt.data.data = this.dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return !columns.includes(index); }); });
-            this.dt.update(false);
-            this.dt.fixColumns();
+            this.measureWidths();
+            this.dt.update();
         }
         else {
             return this.remove([columns]);
@@ -2894,7 +2899,7 @@ var Columns = /** @class */ (function () {
     Columns.prototype.filter = function (column, init) {
         var _a, _b;
         if (init === void 0) { init = false; }
-        if (!((_b = (_a = this.dt.columnSettings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length)) {
+        if (!((_b = (_a = this.settings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length)) {
             // There is no filter to apply.
             return;
         }
@@ -2902,7 +2907,7 @@ var Columns = /** @class */ (function () {
         var newFilterState;
         if (currentFilter) {
             var returnNext_1 = false;
-            newFilterState = this.dt.columnSettings.columns[column].filter.find(function (filter) {
+            newFilterState = this.settings.columns[column].filter.find(function (filter) {
                 if (returnNext_1) {
                     return true;
                 }
@@ -2913,7 +2918,7 @@ var Columns = /** @class */ (function () {
             });
         }
         else {
-            newFilterState = this.dt.columnSettings.columns[column].filter[0];
+            newFilterState = this.settings.columns[column].filter[0];
         }
         if (currentFilter && newFilterState) {
             currentFilter.state = newFilterState;
@@ -2936,7 +2941,7 @@ var Columns = /** @class */ (function () {
         var _a, _b;
         if (dir === void 0) { dir = undefined; }
         if (init === void 0) { init = false; }
-        var columnSettings = this.dt.columnSettings.columns[column];
+        var columnSettings = this.settings.columns[column];
         // If there is a filter for this column, apply it instead of sorting
         if ((_a = columnSettings === null || columnSettings === void 0 ? void 0 : columnSettings.filter) === null || _a === void 0 ? void 0 : _a.length) {
             return this.filter(column, init);
@@ -2945,7 +2950,7 @@ var Columns = /** @class */ (function () {
             this.dt.emit("datatable.sorting", column, dir);
         }
         if (!dir) {
-            var currentDir = this.dt.columnSettings.sort ? (_b = this.dt.columnSettings.sort) === null || _b === void 0 ? void 0 : _b.dir : false;
+            var currentDir = this.settings.sort ? (_b = this.settings.sort) === null || _b === void 0 ? void 0 : _b.dir : false;
             var sortSequence = (columnSettings === null || columnSettings === void 0 ? void 0 : columnSettings.sortSequence) || ["asc", "desc"];
             if (!currentDir) {
                 dir = sortSequence.length ? sortSequence[0] : "asc";
@@ -2978,16 +2983,71 @@ var Columns = /** @class */ (function () {
             }
             return 0;
         });
-        this.dt.columnSettings.sort = { column: column, dir: dir };
-        if (this.dt.options.scrollY.length) {
-            this.dt.update(false);
-            this.dt.fixColumns();
-        }
-        else {
-            this.dt.update(!init);
-        }
+        this.settings.sort = { column: column, dir: dir };
+        this.dt.update();
         if (!init) {
             this.dt.emit("datatable.sort", column, dir);
+        }
+    };
+    /**
+     * Measure the actual width of cell content by rendering the entire table with all contents.
+     * Note: Destroys current DOM and therefore requires subsequent dt.update()
+     */
+    Columns.prototype.measureWidths = function () {
+        var _this = this;
+        var _a, _b, _c, _d;
+        var activeHeadings = this.dt.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
+        if ((this.dt.options.scrollY.length || this.dt.options.fixedColumns) && (activeHeadings === null || activeHeadings === void 0 ? void 0 : activeHeadings.length)) {
+            this.widths = [];
+            var renderOptions = {
+                noPaging: true
+            };
+            // If we have headings we need only set the widths on them
+            // otherwise we need a temp header and the widths need applying to all cells
+            if (this.dt.options.header || this.dt.options.footer) {
+                if (this.dt.options.scrollY.length) {
+                    renderOptions.unhideHeader = true;
+                }
+                if (this.dt.headerDOM) {
+                    // Remove headerDOM for accurate measurements
+                    this.dt.headerDOM.parentElement.removeChild(this.dt.headerDOM);
+                }
+                // Reset widths
+                renderOptions.noColumnWidths = true;
+                this.dt.renderTable(renderOptions);
+                var activeDOMHeadings_1 = Array.from(((_b = (_a = this.dt.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll("th")) || []);
+                var domCounter_1 = 0;
+                var absoluteColumnWidths = this.dt.data.headings.map(function (_heading, index) {
+                    var _a;
+                    if ((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
+                        return 0;
+                    }
+                    var width = activeDOMHeadings_1[domCounter_1].offsetWidth;
+                    domCounter_1 += 1;
+                    return width;
+                });
+                var totalOffsetWidth_1 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
+                this.widths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
+            }
+            else {
+                renderOptions.renderHeader = true;
+                this.dt.renderTable(renderOptions);
+                var activeDOMHeadings_2 = Array.from(((_d = (_c = this.dt.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll("th")) || []);
+                var domCounter_2 = 0;
+                var absoluteColumnWidths = this.dt.data.headings.map(function (_heading, index) {
+                    var _a;
+                    if ((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
+                        return 0;
+                    }
+                    var width = activeDOMHeadings_2[domCounter_2].offsetWidth;
+                    domCounter_2 += 1;
+                    return width;
+                });
+                var totalOffsetWidth_2 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
+                this.widths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });
+            }
+            // render table without options for measurements
+            this.dt.renderTable();
         }
     };
     return Columns;
@@ -3084,7 +3144,6 @@ var DataTable = /** @class */ (function () {
         this.onFirstPage = true;
         this.hasHeadings = false;
         this.hasRows = false;
-        this.columnWidths = [];
         this.filterStates = [];
         this.init();
     }
@@ -3099,8 +3158,7 @@ var DataTable = /** @class */ (function () {
         this.virtualDOM = nodeToObj(this.dom);
         this.rows = new Rows(this);
         this.columns = new Columns(this);
-        this.columnSettings = readColumnSettings(this.options.columns);
-        this.data = readTableData(this.options.data, this.dom, this.columnSettings);
+        this.data = readTableData(this.options.data, this.dom, this.columns.settings);
         this.hasRows = Boolean(this.data.data.length);
         this.hasHeadings = Boolean(this.data.headings.length);
         this.render();
@@ -3212,11 +3270,12 @@ var DataTable = /** @class */ (function () {
             this.wrapper.classList.add("fixed-columns");
         }
         this.bindEvents();
-        if (this.columnSettings.sort) {
-            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true);
+        if (this.columns.settings.sort) {
+            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true);
         }
         // // Fix columns
-        this.fixColumns();
+        this.columns.measureWidths();
+        this.update();
     };
     DataTable.prototype.renderTable = function (renderOptions) {
         if (renderOptions === void 0) { renderOptions = {}; }
@@ -3225,7 +3284,7 @@ var DataTable = /** @class */ (function () {
             this.data.data.map(function (row, index) { return ({
                 row: row,
                 index: index
-            }); }), this.columnSettings, this.columnWidths, this.rows.cursor, this.options, renderOptions);
+            }); }), this.columns.settings, this.columns.widths, this.rows.cursor, this.options, renderOptions);
         var diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
         this.dd.apply(this.dom, diff);
         this.virtualDOM = newVirtualDOM;
@@ -3337,6 +3396,56 @@ var DataTable = /** @class */ (function () {
             });
         }
     };
+    // Render header that is not in the same table element as the remainder
+    // of the table. Used for tables with scrollY.
+    DataTable.prototype.renderSeparateHeader = function () {
+        var container = this.dom.parentElement;
+        if (!this.headerDOM) {
+            this.headerDOM = document.createElement("div");
+            this.virtualHeaderDOM = {
+                nodeName: "DIV"
+            };
+        }
+        container.parentElement.insertBefore(this.headerDOM, container);
+        var newVirtualHeaderDOM = {
+            nodeName: "DIV",
+            attributes: {
+                "class": this.options.classes.headercontainer
+            },
+            childNodes: [
+                {
+                    nodeName: "TABLE",
+                    attributes: {
+                        "class": this.options.classes.table
+                    },
+                    childNodes: [
+                        {
+                            nodeName: "THEAD",
+                            childNodes: [
+                                headingsToVirtualHeaderRowDOM(this.data.headings, this.columns.settings, this.columns.widths, this.options, { unhideHeader: true })
+                            ]
+                        }
+                    ]
+                }
+            ]
+        };
+        var diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
+        this.dd.apply(this.headerDOM, diff);
+        this.virtualHeaderDOM = newVirtualHeaderDOM;
+        // Compensate for scrollbars
+        var paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth;
+        if (paddingRight) {
+            var paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM);
+            paddedVirtualHeaderDOM.attributes.style = "padding-right: ".concat(paddingRight, "px;");
+            var diff_1 = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM);
+            this.dd.apply(this.headerDOM, diff_1);
+            this.virtualHeaderDOM = paddedVirtualHeaderDOM;
+        }
+        if (container.scrollHeight > container.clientHeight) {
+            // scrollbars on one page means scrollbars on all pages.
+            container.style.overflowY = "scroll";
+        }
+    };
     /**
      * Bind event listeners
      * @return {[type]} [description]
@@ -3375,7 +3484,7 @@ var DataTable = /** @class */ (function () {
                     t.classList.contains(_this.options.classes.sorter) &&
                     t.parentNode.getAttribute("data-sortable") != "false") {
                     var visibleIndex = Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode);
-                    var columnIndex = visibleToColumnIndex(visibleIndex, _this.columnSettings.columns);
+                    var columnIndex = visibleToColumnIndex(visibleIndex, _this.columns.settings.columns);
                     _this.columns.sort(columnIndex);
                     e.preventDefault();
                 }
@@ -3453,7 +3562,8 @@ var DataTable = /** @class */ (function () {
             // No longer shown, likely no longer part of DOM. Give up.
             return;
         }
-        this.fixColumns();
+        this.columns.measureWidths();
+        this.update();
     };
     /**
      * Destroy the instance
@@ -3489,6 +3599,9 @@ var DataTable = /** @class */ (function () {
             this.links[i] = button(i === 0 ? "active" : "", num, num);
         }
         this.renderPager();
+        if (this.options.scrollY.length) {
+            this.renderSeparateHeader();
+        }
         this.emit("datatable.update");
     };
     DataTable.prototype.paginate = function () {
@@ -3518,114 +3631,6 @@ var DataTable = /** @class */ (function () {
         this.totalPages = this.lastPage = this.pages.length;
         this.currentPage = 1;
         return this.totalPages;
-    };
-    /**
-     * Fix column widths
-     */
-    DataTable.prototype.fixColumns = function () {
-        var _this = this;
-        var _a, _b, _c, _d;
-        var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
-        if ((this.options.scrollY.length || this.options.fixedColumns) && (activeHeadings === null || activeHeadings === void 0 ? void 0 : activeHeadings.length)) {
-            this.columnWidths = [];
-            var renderOptions = {
-                noPaging: true
-            };
-            // If we have headings we need only set the widths on them
-            // otherwise we need a temp header and the widths need applying to all cells
-            if (this.options.header || this.options.footer) {
-                if (this.options.scrollY.length) {
-                    renderOptions.unhideHeader = true;
-                }
-                if (this.headerDOM) {
-                    // Remove headerDOM for accurate measurements
-                    this.headerDOM.parentElement.removeChild(this.headerDOM);
-                }
-                // Reset widths
-                renderOptions.noColumnWidths = true;
-                this.renderTable(renderOptions);
-                var activeDOMHeadings_1 = Array.from(((_b = (_a = this.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll("th")) || []);
-                var domCounter_1 = 0;
-                var absoluteColumnWidths = this.data.headings.map(function (_heading, index) {
-                    var _a;
-                    if ((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
-                        return 0;
-                    }
-                    var width = activeDOMHeadings_1[domCounter_1].offsetWidth;
-                    domCounter_1 += 1;
-                    return width;
-                });
-                var totalOffsetWidth_1 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
-                this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
-                if (this.options.scrollY.length) {
-                    var container = this.dom.parentElement;
-                    if (!this.headerDOM) {
-                        this.headerDOM = document.createElement("div");
-                        this.virtualHeaderDOM = {
-                            nodeName: "DIV"
-                        };
-                    }
-                    container.parentElement.insertBefore(this.headerDOM, container);
-                    var newVirtualHeaderDOM = {
-                        nodeName: "DIV",
-                        attributes: {
-                            "class": this.options.classes.headercontainer
-                        },
-                        childNodes: [
-                            {
-                                nodeName: "TABLE",
-                                attributes: {
-                                    "class": this.options.classes.table
-                                },
-                                childNodes: [
-                                    {
-                                        nodeName: "THEAD",
-                                        childNodes: [
-                                            headingsToVirtualHeaderRowDOM(this.data.headings, this.columnSettings, this.columnWidths, this.options, { unhideHeader: true })
-                                        ]
-                                    }
-                                ]
-                            }
-                        ]
-                    };
-                    var diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
-                    this.dd.apply(this.headerDOM, diff);
-                    this.virtualHeaderDOM = newVirtualHeaderDOM;
-                    // Compensate for scrollbars
-                    var paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth;
-                    if (paddingRight) {
-                        var paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM);
-                        paddedVirtualHeaderDOM.attributes.style = "padding-right: ".concat(paddingRight, "px;");
-                        var diff_1 = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM);
-                        this.dd.apply(this.headerDOM, diff_1);
-                        this.virtualHeaderDOM = paddedVirtualHeaderDOM;
-                    }
-                    if (container.scrollHeight > container.clientHeight) {
-                        // scrollbars on one page means scrollbars on all pages.
-                        container.style.overflowY = "scroll";
-                    }
-                }
-            }
-            else {
-                renderOptions.renderHeader = true;
-                this.renderTable(renderOptions);
-                var activeDOMHeadings_2 = Array.from(((_d = (_c = this.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll("th")) || []);
-                var domCounter_2 = 0;
-                var absoluteColumnWidths = this.data.headings.map(function (_heading, index) {
-                    var _a;
-                    if ((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
-                        return 0;
-                    }
-                    var width = activeDOMHeadings_2[domCounter_2].offsetWidth;
-                    domCounter_2 += 1;
-                    return width;
-                });
-                var totalOffsetWidth_2 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
-                this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });
-            }
-            // render table without options for measurements
-            this.renderTable();
-        }
     };
     /**
      * Fix the container height
@@ -3714,7 +3719,7 @@ var DataTable = /** @class */ (function () {
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(data, undefined, this.columnSettings);
+                    this.data = readTableData(data, undefined, this.columns.settings);
                     this.hasRows = Boolean(this.data.data.length);
                     this.hasHeadings = Boolean(this.data.headings.length);
                 }
@@ -3739,18 +3744,18 @@ var DataTable = /** @class */ (function () {
         }
         if (rows.length) {
             rows.forEach(function (row) { return _this.data.data.push(row.map(function (cell, index) {
-                var cellOut = readDataCell(cell, _this.columnSettings.columns[index]);
+                var cellOut = readDataCell(cell, _this.columns.settings.columns[index]);
                 return cellOut;
             })); });
             this.hasRows = true;
         }
-        if (this.columnSettings.sort) {
-            this.columns.sort(this.columnSettings.sort.column, this.columnSettings.sort.dir, true);
+        if (this.columns.settings.sort) {
+            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true);
         }
         else {
             this.update(false);
         }
-        this.fixColumns();
+        this.columns.measureWidths();
     };
     /**
      * Refresh the instance
@@ -3774,7 +3779,7 @@ var DataTable = /** @class */ (function () {
         var newTableVirtualDOM = dataToVirtualDOM(this.id, this.data.headings, this.data.data.map(function (row, index) { return ({
             row: row,
             index: index
-        }); }), this.columnSettings, this.columnWidths, false, // No row cursor
+        }); }), this.columns.settings, this.columns.widths, false, // No row cursor
         this.options, {
             noColumnWidths: true,
             unhideHeader: true
@@ -3794,7 +3799,7 @@ var DataTable = /** @class */ (function () {
     DataTable.prototype.setMessage = function (message) {
         var _this = this;
         var _a;
-        var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
+        var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
         var colspan = activeHeadings.length || 1;
         this.wrapper.classList.add(this.options.classes.empty);
         if (this.label) {
@@ -3964,9 +3969,9 @@ var convertJSON = function (userOptions) {
     return false;
 };
 
-var exportCSV = function (dataTable, userOptions) {
+var exportCSV = function (dt, userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
-    if (!dataTable.hasHeadings && !dataTable.hasRows)
+    if (!dt.hasHeadings && !dt.hasRows)
         return false;
     var defaults = {
         download: true,
@@ -3979,9 +3984,9 @@ var exportCSV = function (dataTable, userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
-    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
+    var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
     // Include headings
     rows[0] = headers;
     // Selection or whole table
@@ -3990,15 +3995,15 @@ var exportCSV = function (dataTable, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+            rows = rows.concat(dt.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
     }
     // Only proceed if we have data
     if (rows.length) {
@@ -4043,9 +4048,9 @@ var exportCSV = function (dataTable, userOptions) {
     return false;
 };
 
-var exportJSON = function (dataTable, userOptions) {
+var exportJSON = function (dt, userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
-    if (!dataTable.hasHeadings && !dataTable.hasRows)
+    if (!dt.hasHeadings && !dt.hasRows)
         return false;
     var defaults = {
         download: true,
@@ -4058,7 +4063,7 @@ var exportJSON = function (dataTable, userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
     // Selection or whole table
     if (options.selection) {
@@ -4066,17 +4071,17 @@ var exportJSON = function (dataTable, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
+            rows = rows.concat(dt.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
+        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
     }
-    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
+    var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
     // Only proceed if we have data
     if (rows.length) {
         var arr_1 = [];
@@ -4111,9 +4116,9 @@ var exportJSON = function (dataTable, userOptions) {
     return false;
 };
 
-var exportSQL = function (dataTable, userOptions) {
+var exportSQL = function (dt, userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
-    if (!dataTable.hasHeadings && !dataTable.hasRows)
+    if (!dt.hasHeadings && !dt.hasRows)
         return false;
     var defaults = {
         download: true,
@@ -4125,7 +4130,7 @@ var exportSQL = function (dataTable, userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
     // Selection or whole table
     if (options.selection) {
@@ -4133,17 +4138,17 @@ var exportSQL = function (dataTable, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+            rows = rows.concat(dt.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
     }
-    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
+    var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
@@ -4197,9 +4202,9 @@ var exportSQL = function (dataTable, userOptions) {
     return false;
 };
 
-var exportTXT = function (dataTable, userOptions) {
+var exportTXT = function (dt, userOptions) {
     if (userOptions === void 0) { userOptions = {}; }
-    if (!dataTable.hasHeadings && !dataTable.hasRows)
+    if (!dt.hasHeadings && !dt.hasRows)
         return false;
     var defaults = {
         download: true,
@@ -4212,9 +4217,9 @@ var exportTXT = function (dataTable, userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dataTable.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
-    var headers = dataTable.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
+    var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
     // Include headings
     rows[0] = headers;
     // Selection or whole table
@@ -4223,15 +4228,15 @@ var exportTXT = function (dataTable, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dataTable.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dataTable.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+            rows = rows.concat(dt.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dataTable.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
     }
     // Only proceed if we have data
     if (rows.length) {
@@ -4542,7 +4547,7 @@ var Editor = /** @class */ (function () {
      */
     Editor.prototype.editCell = function (td) {
         var _this = this;
-        var columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columnSettings.columns);
+        var columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columns.settings.columns);
         if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu();
             return;
@@ -4610,7 +4615,8 @@ var Editor = /** @class */ (function () {
         // Set the cell content
         this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = { data: value.trim() };
         this.closeModal();
-        this.dt.fixColumns();
+        this.dt.columns.measureWidths();
+        this.dt.update();
         this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex);
         this.data = {};
     };
@@ -4655,7 +4661,7 @@ var Editor = /** @class */ (function () {
         }
         // Add the inputs for each cell
         row.forEach(function (cell, i) {
-            var columnSettings = _this.dt.columnSettings.columns[i] || {};
+            var columnSettings = _this.dt.columns.settings.columns[i] || {};
             if ((!columnSettings.hidden || (columnSettings.hidden && _this.options.hiddenColumns)) && !_this.options.excludeColumns.includes(i)) {
                 var label = _this.dt.data.headings[i].text || String(_this.dt.data.headings[i].data);
                 form.insertBefore(createElement("div", {
