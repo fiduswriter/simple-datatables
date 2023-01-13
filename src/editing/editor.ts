@@ -293,8 +293,7 @@ export class Editor {
         // Set the cell content
         this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = {data: value.trim()}
         this.closeModal()
-        this.dt.columns.measureWidths()
-        this.dt.update()
+        this.dt.update(true)
         this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex)
         this.data = {}
     }

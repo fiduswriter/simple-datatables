@@ -21,7 +21,7 @@ export class Rows {
         }
         const oldCursor = this.cursor
         this.cursor = index
-        this.dt.renderTable()
+        this.dt._renderTable()
         if (index !== false && this.dt.options.scrollY) {
             const cursorDOM = this.dt.dom.querySelector(`tr.${this.dt.options.classes.cursor}`)
             if (cursorDOM) {
@@ -45,8 +45,7 @@ export class Rows {
         if ( this.dt.data.data.length ) {
             this.dt.hasRows = true
         }
-        this.dt.columns.measureWidths()
-        this.dt.update()
+        this.dt.update(true)
     }
 
     /**
@@ -59,8 +58,7 @@ export class Rows {
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false
             }
-            this.dt.columns.measureWidths()
-            this.dt.update()
+            this.dt.update(true)
         } else {
             return this.remove([select])
         }
@@ -113,7 +111,6 @@ export class Rows {
             return readDataCell(cell, columnSettings)
         })
         this.dt.data.data.splice(select, 1, row)
-        this.dt.columns.measureWidths()
-        this.dt.update()
+        this.dt.update(true)
     }
 }

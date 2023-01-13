@@ -2629,7 +2629,7 @@ var Rows = /** @class */ (function () {
         }
         var oldCursor = this.cursor;
         this.cursor = index;
-        this.dt.renderTable();
+        this.dt._renderTable();
         if (index !== false && this.dt.options.scrollY) {
             var cursorDOM = this.dt.dom.querySelector("tr.".concat(this.dt.options.classes.cursor));
             if (cursorDOM) {
@@ -2652,8 +2652,7 @@ var Rows = /** @class */ (function () {
         if (this.dt.data.data.length) {
             this.dt.hasRows = true;
         }
-        this.dt.columns.measureWidths();
-        this.dt.update();
+        this.dt.update(true);
     };
     /**
      * Remove row(s)
@@ -2665,8 +2664,7 @@ var Rows = /** @class */ (function () {
             if (!this.dt.data.data.length) {
                 this.dt.hasRows = false;
             }
-            this.dt.columns.measureWidths();
-            this.dt.update();
+            this.dt.update(true);
         }
         else {
             return this.remove([select]);
@@ -2715,8 +2713,7 @@ var Rows = /** @class */ (function () {
             return readDataCell(cell, columnSettings);
         });
         this.dt.data.data.splice(select, 1, row);
-        this.dt.columns.measureWidths();
-        this.dt.update();
+        this.dt.update(true);
     };
     return Rows;
 }());
@@ -2876,8 +2873,7 @@ var Columns = /** @class */ (function () {
                 column.render = data.render;
             }
         }
-        this.measureWidths();
-        this.dt.update();
+        this.dt.update(true);
     };
     /**
      * Remove column(s)
@@ -2886,8 +2882,7 @@ var Columns = /** @class */ (function () {
         if (Array.isArray(columns)) {
             this.dt.data.headings = this.dt.data.headings.filter(function (_heading, index) { return !columns.includes(index); });
             this.dt.data.data = this.dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return !columns.includes(index); }); });
-            this.measureWidths();
-            this.dt.update();
+            this.dt.update(true);
         }
         else {
             return this.remove([columns]);
@@ -2984,8 +2979,8 @@ var Columns = /** @class */ (function () {
             return 0;
         });
         this.settings.sort = { column: column, dir: dir };
-        this.dt.update();
         if (!init) {
+            this.dt.update();
             this.dt.emit("datatable.sort", column, dir);
         }
     };
@@ -2993,7 +2988,7 @@ var Columns = /** @class */ (function () {
      * Measure the actual width of cell content by rendering the entire table with all contents.
      * Note: Destroys current DOM and therefore requires subsequent dt.update()
      */
-    Columns.prototype.measureWidths = function () {
+    Columns.prototype._measureWidths = function () {
         var _this = this;
         var _a, _b, _c, _d;
         var activeHeadings = this.dt.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
@@ -3014,7 +3009,7 @@ var Columns = /** @class */ (function () {
                 }
                 // Reset widths
                 renderOptions.noColumnWidths = true;
-                this.dt.renderTable(renderOptions);
+                this.dt._renderTable(renderOptions);
                 var activeDOMHeadings_1 = Array.from(((_b = (_a = this.dt.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll("th")) || []);
                 var domCounter_1 = 0;
                 var absoluteColumnWidths = this.dt.data.headings.map(function (_heading, index) {
@@ -3031,7 +3026,7 @@ var Columns = /** @class */ (function () {
             }
             else {
                 renderOptions.renderHeader = true;
-                this.dt.renderTable(renderOptions);
+                this.dt._renderTable(renderOptions);
                 var activeDOMHeadings_2 = Array.from(((_d = (_c = this.dt.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll("th")) || []);
                 var domCounter_2 = 0;
                 var absoluteColumnWidths = this.dt.data.headings.map(function (_heading, index) {
@@ -3047,7 +3042,7 @@ var Columns = /** @class */ (function () {
                 this.widths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });
             }
             // render table without options for measurements
-            this.dt.renderTable();
+            this.dt._renderTable();
         }
     };
     return Columns;
@@ -3135,7 +3130,7 @@ var DataTable = /** @class */ (function () {
             this.dom.tabIndex = 0;
         }
         this.listeners = {
-            onResize: function () { return _this.onResize(); }
+            onResize: function () { return _this._onResize(); }
         };
         this.dd = new DiffDOM();
         this.initialized = false;
@@ -3161,7 +3156,7 @@ var DataTable = /** @class */ (function () {
         this.data = readTableData(this.options.data, this.dom, this.columns.settings);
         this.hasRows = Boolean(this.data.data.length);
         this.hasHeadings = Boolean(this.data.headings.length);
-        this.render();
+        this._render();
         setTimeout(function () {
             _this.emit("datatable.init");
             _this.initialized = true;
@@ -3170,7 +3165,7 @@ var DataTable = /** @class */ (function () {
     /**
      * Render the instance
      */
-    DataTable.prototype.render = function () {
+    DataTable.prototype._render = function () {
         var _this = this;
         // Build
         this.wrapper = createElement("div", {
@@ -3244,11 +3239,11 @@ var DataTable = /** @class */ (function () {
         this.container.appendChild(this.dom);
         // Store the table dimensions
         this.rect = this.dom.getBoundingClientRect();
-        // // Update
-        this.update(false);
-        //
+        // // // Update
+        // this.update(false)
+        // //
         // // Fix height
-        this.fixHeight();
+        this._fixHeight();
         //
         // Class names
         if (!this.options.header) {
@@ -3269,15 +3264,13 @@ var DataTable = /** @class */ (function () {
         if (this.options.fixedColumns) {
             this.wrapper.classList.add("fixed-columns");
         }
-        this.bindEvents();
+        this._bindEvents();
         if (this.columns.settings.sort) {
             this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true);
         }
-        // // Fix columns
-        this.columns.measureWidths();
-        this.update();
+        this.update(true);
     };
-    DataTable.prototype.renderTable = function (renderOptions) {
+    DataTable.prototype._renderTable = function (renderOptions) {
         if (renderOptions === void 0) { renderOptions = {}; }
         var newVirtualDOM = dataToVirtualDOM(this.id, this.data.headings, this.options.paging && this.currentPage && this.pages.length && !renderOptions.noPaging ?
             this.pages[this.currentPage - 1] :
@@ -3293,18 +3286,15 @@ var DataTable = /** @class */ (function () {
      * Render the page
      * @return {Void}
      */
-    DataTable.prototype.renderPage = function (renderTable, lastRowCursor) {
+    DataTable.prototype._renderPage = function (lastRowCursor) {
         var _this = this;
-        if (renderTable === void 0) { renderTable = true; }
         if (lastRowCursor === void 0) { lastRowCursor = false; }
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
                 this.currentPage = 1;
             }
             // Use a fragment to limit touching the DOM
-            if (renderTable) {
-                this.renderTable();
-            }
+            this._renderTable();
             this.onFirstPage = this.currentPage === 1;
             this.onLastPage = this.currentPage === this.lastPage;
         }
@@ -3334,7 +3324,7 @@ var DataTable = /** @class */ (function () {
             this.label.innerHTML = items ? string : "";
         }
         if (this.currentPage == 1) {
-            this.fixHeight();
+            this._fixHeight();
         }
         if (this.options.rowNavigation && this.currentPage) {
             if (!this.rows.cursor || !this.pages[this.currentPage - 1].find(function (page) { return page.index === _this.rows.cursor; })) {
@@ -3354,7 +3344,7 @@ var DataTable = /** @class */ (function () {
      * Render the pager(s)
      * @return {Void}
      */
-    DataTable.prototype.renderPager = function () {
+    DataTable.prototype._renderPager = function () {
         flush(this.pagers);
         if (this.totalPages > 1) {
             var c = "pager";
@@ -3398,7 +3388,7 @@ var DataTable = /** @class */ (function () {
     };
     // Render header that is not in the same table element as the remainder
     // of the table. Used for tables with scrollY.
-    DataTable.prototype.renderSeparateHeader = function () {
+    DataTable.prototype._renderSeparateHeader = function () {
         var container = this.dom.parentElement;
         if (!this.headerDOM) {
             this.headerDOM = document.createElement("div");
@@ -3450,7 +3440,7 @@ var DataTable = /** @class */ (function () {
      * Bind event listeners
      * @return {[type]} [description]
      */
-    DataTable.prototype.bindEvents = function () {
+    DataTable.prototype._bindEvents = function () {
         var _this = this;
         // Per page selector
         if (this.options.perPageSelect) {
@@ -3460,7 +3450,7 @@ var DataTable = /** @class */ (function () {
                 selector_1.addEventListener("change", function () {
                     _this.options.perPage = parseInt(selector_1.value, 10);
                     _this.update();
-                    _this.fixHeight();
+                    _this._fixHeight();
                     _this.emit("datatable.perpage", _this.options.perPage);
                 }, false);
             }
@@ -3556,14 +3546,13 @@ var DataTable = /** @class */ (function () {
     /**
      * execute on resize
      */
-    DataTable.prototype.onResize = function () {
+    DataTable.prototype._onResize = function () {
         this.rect = this.container.getBoundingClientRect();
         if (!this.rect.width) {
             // No longer shown, likely no longer part of DOM. Give up.
             return;
         }
-        this.columns.measureWidths();
-        this.update();
+        this.update(true);
     };
     /**
      * Destroy the instance
@@ -3587,24 +3576,27 @@ var DataTable = /** @class */ (function () {
      * Update the instance
      * @return {Void}
      */
-    DataTable.prototype.update = function (renderTable) {
-        if (renderTable === void 0) { renderTable = true; }
+    DataTable.prototype.update = function (measureWidths) {
+        if (measureWidths === void 0) { measureWidths = false; }
+        if (measureWidths) {
+            this.columns._measureWidths();
+        }
         this.wrapper.classList.remove(this.options.classes.empty);
-        this.paginate();
-        this.renderPage(renderTable);
+        this._paginate();
+        this._renderPage();
         this.links = [];
         var i = this.pages.length;
         while (i--) {
             var num = i + 1;
             this.links[i] = button(i === 0 ? "active" : "", num, num);
         }
-        this.renderPager();
+        this._renderPager();
         if (this.options.scrollY.length) {
-            this.renderSeparateHeader();
+            this._renderSeparateHeader();
         }
         this.emit("datatable.update");
     };
-    DataTable.prototype.paginate = function () {
+    DataTable.prototype._paginate = function () {
         var _this = this;
         var rows = this.data.data.map(function (row, index) { return ({
             row: row,
@@ -3635,7 +3627,7 @@ var DataTable = /** @class */ (function () {
     /**
      * Fix the container height
      */
-    DataTable.prototype.fixHeight = function () {
+    DataTable.prototype._fixHeight = function () {
         if (this.options.fixedHeight) {
             this.container.style.height = null;
             this.rect = this.container.getBoundingClientRect();
@@ -3706,8 +3698,8 @@ var DataTable = /** @class */ (function () {
         if (page > this.pages.length || page < 0) {
             return false;
         }
-        this.renderPage(undefined, lastRowCursor);
-        this.renderPager();
+        this._renderPage(lastRowCursor);
+        this._renderPager();
         this.emit("datatable.page", page);
     };
     /**
@@ -3752,10 +3744,7 @@ var DataTable = /** @class */ (function () {
         if (this.columns.settings.sort) {
             this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true);
         }
-        else {
-            this.update(false);
-        }
-        this.columns.measureWidths();
+        this.update(true);
     };
     /**
      * Refresh the instance
@@ -3767,7 +3756,7 @@ var DataTable = /** @class */ (function () {
         }
         this.currentPage = 1;
         this.onFirstPage = true;
-        this.update();
+        this.update(true);
         this.emit("datatable.refresh");
     };
     /**
@@ -3806,7 +3795,7 @@ var DataTable = /** @class */ (function () {
             this.label.innerHTML = "";
         }
         this.totalPages = 0;
-        this.renderPager();
+        this._renderPager();
         var newVirtualDOM = structuredClone(this.virtualDOM);
         var tbody = (_a = newVirtualDOM.childNodes) === null || _a === void 0 ? void 0 : _a.find(function (node) { return node.nodeName === "TBODY"; });
         if (!tbody) {
@@ -4615,8 +4604,7 @@ var Editor = /** @class */ (function () {
         // Set the cell content
         this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = { data: value.trim() };
         this.closeModal();
-        this.dt.columns.measureWidths();
-        this.dt.update();
+        this.dt.update(true);
         this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex);
         this.data = {};
     };

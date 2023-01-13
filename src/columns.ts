@@ -137,8 +137,7 @@ export class Columns {
                 column.render = data.render
             }
         }
-        this.measureWidths()
-        this.dt.update()
+        this.dt.update(true)
     }
 
     /**
@@ -150,8 +149,7 @@ export class Columns {
             this.dt.data.data = this.dt.data.data.map(
                 (row: any) => row.filter((_cell: any, index: any) => !columns.includes(index))
             )
-            this.measureWidths()
-            this.dt.update()
+            this.dt.update(true)
         } else {
             return this.remove([columns])
         }
@@ -250,9 +248,8 @@ export class Columns {
 
         this.settings.sort = {column,
             dir}
-        this.dt.update()
-
         if (!init) {
+            this.dt.update()
             this.dt.emit("datatable.sort", column, dir)
         }
     }
@@ -261,7 +258,7 @@ export class Columns {
      * Measure the actual width of cell content by rendering the entire table with all contents.
      * Note: Destroys current DOM and therefore requires subsequent dt.update()
      */
-    measureWidths() {
+    _measureWidths() {
         const activeHeadings = this.dt.data.headings.filter((heading: headerCellType, index: number) => !this.settings.columns[index]?.hidden)
         if ((this.dt.options.scrollY.length || this.dt.options.fixedColumns) && activeHeadings?.length) {
 
@@ -283,7 +280,7 @@ export class Columns {
 
                 // Reset widths
                 renderOptions.noColumnWidths = true
-                this.dt.renderTable(renderOptions)
+                this.dt._renderTable(renderOptions)
 
                 const activeDOMHeadings : HTMLTableCellElement[] = Array.from(this.dt.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
                 let domCounter = 0
@@ -304,7 +301,7 @@ export class Columns {
 
             } else {
                 renderOptions.renderHeader = true
-                this.dt.renderTable(renderOptions)
+                this.dt._renderTable(renderOptions)
 
                 const activeDOMHeadings: HTMLTableCellElement[] = Array.from(this.dt.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
                 let domCounter = 0
@@ -324,7 +321,7 @@ export class Columns {
                 this.widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
             }
             // render table without options for measurements
-            this.dt.renderTable()
+            this.dt._renderTable()
         }
     }
 }

@@ -15,6 +15,7 @@ import {
 } from "./helpers"
 import {
     DataTableOptions,
+    headerCellType,
     nodeType,
     renderOptions,
     TableDataType
@@ -120,7 +121,7 @@ export class DataTable {
         }
 
         this.listeners = {
-            onResize: () => this.onResize()
+            onResize: () => this._onResize()
         }
 
         this.dd = new DiffDOM()
@@ -156,7 +157,7 @@ export class DataTable {
         this.hasHeadings = Boolean(this.data.headings.length)
 
 
-        this.render()
+        this._render()
 
         setTimeout(() => {
             this.emit("datatable.init")
@@ -168,7 +169,7 @@ export class DataTable {
     /**
      * Render the instance
      */
-    render() {
+    _render() {
 
         // Build
         this.wrapper = createElement("div", {
@@ -257,11 +258,8 @@ export class DataTable {
         // Store the table dimensions
         this.rect = this.dom.getBoundingClientRect()
 
-        // // Update
-        this.update(false)
-        //
         // // Fix height
-        this.fixHeight()
+        this._fixHeight()
         //
 
 
@@ -290,18 +288,16 @@ export class DataTable {
             this.wrapper.classList.add("fixed-columns")
         }
 
-        this.bindEvents()
+        this._bindEvents()
 
         if (this.columns.settings.sort) {
             this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
         }
 
-        // // Fix columns
-        this.columns.measureWidths()
-        this.update()
+        this.update(true)
     }
 
-    renderTable(renderOptions: renderOptions ={}) {
+    _renderTable(renderOptions: renderOptions ={}) {
         const newVirtualDOM = dataToVirtualDOM(
             this.id,
             this.data.headings,
@@ -327,16 +323,14 @@ export class DataTable {
      * Render the page
      * @return {Void}
      */
-    renderPage(renderTable=true, lastRowCursor=false) {
+    _renderPage(lastRowCursor=false) {
         if (this.hasRows && this.totalPages) {
             if (this.currentPage > this.totalPages) {
                 this.currentPage = 1
             }
 
             // Use a fragment to limit touching the DOM
-            if (renderTable) {
-                this.renderTable()
-            }
+            this._renderTable()
 
             this.onFirstPage = this.currentPage === 1
             this.onLastPage = this.currentPage === this.lastPage
@@ -372,7 +366,7 @@ export class DataTable {
         }
 
         if (this.currentPage == 1) {
-            this.fixHeight()
+            this._fixHeight()
         }
 
         if (this.options.rowNavigation && this.currentPage) {
@@ -393,7 +387,7 @@ export class DataTable {
      * Render the pager(s)
      * @return {Void}
      */
-    renderPager() {
+    _renderPager() {
         flush(this.pagers)
 
         if (this.totalPages > 1) {
@@ -455,7 +449,7 @@ export class DataTable {
 
     // Render header that is not in the same table element as the remainder
     // of the table. Used for tables with scrollY.
-    renderSeparateHeader() {
+    _renderSeparateHeader() {
         const container = this.dom.parentElement
         if (!this.headerDOM) {
             this.headerDOM = document.createElement("div")
@@ -514,7 +508,7 @@ export class DataTable {
      * Bind event listeners
      * @return {[type]} [description]
      */
-    bindEvents() {
+    _bindEvents() {
         // Per page selector
         if (this.options.perPageSelect) {
             const selector = this.wrapper.querySelector(`select.${this.options.classes.selector}`)
@@ -524,7 +518,7 @@ export class DataTable {
                     this.options.perPage = parseInt(selector.value, 10)
                     this.update()
 
-                    this.fixHeight()
+                    this._fixHeight()
 
                     this.emit("datatable.perpage", this.options.perPage)
                 }, false)
@@ -622,14 +616,13 @@ export class DataTable {
     /**
      * execute on resize
      */
-    onResize() {
+    _onResize() {
         this.rect = this.container.getBoundingClientRect()
         if (!this.rect.width) {
             // No longer shown, likely no longer part of DOM. Give up.
             return
         }
-        this.columns.measureWidths()
-        this.update()
+        this.update(true)
     }
 
     /**
@@ -659,11 +652,14 @@ export class DataTable {
      * Update the instance
      * @return {Void}
      */
-    update(renderTable = true) {
+    update(measureWidths = false) {
+        if (measureWidths) {
+            this.columns._measureWidths()
+        }
         this.wrapper.classList.remove(this.options.classes.empty)
 
-        this.paginate()
-        this.renderPage(renderTable)
+        this._paginate()
+        this._renderPage()
 
         this.links = []
 
@@ -673,16 +669,16 @@ export class DataTable {
             this.links[i] = button(i === 0 ? "active" : "", num, num)
         }
 
-        this.renderPager()
+        this._renderPager()
 
         if (this.options.scrollY.length) {
-            this.renderSeparateHeader()
+            this._renderSeparateHeader()
         }
 
         this.emit("datatable.update")
     }
 
-    paginate() {
+    _paginate() {
         let rows = this.data.data.map((row, index) => ({
             row,
             index
@@ -723,7 +719,7 @@ export class DataTable {
     /**
      * Fix the container height
      */
-    fixHeight() {
+    _fixHeight() {
         if (this.options.fixedHeight) {
             this.container.style.height = null
             this.rect = this.container.getBoundingClientRect()
@@ -809,8 +805,8 @@ export class DataTable {
             return false
         }
 
-        this.renderPage(undefined, lastRowCursor)
-        this.renderPager()
+        this._renderPage(lastRowCursor)
+        this._renderPager()
 
         this.emit("datatable.page", page)
     }
@@ -859,10 +855,9 @@ export class DataTable {
 
         if (this.columns.settings.sort) {
             this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
-        } else {
-            this.update(false)
         }
-        this.columns.measureWidths()
+
+        this.update(true)
     }
 
     /**
@@ -875,7 +870,7 @@ export class DataTable {
         }
         this.currentPage = 1
         this.onFirstPage = true
-        this.update()
+        this.update(true)
 
         this.emit("datatable.refresh")
     }
@@ -920,7 +915,7 @@ export class DataTable {
      * Show a message in the table
      */
     setMessage(message: any) {
-        const activeHeadings = this.data.headings.filter((heading: any, index: any) => !this.columns.settings.columns[index]?.hidden)
+        const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columns.settings.columns[index]?.hidden)
         const colspan = activeHeadings.length || 1
 
         this.wrapper.classList.add(this.options.classes.empty)
@@ -929,7 +924,7 @@ export class DataTable {
             this.label.innerHTML = ""
         }
         this.totalPages = 0
-        this.renderPager()
+        this._renderPager()
 
         const newVirtualDOM = structuredClone(this.virtualDOM)
 
