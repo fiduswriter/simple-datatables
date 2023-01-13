@@ -2979,7 +2979,13 @@ var Columns = /** @class */ (function () {
             return 0;
         });
         this.dt.columnSettings.sort = { column: column, dir: dir };
-        this.dt.update(!init);
+        if (this.dt.options.scrollY.length) {
+            this.dt.update(false);
+            this.dt.fixColumns();
+        }
+        else {
+            this.dt.update(!init);
+        }
         if (!init) {
             this.dt.emit("datatable.sort", column, dir);
         }
