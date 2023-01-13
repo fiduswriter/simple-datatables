@@ -17,6 +17,7 @@ import {
 import {
     columnSettingsType,
     DataTableOptions,
+    headerCellType,
     nodeType,
     renderOptions,
     TableDataType
@@ -673,7 +674,7 @@ export class DataTable {
      * Fix column widths
      */
     fixColumns() {
-        const activeHeadings = this.data.headings.filter((heading: any, index: any) => !this.columnSettings.columns[index]?.hidden)
+        const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columnSettings.columns[index]?.hidden)
         if ((this.options.scrollY.length || this.options.fixedColumns) && activeHeadings?.length) {
 
             this.columnWidths = []
@@ -697,7 +698,16 @@ export class DataTable {
                 this.renderTable(renderOptions)
 
                 const activeDOMHeadings : HTMLTableCellElement[] = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
-                const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth)
+                let domCounter = 0
+                const absoluteColumnWidths = this.data.headings.map((_heading: headerCellType, index: number) => {
+                    if (this.columnSettings.columns[index]?.hidden) {
+                        return 0
+                    }
+                    const width = activeDOMHeadings[domCounter].offsetWidth
+                    domCounter += 1
+                    return width
+
+                })
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
                     0
@@ -765,7 +775,16 @@ export class DataTable {
                 this.renderTable(renderOptions)
 
                 const activeDOMHeadings: HTMLTableCellElement[] = Array.from(this.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
-                const absoluteColumnWidths = activeDOMHeadings.map(cell => cell.offsetWidth)
+                let domCounter = 0
+                const absoluteColumnWidths = this.data.headings.map((_heading: headerCellType, index: number) => {
+                    if (this.columnSettings.columns[index]?.hidden) {
+                        return 0
+                    }
+                    const width = activeDOMHeadings[domCounter].offsetWidth
+                    domCounter += 1
+                    return width
+
+                })
                 const totalOffsetWidth = absoluteColumnWidths.reduce(
                     (total, cellWidth) => total + cellWidth,
                     0

@@ -3544,8 +3544,19 @@ var DataTable = /** @class */ (function () {
                 // Reset widths
                 renderOptions.noColumnWidths = true;
                 this.renderTable(renderOptions);
-                var activeDOMHeadings = Array.from(((_b = (_a = this.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll("th")) || []);
-                var absoluteColumnWidths = activeDOMHeadings.map(function (cell) { return cell.offsetWidth; });
+                var activeDOMHeadings_1 = Array.from(((_b = (_a = this.dom.querySelector("thead, tfoot")) === null || _a === void 0 ? void 0 : _a.firstElementChild) === null || _b === void 0 ? void 0 : _b.querySelectorAll("th")) || []);
+                var domCounter_1 = 0;
+                var absoluteColumnWidths = this.data.headings.map(function (_heading, index) {
+                    var _a;
+                    if ((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
+                        return 0;
+                    }
+                    else {
+                        var width = activeDOMHeadings_1[domCounter_1].offsetWidth;
+                        domCounter_1 += 1;
+                        return width;
+                    }
+                });
                 var totalOffsetWidth_1 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
                 this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
                 if (this.options.scrollY.length) {
@@ -3600,8 +3611,19 @@ var DataTable = /** @class */ (function () {
             else {
                 renderOptions.renderHeader = true;
                 this.renderTable(renderOptions);
-                var activeDOMHeadings = Array.from(((_d = (_c = this.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll("th")) || []);
-                var absoluteColumnWidths = activeDOMHeadings.map(function (cell) { return cell.offsetWidth; });
+                var activeDOMHeadings_2 = Array.from(((_d = (_c = this.dom.querySelector("thead, tfoot")) === null || _c === void 0 ? void 0 : _c.firstElementChild) === null || _d === void 0 ? void 0 : _d.querySelectorAll("th")) || []);
+                var domCounter_2 = 0;
+                var absoluteColumnWidths = this.data.headings.map(function (_heading, index) {
+                    var _a;
+                    if ((_a = _this.columnSettings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
+                        return 0;
+                    }
+                    else {
+                        var width = activeDOMHeadings_2[domCounter_2].offsetWidth;
+                        domCounter_2 += 1;
+                        return width;
+                    }
+                });
                 var totalOffsetWidth_2 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
                 this.columnWidths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });
             }
