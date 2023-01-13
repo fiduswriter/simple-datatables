@@ -48,18 +48,13 @@
 
 
 #### Properties
-* [table](API#table)
-* [head](API#header)
-* [body](API#body)
-* [foot](API#foot)
+* [dom](API#dom)
 * [wrapper](API#wrapper)
 * [container](API#container)
 * [pagers](API#pagers)
-* [headings](API#headings)
 * [options](API#options)
 * [initialized](API#initialized)
 * [data](API#data)
-* [activeRows](API#activerows)
 * [data-index](API#data-index)
 * [pages](API#pages)
 * [hasRows](API#hasrows)

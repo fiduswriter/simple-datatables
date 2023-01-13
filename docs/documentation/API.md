@@ -1,30 +1,9 @@
 >Please note that the API is not finalised and may change so check back once in while.
 
-### table
+### dom
 #### type `Object`
 
 Returns a reference to the [`HTMLTableElement`](https://developer.mozilla.org/en/docs/Web/API/HTMLTableElement).
-
----
-
-### head
-#### type `Object`
-
-Returns a reference to the [`HTML <thead> element`](https://developer.mozilla.org/en/docs/Web/HTML/Element/thead).
-
----
-
-### body
-#### type `Object`
-
-Returns a reference to the [`HTML <tbody> element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tbody).
-
----
-
-### foot
-#### type `Object`
-
-Returns a reference to the [`HTML <tfoot> element`](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/tfoot).
 
 ---
 
@@ -49,13 +28,6 @@ Returns a reference to the currently displayed pagers.
 
 ---
 
-### headings
-#### type `HTMLCollection`
-
-Returns a live `HTMLCollection` of the the table headings.
-
----
-
 ### options
 #### type `Object`
 
@@ -72,16 +44,34 @@ Returns true if the library is fully loaded and all HTML is rendered.
 ---
 
 ### data
-#### type `Array`
+#### type `Object`
 
-Returns a collection of all [`HTMLTableRowElement`s](https://developer.mozilla.org/en/docs/Web/API/HTMLTableRowElement) in the table.
+The data of the table, containing two parts: `headings` and `data` (contents of the tables).
+
+* `headings`: An array of **header cells**.
+
+* `data`: An array of rows of data. Each row consists of an array of **content cells**.
+
+
+**Header cells** are objects with these fields:
+
+* `data` (any, required): The headers data in it's original format.
+
+* `type` (string, optional): "node" in case of the data field is an array of DiffDOM nodes.
+
+* `text` (string, ptional): In case the browser's automatic conversion of the data field to a string to display in a browser is not working correctly, this field can be sued to control what is being rendered.
+
+
+**Content cells** are also obejcts with the same fields as **header fields** and additionally with this field:
+
+* `order` (string or integer, optional): Used for sorting in case and is useful if the `data` field cannot be used for sorting.
 
 ---
 
 ### data-index
 #### type `Integer`
 
-All rows in the `data` array have a custom propery named `data-index`. This represents the position in the `data` array. It can be useful for getting the correct position of a row as the native `rowIndex` property may be either `-1` if the row isn't rendered or incorrect if you're on any other page than page 1.
+All rows in the `data.data` array have a custom propery named `data-index`. This represents the position in the `data` array. It can be useful for getting the correct position of a row as the native `rowIndex` property may be either `-1` if the row isn't rendered or incorrect if you're on any other page than page 1.
 
 Also, in some browsers, the first row of a `tbody` element will have a `rowIndex` of `1` instead of `0` as they take the `thead` row as the first row.
 
@@ -89,7 +79,7 @@ For example if you want to remove the first row on page 5 while showing 5 rows p
 
 ```javascript
 // grab the first row on page 5
-let firstRow = document.querySelector("tr");
+let firstRow = document.querySelector("tbody tr");
 
 // INCORRECT: Because it's the first rendered row the native firstRow.rowIndex
 // will be 1 which will remove the second row in the data array
@@ -99,35 +89,6 @@ datatable.rows.remove(firstRow.rowIndex);
 // correct position (21st row) in the data array
 datatable.rows.remove(parseInt(firstRow.dataset.index));
 
-```
-
----
-
-### activeRows
-#### type `Array`
-
-The `activeRows` property is similar to the `data` property in that it contains all rows of the current instance, but it takes into account the number of hidden columns as well.
-
-##### Example
-
-Let's say you have 5 columns in your table and you've chosen to hide columns 2 and 5 and you want the 4th row:
-
-<table>
-    <tr>
-        <tr><td>Unity Pugh</td><td>9958</td><td>Curicó</td><td>2005/02/11</td><td>37%</td></tr>
-        <tr><td>Theodore Duran</td><td>8971</td><td>Dhanbad</td><td>1999/04/07</td><td>97%</td></tr>
-        <tr><td>Kylie Bishop</td><td>3147</td><td>Norman</td><td>2005/09/08</td><td>63%</td></tr>
-        <tr><td>Willow Gilliam</td><td>3497</td><td>Amqui</td><td>2009/29/11</td><td>30%</td></tr>
-        <tr><td>Blossom Dickerson</td><td>5018</td><td>Kempten</td><td>2006/11/09</td><td>17%</td></tr>
-    </tr>
-</table>
-
-```javascript
-// returns [Willow Gilliam, 3497, Amqui, 2009/29/11, 30%]
-let row = [].slice.call(datatable.data[3].cells).map(function(cell) { return cell.textContent; });
-
-// returns [Willow Gilliam, Amqui, 2009/29/11]
-let row = [].slice.call(datatable.activeRows[3].cells).map(function(cell) { return cell.textContent; });
 ```
 
 ---
@@ -191,6 +152,6 @@ Returns `true` if a search is currently being done and search results are displa
 ### searchData
 #### type `Array`
 
-Returns a collection of `HTMLTableRowElement`s containing matching results.
+Returns an array of index numbers of current search result rows from `data.data`.
 
 ---
