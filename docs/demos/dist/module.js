@@ -3279,7 +3279,7 @@ var DataTable = /** @class */ (function () {
     };
     DataTable.prototype.renderTable = function (renderOptions) {
         if (renderOptions === void 0) { renderOptions = {}; }
-        var newVirtualDOM = dataToVirtualDOM(this.id, this.data.headings, this.options.paging && this.currentPage && !renderOptions.noPaging ?
+        var newVirtualDOM = dataToVirtualDOM(this.id, this.data.headings, this.options.paging && this.currentPage && this.pages.length && !renderOptions.noPaging ?
             this.pages[this.currentPage - 1] :
             this.data.data.map(function (row, index) { return ({
                 row: row,

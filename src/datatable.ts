@@ -302,11 +302,10 @@ export class DataTable {
     }
 
     renderTable(renderOptions: renderOptions ={}) {
-
         const newVirtualDOM = dataToVirtualDOM(
             this.id,
             this.data.headings,
-            this.options.paging && this.currentPage && !renderOptions.noPaging ?
+            this.options.paging && this.currentPage && this.pages.length && !renderOptions.noPaging ?
                 this.pages[this.currentPage - 1] :
                 this.data.data.map((row, index) => ({
                     row,
@@ -718,7 +717,6 @@ export class DataTable {
         this.totalPages = this.lastPage = this.pages.length
 
         this.currentPage = 1
-
         return this.totalPages
     }
 
