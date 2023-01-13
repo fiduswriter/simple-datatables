@@ -9,15 +9,15 @@
   "module": "src/index.js",
   "scripts": {
     "test": "npm run lint",
-    "lint": "eslint src/ docs/",
-    "pre-commit": "eslint --fix src/ docs/",
-    "build": "npm run build_js && npm run build_js_umd && npm run build_css && npm run build_docs",
+    "lint": "eslint src/ docs/demos/",
+    "pre-commit": "eslint --fix src/ docs/demos/",
+    "build": "npm run build_js && npm run build_js_umd && npm run build_css && npm run build_demos",
     "build_js": "rollup -c",
     "build_js_umd": "browserify dist/index.js --standalone simpleDatatables -o dist/umd/simple-datatables.js",
     "build_css": "cp -R src/css/* dist/",
-    "build_docs": "npm run build_docs_js && cp -R src/css docs/dist/",
-    "build_docs_js": "rollup -c rollup.docs.config.mjs",
-    "postbuild_docs": "cp -r dist/umd/simple-datatables.js docs/dist/umd.js",
+    "build_demos": "npm run build_demos_js && cp -R src/css docs/demos/dist/",
+    "build_demos_js": "rollup -c rollup.demos.config.mjs",
+    "postbuild_demos": "cp -r dist/umd/simple-datatables.js docs/demos/dist/umd.js",
     "prepare": "npm run build"
   },
   "pre-commit": [
