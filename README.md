@@ -4,14 +4,14 @@ A lightweight, extendable, JavaScript HTML table library. Similar to jQuery Data
 
 Originally a fork of [Vanilla-DataTables](https://github.com/Mobius1/Vanilla-DataTables), but written in TypeScript and transpilled to Vanilla JavaScript.
 
-See the demos [here](https://fiduswriter.github.io/simple-datatables/).
+See the demos [here](https://fiduswriter.github.io/simple-datatables/demos/).
 
 
 
 ### Upgrading
 
-For upgrading from one major version to another, check the Wiki:
-https://github.com/fiduswriter/simple-datatables/wiki/Upgrading
+For upgrading from one major version to another, check the upgrade guide:
+https://fiduswriter.github.io/simple-datatables/documentation/Upgrading
 
 **Note**: The upgrade from version 5 version 6 is the most complicated upgrade so far. Please read through the instructions before filing complaints. If you run simple-datatables from a CDN, make sure that you have fixed it to a specific major or minor version so that you do not accidentally upload to a new version that requires you to do lots of manual adjustments.
 
@@ -47,7 +47,7 @@ LGPL
 * Using [diffDOM](https://github.com/fiduswriter/diffDOM) for updating the DOM
 
 
-[simple-datatables Documentation](https://github.com/fiduswriter/simple-datatables/wiki)
+[simple-datatables Documentation](https://fiduswriter.github.io/simple-datatables/documentation)
 
 
 ---
