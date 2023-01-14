@@ -99,11 +99,11 @@ do now:
 document.querySelector('.datatable-wrapper')
 ```
 
-**Note:** [Class names are now configurable.](https://github.com/fiduswriter/simple-datatables/wiki/classes) So if you rely on the old class names for some reason, you can configurable simple-datatables to use the old class names: 
+**Note:** [Class names are now configurable.](https://github.com/fiduswriter/simple-datatables/wiki/classes) So if you rely on the old class names for some reason, you can configurable simple-datatables to use the old class names:
 
 
 * Data is no longer converted to strings by default. Up to version 5, the data internal data storage was in the form of HTML elements.
-A side-effect thereof was that any datatyope that was not a string was automatically converted to be a string. This is no longer the case.
+A side-effect thereof was that any datatype that was not a string was automatically converted to be a string. This is no longer the case.
 In the internal data storage, numbers, boolean values, etc. are kept in their original format and will only be converted to strings when
 shown in the DOM.
 
