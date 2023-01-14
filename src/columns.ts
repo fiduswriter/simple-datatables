@@ -1,4 +1,4 @@
-import {readDataCell} from "./read_data"
+import {readDataCell, readHeaderCell} from "./read_data"
 import {DataTable} from "./datatable"
 import {allColumnSettingsType, cellType, headerCellType} from "./interfaces"
 import {readColumnSettings} from "./column_settings"
@@ -109,10 +109,16 @@ export class Columns {
      */
     add(data: any) {
         const newColumnSelector = this.dt.data.headings.length
-        this.dt.data.headings = this.dt.data.headings.concat([{data: data.heading}])
-        this.dt.data.data = this.dt.data.data.map(
-            (row: any, index: any) => row.concat([readDataCell(data.data[index], data)])
-        )
+        this.dt.data.headings = this.dt.options.dataConvert ?
+            this.dt.data.headings.concat([readHeaderCell(data.heading)]) :
+            this.dt.data.headings.concat([data.heading])
+        this.dt.data.data = this.dt.options.dataConvert ?
+            this.dt.data.data.map(
+                (row: any, index: any) => row.concat([readDataCell(data.data[index], data)])
+            ) :
+            this.dt.data.data.map(
+                (row: any, index: any) => row.concat([data.data[index]])
+            )
         if (data.type || data.format || data.sortable || data.render) {
             if (!this.settings.columns[newColumnSelector]) {
                 this.settings.columns[newColumnSelector] = {}

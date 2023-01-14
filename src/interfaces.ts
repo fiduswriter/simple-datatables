@@ -172,6 +172,11 @@ interface DataTableOptions{
      * Docs : https://github.com/fiduswriter/simple-datatables/wiki/data
      */
     data?:DataOption;
+    /**
+     * Whether to attempt to convert input data instead of assuming it is in simpel-datatables native format.
+     * Is true by default.
+     */
+    dataConvert?:boolean;
     /**Toggle the skip to first page and skip to last page buttons.
      * Default: false
      */

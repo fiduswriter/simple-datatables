@@ -15,7 +15,7 @@ export class Rows {
         this.cursor = false
     }
 
-    setCursor(index: (false | number) =false) {
+    setCursor(index: (false | number) = false) {
         if (index === this.cursor) {
             return
         }
@@ -35,10 +35,12 @@ export class Rows {
      * Add new row
      */
     add(data: cellType[]) {
-        const row = data.map((cell: cellType, index: number) => {
-            const columnSettings = this.dt.columns.settings.columns[index] || {}
-            return readDataCell(cell, columnSettings)
-        })
+        const row = this.dt.options.dataConvert ?
+            data.map((cell: cellType, index: number) => {
+                const columnSettings = this.dt.columns.settings.columns[index] || {}
+                return readDataCell(cell, columnSettings)
+            }) :
+            data
         this.dt.data.data.push(row)
 
         // We may have added data to an empty table
@@ -106,10 +108,12 @@ export class Rows {
      * Update a row with new data
      */
     updateRow(select: number, data: inputCellType[]) {
-        const row = data.map((cell: inputCellType, index: number) => {
-            const columnSettings = this.dt.columns.settings.columns[index] || {}
-            return readDataCell(cell, columnSettings)
-        })
+        const row = this.dt.options.dataConvert ?
+            data.map((cell: inputCellType, index: number) => {
+                const columnSettings = this.dt.columns.settings.columns[index] || {}
+                return readDataCell(cell, columnSettings)
+            }) :
+            data as cellType[]
         this.dt.data.data.splice(select, 1, row)
         this.dt.update(true)
     }

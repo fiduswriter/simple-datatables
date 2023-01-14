@@ -70,6 +70,7 @@
 * [rows API](rows-API)
 * [columns API](columns-API)
 * [on()](on())
+* [update()](update())
 * [refresh()](refresh())
 * [page()](page())
 * [insert()](insert())

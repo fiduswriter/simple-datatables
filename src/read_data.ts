@@ -62,12 +62,14 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
     return cellData
 }
 
-export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings) => {
+export const readTableData = (dataConvert, dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings) => {
     const data = {
         data: [],
         headings: []
     }
-    if (dataOption.headings) {
+    if (!dataConvert && dataOption.headings) {
+        data.headings = dataOption.headings
+    } else if (dataOption.headings) {
         data.headings = dataOption.headings.map((heading: inputHeaderCellType) => readHeaderCell(heading))
     } else if (dom?.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
@@ -101,7 +103,9 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
     } else if (dom?.tBodies.length) {
         data.headings = Array.from(dom.tBodies[0].rows[0].cells).map((_cell: HTMLElement) => readHeaderCell(""))
     }
-    if (dataOption.data) {
+    if (!dataConvert && dataOption.data) {
+        data.data = dataOption.data
+    } else if (dataOption.data) {
         data.data = dataOption.data.map((row: inputCellType[]) => row.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings.columns[index])))
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(

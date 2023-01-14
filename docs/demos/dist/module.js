@@ -2561,14 +2561,17 @@ var readHeaderCell = function (cell) {
     }
     return cellData;
 };
-var readTableData = function (dataOption, dom, columnSettings) {
+var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
     var _a, _b;
     if (dom === void 0) { dom = undefined; }
     var data = {
         data: [],
         headings: []
     };
-    if (dataOption.headings) {
+    if (!dataConvert && dataOption.headings) {
+        data.headings = dataOption.headings;
+    }
+    else if (dataOption.headings) {
         data.headings = dataOption.headings.map(function (heading) { return readHeaderCell(heading); });
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tHead) {
@@ -2602,7 +2605,10 @@ var readTableData = function (dataOption, dom, columnSettings) {
     else if (dom === null || dom === void 0 ? void 0 : dom.tBodies.length) {
         data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(function (_cell) { return readHeaderCell(""); });
     }
-    if (dataOption.data) {
+    if (!dataConvert && dataOption.data) {
+        data.data = dataOption.data;
+    }
+    else if (dataOption.data) {
         data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings.columns[index]); }); });
     }
     else if ((_b = dom === null || dom === void 0 ? void 0 : dom.tBodies) === null || _b === void 0 ? void 0 : _b.length) {
@@ -2611,6 +2617,7 @@ var readTableData = function (dataOption, dom, columnSettings) {
     if (data.data.length && data.data[0].length !== data.headings.length) {
         throw new Error("Data heading length mismatch.");
     }
+    console.log({ data: data });
     return data;
 };
 
@@ -2643,10 +2650,12 @@ var Rows = /** @class */ (function () {
      */
     Rows.prototype.add = function (data) {
         var _this = this;
-        var row = data.map(function (cell, index) {
-            var columnSettings = _this.dt.columns.settings.columns[index] || {};
-            return readDataCell(cell, columnSettings);
-        });
+        var row = this.dt.options.dataConvert ?
+            data.map(function (cell, index) {
+                var columnSettings = _this.dt.columns.settings.columns[index] || {};
+                return readDataCell(cell, columnSettings);
+            }) :
+            data;
         this.dt.data.data.push(row);
         // We may have added data to an empty table
         if (this.dt.data.data.length) {
@@ -2708,10 +2717,12 @@ var Rows = /** @class */ (function () {
      */
     Rows.prototype.updateRow = function (select, data) {
         var _this = this;
-        var row = data.map(function (cell, index) {
-            var columnSettings = _this.dt.columns.settings.columns[index] || {};
-            return readDataCell(cell, columnSettings);
-        });
+        var row = this.dt.options.dataConvert ?
+            data.map(function (cell, index) {
+                var columnSettings = _this.dt.columns.settings.columns[index] || {};
+                return readDataCell(cell, columnSettings);
+            }) :
+            data;
         this.dt.data.data.splice(select, 1, row);
         this.dt.update(true);
     };
@@ -2847,8 +2858,12 @@ var Columns = /** @class */ (function () {
      */
     Columns.prototype.add = function (data) {
         var newColumnSelector = this.dt.data.headings.length;
-        this.dt.data.headings = this.dt.data.headings.concat([{ data: data.heading }]);
-        this.dt.data.data = this.dt.data.data.map(function (row, index) { return row.concat([readDataCell(data.data[index], data)]); });
+        this.dt.data.headings = this.dt.options.dataConvert ?
+            this.dt.data.headings.concat([readHeaderCell(data.heading)]) :
+            this.dt.data.headings.concat([data.heading]);
+        this.dt.data.data = this.dt.options.dataConvert ?
+            this.dt.data.data.map(function (row, index) { return row.concat([readDataCell(data.data[index], data)]); }) :
+            this.dt.data.data.map(function (row, index) { return row.concat([data.data[index]]); });
         if (data.type || data.format || data.sortable || data.render) {
             if (!this.settings.columns[newColumnSelector]) {
                 this.settings.columns[newColumnSelector] = {};
@@ -3055,6 +3070,9 @@ var defaultConfig$1 = {
     sortable: true,
     searchable: true,
     destroyable: true,
+    // Whether to attempt to convert input data (not from dom). If false, we
+    // assume input data is in simple-datatables native format.
+    dataConvert: true,
     data: {},
     // Pagination
     paging: true,
@@ -3153,7 +3171,7 @@ var DataTable = /** @class */ (function () {
         this.virtualDOM = nodeToObj(this.dom);
         this.rows = new Rows(this);
         this.columns = new Columns(this);
-        this.data = readTableData(this.options.data, this.dom, this.columns.settings);
+        this.data = readTableData(this.options.dataConvert, this.options.data, this.dom, this.columns.settings);
         this.hasRows = Boolean(this.data.data.length);
         this.hasHeadings = Boolean(this.data.headings.length);
         this._render();
@@ -3239,9 +3257,6 @@ var DataTable = /** @class */ (function () {
         this.container.appendChild(this.dom);
         // Store the table dimensions
         this.rect = this.dom.getBoundingClientRect();
-        // // // Update
-        // this.update(false)
-        // //
         // // Fix height
         this._fixHeight();
         //
@@ -3708,37 +3723,37 @@ var DataTable = /** @class */ (function () {
     DataTable.prototype.insert = function (data) {
         var _this = this;
         var rows = [];
+        console.log(isObject(data));
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(data, undefined, this.columns.settings);
+                    this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings);
                     this.hasRows = Boolean(this.data.data.length);
                     this.hasHeadings = Boolean(this.data.headings.length);
                 }
             }
+            console.log(data, Array.isArray(data.data));
             if (data.data && Array.isArray(data.data)) {
                 rows = data.data;
             }
         }
         else if (Array.isArray(data)) {
-            var headings_1 = this.data.headings.map(function (heading) { return heading.data; });
+            var headings_1 = this.data.headings.map(function (heading) { var _a; return (_a = heading.text) !== null && _a !== void 0 ? _a : String(heading.data); });
             data.forEach(function (row) {
                 var r = [];
                 Object.entries(row).forEach(function (_a) {
                     var heading = _a[0], cell = _a[1];
                     var index = headings_1.indexOf(heading);
                     if (index > -1) {
-                        r[index] = cell;
+                        r[index] = readDataCell(cell, _this.columns.settings.columns[index]);
                     }
                 });
                 rows.push(r);
             });
         }
+        console.log({ rows: rows });
         if (rows.length) {
-            rows.forEach(function (row) { return _this.data.data.push(row.map(function (cell, index) {
-                var cellOut = readDataCell(cell, _this.columns.settings.columns[index]);
-                return cellOut;
-            })); });
+            rows.forEach(function (row) { return _this.data.data.push(row); });
             this.hasRows = true;
         }
         if (this.columns.settings.sort) {

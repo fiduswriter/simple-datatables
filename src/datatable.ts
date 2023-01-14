@@ -14,8 +14,10 @@ import {
     visibleToColumnIndex
 } from "./helpers"
 import {
+    cellType,
     DataTableOptions,
     headerCellType,
+    inputCellType,
     nodeType,
     renderOptions,
     TableDataType
@@ -152,7 +154,7 @@ export class DataTable {
         this.rows = new Rows(this)
         this.columns = new Columns(this)
 
-        this.data = readTableData(this.options.data, this.dom, this.columns.settings)
+        this.data = readTableData(this.options.dataConvert, this.options.data, this.dom, this.columns.settings)
         this.hasRows = Boolean(this.data.data.length)
         this.hasHeadings = Boolean(this.data.headings.length)
 
@@ -815,40 +817,35 @@ export class DataTable {
      * Add new row data
      */
     insert(data: any) {
-        let rows = []
+        let rows: cellType[][] = []
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(data, undefined, this.columns.settings)
+                    this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings)
                     this.hasRows = Boolean(this.data.data.length)
                     this.hasHeadings = Boolean(this.data.headings.length)
                 }
             }
-
             if (data.data && Array.isArray(data.data)) {
                 rows = data.data
             }
         } else if (Array.isArray(data)) {
-            const headings = this.data.headings.map((heading: any) => heading.data)
+            const headings = this.data.headings.map((heading: any) => heading.text ?? String(heading.data))
             data.forEach(row => {
-                const r: any = []
+                const r: cellType[] = []
                 Object.entries(row).forEach(([heading, cell]) => {
 
                     const index = headings.indexOf(heading)
 
                     if (index > -1) {
-                        r[index] = cell
+                        r[index] = readDataCell(cell as inputCellType, this.columns.settings.columns[index])
                     }
                 })
                 rows.push(r)
             })
         }
-
         if (rows.length) {
-            rows.forEach((row: any) => this.data.data.push(row.map((cell: any, index: any) => {
-                const cellOut = readDataCell(cell, this.columns.settings.columns[index])
-                return cellOut
-            })))
+            rows.forEach((row: cellType[]) => this.data.data.push(row))
             this.hasRows = true
         }
 
