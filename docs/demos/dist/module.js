@@ -2617,7 +2617,6 @@ var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
     if (data.data.length && data.data[0].length !== data.headings.length) {
         throw new Error("Data heading length mismatch.");
     }
-    console.log({ data: data });
     return data;
 };
 
@@ -3723,7 +3722,6 @@ var DataTable = /** @class */ (function () {
     DataTable.prototype.insert = function (data) {
         var _this = this;
         var rows = [];
-        console.log(isObject(data));
         if (isObject(data)) {
             if (data.headings) {
                 if (!this.hasHeadings && !this.hasRows) {
@@ -3732,7 +3730,6 @@ var DataTable = /** @class */ (function () {
                     this.hasHeadings = Boolean(this.data.headings.length);
                 }
             }
-            console.log(data, Array.isArray(data.data));
             if (data.data && Array.isArray(data.data)) {
                 rows = data.data;
             }
@@ -3751,7 +3748,6 @@ var DataTable = /** @class */ (function () {
                 rows.push(r);
             });
         }
-        console.log({ rows: rows });
         if (rows.length) {
             rows.forEach(function (row) { return _this.data.data.push(row); });
             this.hasRows = true;
