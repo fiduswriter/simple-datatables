@@ -1,6 +1,6 @@
 #### type `Function`
 
-Initialise the instance after [destroying](https://github.com/fiduswriter/simple-datatables/wiki/destroy()).
+Initialise the instance after [destroying](destroy()).
 
 You can pass an optional `object` of options to the method if you require new a new config.
 

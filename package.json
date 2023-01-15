@@ -8,9 +8,10 @@
   "unpkg": "dist/umd/simple-datatables.js",
   "module": "src/index.js",
   "scripts": {
-    "test": "npm run lint",
-    "lint": "eslint src/ docs/demos/",
-    "pre-commit": "eslint --fix src/ docs/demos/",
+    "test": "mocha",
+    "test_server": "node test/server.mjs",
+    "lint": "eslint src/ docs/demos/ test/",
+    "pre-commit": "eslint --fix src/ docs/demos/ test/",
     "build": "npm run build_js && npm run build_js_umd && npm run build_css && npm run build_demos",
     "build_js": "rollup -c",
     "build_js_umd": "browserify dist/index.js --standalone simpleDatatables -o dist/umd/simple-datatables.js",
@@ -56,6 +57,10 @@
     "eslint": "^8.31.0",
     "eslint-plugin-htm": "^0.5.2",
     "eslint-plugin-html": "^7.1.0",
+    "express": "^4.18.2",
+    "get-port": "^6.1.2",
+    "mocha": "^10.2.0",
+    "mocha-each": "^2.0.1",
     "pre-commit": "^1.2.2",
     "rollup": "^3.9.1",
     "rollup-plugin-dts": "^5.1.1",
@@ -65,7 +70,9 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
+    "chromedriver": "^*",
     "dayjs": "^1.11.7",
-    "diff-dom": "^4.2.8"
+    "diff-dom": "^4.2.8",
+    "selenium-webdriver": "^4.7.1"
   }
 }

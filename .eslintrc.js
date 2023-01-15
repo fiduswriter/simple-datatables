@@ -9,11 +9,15 @@ module.exports = {
             "files": ["*.html"],
             "parser": "@html-eslint/parser",
             "extends": ["plugin:@html-eslint/recommended"],
-        }
+        },
+        {
+            "files": ["*.mjs"]
+        },
     ],
     "env": {
         "browser": true,
-        "es6": true
+        "es6": true,
+        "mocha": true,
     },
     "extends": [
         "eslint:recommended",

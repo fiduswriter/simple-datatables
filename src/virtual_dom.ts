@@ -27,7 +27,7 @@ export const headingsToVirtualHeaderRowDOM = (
                 return
             }
             const attributes : { [key: string]: string} = {}
-            if (!column.notSortable && sortable) {
+            if (!column.notSortable && sortable && (!scrollY.length || unhideHeader)) {
                 attributes["data-sortable"] = "true"
             }
             if (columnSettings.sort?.column === index) {
