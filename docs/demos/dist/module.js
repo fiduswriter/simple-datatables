@@ -2153,7 +2153,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                 return;
             }
             var attributes = {};
-            if (!column.notSortable && sortable) {
+            if (!column.notSortable && sortable && (!scrollY.length || unhideHeader)) {
                 attributes["data-sortable"] = "true";
             }
             if (((_a = columnSettings.sort) === null || _a === void 0 ? void 0 : _a.column) === index) {

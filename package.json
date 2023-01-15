@@ -60,6 +60,7 @@
     "express": "^4.18.2",
     "get-port": "^6.1.2",
     "mocha": "^10.2.0",
+    "mocha-each": "^2.0.1",
     "pre-commit": "^1.2.2",
     "rollup": "^3.9.1",
     "rollup-plugin-dts": "^5.1.1",
