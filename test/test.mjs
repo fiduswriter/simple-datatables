@@ -12,9 +12,11 @@ import {server} from "./server.mjs"
 
 const port = await getPort({port: 3000})
 
+let wait = 100
 const options = new chrome.Options()
 if (process.env.CI) { // eslint-disable-line no-process-env
     // We are running on CI
+    wait = 300
     options.headless().setChromeBinaryPath("/usr/bin/google-chrome-stable")
 }
 const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
@@ -41,8 +43,8 @@ const clickAllSortableHeaders = function(driver, counter=0) {
             if ((nodes.length-1) < counter) {
                 return Promise.resolve()
             }
-            return nodes[counter].click().then(
-                () => driver.sleep(100)
+            nodes[counter].click().then(
+                () => driver.sleep(wait)
             ).then(
                 () => {
                     counter += 1
