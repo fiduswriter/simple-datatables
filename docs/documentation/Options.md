@@ -34,3 +34,5 @@ let dataTable = new DataTable(myTable, options);
 * [rowNavigation](rowNavigation)
 * [tabIndex](tabIndex)
 * [rowRender](rowRender)
+* **dataConvert** (boolean, default: true): Whether to attempt to convert incoming data instead of assuming it already is in the format used natively.
+* **destroyable** (boolean, default: true): Whether to keep the original HTML in memory in order to be able to destroy the table again,
