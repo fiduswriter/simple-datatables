@@ -20,7 +20,7 @@ https://fiduswriter.github.io/simple-datatables/documentation/Upgrading
 
 To use the CDN version of simple-datatables use either [https://cdn.jsdelivr.net/npm/simple-datatables@latest](https://cdn.jsdelivr.net/npm/simple-datatables@latest) or [https://unpkg.com/simple-datatables](https://unpkg.com/simple-datatables). You also need to add the CSS styling, so the elements you'll add to html head element can for example be these:
 
-**Note:** For production websites, specify a specific major version. For example [https://cdn.jsdelivr.net/npm/simple-datatables@5](https://cdn.jsdelivr.net/npm/simple-datatables@5) for the latest version in the 5.x.x series or [https://cdn.jsdelivr.net/npm/simple-datatables@5.0](https://cdn.jsdelivr.net/npm/simple-datatables@5.0) for the latest version in the 5.0.x series.
+**Note:** For production websites, specify a specific major version. For example [https://cdn.jsdelivr.net/npm/simple-datatables@6](https://cdn.jsdelivr.net/npm/simple-datatables@6) for the latest version in the 6.x.x series or [https://cdn.jsdelivr.net/npm/simple-datatables@6.0](https://cdn.jsdelivr.net/npm/simple-datatables@6.0) for the latest version in the 6.0.x series.
 
 ```html
 <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" type="text/css">
