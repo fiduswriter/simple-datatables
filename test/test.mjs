@@ -1,6 +1,10 @@
 import "chromedriver"
+
 import assert from "assert"
+import process from "process"
+
 import webdriver from "selenium-webdriver"
+import chrome from "selenium-webdriver/chrome.js"
 import getPort from "get-port"
 import forEach from "mocha-each"
 
@@ -8,7 +12,12 @@ import {server} from "./server.mjs"
 
 const port = await getPort({port: 3000})
 
-const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).build()
+const options = new chrome.Options()
+if (process.env.CI) { // eslint-disable-line no-process-env
+    // We are running on CI
+    options.headless().setChromeBinaryPath("/usr/bin/google-chrome-stable")
+}
+const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
 const manage = driver.manage()
 manage.window().maximize()
 let demoUrls
