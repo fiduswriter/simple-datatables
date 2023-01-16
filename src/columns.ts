@@ -46,7 +46,7 @@ export class Columns {
 
         this.dt.data.headings = columns.map((index: number) => this.dt.data.headings[index])
         this.dt.data.data = this.dt.data.data.map(
-            (row: cellType[]) => columns.map((index: any) => row[index])
+            (row: cellType[]) => columns.map((index: number) => row[index])
         )
         this.settings.columns = columns.map(
             (index: number) => this.settings.columns[index]
@@ -114,10 +114,10 @@ export class Columns {
             this.dt.data.headings.concat([data.heading])
         this.dt.data.data = this.dt.options.dataConvert ?
             this.dt.data.data.map(
-                (row: any, index: any) => row.concat([readDataCell(data.data[index], data)])
+                (row: cellType[], index: number) => row.concat([readDataCell(data.data[index], data)])
             ) :
             this.dt.data.data.map(
-                (row: any, index: any) => row.concat([data.data[index]])
+                (row: cellType[], index: number) => row.concat([data.data[index]])
             )
         if (data.type || data.format || data.sortable || data.render) {
             if (!this.settings.columns[newColumnSelector]) {
@@ -151,9 +151,9 @@ export class Columns {
      */
     remove(columns: number[]) {
         if (Array.isArray(columns)) {
-            this.dt.data.headings = this.dt.data.headings.filter((_heading: any, index: any) => !columns.includes(index))
+            this.dt.data.headings = this.dt.data.headings.filter((_heading: headerCellType, index: number) => !columns.includes(index))
             this.dt.data.data = this.dt.data.data.map(
-                (row: any) => row.filter((_cell: any, index: any) => !columns.includes(index))
+                (row: cellType[]) => row.filter((_cell: cellType, index: number) => !columns.includes(index))
             )
             this.dt.update(true)
         } else {

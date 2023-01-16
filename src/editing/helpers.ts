@@ -1,11 +1,9 @@
 // Source: https://www.freecodecamp.org/news/javascript-debounce-example/
 
-export const debounce = function(this: any, func: any, timeout = 300) {
-    let timer: any
-    return (...args: any[]) => {
+export const debounce = function(func: () => void, timeout = 300) {
+    let timer: number
+    return (..._args: any[]) => {
         clearTimeout(timer)
-        timer = setTimeout(() => {
-            func.apply(this, args)
-        }, timeout)
+        timer = window.setTimeout(() => func(), timeout)
     }
 }

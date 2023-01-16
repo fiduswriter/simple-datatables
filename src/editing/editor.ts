@@ -35,13 +35,13 @@ export class Editor {
 
     event: any
 
-    events: any
+    events: { [key: string]: () => void}
 
-    initialized: any
+    initialized: boolean
 
     limits: any
 
-    menu: any
+    menu: HTMLElement
 
     modal: any
 
@@ -49,7 +49,7 @@ export class Editor {
 
     rect: any
 
-    wrapper: any
+    wrapper: HTMLElement
 
     constructor(dataTable: any, options = {}) {
         this.dt = dataTable
@@ -139,7 +139,7 @@ export class Editor {
 
             this.dt.dom.addEventListener("contextmenu", this.events.context)
             // reset
-            this.events.reset = debounce(this.events.update, 50)
+            this.events.reset = debounce(() => this.events.update(), 50)
             window.addEventListener("resize", this.events.reset)
             window.addEventListener("scroll", this.events.reset)
         }

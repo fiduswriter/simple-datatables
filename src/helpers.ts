@@ -3,7 +3,7 @@ import {nodeType, singleColumnSettingsType, textNodeType} from "./interfaces"
 /**
  * Check is item is object
  */
-export const isObject = (val: any) => Object.prototype.toString.call(val) === "[object Object]"
+export const isObject = (val: (string | number | boolean | object | null | undefined )) => Object.prototype.toString.call(val) === "[object Object]"
 
 /**
  * Check for valid JSON string
@@ -21,7 +21,7 @@ export const isJson = (str: string) => {
 /**
  * Create DOM element node
  */
-export const createElement = (nodeName: string, attrs?: any) => {
+export const createElement = (nodeName: string, attrs?: { [key: string]: string}) => {
     const dom = document.createElement(nodeName)
     if (attrs && "object" == typeof attrs) {
         for (const attr in attrs) {
@@ -46,55 +46,56 @@ export const flush = (el: HTMLElement | HTMLElement[]) => {
 /**
  * Create button helper
  */
-export const button = (className: string, page: any, text: string) => createElement(
+export const button = (className: string, page: number, text: string) => createElement(
     "li",
     {
         class: className,
-        html: `<a href="#" data-page="${page}">${text}</a>`
+        html: `<a href="#" data-page="${String(page)}">${text}</a>`
     }
 )
 
 /**
  * Pager truncation algorithm
  */
-export const truncate = (a: any, b: any, c: any, d: any, ellipsis: string) => {
-    d = d || 2
-    let j: any
-    const e = 2 * d
-    let f = b - d
-    let g = b + d
-    const h = []
-    const i: any = []
-    if (b < 4 - d + e) {
-        g = 3 + e
-    } else if (b > c - (3 - d + e)) {
-        f = c - (2 + e)
+export const truncate = (links: HTMLElement[]=[], currentPage=1, pagesLength=1, pagerDelta=2, ellipsis="&hellip;") => {
+    const doublePagerDelta = 2 * pagerDelta
+    let previousPage = currentPage - pagerDelta
+    let nextPage = currentPage + pagerDelta
+
+    if (currentPage < 4 - pagerDelta + doublePagerDelta) {
+        nextPage = 3 + doublePagerDelta
+    } else if (currentPage > pagesLength - (3 - pagerDelta + doublePagerDelta)) {
+        previousPage = pagesLength - (2 + doublePagerDelta)
     }
-    for (let k = 1; k <= c; k++) {
-        if (1 == k || k == c || (k >= f && k <= g)) {
-            const l = a[k - 1]
-            l.classList.remove("active")
-            h.push(l)
+    const linksToModify: HTMLElement[] = []
+    for (let k = 1; k <= pagesLength; k++) {
+        if (1 == k || k == pagesLength || (k >= previousPage && k <= nextPage)) {
+            const link = links[k - 1]
+            link.classList.remove("active")
+            linksToModify.push(link)
         }
     }
-    h.forEach(c => {
-        const d = c.children[0].getAttribute("data-page")
-        if (j) {
-            const e = j.children[0].getAttribute("data-page")
-            if (d - e == 2) i.push(a[e])
-            else if (d - e != 1) {
-                const f = createElement("li", {
+    let previousLink: HTMLElement
+    const modifiedLinks: HTMLElement[] = []
+    linksToModify.forEach(link => {
+        const pageNumber = parseInt(link.children[0].getAttribute("data-page"), 10)
+        if (previousLink) {
+            const previousPageNumber = parseInt(previousLink.children[0].getAttribute("data-page"), 10)
+            if (pageNumber - previousPageNumber == 2) {
+                modifiedLinks.push(links[previousPageNumber])
+            } else if (pageNumber - previousPageNumber != 1) {
+                const newLink = createElement("li", {
                     class: "ellipsis",
                     html: `<a href="#">${ellipsis}</a>`
                 })
-                i.push(f)
+                modifiedLinks.push(newLink)
             }
         }
-        i.push(c)
-        j = c
+        modifiedLinks.push(link)
+        previousLink = link
     })
 
-    return i
+    return modifiedLinks
 }
 
 

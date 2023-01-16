@@ -39,26 +39,26 @@ export const convertCSV = function(userOptions : csvConvertUserOptions) {
         }
 
         // Split the string into rows
-        const rows = options.data.split(options.lineDelimiter)
+        const rows : string[] = options.data.split(options.lineDelimiter)
 
         if (rows.length) {
 
             if (options.headings) {
                 obj.headings = rows[0].split(options.columnDelimiter)
                 if (options.removeDoubleQuotes) {
-                    obj.headings = obj.headings.map((e: any) => e.trim().replace(/(^"|"$)/g, ""))
+                    obj.headings = obj.headings.map((e: string) => e.trim().replace(/(^"|"$)/g, ""))
                 }
                 rows.shift()
             }
 
-            rows.forEach((row: any, i: any) => {
+            rows.forEach((row: string, i: number) => {
                 obj.data[i] = []
 
                 // Split the rows into values
                 const values = row.split(options.columnDelimiter)
 
                 if (values.length) {
-                    values.forEach((value: any) => {
+                    values.forEach((value: string) => {
                         if (options.removeDoubleQuotes) {
                             value = value.trim().replace(/(^"|"$)/g, "")
                         }

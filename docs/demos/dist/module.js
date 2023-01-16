@@ -2429,50 +2429,55 @@ var flush = function (el) {
  */
 var button = function (className, page, text) { return createElement("li", {
     "class": className,
-    html: "<a href=\"#\" data-page=\"".concat(page, "\">").concat(text, "</a>")
+    html: "<a href=\"#\" data-page=\"".concat(String(page), "\">").concat(text, "</a>")
 }); };
 /**
  * Pager truncation algorithm
  */
-var truncate = function (a, b, c, d, ellipsis) {
-    d = d || 2;
-    var j;
-    var e = 2 * d;
-    var f = b - d;
-    var g = b + d;
-    var h = [];
-    var i = [];
-    if (b < 4 - d + e) {
-        g = 3 + e;
+var truncate = function (links, currentPage, pagesLength, pagerDelta, ellipsis) {
+    if (links === void 0) { links = []; }
+    if (currentPage === void 0) { currentPage = 1; }
+    if (pagesLength === void 0) { pagesLength = 1; }
+    if (pagerDelta === void 0) { pagerDelta = 2; }
+    if (ellipsis === void 0) { ellipsis = "&hellip;"; }
+    var doublePagerDelta = 2 * pagerDelta;
+    var previousPage = currentPage - pagerDelta;
+    var nextPage = currentPage + pagerDelta;
+    if (currentPage < 4 - pagerDelta + doublePagerDelta) {
+        nextPage = 3 + doublePagerDelta;
     }
-    else if (b > c - (3 - d + e)) {
-        f = c - (2 + e);
+    else if (currentPage > pagesLength - (3 - pagerDelta + doublePagerDelta)) {
+        previousPage = pagesLength - (2 + doublePagerDelta);
     }
-    for (var k = 1; k <= c; k++) {
-        if (1 == k || k == c || (k >= f && k <= g)) {
-            var l = a[k - 1];
-            l.classList.remove("active");
-            h.push(l);
+    var linksToModify = [];
+    for (var k = 1; k <= pagesLength; k++) {
+        if (1 == k || k == pagesLength || (k >= previousPage && k <= nextPage)) {
+            var link = links[k - 1];
+            link.classList.remove("active");
+            linksToModify.push(link);
         }
     }
-    h.forEach(function (c) {
-        var d = c.children[0].getAttribute("data-page");
-        if (j) {
-            var e_1 = j.children[0].getAttribute("data-page");
-            if (d - e_1 == 2)
-                i.push(a[e_1]);
-            else if (d - e_1 != 1) {
-                var f_1 = createElement("li", {
+    var previousLink;
+    var modifiedLinks = [];
+    linksToModify.forEach(function (link) {
+        var pageNumber = parseInt(link.children[0].getAttribute("data-page"), 10);
+        if (previousLink) {
+            var previousPageNumber = parseInt(previousLink.children[0].getAttribute("data-page"));
+            if (pageNumber - previousPageNumber == 2) {
+                modifiedLinks.push(links[previousPageNumber]);
+            }
+            else if (pageNumber - previousPageNumber != 1) {
+                var newLink = createElement("li", {
                     "class": "ellipsis",
                     html: "<a href=\"#\">".concat(ellipsis, "</a>")
                 });
-                i.push(f_1);
+                modifiedLinks.push(newLink);
             }
         }
-        i.push(c);
-        j = c;
+        modifiedLinks.push(link);
+        previousLink = link;
     });
-    return i;
+    return modifiedLinks;
 };
 var objToText = function (obj) {
     if (obj.nodeName === "#text") {
@@ -4081,7 +4086,7 @@ var exportJSON = function (dt, userOptions) {
     else {
         rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
     }
-    var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { return header.data; });
+    var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : String(header.data); });
     // Only proceed if we have data
     if (rows.length) {
         var arr_1 = [];
@@ -4146,9 +4151,9 @@ var exportSQL = function (dt, userOptions) {
         }
     }
     else {
-        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
     }
-    var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
+    var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : String(header.data); });
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
@@ -4228,15 +4233,15 @@ var exportTXT = function (dt, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dt.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dt.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+            rows = rows.concat(dt.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : cell.data; }); }));
+        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
     }
     // Only proceed if we have data
     if (rows.length) {
@@ -4284,10 +4289,6 @@ var exportTXT = function (dt, userOptions) {
     return false;
 };
 
-/**
-* Default config
-* @type {Object}
-*/
 var defaultConfig = {
     classes: {
         row: "datatable-editor-row",
@@ -4355,18 +4356,11 @@ var defaultConfig = {
 
 // Source: https://www.freecodecamp.org/news/javascript-debounce-example/
 var debounce = function (func, timeout) {
-    var _this = this;
     if (timeout === void 0) { timeout = 300; }
     var timer;
     return function () {
-        var args = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i] = arguments[_i];
-        }
         clearTimeout(timer);
-        timer = setTimeout(function () {
-            func.apply(_this, args);
-        }, timeout);
+        timer = window.setTimeout(function () { return func(); }, timeout);
     };
 };
 
@@ -4443,6 +4437,7 @@ var Editor = /** @class */ (function () {
      * @return {Void}
      */
     Editor.prototype.bindEvents = function () {
+        var _this = this;
         this.events = {
             context: this.context.bind(this),
             update: this.update.bind(this),
@@ -4460,7 +4455,7 @@ var Editor = /** @class */ (function () {
             // listen for right-click
             this.dt.dom.addEventListener("contextmenu", this.events.context);
             // reset
-            this.events.reset = debounce(this.events.update, 50);
+            this.events.reset = debounce(function () { return _this.events.update(); }, 50);
             window.addEventListener("resize", this.events.reset);
             window.addEventListener("scroll", this.events.reset);
         }

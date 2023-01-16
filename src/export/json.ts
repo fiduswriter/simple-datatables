@@ -3,6 +3,8 @@ import {
 } from "../helpers"
 import {DataTable} from "../datatable"
 import {
+    cellType,
+    headerCellType,
     nodeType
 } from "../interfaces"
 /**
@@ -40,32 +42,32 @@ export const exportJSON = function(dt: DataTable, userOptions: jsonUserOptions =
         ...userOptions
     }
 
-    const columnShown = (index: any) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
+    const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
 
-    let rows: (string | number | boolean | {data: (string | number | boolean | undefined | null | nodeType[]), text?: string, order: (number | string)})[][] = []
+    let rows : (string | number | boolean | object | undefined | null)[][] = []
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.type === "node" ? cell : cell.data)))
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.type === "node" ? cell : cell.data)))
             }
         } else {
-            rows = rows.concat(dt.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.type === "node" ? cell : cell.data)))
+            rows = rows.concat(dt.pages[options.selection - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.type === "node" ? cell : cell.data)))
         }
     } else {
-        rows = rows.concat(dt.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.type === "node" ? cell : cell.data)))
+        rows = rows.concat(dt.data.data.map((row: cellType[]) => row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.type === "node" ? cell : cell.data)))
     }
 
-    const headers = dt.data.headings.filter((_heading: any, index: any) => columnShown(index)).map((header: any) => header.data)
+    const headers = dt.data.headings.filter((_heading: headerCellType, index: number) => columnShown(index)).map((header: headerCellType) => header.text ?? String(header.data))
 
     // Only proceed if we have data
     if (rows.length) {
-        const arr: any = []
-        rows.forEach((row: any, x: any) => {
+        const arr: (void | { [key: string]: (string | number | boolean | undefined | null | nodeType[])})[] = []
+        rows.forEach((row: (string | number | boolean | object | undefined | null)[], x: number) => {
             arr[x] = arr[x] || {}
-            row.forEach((cell: any, i: any) => {
+            row.forEach((cell: (string | number | boolean | object | undefined | null), i: number) => {
                 arr[x][headers[i]] = cell
             })
         })

@@ -15,7 +15,7 @@ export const readColumnSettings = (columnOptions = []) : allColumnSettingsType =
         // convert single column selection to array
         const columnSelectors = Array.isArray(data.select) ? data.select : [data.select]
 
-        columnSelectors.forEach((selector: any) => {
+        columnSelectors.forEach((selector: number) => {
             if (!columns[selector]) {
                 columns[selector] = {}
             }

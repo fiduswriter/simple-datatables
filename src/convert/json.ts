@@ -41,7 +41,7 @@ export const convertJSON = function(userOptions : jsonConvertUserOptions) {
                 data: []
             }
 
-            json.forEach((data: any, i: number) => {
+            json.forEach((data: { [key: string]: string | number | boolean | null | undefined}, i: number) => {
                 obj.data[i] = []
                 Object.entries(data).forEach(([column, value]) => {
                     if (!obj.headings.includes(column)) {

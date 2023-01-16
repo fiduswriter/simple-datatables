@@ -2,6 +2,10 @@ import {
     isObject
 } from "../helpers"
 import {DataTable} from "../datatable"
+import {
+    cellType,
+    headerCellType
+} from "../interfaces"
 /**
  * Export table to SQL
  */
@@ -32,31 +36,31 @@ export const exportSQL = function(dt: DataTable, userOptions : sqlUserOptions = 
         ...defaults,
         ...userOptions
     }
-    const columnShown = (index: any) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
-    let rows : (string | number | boolean)[][] = []
+    const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
+    let rows : (string | number | boolean | object | undefined | null)[][] = []
     // Selection or whole table
     if (options.selection) {
         // Page number
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.text ?? cell.data)))
             }
         } else {
-            rows = rows.concat(dt.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+            rows = rows.concat(dt.pages[options.selection - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.text ?? cell.data)))
         }
     } else {
-        rows = rows.concat(dt.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+        rows = rows.concat(dt.data.data.map((row: cellType[]) => row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
     }
 
-    const headers = dt.data.headings.filter((_heading: any, index: any) => columnShown(index)).map((header: any) => header.text ?? header.data)
+    const headers = dt.data.headings.filter((_heading: headerCellType, index: number) => columnShown(index)).map((header: headerCellType) => header.text ?? String(header.data))
     // Only proceed if we have data
     if (rows.length) {
         // Begin INSERT statement
         let str = `INSERT INTO \`${options.tableName}\` (`
 
         // Convert table headings to column names
-        headers.forEach((header: any) => {
+        headers.forEach((header: string) => {
             str += `\`${header}\`,`
         })
 
@@ -68,9 +72,9 @@ export const exportSQL = function(dt: DataTable, userOptions : sqlUserOptions = 
 
         // Iterate rows and convert cell data to column values
 
-        rows.forEach((row: any) => {
+        rows.forEach((row: (string | number | boolean | object | undefined | null)[]) => {
             str += "("
-            row.forEach((cell: any) => {
+            row.forEach((cell: (string | number | boolean | object | undefined | null)) => {
                 if (typeof cell === "string") {
                     str += `"${cell}",`
                 } else {

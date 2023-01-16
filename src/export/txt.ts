@@ -2,6 +2,10 @@ import {
     isObject
 } from "../helpers"
 import {DataTable} from "../datatable"
+import {
+    cellType,
+    headerCellType
+} from "../interfaces"
 /**
  * Export table to TXT
  */
@@ -35,10 +39,10 @@ export const exportTXT = function(dt: DataTable, userOptions : txtUserOptions = 
         ...userOptions
     }
 
-    const columnShown = (index: any) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
+    const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
 
-    let rows : (string | number | boolean)[][] = []
-    const headers = dt.data.headings.filter((_heading: any, index: any) => columnShown(index)).map((header: any) => header.text ?? header.data)
+    let rows : (string | number | boolean | object | undefined | null)[][] = []
+    const headers = dt.data.headings.filter((_heading: headerCellType, index: number) => columnShown(index)).map((header: headerCellType) => header.text ?? header.data)
     // Include headings
     rows[0] = headers
 
@@ -48,13 +52,13 @@ export const exportTXT = function(dt: DataTable, userOptions : txtUserOptions = 
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
             }
         } else {
-            rows = rows.concat(dt.pages[options.selection - 1].map((row: any) => row.row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+            rows = rows.concat(dt.pages[options.selection - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
         }
     } else {
-        rows = rows.concat(dt.data.data.map((row: any) => row.filter((_cell: any, index: any) => columnShown(index)).map((cell: any) => cell.text ?? cell.data)))
+        rows = rows.concat(dt.data.data.map((row: cellType[]) => row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
     }
 
     // Only proceed if we have data
@@ -62,7 +66,7 @@ export const exportTXT = function(dt: DataTable, userOptions : txtUserOptions = 
         let str = ""
 
         rows.forEach(row => {
-            row.forEach((cell: any) => {
+            row.forEach((cell: (string | number | boolean | object | undefined | null)) => {
                 if (typeof cell === "string") {
                     cell = cell.trim()
                     cell = cell.replace(/\s{2,}/g, " ")
