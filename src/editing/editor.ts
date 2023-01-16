@@ -67,7 +67,7 @@ export class Editor {
 
     wrapper: HTMLElement
 
-    constructor(dataTable: any, options = {}) {
+    constructor(dataTable: DataTable, options = {}) {
         this.dt = dataTable
         this.options = {
             ...defaultConfig,
@@ -107,7 +107,7 @@ export class Editor {
                         })
                         li.appendChild(a)
                         if (item.action && typeof item.action === "function") {
-                            a.addEventListener("click", (event: any) => {
+                            a.addEventListener("click", (event: Event) => {
                                 event.preventDefault()
                                 item.action(this, event)
                             })
@@ -166,9 +166,14 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    context(event: any) {
+    context(event: MouseEvent) {
+        const target = event.target
+        if (!(target instanceof Element)) {
+            return
+        }
         this.event = event
-        const cell = event.target.closest("tbody td")
+
+        const cell = target.closest("tbody td")
         if (this.options.contextMenu && !this.disabled && cell) {
             event.preventDefault()
             // get the mouse position
@@ -194,11 +199,15 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    click(event: any) {
+    click(event: MouseEvent) {
+        const target = event.target
+        if (!(target instanceof Element)) {
+            return
+        }
         if (this.editing && this.data && this.editingCell) {
             this.saveCell(this.data.input.value)
         } else if (!this.editing) {
-            const cell = event.target.closest("tbody td")
+            const cell = target.closest("tbody td") as HTMLTableCellElement
             if (cell) {
                 this.editCell(cell)
                 event.preventDefault()
@@ -211,13 +220,13 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    keydown(event: any) {
+    keydown(event: KeyboardEvent) {
         if (this.modal) {
             if (event.key === "Escape") { // close button
                 this.closeModal()
             } else if (event.key === "Enter") { // save button
                 // Save
-                this.saveRow(this.data.inputs.map((input: any) => input.value.trim()), this.data.row)
+                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row)
             }
         } else if (this.editing && this.data) {
             if (event.key === "Enter") {
@@ -225,7 +234,7 @@ export class Editor {
                 if (this.editingCell) {
                     this.saveCell(this.data.input.value)
                 } else if (this.editingRow) {
-                    this.saveRow(this.data.inputs.map((input: any) => input.value.trim()), this.data.row)
+                    this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row)
                 }
             } else if (event.key === "Escape") {
                 // Escape key reverts
@@ -239,13 +248,13 @@ export class Editor {
      * @param  {Object} td    The HTMLTableCellElement
      * @return {Void}
      */
-    editCell(td: any) {
+    editCell(td: HTMLTableCellElement) {
         const columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columns.settings.columns)
         if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu()
             return
         }
-        const rowIndex = parseInt(td.parentNode.dataset.index, 10)
+        const rowIndex = parseInt(td.parentElement.dataset.index, 10)
         const row = this.dt.data.data[rowIndex]
         const cell = row[columnIndex]
 
@@ -287,10 +296,14 @@ export class Editor {
         this.data.input.focus()
         this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length
         // Close / save
-        modal.addEventListener("click", (event: any) => {
-            if (event.target.hasAttribute("data-editor-close")) { // close button
+        modal.addEventListener("click", (event: Event) => {
+            const target = event.target
+            if (!(target instanceof Element)) {
+                return
+            }
+            if (target.hasAttribute("data-editor-close")) { // close button
                 this.closeModal()
-            } else if (event.target.hasAttribute("data-editor-save")) { // save button
+            } else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
                 this.saveCell(this.data.input.value)
             }
@@ -319,7 +332,7 @@ export class Editor {
      * @param  {Object} row    The HTMLTableRowElement
      * @return {Void}
      */
-    editRow(tr: any) {
+    editRow(tr: HTMLElement) {
         if (!tr || tr.nodeName !== "TR" || this.editing) return
         const rowIndex = parseInt(tr.dataset.index, 10)
         const row = this.dt.data.data[rowIndex]
@@ -351,7 +364,7 @@ export class Editor {
             return
         }
         // Add the inputs for each cell
-        row.forEach((cell: any, i: any) => {
+        row.forEach((cell: cellType, i: number) => {
             const columnSettings = this.dt.columns.settings.columns[i] || {}
             if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 const label = this.dt.data.headings[i].text || String(this.dt.data.headings[i].data)
@@ -380,12 +393,16 @@ export class Editor {
         this.editing = true
         this.editingRow = true
         // Close / save
-        modal.addEventListener("click", (event: any) => {
-            if (event.target.hasAttribute("data-editor-close")) { // close button
+        modal.addEventListener("click", (event: MouseEvent) => {
+            const target = event.target
+            if (!(target instanceof Element)) {
+                return
+            }
+            if (target.hasAttribute("data-editor-close")) { // close button
                 this.closeModal()
-            } else if (event.target.hasAttribute("data-editor-save")) { // save button
+            } else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveRow(this.data.inputs.map((input: any) => input.value.trim()), this.data.row)
+                this.saveRow(this.data.inputs.map((input: HTMLInputElement) => input.value.trim()), this.data.row)
             }
         })
         this.closeMenu()
@@ -397,10 +414,11 @@ export class Editor {
      * @param  {Array} data   Cell data
      * @return {Void}
      */
-    saveRow(data: any, row: any) {
+    saveRow(data: string[], row: cellType[]) {
         // Store the old data for the emitter
-        const oldData = row.map((cell: any) => cell.text || String(cell.data))
-        this.dt.rows.updateRow(this.data.rowIndex, data)
+        const oldData = row.map((cell: cellType) => cell.text ?? String(cell.data))
+        this.dt.data.data[this.data.rowIndex] = data.map(str => ({data: str}))
+        this.dt.update(true)
         this.data = {}
         this.closeModal()
         this.dt.emit("editable.save.row", data, oldData, row)
@@ -432,7 +450,7 @@ export class Editor {
      * @param  {Object} tr The HTMLTableRowElement
      * @return {Void}
      */
-    removeRow(tr: any) {
+    removeRow(tr: HTMLElement) {
         if (!tr || tr.nodeName !== "TR" || this.editing) return
         const index = parseInt(tr.dataset.index, 10)
         this.dt.rows.remove(index)
@@ -458,12 +476,16 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    dismiss(event: any) {
+    dismiss(event: Event) {
+        const target = event.target
+        if (!(target instanceof Element)) {
+            return
+        }
         let valid = true
         if (this.options.contextMenu) {
-            valid = !this.wrapper.contains(event.target)
+            valid = !this.wrapper.contains(target)
             if (this.editing) {
-                valid = !this.wrapper.contains(event.target) && event.target !== this.data.input
+                valid = !this.wrapper.contains(target) && target !== this.data.input
             }
         }
         if (valid) {
@@ -520,7 +542,7 @@ export class Editor {
     }
 }
 
-export const makeEditable = function(dataTable: any, options = {}) {
+export const makeEditable = function(dataTable: DataTable, options = {}) {
     const editor = new Editor(dataTable, options)
     if (dataTable.initialized) {
         editor.init()

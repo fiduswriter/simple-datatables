@@ -38,7 +38,7 @@ export class DataTable {
 
     dom: HTMLTableElement
 
-    events: any
+    events: { [key: string]: ((...args) => void)[]}
 
     filterStates: any
 
@@ -254,7 +254,7 @@ export class DataTable {
         this.label = this.wrapper.querySelector(`.${this.options.classes.info}`)
 
         // Insert in to DOM tree
-        this.dom.parentNode.replaceChild(this.wrapper, this.dom)
+        this.dom.parentElement.replaceChild(this.wrapper, this.dom)
         this.container.appendChild(this.dom)
 
         // Store the table dimensions
@@ -580,7 +580,7 @@ export class DataTable {
                 } else if (event.key === "ArrowDown") {
                     event.preventDefault()
                     event.stopPropagation()
-                    let foundRow: any
+                    let foundRow: boolean
                     const nextRow = this.pages[this.currentPage-1].find((row: {row: cellType[], index: number}) => {
                         if (foundRow) {
                             return true
@@ -654,8 +654,8 @@ export class DataTable {
         this.dom.classList.remove(this.options.classes.table)
 
         // Remove the containers
-        if (this.wrapper.parentNode) {
-            this.wrapper.parentNode.replaceChild(this.dom, this.wrapper)
+        if (this.wrapper.parentElement) {
+            this.wrapper.parentElement.replaceChild(this.dom, this.wrapper)
         }
 
         this.initialized = false
@@ -766,7 +766,7 @@ export class DataTable {
             const inArray = this.searchData.includes(idx)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
-            const doesQueryMatch = query.split(" ").reduce((bool: any, word: any) => {
+            const doesQueryMatch = query.split(" ").reduce((bool: boolean, word: string) => {
                 let includes = false
                 let cell = null
                 let content = null
@@ -843,7 +843,7 @@ export class DataTable {
                 rows = data.data
             }
         } else if (Array.isArray(data)) {
-            const headings = this.data.headings.map((heading: any) => heading.text ?? String(heading.data))
+            const headings = this.data.headings.map((heading: headerCellType) => heading.text ?? String(heading.data))
             data.forEach(row => {
                 const r: cellType[] = []
                 Object.entries(row).forEach(([heading, cell]) => {
@@ -924,7 +924,7 @@ export class DataTable {
     /**
      * Show a message in the table
      */
-    setMessage(message: any) {
+    setMessage(message: string) {
         const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columns.settings.columns[index]?.hidden)
         const colspan = activeHeadings.length || 1
 
@@ -976,7 +976,7 @@ export class DataTable {
     /**
      * Add custom event listener
      */
-    on(event: any, callback: any) {
+    on(event: string, callback: () => void) {
         this.events[event] = this.events[event] || []
         this.events[event].push(callback)
     }
@@ -984,7 +984,7 @@ export class DataTable {
     /**
      * Remove custom event listener
      */
-    off(event: any, callback: any) {
+    off(event: string, callback: () => void) {
         if (event in this.events === false) return
         this.events[event].splice(this.events[event].indexOf(callback), 1)
     }
@@ -992,7 +992,7 @@ export class DataTable {
     /**
      * Fire custom event
      */
-    emit(event: any, ...args) {
+    emit(event: string, ...args) {
         if (event in this.events === false) return
         for (let i = 0; i < this.events[event].length; i++) {
             this.events[event][i](...args)

@@ -3257,7 +3257,7 @@ var DataTable = /** @class */ (function () {
         this.pagers = Array.from(this.wrapper.querySelectorAll("ul.".concat(this.options.classes.paginationList)));
         this.label = this.wrapper.querySelector(".".concat(this.options.classes.info));
         // Insert in to DOM tree
-        this.dom.parentNode.replaceChild(this.wrapper, this.dom);
+        this.dom.parentElement.replaceChild(this.wrapper, this.dom);
         this.container.appendChild(this.dom);
         // Store the table dimensions
         this.rect = this.dom.getBoundingClientRect();
@@ -3595,8 +3595,8 @@ var DataTable = /** @class */ (function () {
         // Remove the className
         this.dom.classList.remove(this.options.classes.table);
         // Remove the containers
-        if (this.wrapper.parentNode) {
-            this.wrapper.parentNode.replaceChild(this.dom, this.wrapper);
+        if (this.wrapper.parentElement) {
+            this.wrapper.parentElement.replaceChild(this.dom, this.wrapper);
         }
         this.initialized = false;
         window.removeEventListener("resize", this.listeners.onResize);
@@ -4485,8 +4485,12 @@ var Editor = /** @class */ (function () {
      * @return {Void}
      */
     Editor.prototype.context = function (event) {
+        var target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
         this.event = event;
-        var cell = event.target.closest("tbody td");
+        var cell = target.closest("tbody td");
         if (this.options.contextMenu && !this.disabled && cell) {
             event.preventDefault();
             // get the mouse position
@@ -4512,11 +4516,15 @@ var Editor = /** @class */ (function () {
      * @return {Void}
      */
     Editor.prototype.click = function (event) {
+        var target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
         if (this.editing && this.data && this.editingCell) {
             this.saveCell(this.data.input.value);
         }
         else if (!this.editing) {
-            var cell = event.target.closest("tbody td");
+            var cell = target.closest("tbody td");
             if (cell) {
                 this.editCell(cell);
                 event.preventDefault();
@@ -4566,7 +4574,7 @@ var Editor = /** @class */ (function () {
             this.closeMenu();
             return;
         }
-        var rowIndex = parseInt(td.parentNode.dataset.index, 10);
+        var rowIndex = parseInt(td.parentElement.dataset.index, 10);
         var row = this.dt.data.data[rowIndex];
         var cell = row[columnIndex];
         this.data = {
@@ -4608,10 +4616,14 @@ var Editor = /** @class */ (function () {
         this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length;
         // Close / save
         modal.addEventListener("click", function (event) {
-            if (event.target.hasAttribute("data-editor-close")) { // close button
+            var target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
+            if (target.hasAttribute("data-editor-close")) { // close button
                 _this.closeModal();
             }
-            else if (event.target.hasAttribute("data-editor-save")) { // save button
+            else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
                 _this.saveCell(_this.data.input.value);
             }
@@ -4703,10 +4715,14 @@ var Editor = /** @class */ (function () {
         this.editingRow = true;
         // Close / save
         modal.addEventListener("click", function (event) {
-            if (event.target.hasAttribute("data-editor-close")) { // close button
+            var target = event.target;
+            if (!(target instanceof Element)) {
+                return;
+            }
+            if (target.hasAttribute("data-editor-close")) { // close button
                 _this.closeModal();
             }
-            else if (event.target.hasAttribute("data-editor-save")) { // save button
+            else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
                 _this.saveRow(_this.data.inputs.map(function (input) { return input.value.trim(); }), _this.data.row);
             }
@@ -4721,8 +4737,9 @@ var Editor = /** @class */ (function () {
      */
     Editor.prototype.saveRow = function (data, row) {
         // Store the old data for the emitter
-        var oldData = row.map(function (cell) { return cell.text || String(cell.data); });
-        this.dt.rows.updateRow(this.data.rowIndex, data);
+        var oldData = row.map(function (cell) { var _a; return (_a = cell.text) !== null && _a !== void 0 ? _a : String(cell.data); });
+        this.dt.data.data[this.data.rowIndex] = data.map(function (str) { return ({ data: str }); });
+        this.dt.update(true);
         this.data = {};
         this.closeModal();
         this.dt.emit("editable.save.row", data, oldData, row);
@@ -4777,11 +4794,15 @@ var Editor = /** @class */ (function () {
      * @return {Void}
      */
     Editor.prototype.dismiss = function (event) {
+        var target = event.target;
+        if (!(target instanceof Element)) {
+            return;
+        }
         var valid = true;
         if (this.options.contextMenu) {
-            valid = !this.wrapper.contains(event.target);
+            valid = !this.wrapper.contains(target);
             if (this.editing) {
-                valid = !this.wrapper.contains(event.target) && event.target !== this.data.input;
+                valid = !this.wrapper.contains(target) && target !== this.data.input;
             }
         }
         if (valid) {
