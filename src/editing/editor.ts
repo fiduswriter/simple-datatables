@@ -14,17 +14,7 @@ import {
     debounce
 } from "./helpers"
 import {DataTable} from "../datatable"
-
-
-interface dataType {
-    cell?: cellType;
-    rowIndex?: number;
-    columnIndex?: number;
-    content?: string;
-    input?: HTMLInputElement;
-    row?: cellType[];
-    inputs?: HTMLInputElement[];
-}
+import {menuItemType, dataType, EditorOptions} from "./interfaces"
 
 
 /**
@@ -61,7 +51,7 @@ export class Editor {
 
     modal: HTMLElement | false
 
-    options: any
+    options: EditorOptions
 
     rect: {width: number, height: number}
 
@@ -95,7 +85,7 @@ export class Editor {
                 class: this.options.classes.menu
             })
             if (this.options.menuItems && this.options.menuItems.length) {
-                this.options.menuItems.forEach((item: any) => {
+                this.options.menuItems.forEach((item: menuItemType) => {
                     const li = createElement("li", {
                         class: item.separator ? this.options.classes.separator : this.options.classes.item
                     })
@@ -146,7 +136,7 @@ export class Editor {
         }
         // listen for click / double-click
         this.dt.dom.addEventListener(this.options.clickEvent, this.events.click)
-        // listen for click anywhere but the menu
+        // listen for click everywhere except the menu
         document.addEventListener("click", this.events.dismiss)
         // listen for right-click
         document.addEventListener("keydown", this.events.keydown)

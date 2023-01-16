@@ -360,7 +360,7 @@ interface singleColumnSettingsType {
     format?: string,
     notSortable?: boolean,
     hidden?: boolean,
-    filter?: object[],
+    filter?: (string | number | boolean | ((arg: (string | number | boolean)) => boolean))[],
     sort?: "asc" | "desc",
     sortSequence?: ("asc" | "desc")[],
 }
@@ -377,12 +377,18 @@ interface renderOptions {
     renderHeader?: true
 }
 
+type filterStateType = {
+    column: number;
+    state: (string | number | boolean | nodeType[] | object | ((arg: (string | number | boolean | nodeType[] | object)) => boolean));
+}
+
 
 export {
     allColumnSettingsType,
     cellType,
     DataOption,
     DataTableOptions,
+    filterStateType,
     headerCellType,
     inputCellType,
     inputHeaderCellType,

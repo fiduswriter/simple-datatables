@@ -1,6 +1,6 @@
 import {readDataCell, readHeaderCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {allColumnSettingsType, cellType, headerCellType} from "./interfaces"
+import {allColumnSettingsType, cellType, headerCellType, filterStateType, inputCellType, inputHeaderCellType, nodeType, renderType} from "./interfaces"
 import {readColumnSettings} from "./column_settings"
 
 
@@ -107,19 +107,19 @@ export class Columns {
     /**
      * Add a new column
      */
-    add(data: any) {
+    add(data: {data: inputCellType[], heading: inputHeaderCellType, type?: "date", format?: string, sortable?: boolean, render?: renderType, filter?: (string | number | boolean | ((arg: (string | number | boolean)) => boolean))[]}) {
         const newColumnSelector = this.dt.data.headings.length
         this.dt.data.headings = this.dt.options.dataConvert ?
             this.dt.data.headings.concat([readHeaderCell(data.heading)]) :
-            this.dt.data.headings.concat([data.heading])
+            this.dt.data.headings.concat([data.heading as headerCellType])
         this.dt.data.data = this.dt.options.dataConvert ?
             this.dt.data.data.map(
                 (row: cellType[], index: number) => row.concat([readDataCell(data.data[index], data)])
             ) :
             this.dt.data.data.map(
-                (row: cellType[], index: number) => row.concat([data.data[index]])
+                (row: cellType[], index: number) => row.concat([data.data[index] as cellType])
             )
-        if (data.type || data.format || data.sortable || data.render) {
+        if (data.type || data.format || data.sortable || data.render || data.filter) {
             if (!this.settings.columns[newColumnSelector]) {
                 this.settings.columns[newColumnSelector] = {}
             }
@@ -130,8 +130,8 @@ export class Columns {
             if (data.format) {
                 column.format = data.format
             }
-            if (data.notSortable) {
-                column.notSortable = data.notSortable
+            if (data.sortable) {
+                column.notSortable = !data.sortable
             }
             if (data.filter) {
                 column.filter = data.filter
@@ -171,11 +171,11 @@ export class Columns {
             return
         }
 
-        const currentFilter = this.dt.filterStates.find((filterState: any) => filterState.column === column)
+        const currentFilter = this.dt.filterStates.find((filterState: filterStateType) => filterState.column === column)
         let newFilterState
         if (currentFilter) {
             let returnNext = false
-            newFilterState = this.settings.columns[column].filter.find((filter: any) => {
+            newFilterState = this.settings.columns[column].filter.find((filter: (string | number | boolean | nodeType[] | object | ((arg: (string | number | boolean | nodeType[] | object)) => boolean))) => {
                 if (returnNext) {
                     return true
                 }
@@ -191,7 +191,7 @@ export class Columns {
         if (currentFilter && newFilterState) {
             currentFilter.state = newFilterState
         } else if (currentFilter) {
-            this.dt.filterStates = this.dt.filterStates.filter((filterState: any) => filterState.column !== column)
+            this.dt.filterStates = this.dt.filterStates.filter((filterState: filterStateType) => filterState.column !== column)
         } else {
             this.dt.filterStates.push({column,
                 state: newFilterState})

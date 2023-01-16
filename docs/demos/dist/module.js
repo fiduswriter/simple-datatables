@@ -2436,7 +2436,8 @@ var button = function (className, page, text) { return createElement("li", {
  */
 var truncate = function (links, currentPage, pagesLength, options) {
     var pagerDelta = options.pagerDelta || 2;
-    var classes = options.classes || { ellipsis: "datatable-ellipsis", active: 'datatable-active' };
+    var classes = options.classes || { ellipsis: "datatable-ellipsis",
+        active: "datatable-active" };
     var ellipsisText = options.ellipsisText || "&hellip;";
     var doublePagerDelta = 2 * pagerDelta;
     var previousPage = currentPage - pagerDelta;
@@ -2866,7 +2867,7 @@ var Columns = /** @class */ (function () {
         this.dt.data.data = this.dt.options.dataConvert ?
             this.dt.data.data.map(function (row, index) { return row.concat([readDataCell(data.data[index], data)]); }) :
             this.dt.data.data.map(function (row, index) { return row.concat([data.data[index]]); });
-        if (data.type || data.format || data.sortable || data.render) {
+        if (data.type || data.format || data.sortable || data.render || data.filter) {
             if (!this.settings.columns[newColumnSelector]) {
                 this.settings.columns[newColumnSelector] = {};
             }
@@ -2877,8 +2878,8 @@ var Columns = /** @class */ (function () {
             if (data.format) {
                 column.format = data.format;
             }
-            if (data.notSortable) {
-                column.notSortable = data.notSortable;
+            if (data.sortable) {
+                column.notSortable = !data.sortable;
             }
             if (data.filter) {
                 column.filter = data.filter;
@@ -3738,19 +3739,7 @@ var DataTable = /** @class */ (function () {
     DataTable.prototype.insert = function (data) {
         var _this = this;
         var rows = [];
-        if (isObject(data)) {
-            if (data.headings) {
-                if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings);
-                    this.hasRows = Boolean(this.data.data.length);
-                    this.hasHeadings = Boolean(this.data.headings.length);
-                }
-            }
-            if (data.data && Array.isArray(data.data)) {
-                rows = data.data;
-            }
-        }
-        else if (Array.isArray(data)) {
+        if (Array.isArray(data)) {
             var headings_1 = this.data.headings.map(function (heading) { var _a; return (_a = heading.text) !== null && _a !== void 0 ? _a : String(heading.data); });
             data.forEach(function (row) {
                 var r = [];
@@ -3763,6 +3752,18 @@ var DataTable = /** @class */ (function () {
                 });
                 rows.push(r);
             });
+        }
+        else if (isObject(data)) {
+            if (data.headings) {
+                if (!this.hasHeadings && !this.hasRows) {
+                    this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings);
+                    this.hasRows = Boolean(this.data.data.length);
+                    this.hasHeadings = Boolean(this.data.headings.length);
+                }
+            }
+            else if (data.data && Array.isArray(data.data)) {
+                rows = data.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, _this.columns.settings.columns[index]); }); });
+            }
         }
         if (rows.length) {
             rows.forEach(function (row) { return _this.data.data.push(row); });
@@ -4467,7 +4468,7 @@ var Editor = /** @class */ (function () {
         };
         // listen for click / double-click
         this.dt.dom.addEventListener(this.options.clickEvent, this.events.click);
-        // listen for click anywhere but the menu
+        // listen for click everywhere except the menu
         document.addEventListener("click", this.events.dismiss);
         // listen for right-click
         document.addEventListener("keydown", this.events.keydown);

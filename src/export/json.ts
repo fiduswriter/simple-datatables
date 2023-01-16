@@ -14,7 +14,7 @@ import {
  interface jsonUserOptions {
    download?: boolean,
    skipColumn?: number[],
-   replacer?: null | ((arg:any) => string) | (string | number)[],
+   replacer?: null | ((key, value) => string) | (string | number)[],
    space?: number,
    selection?: number | number[],
    filename?: string,

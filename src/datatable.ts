@@ -16,6 +16,7 @@ import {
 import {
     cellType,
     DataTableOptions,
+    filterStateType,
     headerCellType,
     inputCellType,
     nodeType,
@@ -40,7 +41,7 @@ export class DataTable {
 
     events: { [key: string]: ((...args) => void)[]}
 
-    filterStates: any
+    filterStates: filterStateType[]
 
     hasHeadings: boolean
 
@@ -707,7 +708,7 @@ export class DataTable {
 
         if (this.filterStates.length) {
             this.filterStates.forEach(
-                (filterState: any) => {
+                (filterState: filterStateType) => {
                     rows = rows.filter(
                         (row: {index: number, row: cellType[]}) => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
                     )
@@ -828,20 +829,10 @@ export class DataTable {
     /**
      * Add new row data
      */
-    insert(data: any) {
+    insert(data: (
+        {headings?: string[], data?: inputCellType[][]} | { [key: string]: inputCellType}[])) {
         let rows: cellType[][] = []
-        if (isObject(data)) {
-            if (data.headings) {
-                if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings)
-                    this.hasRows = Boolean(this.data.data.length)
-                    this.hasHeadings = Boolean(this.data.headings.length)
-                }
-            }
-            if (data.data && Array.isArray(data.data)) {
-                rows = data.data
-            }
-        } else if (Array.isArray(data)) {
+        if (Array.isArray(data)) {
             const headings = this.data.headings.map((heading: headerCellType) => heading.text ?? String(heading.data))
             data.forEach(row => {
                 const r: cellType[] = []
@@ -855,6 +846,16 @@ export class DataTable {
                 })
                 rows.push(r)
             })
+        } else if (isObject(data)) {
+            if (data.headings) {
+                if (!this.hasHeadings && !this.hasRows) {
+                    this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings)
+                    this.hasRows = Boolean(this.data.data.length)
+                    this.hasHeadings = Boolean(this.data.headings.length)
+                }
+            } else if (data.data && Array.isArray(data.data)) {
+                rows = data.data.map(row => row.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings.columns[index])))
+            }
         }
         if (rows.length) {
             rows.forEach((row: cellType[]) => this.data.data.push(row))
