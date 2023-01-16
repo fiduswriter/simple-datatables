@@ -418,21 +418,20 @@ export class DataTable {
                     this.links,
                     this.currentPage,
                     this.pages.length,
-                    this.options.pagerDelta,
-                    this.options.ellipsisText
+                    this.options
                 )
             }
 
             // active page link
-            this.links[this.currentPage - 1].classList.add("active")
+            this.links[this.currentPage - 1].classList.add(this.options.classes.active)
 
             // append the links
             pager.forEach((p: HTMLElement) => {
-                p.classList.remove("active")
+                p.classList.remove(this.options.classes.active)
                 frag.appendChild(p)
             })
 
-            this.links[this.currentPage - 1].classList.add("active")
+            this.links[this.currentPage - 1].classList.add(this.options.classes.active)
 
             // next button
             if (this.options.nextPrev && !this.onLastPage) {
@@ -681,7 +680,7 @@ export class DataTable {
         let i = this.pages.length
         while (i--) {
             const num = i + 1
-            this.links[i] = button(i === 0 ? "active" : "", num, String(num))
+            this.links[i] = button(i === 0 ? this.options.classes.active : "", num, String(num))
         }
 
         this._renderPager()

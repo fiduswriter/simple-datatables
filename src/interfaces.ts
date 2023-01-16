@@ -132,10 +132,12 @@ interface LayoutOptions {
 
 
 interface ClassOptions {
+    active?: string;
     bottom?: string;
     container?: string;
     cursor?: string;
     dropdown?: string;
+    ellipsis?: string;
     empty?: string;
     headercontainer?: string;
     info?: string;

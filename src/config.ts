@@ -57,10 +57,12 @@ export const defaultConfig: DataTableOptions = {
     },
 
     classes: {
+        active: "active", // TODO in 7.0.0: datatable-active
         bottom: "datatable-bottom",
         container: "datatable-container",
         cursor: "datatable-cursor",
         dropdown: "datatable-dropdown",
+        ellipsis: "ellipsis", // TODO in 7.0.0: datatable-ellipsis
         empty: "datatable-empty",
         headercontainer: "datatable-headercontainer",
         info: "datatable-info",

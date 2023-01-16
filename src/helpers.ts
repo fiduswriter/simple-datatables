@@ -1,4 +1,4 @@
-import {nodeType, singleColumnSettingsType, textNodeType} from "./interfaces"
+import {nodeType, singleColumnSettingsType, textNodeType, DataTableOptions} from "./interfaces"
 
 /**
  * Check is item is object
@@ -57,7 +57,12 @@ export const button = (className: string, page: number, text: string) => createE
 /**
  * Pager truncation algorithm
  */
-export const truncate = (links: HTMLElement[]=[], currentPage=1, pagesLength=1, pagerDelta=2, ellipsis="&hellip;") => {
+export const truncate = (links: HTMLElement[], currentPage: number, pagesLength: number, options: DataTableOptions) => {
+    const pagerDelta = options.pagerDelta || 2
+    const classes = options.classes || {ellipsis: "datatable-ellipsis",
+        active: "datatable-active"}
+    const ellipsisText = options.ellipsisText || "&hellip;"
+
     const doublePagerDelta = 2 * pagerDelta
     let previousPage = currentPage - pagerDelta
     let nextPage = currentPage + pagerDelta
@@ -71,7 +76,7 @@ export const truncate = (links: HTMLElement[]=[], currentPage=1, pagesLength=1, 
     for (let k = 1; k <= pagesLength; k++) {
         if (1 == k || k == pagesLength || (k >= previousPage && k <= nextPage)) {
             const link = links[k - 1]
-            link.classList.remove("active")
+            link.classList.remove(classes.active)
             linksToModify.push(link)
         }
     }
@@ -85,8 +90,8 @@ export const truncate = (links: HTMLElement[]=[], currentPage=1, pagesLength=1, 
                 modifiedLinks.push(links[previousPageNumber])
             } else if (pageNumber - previousPageNumber != 1) {
                 const newLink = createElement("li", {
-                    class: "ellipsis",
-                    html: `<a href="#">${ellipsis}</a>`
+                    class: classes.ellipsis,
+                    html: ellipsisText
                 })
                 modifiedLinks.push(newLink)
             }

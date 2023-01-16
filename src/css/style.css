@@ -62,6 +62,7 @@
 	background-color: #d9d9d9;
 }
 
+/* TODO in 7.0.0: remove */
 .datatable-pagination .active a,
 .datatable-pagination .active a:focus,
 .datatable-pagination .active a:hover {
@@ -69,7 +70,15 @@
 	cursor: default;
 }
 
-.datatable-pagination .ellipsis a,
+.datatable-pagination .datatable-active a,
+.datatable-pagination .datatable-active a:focus,
+.datatable-pagination .datatable-active a:hover {
+	background-color: #d9d9d9;
+	cursor: default;
+}
+
+.datatable-pagination .datatable-ellipsis a,
+.datatable-pagination .ellipsis a, /* TODO in 7.0.0: remove */
 .datatable-pagination .disabled a,
 .datatable-pagination .disabled a:focus,
 .datatable-pagination .disabled a:hover {

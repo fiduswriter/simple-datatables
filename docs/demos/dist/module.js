@@ -2434,12 +2434,10 @@ var button = function (className, page, text) { return createElement("li", {
 /**
  * Pager truncation algorithm
  */
-var truncate = function (links, currentPage, pagesLength, pagerDelta, ellipsis) {
-    if (links === void 0) { links = []; }
-    if (currentPage === void 0) { currentPage = 1; }
-    if (pagesLength === void 0) { pagesLength = 1; }
-    if (pagerDelta === void 0) { pagerDelta = 2; }
-    if (ellipsis === void 0) { ellipsis = "&hellip;"; }
+var truncate = function (links, currentPage, pagesLength, options) {
+    var pagerDelta = options.pagerDelta || 2;
+    var classes = options.classes || { ellipsis: "datatable-ellipsis", active: 'datatable-active' };
+    var ellipsisText = options.ellipsisText || "&hellip;";
     var doublePagerDelta = 2 * pagerDelta;
     var previousPage = currentPage - pagerDelta;
     var nextPage = currentPage + pagerDelta;
@@ -2453,7 +2451,7 @@ var truncate = function (links, currentPage, pagesLength, pagerDelta, ellipsis) 
     for (var k = 1; k <= pagesLength; k++) {
         if (1 == k || k == pagesLength || (k >= previousPage && k <= nextPage)) {
             var link = links[k - 1];
-            link.classList.remove("active");
+            link.classList.remove(classes.active);
             linksToModify.push(link);
         }
     }
@@ -2468,8 +2466,8 @@ var truncate = function (links, currentPage, pagesLength, pagerDelta, ellipsis) 
             }
             else if (pageNumber - previousPageNumber != 1) {
                 var newLink = createElement("li", {
-                    "class": "ellipsis",
-                    html: "<a href=\"#\">".concat(ellipsis, "</a>")
+                    "class": classes.ellipsis,
+                    html: ellipsisText
                 });
                 modifiedLinks.push(newLink);
             }
@@ -3116,10 +3114,12 @@ var defaultConfig$1 = {
         bottom: "{info}{pager}"
     },
     classes: {
+        active: "active",
         bottom: "datatable-bottom",
         container: "datatable-container",
         cursor: "datatable-cursor",
         dropdown: "datatable-dropdown",
+        ellipsis: "ellipsis",
         empty: "datatable-empty",
         headercontainer: "datatable-headercontainer",
         info: "datatable-info",
@@ -3364,6 +3364,7 @@ var DataTable = /** @class */ (function () {
      * @return {Void}
      */
     DataTable.prototype._renderPager = function () {
+        var _this = this;
         flush(this.pagers);
         if (this.totalPages > 1) {
             var c = "pager";
@@ -3381,16 +3382,16 @@ var DataTable = /** @class */ (function () {
             var pager = this.links;
             // truncate the links
             if (this.options.truncatePager) {
-                pager = truncate(this.links, this.currentPage, this.pages.length, this.options.pagerDelta, this.options.ellipsisText);
+                pager = truncate(this.links, this.currentPage, this.pages.length, this.options);
             }
             // active page link
-            this.links[this.currentPage - 1].classList.add("active");
+            this.links[this.currentPage - 1].classList.add(this.options.classes.active);
             // append the links
             pager.forEach(function (p) {
-                p.classList.remove("active");
+                p.classList.remove(_this.options.classes.active);
                 frag_1.appendChild(p);
             });
-            this.links[this.currentPage - 1].classList.add("active");
+            this.links[this.currentPage - 1].classList.add(this.options.classes.active);
             // next button
             if (this.options.nextPrev && !this.onLastPage) {
                 frag_1.appendChild(button(c, next, this.options.nextText));
@@ -3617,7 +3618,7 @@ var DataTable = /** @class */ (function () {
         var i = this.pages.length;
         while (i--) {
             var num = i + 1;
-            this.links[i] = button(i === 0 ? "active" : "", num, String(num));
+            this.links[i] = button(i === 0 ? this.options.classes.active : "", num, String(num));
         }
         this._renderPager();
         if (this.options.scrollY.length) {
