@@ -39,7 +39,7 @@ interface TableDataType{
     data: cellType[][] ;
 }
 
-type renderType = ((cellData: any, td: object, rowIndex: number, cellIndex: number) => nodeType | string | void);
+type renderType = ((cellData: (string | number | boolean | object | nodeType[]), td: object, rowIndex: number, cellIndex: number) => nodeType | string | void);
 
 interface ColumnOption{
     /**An integer or array of integers representing the column(s) to be manipulated. */
