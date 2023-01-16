@@ -303,7 +303,7 @@ export class DataTable {
         const newVirtualDOM = dataToVirtualDOM(
             this.id,
             this.data.headings,
-            this.options.paging && this.currentPage && this.pages.length && !renderOptions.noPaging ?
+            (this.options.paging || this.searching) && this.currentPage && this.pages.length && !renderOptions.noPaging ?
                 this.pages[this.currentPage - 1] :
                 this.data.data.map((row, index) => ({
                     row,
@@ -689,7 +689,7 @@ export class DataTable {
         if (this.searching) {
             rows = []
 
-            this.searchData.forEach((index: any) => rows.push({index,
+            this.searchData.forEach((index: number) => rows.push({index,
                 row: this.data.data[index]}))
         }
 
@@ -697,7 +697,7 @@ export class DataTable {
             this.filterStates.forEach(
                 (filterState: any) => {
                     rows = rows.filter(
-                        (row: any) => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
+                        (row: {index: number, row: cellType[]}) => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
                     )
                 }
             )
@@ -706,7 +706,7 @@ export class DataTable {
         if (this.options.paging && this.options.perPage > 0) {
             // Check for hidden columns
             this.pages = rows
-                .map((row: any, i: any) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .map((row: any, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
                 .filter((page: any) => page)
         } else {
             this.pages = [rows]
