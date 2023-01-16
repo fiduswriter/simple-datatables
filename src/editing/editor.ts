@@ -3,6 +3,9 @@ import {
     escapeText,
     visibleToColumnIndex
 } from "../helpers"
+import {
+    cellType
+} from "../interfaces"
 
 import {
     defaultConfig
@@ -11,43 +14,56 @@ import {
     debounce
 } from "./helpers"
 import {DataTable} from "../datatable"
+
+
+interface dataType {
+    cell?: cellType;
+    rowIndex?: number;
+    columnIndex?: number;
+    content?: string;
+    input?: HTMLInputElement;
+    row?: cellType[];
+    inputs?: HTMLInputElement[];
+}
+
+
 /**
  * Main lib
  * @param {Object} dataTable Target dataTable
  * @param {Object} options User config
  */
 export class Editor {
-    closed: any
+    closed: boolean
 
-    container: any
+    container: HTMLElement
 
-    data: any
+    data: dataType
 
-    disabled: any
+    disabled: boolean
 
     dt: DataTable
 
     editing: boolean
 
-    editingCell: any
+    editingCell: boolean
 
-    editingRow: any
+    editingRow: boolean
 
-    event: any
+    event: Event
 
     events: { [key: string]: () => void}
 
     initialized: boolean
 
-    limits: any
+    limits: {x: number, y: number}
 
     menu: HTMLElement
 
-    modal: any
+    modal: HTMLElement | false
 
     options: any
 
-    rect: any
+    rect: {width: number, height: number}
 
     wrapper: HTMLElement
 
@@ -305,8 +321,8 @@ export class Editor {
      */
     editRow(tr: any) {
         if (!tr || tr.nodeName !== "TR" || this.editing) return
-        const dataIndex = parseInt(tr.dataset.index, 10)
-        const row = this.dt.data.data[dataIndex]
+        const rowIndex = parseInt(tr.dataset.index, 10)
+        const row = this.dt.data.data[rowIndex]
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
@@ -353,13 +369,13 @@ export class Editor {
         this.modal = modal
         this.openModal()
         // Grab the inputs
-        const inputs = Array.from(form.querySelectorAll("input[type=text]"))
+        const inputs = Array.from(form.querySelectorAll("input[type=text]")) as HTMLInputElement[]
         // Remove save button
         inputs.pop()
         this.data = {
             row,
             inputs,
-            dataIndex
+            rowIndex
         }
         this.editing = true
         this.editingRow = true
@@ -384,7 +400,7 @@ export class Editor {
     saveRow(data: any, row: any) {
         // Store the old data for the emitter
         const oldData = row.map((cell: any) => cell.text || String(cell.data))
-        this.dt.rows.updateRow(this.data.dataIndex, data)
+        this.dt.rows.updateRow(this.data.rowIndex, data)
         this.data = {}
         this.closeModal()
         this.dt.emit("editable.save.row", data, oldData, row)

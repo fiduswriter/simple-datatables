@@ -2462,7 +2462,7 @@ var truncate = function (links, currentPage, pagesLength, pagerDelta, ellipsis) 
     linksToModify.forEach(function (link) {
         var pageNumber = parseInt(link.children[0].getAttribute("data-page"), 10);
         if (previousLink) {
-            var previousPageNumber = parseInt(previousLink.children[0].getAttribute("data-page"));
+            var previousPageNumber = parseInt(previousLink.children[0].getAttribute("data-page"), 10);
             if (pageNumber - previousPageNumber == 2) {
                 modifiedLinks.push(links[previousPageNumber]);
             }
@@ -3346,7 +3346,7 @@ var DataTable = /** @class */ (function () {
             this._fixHeight();
         }
         if (this.options.rowNavigation && this.currentPage) {
-            if (!this.rows.cursor || !this.pages[this.currentPage - 1].find(function (page) { return page.index === _this.rows.cursor; })) {
+            if (!this.rows.cursor || !this.pages[this.currentPage - 1].find(function (row) { return row.index === _this.rows.cursor; })) {
                 var rows = this.pages[this.currentPage - 1];
                 if (rows.length) {
                     if (lastRowCursor) {
@@ -3482,21 +3482,23 @@ var DataTable = /** @class */ (function () {
             }
         }
         // Pager(s) / sorting
-        this.wrapper.addEventListener("click", function (e) {
-            var t = e.target.closest("a");
-            if (t && (t.nodeName.toLowerCase() === "a")) {
-                if (t.hasAttribute("data-page")) {
-                    _this.page(parseInt(t.getAttribute("data-page"), 10));
-                    e.preventDefault();
-                }
-                else if (_this.options.sortable &&
-                    t.classList.contains(_this.options.classes.sorter) &&
-                    t.parentNode.getAttribute("data-sortable") != "false") {
-                    var visibleIndex = Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode);
-                    var columnIndex = visibleToColumnIndex(visibleIndex, _this.columns.settings.columns);
-                    _this.columns.sort(columnIndex);
-                    e.preventDefault();
-                }
+        this.wrapper.addEventListener("click", function (event) {
+            var target = event.target;
+            var hyperlink = target.closest("a");
+            if (!hyperlink) {
+                return;
+            }
+            if (hyperlink.hasAttribute("data-page")) {
+                _this.page(parseInt(hyperlink.getAttribute("data-page"), 10));
+                event.preventDefault();
+            }
+            else if (_this.options.sortable &&
+                hyperlink.classList.contains(_this.options.classes.sorter) &&
+                hyperlink.parentElement.getAttribute("data-sortable") != "false") {
+                var visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement);
+                var columnIndex = visibleToColumnIndex(visibleIndex, _this.columns.settings.columns);
+                _this.columns.sort(columnIndex);
+                event.preventDefault();
             }
         }, false);
         if (this.options.rowNavigation) {
@@ -3544,8 +3546,12 @@ var DataTable = /** @class */ (function () {
                 }
             });
             this.dom.addEventListener("mousedown", function (event) {
+                var target = event.target;
+                if (!(target instanceof Element)) {
+                    return;
+                }
                 if (_this.dom.matches(":focus")) {
-                    var row = Array.from(_this.dom.querySelectorAll("body tr")).find(function (row) { return row.contains(event.target); });
+                    var row = Array.from(_this.dom.querySelectorAll("body tr")).find(function (row) { return row.contains(target); });
                     if (row && row instanceof HTMLElement) {
                         _this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
                     }
@@ -3554,7 +3560,11 @@ var DataTable = /** @class */ (function () {
         }
         else {
             this.dom.addEventListener("mousedown", function (event) {
-                var row = Array.from(_this.dom.querySelectorAll("body tr")).find(function (row) { return row.contains(event.target); });
+                var target = event.target;
+                if (!(target instanceof Element)) {
+                    return;
+                }
+                var row = Array.from(_this.dom.querySelectorAll("body tr")).find(function (row) { return row.contains(target); });
                 if (row && row instanceof HTMLElement) {
                     _this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event);
                 }
@@ -3607,7 +3617,7 @@ var DataTable = /** @class */ (function () {
         var i = this.pages.length;
         while (i--) {
             var num = i + 1;
-            this.links[i] = button(i === 0 ? "active" : "", num, num);
+            this.links[i] = button(i === 0 ? "active" : "", num, String(num));
         }
         this._renderPager();
         if (this.options.scrollY.length) {
@@ -4328,6 +4338,9 @@ var defaultConfig = {
         {
             text: function (editor) { return editor.options.labels.editCell; },
             action: function (editor, _event) {
+                if (!(editor.event.target instanceof Element)) {
+                    return;
+                }
                 var cell = editor.event.target.closest("td");
                 return editor.editCell(cell);
             }
@@ -4335,6 +4348,9 @@ var defaultConfig = {
         {
             text: function (editor) { return editor.options.labels.editRow; },
             action: function (editor, _event) {
+                if (!(editor.event.target instanceof Element)) {
+                    return;
+                }
                 var row = editor.event.target.closest("tr");
                 return editor.editRow(row);
             }
@@ -4345,6 +4361,9 @@ var defaultConfig = {
         {
             text: function (editor) { return editor.options.labels.removeRow; },
             action: function (editor, _event) {
+                if (!(editor.event.target instanceof Element)) {
+                    return;
+                }
                 if (confirm(editor.options.labels.reallyRemove)) {
                     var row = editor.event.target.closest("tr");
                     editor.removeRow(row);
@@ -4624,8 +4643,8 @@ var Editor = /** @class */ (function () {
         var _a;
         if (!tr || tr.nodeName !== "TR" || this.editing)
             return;
-        var dataIndex = parseInt(tr.dataset.index, 10);
-        var row = this.dt.data.data[dataIndex];
+        var rowIndex = parseInt(tr.dataset.index, 10);
+        var row = this.dt.data.data[rowIndex];
         var template = [
             "<div class='".concat(this.options.classes.inner, "'>"),
             "<div class='".concat(this.options.classes.header, "'>"),
@@ -4678,7 +4697,7 @@ var Editor = /** @class */ (function () {
         this.data = {
             row: row,
             inputs: inputs,
-            dataIndex: dataIndex
+            rowIndex: rowIndex
         };
         this.editing = true;
         this.editingRow = true;
@@ -4703,7 +4722,7 @@ var Editor = /** @class */ (function () {
     Editor.prototype.saveRow = function (data, row) {
         // Store the old data for the emitter
         var oldData = row.map(function (cell) { return cell.text || String(cell.data); });
-        this.dt.rows.updateRow(this.data.dataIndex, data);
+        this.dt.rows.updateRow(this.data.rowIndex, data);
         this.data = {};
         this.closeModal();
         this.dt.emit("editable.save.row", data, oldData, row);

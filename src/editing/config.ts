@@ -49,6 +49,9 @@ export const defaultConfig = {
         {
             text: (editor: Editor) => editor.options.labels.editCell,
             action: (editor: Editor, _event: Event) => {
+                if (!(editor.event.target instanceof Element)) {
+                    return
+                }
                 const cell = editor.event.target.closest("td")
                 return editor.editCell(cell)
             }
@@ -56,6 +59,9 @@ export const defaultConfig = {
         {
             text: (editor: Editor) => editor.options.labels.editRow,
             action: (editor: Editor, _event: Event) => {
+                if (!(editor.event.target instanceof Element)) {
+                    return
+                }
                 const row = editor.event.target.closest("tr")
                 return editor.editRow(row)
             }
@@ -66,6 +72,9 @@ export const defaultConfig = {
         {
             text: (editor: Editor) => editor.options.labels.removeRow,
             action: (editor: Editor, _event: Event) => {
+                if (!(editor.event.target instanceof Element)) {
+                    return
+                }
                 if (confirm(editor.options.labels.reallyRemove)) {
                     const row = editor.event.target.closest("tr")
                     editor.removeRow(row)

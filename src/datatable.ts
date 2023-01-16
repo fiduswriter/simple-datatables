@@ -58,11 +58,11 @@ export class DataTable {
 
     label: HTMLElement
 
-    lastPage: any
+    lastPage: number
 
-    links: any
+    links: HTMLElement[]
 
-    listeners: any
+    listeners: { [key: string]: () => void}
 
     onFirstPage: boolean
 
@@ -72,9 +72,9 @@ export class DataTable {
 
     pagers: HTMLUListElement[]
 
-    pages: any
+    pages: {row: cellType[], index: number}[][]
 
-    rect: any
+    rect: {width: number, height: number}
 
     rows: Rows
 
@@ -372,7 +372,9 @@ export class DataTable {
         }
 
         if (this.options.rowNavigation && this.currentPage) {
-            if (!this.rows.cursor || !this.pages[this.currentPage-1].find((page: any) => page.index === this.rows.cursor)) {
+            if (!this.rows.cursor || !this.pages[this.currentPage-1].find(
+                row => row.index === this.rows.cursor)
+            ) {
                 const rows = this.pages[this.currentPage-1]
                 if (rows.length) {
                     if (lastRowCursor) {
@@ -425,7 +427,7 @@ export class DataTable {
             this.links[this.currentPage - 1].classList.add("active")
 
             // append the links
-            pager.forEach((p: any) => {
+            pager.forEach((p: HTMLElement) => {
                 p.classList.remove("active")
                 frag.appendChild(p)
             })
@@ -443,7 +445,7 @@ export class DataTable {
             }
 
             // We may have more than one pager
-            this.pagers.forEach((pager: any) => {
+            this.pagers.forEach((pager: HTMLElement) => {
                 pager.appendChild(frag.cloneNode(true))
             })
         }
@@ -536,31 +538,34 @@ export class DataTable {
         }
 
         // Pager(s) / sorting
-        this.wrapper.addEventListener("click", (e: any) => {
-            const t = e.target.closest("a")
-            if (t && (t.nodeName.toLowerCase() === "a")) {
-                if (t.hasAttribute("data-page")) {
-                    this.page(parseInt(t.getAttribute("data-page"), 10))
-                    e.preventDefault()
-                } else if (
-                    this.options.sortable &&
-                    t.classList.contains(this.options.classes.sorter) &&
-                    t.parentNode.getAttribute("data-sortable") != "false"
-                ) {
-                    const visibleIndex = Array.from(t.parentNode.parentNode.children).indexOf(t.parentNode)
-                    const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings.columns)
-                    this.columns.sort(columnIndex)
-                    e.preventDefault()
-                }
+        this.wrapper.addEventListener("click", (event: Event) => {
+            const target = event.target as Element
+            const hyperlink = target.closest("a")
+            if (!hyperlink) {
+                return
+            }
+
+            if (hyperlink.hasAttribute("data-page")) {
+                this.page(parseInt(hyperlink.getAttribute("data-page"), 10))
+                event.preventDefault()
+            } else if (
+                this.options.sortable &&
+                hyperlink.classList.contains(this.options.classes.sorter) &&
+                hyperlink.parentElement.getAttribute("data-sortable") != "false"
+            ) {
+                const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
+                const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings.columns)
+                this.columns.sort(columnIndex)
+                event.preventDefault()
             }
         }, false)
         if (this.options.rowNavigation) {
-            this.dom.addEventListener("keydown", (event: any) => {
+            this.dom.addEventListener("keydown", (event: KeyboardEvent) => {
                 if (event.key === "ArrowUp") {
                     event.preventDefault()
                     event.stopPropagation()
                     let lastRow
-                    this.pages[this.currentPage-1].find((row: any) => {
+                    this.pages[this.currentPage-1].find((row: {row: cellType[], index: number}) => {
                         if (row.index===this.rows.cursor) {
                             return true
                         }
@@ -576,7 +581,7 @@ export class DataTable {
                     event.preventDefault()
                     event.stopPropagation()
                     let foundRow: any
-                    const nextRow = this.pages[this.currentPage-1].find((row: any) => {
+                    const nextRow = this.pages[this.currentPage-1].find((row: {row: cellType[], index: number}) => {
                         if (foundRow) {
                             return true
                         }
@@ -594,9 +599,13 @@ export class DataTable {
                     this.emit("datatable.selectrow", this.rows.cursor, event)
                 }
             })
-            this.dom.addEventListener("mousedown", (event: any) => {
+            this.dom.addEventListener("mousedown", (event: Event) => {
+                const target = event.target
+                if (!(target instanceof Element)) {
+                    return
+                }
                 if (this.dom.matches(":focus")) {
-                    const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
+                    const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(target))
                     if (row && row instanceof HTMLElement) {
                         this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
                     }
@@ -604,8 +613,12 @@ export class DataTable {
 
             })
         } else {
-            this.dom.addEventListener("mousedown", (event: any) => {
-                const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(event.target))
+            this.dom.addEventListener("mousedown", (event: Event) => {
+                const target = event.target
+                if (!(target instanceof Element)) {
+                    return
+                }
+                const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(target))
                 if (row && row instanceof HTMLElement) {
                     this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
                 }
@@ -668,7 +681,7 @@ export class DataTable {
         let i = this.pages.length
         while (i--) {
             const num = i + 1
-            this.links[i] = button(i === 0 ? "active" : "", num, num)
+            this.links[i] = button(i === 0 ? "active" : "", num, String(num))
         }
 
         this._renderPager()
@@ -706,8 +719,8 @@ export class DataTable {
         if (this.options.paging && this.options.perPage > 0) {
             // Check for hidden columns
             this.pages = rows
-                .map((row: any, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
-                .filter((page: any) => page)
+                .map((row: {row: cellType[], index: number}, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .filter((page: {row: cellType[], index: number}[]) => page)
         } else {
             this.pages = [rows]
         }
@@ -732,7 +745,7 @@ export class DataTable {
     /**
      * Perform a search of the data set
      */
-    search(query: any) {
+    search(query: string) {
         if (!this.hasRows) return false
 
         query = query.toLowerCase()
@@ -749,7 +762,7 @@ export class DataTable {
             return false
         }
 
-        this.data.data.forEach((row: any, idx: number) => {
+        this.data.data.forEach((row: cellType[], idx: number) => {
             const inArray = this.searchData.includes(idx)
 
             // https://github.com/Mobius1/Vanilla-DataTables/issues/12
