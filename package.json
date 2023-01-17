@@ -70,9 +70,7 @@
     "typescript": "^4.9.4"
   },
   "dependencies": {
-    "chromedriver": "^*",
     "dayjs": "^1.11.7",
     "diff-dom": "^4.2.8",
-    "selenium-webdriver": "^4.7.1"
   }
 }
