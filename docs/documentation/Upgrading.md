@@ -4,7 +4,17 @@
 
 Version 6.0 is the biggest update to simple-datatables since version 1.0. I do not expect similar changes in the the next few years.
 
-* Rendering of cells and rows works differently now. Previously you would modify a row by using the `render`-method of a column. That no longer works, but there is now instead a `rowRender` configuration option that can be used to modify how rows are rendered. The options available to the `render` method have also changed.
+* The source of truth used to be the `<tr>`-elements that simple-datatables would collect from the initial table or new `<tr>`-elements that it would create later on based upon configuration. Exporting data or searching through the data would involve looking through these elements and their contents. In version 6, the source of truth is the data that can be found in [`datatable.data`](data). To access the data, look at `dataTable.data.data` (row data) and `dataTable.data.headings` (heading data).
+
+* If an initial table DOM is provided it is converted to the internal format first. If data is provided in some other way, it is directly stored in the internal data storage without going through the DOM first. The table DOM is then rendered and later on rerendered based on that data using [diffDOM](https://github.com/fiduswriter/diffDOM).
+
+* Incoming data is no longer converted to strings by default. Up to version 5, a side-effect of the data internal data storage being run in the form of HTML elements was that any datatype that was not a string was automatically converted to be a string. This is no longer the case.
+In the internal data storage, numbers, boolean values, etc. are kept in their original format and will only be converted to strings when
+shown in the DOM. For formats where it's unclear how it should be rendered as a string, a separate string (`text`) can be provided.
+
+* You can no longer manually add things to the table DOM and expect for it to stay in place. In version 5 and prior to that, you could add your own custom classes/attributes to `<table>`/`<tr>`/`<td>`-elements and expect for these to stay in place. That is no longer possible with 6. If you want to add specific class names, look at either [configuring the class names](classes) used by simple-datatables, or at adding extra classes using the [`rowRender`](rowRender) configuration option.  
+
+* Rendering of cells and rows works differently now. Previously you would modify a row by using the `render`-method of a column. That no longer works, but there is now instead a [`rowRender`](rowRender) configuration option that can be used to modify how rows are rendered. The options available to the `render` method have also changed.
 
 
 Instead of:
@@ -99,17 +109,7 @@ do now:
 document.querySelector('.datatable-wrapper')
 ```
 
-**Note:** [Class names are now configurable.](classes) So if you rely on the old class names for some reason, you can configurable simple-datatables to use the old class names:
-
-
-* Data is no longer converted to strings by default. Up to version 5, the data internal data storage was in the form of HTML elements.
-A side-effect thereof was that any datatype that was not a string was automatically converted to be a string. This is no longer the case.
-In the internal data storage, numbers, boolean values, etc. are kept in their original format and will only be converted to strings when
-shown in the DOM.
-
-* Table data is now stored internally arrays of arrays/objects of strings and/or numbers instead fo DOM nodes.
-To access the data, look at `dataTable.data.data` (row data) and `dataTable.data.headings` (heading data). DOM nodes are created
-only when needed.
+**Note:** [Class names are now configurable.](classes) So if you rely on the old class names for some reason, you can configurable simple-datatables to use the old class names.
 
 
 * The `dataIndex` property on `<tr>`s is now called `data-index` and is always a string.
