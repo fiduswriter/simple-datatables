@@ -1,7 +1,7 @@
 import {DiffDOM, nodeToObj} from "diff-dom"
 
 import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
-import {readTableData, readDataCell} from "./read_data"
+import {readTableData, readDataCell, readHeaderCell} from "./read_data"
 import {Rows} from "./rows"
 import {Columns} from "./columns"
 import {defaultConfig} from "./config"
@@ -842,17 +842,19 @@ export class DataTable {
 
                     if (index > -1) {
                         r[index] = readDataCell(cell as inputCellType, this.columns.settings.columns[index])
+                    } else {
+                        r[headings.length] = readDataCell(cell as inputCellType, this.columns.settings.columns[headings.length])
+                        headings.push(heading)
+                        this.data.headings.push(readHeaderCell(heading))
                     }
                 })
                 rows.push(r)
             })
         } else if (isObject(data)) {
-            if (data.headings) {
-                if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings)
-                    this.hasRows = Boolean(this.data.data.length)
-                    this.hasHeadings = Boolean(this.data.headings.length)
-                }
+            if (data.headings && !this.hasHeadings && !this.hasRows) {
+                this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings)
+                this.hasRows = Boolean(this.data.data.length)
+                this.hasHeadings = Boolean(this.data.headings.length)
             } else if (data.data && Array.isArray(data.data)) {
                 rows = data.data.map(row => row.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings.columns[index])))
             }

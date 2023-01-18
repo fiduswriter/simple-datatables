@@ -141,7 +141,7 @@ var dataToVirtualDOM = function (id, headings, rows, columnSettings, columnWidth
                                     if (typeof renderedCell === "string") {
                                         // Convenience method to make it work similarly to what it did up to version 5.
                                         var node = stringToObj("<td>".concat(renderedCell, "</td>"));
-                                        if (node.childNodes.length !== 1 || !['#text', '#comment'].includes(node.childNodes[0].nodeName)) {
+                                        if (node.childNodes.length !== 1 || !["#text", "#comment"].includes(node.childNodes[0].nodeName)) {
                                             td.childNodes = node.childNodes;
                                         }
                                         else {
@@ -165,7 +165,7 @@ var dataToVirtualDOM = function (id, headings, rows, columnSettings, columnWidth
                             if (typeof renderedRow === "string") {
                                 // Convenience method to make it work similarly to what it did up to version 5.
                                 var node = stringToObj("<tr>".concat(renderedRow, "</tr>"));
-                                if (node.childNodes && (node.childNodes.length !== 1 || !['#text', '#comment'].includes(node.childNodes[0].nodeName))) {
+                                if (node.childNodes && (node.childNodes.length !== 1 || !["#text", "#comment"].includes(node.childNodes[0].nodeName))) {
                                     tr.childNodes = node.childNodes;
                                 }
                                 else {
@@ -367,7 +367,7 @@ var truncate = function (links, currentPage, pagesLength, options) {
     return modifiedLinks;
 };
 var objToText = function (obj) {
-    if (['#text', '#comment'].includes(obj.nodeName)) {
+    if (["#text", "#comment"].includes(obj.nodeName)) {
         return obj.data;
     }
     if (obj.childNodes) {
@@ -1637,17 +1637,20 @@ var DataTable = /** @class */ (function () {
                     if (index > -1) {
                         r[index] = readDataCell(cell, _this.columns.settings.columns[index]);
                     }
+                    else {
+                        r[headings_1.length] = readDataCell(cell, _this.columns.settings.columns[headings_1.length]);
+                        headings_1.push(heading);
+                        _this.data.headings.push(readHeaderCell(heading));
+                    }
                 });
                 rows.push(r);
             });
         }
         else if (isObject(data)) {
-            if (data.headings) {
-                if (!this.hasHeadings && !this.hasRows) {
-                    this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings);
-                    this.hasRows = Boolean(this.data.data.length);
-                    this.hasHeadings = Boolean(this.data.headings.length);
-                }
+            if (data.headings && !this.hasHeadings && !this.hasRows) {
+                this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings);
+                this.hasRows = Boolean(this.data.data.length);
+                this.hasHeadings = Boolean(this.data.headings.length);
             }
             else if (data.data && Array.isArray(data.data)) {
                 rows = data.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, _this.columns.settings.columns[index]); }); });
