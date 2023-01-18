@@ -1,6 +1,6 @@
 import {readDataCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {cellType, inputCellType} from "./interfaces"
+import {cellType, inputCellType} from "./types"
 /**
  * Rows API
  */

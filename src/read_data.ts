@@ -1,7 +1,7 @@
 import {stringToObj} from "diff-dom"
 import {parseDate} from "./date"
 import {objToText} from "./helpers"
-import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, singleColumnSettingsType} from "./interfaces"
+import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, singleColumnSettingsType} from "./types"
 
 export const readDataCell = (cell: inputCellType, columnSettings : {type?: "date", format?: string, } = {}) : cellType => {
     if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {

@@ -5,8 +5,8 @@ import {DataTable} from "../datatable"
 import {
     cellType,
     headerCellType,
-    nodeType
-} from "../interfaces"
+    elementNodeType
+} from "../types"
 /**
  * Export table to JSON
  */
@@ -64,7 +64,7 @@ export const exportJSON = function(dt: DataTable, userOptions: jsonUserOptions =
 
     // Only proceed if we have data
     if (rows.length) {
-        const arr: (void | { [key: string]: (string | number | boolean | undefined | null | nodeType[])})[] = []
+        const arr: (void | { [key: string]: (string | number | boolean | undefined | null | elementNodeType[])})[] = []
         rows.forEach((row: (string | number | boolean | object | undefined | null)[], x: number) => {
             arr[x] = arr[x] || {}
             row.forEach((cell: (string | number | boolean | object | undefined | null), i: number) => {

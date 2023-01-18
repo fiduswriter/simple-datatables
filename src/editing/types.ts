@@ -1,4 +1,4 @@
-import {cellType} from "../interfaces"
+import {cellType} from "../types"
 import {Editor} from "./editor"
 
 

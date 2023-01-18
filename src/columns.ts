@@ -1,6 +1,6 @@
 import {readDataCell, readHeaderCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {allColumnSettingsType, cellType, headerCellType, filterStateType, inputCellType, inputHeaderCellType, nodeType, renderType} from "./interfaces"
+import {allColumnSettingsType, cellType, headerCellType, filterStateType, inputCellType, inputHeaderCellType, elementNodeType, renderType} from "./types"
 import {readColumnSettings} from "./column_settings"
 
 
@@ -175,7 +175,7 @@ export class Columns {
         let newFilterState
         if (currentFilter) {
             let returnNext = false
-            newFilterState = this.settings.columns[column].filter.find((filter: (string | number | boolean | nodeType[] | object | ((arg: (string | number | boolean | nodeType[] | object)) => boolean))) => {
+            newFilterState = this.settings.columns[column].filter.find((filter: (string | number | boolean | elementNodeType[] | object | ((arg: (string | number | boolean | elementNodeType[] | object)) => boolean))) => {
                 if (returnNext) {
                     return true
                 }

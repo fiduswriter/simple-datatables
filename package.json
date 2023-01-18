@@ -44,7 +44,6 @@
   "homepage": "https://github.com/fiduswriter/simple-datatables#readme",
   "devDependencies": {
     "@babel/core": "^7.20.12",
-    "chromedriver": "*",
     "@html-eslint/eslint-plugin": "^0.15.0",
     "@html-eslint/parser": "^0.15.0",
     "@rollup/plugin-babel": "^6.0.3",
@@ -55,6 +54,7 @@
     "@typescript-eslint/eslint-plugin": "^5.48.1",
     "@typescript-eslint/parser": "^5.48.1",
     "browserify": "^17.0.0",
+    "chromedriver": "*",
     "eslint": "^8.31.0",
     "eslint-plugin-htm": "^0.5.2",
     "eslint-plugin-html": "^7.1.0",
@@ -73,6 +73,6 @@
   },
   "dependencies": {
     "dayjs": "^1.11.7",
-    "diff-dom": "^4.2.8"
+    "diff-dom": "5.0.0"
   }
 }

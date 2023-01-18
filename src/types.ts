@@ -1,18 +1,35 @@
-type textNodeType = {
-    nodeName: "#text";
-    data: string;
+// type textNodeType = {
+//     nodeName: "#text";
+//     data: string;
+//     childNodes?: never
+// }
+//
+// type elementNodeType = {
+//     nodeName: string;
+//     attributes?: { [key: string]: string};
+//     childNodes?: (elementNodeType | textNodeType)[];
+//     data?: never;
+// }
+
+interface elementNodeType {
+    nodeName: string
+    attributes?: { [key: string]: string }
+    childNodes?: nodeType[] // eslint-disable-line no-use-before-define
+    checked?: boolean
+    value?: string | number
+    selected?: boolean
+}
+
+interface textNodeType {
+    nodeName: "#text" | "#comment"
+    data: string
     childNodes?: never
 }
 
-type nodeType = {
-    nodeName: string;
-    attributes?: { [key: string]: string};
-    childNodes?: (nodeType | textNodeType)[];
-    data?: never;
-}
+type nodeType = elementNodeType | textNodeType
 
 interface cellType {
-    data: string | number | boolean | nodeType[] | object;
+    data: string | number | boolean | elementNodeType[] | object;
     type?: "node";
     text?: string;
     order?: string | number;
@@ -21,7 +38,7 @@ interface cellType {
 type inputCellType = cellType | string | number | boolean;
 
 interface headerCellType {
-    data: string | number | boolean | nodeType[] | object;
+    data: string | number | boolean | elementNodeType[] | object;
     type?: "node";
     text?: string;
 }
@@ -39,7 +56,7 @@ interface TableDataType{
     data: cellType[][] ;
 }
 
-type renderType = ((cellData: (string | number | boolean | object | nodeType[]), td: object, rowIndex: number, cellIndex: number) => nodeType | string | void);
+type renderType = ((cellData: (string | number | boolean | object | elementNodeType[]), td: object, rowIndex: number, cellIndex: number) => elementNodeType | string | void);
 
 interface ColumnOption{
     /**An integer or array of integers representing the column(s) to be manipulated. */
@@ -153,7 +170,7 @@ interface ClassOptions {
     wrapper?: string;
 }
 
-type rowRenderType = ((row: object, tr: object, index: number) => nodeType | void);
+type rowRenderType = ((row: object, tr: object, index: number) => elementNodeType | void);
 
 interface DataTableOptions{
     /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
@@ -379,7 +396,7 @@ interface renderOptions {
 
 type filterStateType = {
     column: number;
-    state: (string | number | boolean | nodeType[] | object | ((arg: (string | number | boolean | nodeType[] | object)) => boolean));
+    state: (string | number | boolean | elementNodeType[] | object | ((arg: (string | number | boolean | elementNodeType[] | object)) => boolean));
 }
 
 
@@ -392,7 +409,7 @@ export {
     headerCellType,
     inputCellType,
     inputHeaderCellType,
-    nodeType,
+    elementNodeType,
     renderOptions,
     renderType,
     rowRenderType,

@@ -11,6 +11,7 @@ export default [
     {
         input: 'src/index.ts',
         plugins: [
+            resolve({browser: true}),
             typescript({
                 useTsconfigDeclarationDir: true,
                 tsconfigDefaults: {
@@ -22,7 +23,6 @@ export default [
                     }
                 }
             }),
-            resolve({browser: true}),
             commonjs(),
             nodePolyfills(),
             babel({

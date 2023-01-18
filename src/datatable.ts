@@ -19,10 +19,10 @@ import {
     filterStateType,
     headerCellType,
     inputCellType,
-    nodeType,
+    elementNodeType,
     renderOptions,
     TableDataType
-} from "./interfaces"
+} from "./types"
 
 
 export class DataTable {
@@ -35,7 +35,7 @@ export class DataTable {
 
     data: TableDataType
 
-    dd: any
+    dd: DiffDOM
 
     dom: HTMLTableElement
 
@@ -85,9 +85,9 @@ export class DataTable {
 
     totalPages: number
 
-    virtualDOM: nodeType
+    virtualDOM: elementNodeType
 
-    virtualHeaderDOM: nodeType
+    virtualHeaderDOM: elementNodeType
 
     wrapper: HTMLElement
 
@@ -938,7 +938,7 @@ export class DataTable {
 
         const newVirtualDOM = structuredClone(this.virtualDOM)
 
-        let tbody : nodeType = newVirtualDOM.childNodes?.find((node: nodeType) => node.nodeName === "TBODY") as nodeType
+        let tbody : elementNodeType = newVirtualDOM.childNodes?.find((node: elementNodeType) => node.nodeName === "TBODY") as elementNodeType
 
         if (!tbody) {
             tbody = {nodeName: "TBODY"}

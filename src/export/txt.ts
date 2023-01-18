@@ -5,7 +5,7 @@ import {DataTable} from "../datatable"
 import {
     cellType,
     headerCellType
-} from "../interfaces"
+} from "../types"
 /**
  * Export table to TXT
  */

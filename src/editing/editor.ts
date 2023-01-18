@@ -5,7 +5,7 @@ import {
 } from "../helpers"
 import {
     cellType
-} from "../interfaces"
+} from "../types"
 
 import {
     defaultConfig
@@ -14,7 +14,7 @@ import {
     debounce
 } from "./helpers"
 import {DataTable} from "../datatable"
-import {menuItemType, dataType, EditorOptions} from "./interfaces"
+import {menuItemType, dataType, EditorOptions} from "./types"
 
 
 /**

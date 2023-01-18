@@ -1,4 +1,4 @@
-import {DataTableOptions} from "./interfaces"
+import {DataTableOptions} from "./types"
 
 /**
  * Default configuration
@@ -57,10 +57,10 @@ export const defaultConfig: DataTableOptions = {
     },
 
     classes: {
-        active: "active", // TODO in 7.0.0: datatable-active
+        active: "active", // singel class, TODO in 7.0.0: datatable-active
         bottom: "datatable-bottom",
         container: "datatable-container",
-        cursor: "datatable-cursor",
+        cursor: "datatable-cursor", // single class
         dropdown: "datatable-dropdown",
         ellipsis: "ellipsis", // TODO in 7.0.0: datatable-ellipsis
         empty: "datatable-empty",

@@ -1,7 +1,7 @@
 import {
     allColumnSettingsType,
     singleColumnSettingsType
-} from "./interfaces"
+} from "./types"
 
 export const readColumnSettings = (columnOptions = []) : allColumnSettingsType => {
 

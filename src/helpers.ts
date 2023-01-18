@@ -1,4 +1,4 @@
-import {nodeType, singleColumnSettingsType, textNodeType, DataTableOptions} from "./interfaces"
+import {elementNodeType, singleColumnSettingsType, textNodeType, DataTableOptions} from "./types"
 
 /**
  * Check is item is object
@@ -104,12 +104,12 @@ export const truncate = (links: HTMLElement[], currentPage: number, pagesLength:
 }
 
 
-export const objToText = (obj: (nodeType| textNodeType)) => {
-    if (obj.nodeName==="#text") {
-        return obj.data
+export const objToText = (obj: (elementNodeType| textNodeType)) => {
+    if (["#text", "#comment"].includes(obj.nodeName)) {
+        return (obj as textNodeType).data
     }
     if (obj.childNodes) {
-        return obj.childNodes.map((childNode: (nodeType | textNodeType)) => objToText(childNode)).join("")
+        return obj.childNodes.map((childNode: (elementNodeType | textNodeType)) => objToText(childNode)).join("")
     }
     return ""
 }
