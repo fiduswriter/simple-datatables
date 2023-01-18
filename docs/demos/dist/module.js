@@ -1629,7 +1629,7 @@ var DataTable = /** @class */ (function () {
         var rows = [];
         if (Array.isArray(data)) {
             var headings_1 = this.data.headings.map(function (heading) { var _a; return (_a = heading.text) !== null && _a !== void 0 ? _a : String(heading.data); });
-            data.forEach(function (row) {
+            data.forEach(function (row, rIndex) {
                 var r = [];
                 Object.entries(row).forEach(function (_a) {
                     var heading = _a[0], cell = _a[1];
@@ -1637,7 +1637,7 @@ var DataTable = /** @class */ (function () {
                     if (index > -1) {
                         r[index] = readDataCell(cell, _this.columns.settings.columns[index]);
                     }
-                    else {
+                    else if (!_this.hasHeadings && !_this.hasRows && rIndex === 0) {
                         r[headings_1.length] = readDataCell(cell, _this.columns.settings.columns[headings_1.length]);
                         headings_1.push(heading);
                         _this.data.headings.push(readHeaderCell(heading));
@@ -1660,6 +1660,7 @@ var DataTable = /** @class */ (function () {
             rows.forEach(function (row) { return _this.data.data.push(row); });
             this.hasRows = true;
         }
+        this.hasHeadings = Boolean(this.data.headings.length);
         if (this.columns.settings.sort) {
             this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true);
         }

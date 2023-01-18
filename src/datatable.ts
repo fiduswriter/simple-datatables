@@ -834,7 +834,7 @@ export class DataTable {
         let rows: cellType[][] = []
         if (Array.isArray(data)) {
             const headings = this.data.headings.map((heading: headerCellType) => heading.text ?? String(heading.data))
-            data.forEach(row => {
+            data.forEach((row, rIndex) => {
                 const r: cellType[] = []
                 Object.entries(row).forEach(([heading, cell]) => {
 
@@ -842,7 +842,7 @@ export class DataTable {
 
                     if (index > -1) {
                         r[index] = readDataCell(cell as inputCellType, this.columns.settings.columns[index])
-                    } else {
+                    } else if (!this.hasHeadings && !this.hasRows && rIndex === 0) {
                         r[headings.length] = readDataCell(cell as inputCellType, this.columns.settings.columns[headings.length])
                         headings.push(heading)
                         this.data.headings.push(readHeaderCell(heading))
@@ -863,7 +863,7 @@ export class DataTable {
             rows.forEach((row: cellType[]) => this.data.data.push(row))
             this.hasRows = true
         }
-
+        this.hasHeadings = Boolean(this.data.headings.length)
 
         if (this.columns.settings.sort) {
             this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
