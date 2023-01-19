@@ -50,9 +50,8 @@ interface TableDataType{
 
 type renderType = ((cellData: (string | number | boolean | object | elementNodeType[]), td: object, rowIndex: number, cellIndex: number) => elementNodeType | string | void);
 
-type DeepPartial<T> = T extends object ? { // Source: https://stackoverflow.com/a/61132308
-    [P in keyof T]?: DeepPartial<T[P]>;
-} : T;
+export type DeepPartial<T> = T extends Function ? T : (T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T); // eslint-disable-line @typescript-eslint/ban-types
+// Source https://gist.github.com/navix/6c25c15e0a2d3cd0e5bce999e0086fc9
 
 interface ColumnOption{
     /**An integer or array of integers representing the column(s) to be manipulated. */
@@ -141,6 +140,9 @@ interface LayoutConfiguration {
      * {pager} - The pager
      */
     bottom: string;
+    template: (DataTableConfiguration) => string;
+    searchForm: (DataTableConfiguration) => string;
+    wrapDropdown: (DataTableConfiguration) => string;
 }
 
 
@@ -149,6 +151,7 @@ interface ClassConfiguration {
     bottom: string;
     container: string;
     cursor: string;
+    disabled: string;
     dropdown: string;
     ellipsis: string;
     empty: string;
@@ -158,6 +161,8 @@ interface ClassConfiguration {
     loading: string;
     pagination: string;
     paginationList: string;
+    paginationListItem: string;
+    paginationListItemLink: string;
     search: string;
     selector: string;
     sorter: string;
@@ -167,6 +172,10 @@ interface ClassConfiguration {
 }
 
 type rowRenderType = ((row: object, tr: object, index: number) => elementNodeType | void);
+
+type tableRenderType = ((data: object, table: elementNodeType, type: string) => elementNodeType | void);
+// Type can be 'main', 'print', 'header' or 'message'
+
 
 interface DataTableConfiguration {
     /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
@@ -354,16 +363,21 @@ interface DataTableConfiguration {
      * This option will be forced to false if the table has no headings.
      */
     sortable: boolean;
+    tabIndex: false | number;
+    /**
+     * Default: false
+     * A tab index number to be assigned to the table.
+     */
+    tableRender: false | tableRenderType;
+    /**
+     * Default: false
+     * Method to call to modify table rendering output.
+     */
+    truncatePager: boolean;
     /**
      * Default: true
      * Truncate the page links to prevent overflow with large datasets.
      */
-    tabIndex: false | number;
-    /**
-     * Default: false
-     * A tab index numebr to be assigned to the table.
-     */
-    truncatePager: boolean;
 }
 
 interface DataTableOptions extends DeepPartial<DataTableConfiguration> {
@@ -371,6 +385,7 @@ interface DataTableOptions extends DeepPartial<DataTableConfiguration> {
     data?: DataOption;
     perPageSelect?: (number | [string, number])[];
     rowRender?: false | rowRenderType;
+    tableRender?: false | tableRenderType;
 }
 
 
@@ -414,6 +429,7 @@ export {
     inputCellType,
     inputHeaderCellType,
     elementNodeType,
+    LayoutConfiguration,
     renderOptions,
     renderType,
     rowRenderType,

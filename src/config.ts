@@ -1,5 +1,5 @@
 import {DataTableConfiguration} from "./types"
-
+import {layoutTemplate, searchFormTemplate, wrapDropdownTemplate} from "./templates"
 /**
  * Default configuration
  */
@@ -41,6 +41,7 @@ export const defaultConfig: DataTableConfiguration = {
     tabIndex: false,
     rowNavigation: false,
     rowRender: false,
+    tableRender: false,
 
     // Customise the display text
     labels: {
@@ -54,14 +55,18 @@ export const defaultConfig: DataTableConfiguration = {
     // Customise the layout
     layout: {
         top: "{select}{search}",
-        bottom: "{info}{pager}"
+        bottom: "{info}{pager}",
+        template: layoutTemplate,
+        wrapDropdown: wrapDropdownTemplate,
+        searchForm: searchFormTemplate
     },
 
     classes: { // Note: use single class names
-        active: "active", // singel class, TODO in 7.0.0: datatable-active
+        active: "active", // TODO in 7.0.0: datatable-active
         bottom: "datatable-bottom",
         container: "datatable-container",
         cursor: "datatable-cursor",
+        disabled: "disabled", // TODO in 7.0.0: datatable-disabled
         dropdown: "datatable-dropdown",
         ellipsis: "ellipsis", // TODO in 7.0.0: datatable-ellipsis
         empty: "datatable-empty",
@@ -71,6 +76,8 @@ export const defaultConfig: DataTableConfiguration = {
         loading: "datatable-loading",
         pagination: "datatable-pagination",
         paginationList: "datatable-pagination-list",
+        paginationListItem: "datatable-pagination-list-item",
+        paginationListItemLink: "datatable-pagination-list-item-link",
         search: "datatable-search",
         selector: "datatable-selector",
         sorter: "datatable-sorter",

@@ -1,15 +1,8 @@
-import {DiffDOM, nodeToObj} from "diff-dom"
-
-import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
-import {readTableData, readDataCell, readHeaderCell} from "./read_data"
-import {Rows} from "./rows"
-import {Columns} from "./columns"
-import {defaultConfig} from "./config"
 import {
     isObject,
     createElement,
     flush,
-    button,
+    paginationListItem,
     truncate,
     visibleToColumnIndex
 } from "./helpers"
@@ -21,9 +14,17 @@ import {
     headerCellType,
     inputCellType,
     elementNodeType,
+    LayoutConfiguration,
     renderOptions,
     TableDataType
 } from "./types"
+import {DiffDOM, nodeToObj} from "diff-dom"
+
+import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
+import {readTableData, readDataCell, readHeaderCell} from "./read_data"
+import {Rows} from "./rows"
+import {Columns} from "./columns"
+import {defaultConfig} from "./config"
 
 
 export class DataTable {
@@ -62,7 +63,7 @@ export class DataTable {
 
     lastPage: number
 
-    links: HTMLElement[]
+    paginationListItems: HTMLElement[]
 
     listeners: { [key: string]: () => void}
 
@@ -98,7 +99,8 @@ export class DataTable {
 
         this.id = this.dom.id
 
-        const layout = {
+        //const layout : LayoutConfiguration = options.layout
+        const layout : LayoutConfiguration = {
             ...defaultConfig.layout,
             ...options.layout
         }
@@ -186,28 +188,14 @@ export class DataTable {
             class: `${this.options.classes.wrapper} ${this.options.classes.loading}`
         })
 
-        // Template for custom layouts
-        let template = ""
-        template += `<div class='${this.options.classes.top}'>`
-        template += this.options.layout.top
-        template += "</div>"
-        if (this.options.scrollY.length) {
-            template += `<div class='${this.options.classes.container}' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`
-        } else {
-            template += `<div class='${this.options.classes.container}'></div>`
-        }
-        template += `<div class='${this.options.classes.bottom}'>`
-        template += this.options.layout.bottom
-        template += "</div>"
+        let template = this.options.layout.template(this.options)
 
         // Info placement
         template = template.replace("{info}", this.options.paging ? `<div class='${this.options.classes.info}'></div>` : "")
 
         // Per Page Select
         if (this.options.paging && this.options.perPageSelect) {
-            let wrap = `<div class='${this.options.classes.dropdown}'><label>`
-            wrap += this.options.labels.perPage
-            wrap += "</label></div>"
+            let wrap = this.options.layout.wrapDropdown(this.options)
 
             // Create the select
             const select = createElement("select", {
@@ -233,8 +221,7 @@ export class DataTable {
 
         // Searchable
         if (this.options.searchable) {
-            const form =
-                `<div class='${this.options.classes.search}'><input class='${this.options.classes.input}' placeholder='${this.options.labels.placeholder}' type='text'></div>`
+            const form = this.options.layout.searchForm(this.options)
 
             // Search input placement
             template = template.replace("{search}", form)
@@ -308,7 +295,7 @@ export class DataTable {
     }
 
     _renderTable(renderOptions: renderOptions ={}) {
-        const newVirtualDOM = dataToVirtualDOM(
+        let newVirtualDOM = dataToVirtualDOM(
             this.id,
             this.data.headings,
             (this.options.paging || this.searching) && this.currentPage && this.pages.length && !renderOptions.noPaging ?
@@ -323,6 +310,13 @@ export class DataTable {
             this.options,
             renderOptions
         )
+
+        if (this.options.tableRender) {
+            const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, newVirtualDOM, "main")
+            if (renderedTableVirtualDOM) {
+                newVirtualDOM = renderedTableVirtualDOM
+            }
+        }
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
         this.dd.apply(this.dom, diff)
@@ -403,27 +397,26 @@ export class DataTable {
         flush(this.pagers)
 
         if (this.totalPages > 1) {
-            const c = "pager"
             const frag = document.createDocumentFragment()
             const prev = this.onFirstPage ? 1 : this.currentPage - 1
             const next = this.onLastPage ? this.totalPages : this.currentPage + 1
 
             // first button
             if (this.options.firstLast) {
-                frag.appendChild(button(c, 1, this.options.firstText))
+                frag.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, 1, this.options.firstText))
             }
 
             // prev button
             if (this.options.nextPrev && !this.onFirstPage) {
-                frag.appendChild(button(c, prev, this.options.prevText))
+                frag.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, prev, this.options.prevText))
             }
 
-            let pager = this.links
+            let pager = this.paginationListItems
 
-            // truncate the links
+            // truncate the paginationListItems
             if (this.options.truncatePager) {
                 pager = truncate(
-                    this.links,
+                    this.paginationListItems,
                     this.currentPage,
                     this.pages.length,
                     this.options
@@ -431,24 +424,24 @@ export class DataTable {
             }
 
             // active page link
-            this.links[this.currentPage - 1].classList.add(this.options.classes.active)
+            this.paginationListItems[this.currentPage - 1].classList.add(this.options.classes.active)
 
-            // append the links
+            // append the paginationListItems
             pager.forEach((p: HTMLElement) => {
                 p.classList.remove(this.options.classes.active)
                 frag.appendChild(p)
             })
 
-            this.links[this.currentPage - 1].classList.add(this.options.classes.active)
+            this.paginationListItems[this.currentPage - 1].classList.add(this.options.classes.active)
 
             // next button
             if (this.options.nextPrev && !this.onLastPage) {
-                frag.appendChild(button(c, next, this.options.nextText))
+                frag.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, next, this.options.nextText))
             }
 
             // first button
             if (this.options.firstLast) {
-                frag.appendChild(button(c, this.totalPages, this.options.lastText))
+                frag.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, this.totalPages, this.options.lastText))
             }
 
             // We may have more than one pager
@@ -470,31 +463,38 @@ export class DataTable {
 
         }
         container.parentElement.insertBefore(this.headerDOM, container)
+        let tableVirtualDOM : elementNodeType = {
+            nodeName: "TABLE",
+            attributes: {
+                class: this.options.classes.table
+            },
+            childNodes: [
+                {
+                    nodeName: "THEAD",
+                    childNodes: [
+                        headingsToVirtualHeaderRowDOM(
+                            this.data.headings, this.columns.settings, this.columns.widths, this.options, {unhideHeader: true})
+                    ]
+
+                }
+
+            ]
+        }
+        if (this.options.tableRender) {
+            const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, tableVirtualDOM, "header")
+            if (renderedTableVirtualDOM) {
+                tableVirtualDOM = renderedTableVirtualDOM
+            }
+        }
+
         const newVirtualHeaderDOM = {
             nodeName: "DIV",
             attributes: {
                 class: this.options.classes.headercontainer
             },
-            childNodes: [
-                {
-                    nodeName: "TABLE",
-                    attributes: {
-                        class: this.options.classes.table
-                    },
-                    childNodes: [
-                        {
-                            nodeName: "THEAD",
-                            childNodes: [
-                                headingsToVirtualHeaderRowDOM(
-                                    this.data.headings, this.columns.settings, this.columns.widths, this.options, {unhideHeader: true})
-                            ]
-
-                        }
-
-                    ]
-                }
-            ]
+            childNodes: [tableVirtualDOM]
         }
+
         const diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM)
         this.dd.apply(this.headerDOM, diff)
         this.virtualHeaderDOM = newVirtualHeaderDOM
@@ -683,14 +683,18 @@ export class DataTable {
         this._paginate()
         this._renderPage()
 
-        this.links = []
+        this.paginationListItems = []
 
         let i = this.pages.length
         while (i--) {
             const num = i + 1
-            this.links[i] = button(i === 0 ? this.options.classes.active : "", num, String(num))
+            this.paginationListItems[i] = paginationListItem(
+                i === 0 ? `${this.options.classes.active} ${this.options.classes.paginationListItem}` : this.options.classes.paginationListItem,
+                this.options.classes.paginationListItemLink,
+                num,
+                String(num)
+            )
         }
-
         this._renderPager()
 
         if (this.options.scrollY.length) {
@@ -900,7 +904,7 @@ export class DataTable {
     print() {
         const tableDOM = createElement("table")
         const tableVirtualDOM = {nodeName: "TABLE"}
-        const newTableVirtualDOM = dataToVirtualDOM(
+        let newTableVirtualDOM = dataToVirtualDOM(
             this.id,
             this.data.headings,
             this.data.data.map((row, index) => ({
@@ -916,6 +920,13 @@ export class DataTable {
                 unhideHeader: true
             }
         )
+
+        if (this.options.tableRender) {
+            const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, newTableVirtualDOM, "print")
+            if (renderedTableVirtualDOM) {
+                newTableVirtualDOM = renderedTableVirtualDOM
+            }
+        }
 
         const diff = this.dd.diff(tableVirtualDOM, newTableVirtualDOM)
         this.dd.apply(tableDOM, diff)
@@ -945,7 +956,7 @@ export class DataTable {
         this.totalPages = 0
         this._renderPager()
 
-        const newVirtualDOM = structuredClone(this.virtualDOM)
+        let newVirtualDOM = structuredClone(this.virtualDOM)
 
         let tbody : elementNodeType = newVirtualDOM.childNodes?.find((node: elementNodeType) => node.nodeName === "TBODY") as elementNodeType
 
@@ -975,6 +986,12 @@ export class DataTable {
             }
         ]
 
+        if (this.options.tableRender) {
+            const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, newVirtualDOM, "message")
+            if (renderedTableVirtualDOM) {
+                newVirtualDOM = renderedTableVirtualDOM
+            }
+        }
 
         const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
         this.dd.apply(this.dom, diff)

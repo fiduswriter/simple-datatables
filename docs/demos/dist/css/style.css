@@ -82,7 +82,8 @@
 .datatable-pagination .disabled a,
 .datatable-pagination .disabled a:focus,
 .datatable-pagination .disabled a:hover {
-	cursor: not-allowed;
+    pointer-events: none;
+    cursor: default;
 }
 
 .datatable-pagination .disabled a,

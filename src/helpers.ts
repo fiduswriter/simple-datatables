@@ -46,18 +46,18 @@ export const flush = (el: HTMLElement | HTMLElement[]) => {
 /**
  * Create button helper
  */
-export const button = (className: string, page: number, text: string) => createElement(
+export const paginationListItem = (className: string, linkClassName, page: number, text: string) => createElement(
     "li",
     {
         class: className,
-        html: `<a href="#" data-page="${String(page)}">${text}</a>`
+        html: `<a href="#" class="${linkClassName}" data-page="${String(page)}">${text}</a>`
     }
 )
 
 /**
  * Pager truncation algorithm
  */
-export const truncate = (links: HTMLElement[], currentPage: number, pagesLength: number, options: DataTableOptions) => {
+export const truncate = (paginationListItems: HTMLElement[], currentPage: number, pagesLength: number, options: DataTableOptions) => {
     const pagerDelta = options.pagerDelta || 2
     const classes = options.classes || {ellipsis: "datatable-ellipsis",
         active: "datatable-active"}
@@ -72,26 +72,26 @@ export const truncate = (links: HTMLElement[], currentPage: number, pagesLength:
     } else if (currentPage > pagesLength - (3 - pagerDelta + doublePagerDelta)) {
         previousPage = pagesLength - (2 + doublePagerDelta)
     }
-    const linksToModify: HTMLElement[] = []
+    const paginationListItemsToModify: HTMLElement[] = []
     for (let k = 1; k <= pagesLength; k++) {
         if (1 == k || k == pagesLength || (k >= previousPage && k <= nextPage)) {
-            const link = links[k - 1]
+            const link = paginationListItems[k - 1]
             link.classList.remove(classes.active)
-            linksToModify.push(link)
+            paginationListItemsToModify.push(link)
         }
     }
     let previousLink: HTMLElement
     const modifiedLinks: HTMLElement[] = []
-    linksToModify.forEach(link => {
+    paginationListItemsToModify.forEach(link => {
         const pageNumber = parseInt(link.children[0].getAttribute("data-page"), 10)
         if (previousLink) {
             const previousPageNumber = parseInt(previousLink.children[0].getAttribute("data-page"), 10)
             if (pageNumber - previousPageNumber == 2) {
-                modifiedLinks.push(links[previousPageNumber])
+                modifiedLinks.push(paginationListItems[previousPageNumber])
             } else if (pageNumber - previousPageNumber != 1) {
                 const newLink = createElement("li", {
-                    class: classes.ellipsis,
-                    html: ellipsisText
+                    class: `${classes.paginationListItem} ${classes.ellipsis} ${classes.disabled}`,
+                    html: `<a class="${classes.paginationListItemLink}">${ellipsisText}</a>`
                 })
                 modifiedLinks.push(newLink)
             }

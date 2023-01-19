@@ -24,6 +24,131 @@ var __assign = function() {
     return __assign.apply(this, arguments);
 };
 
+/**
+ * Check is item is object
+ */
+var isObject = function (val) { return Object.prototype.toString.call(val) === "[object Object]"; };
+/**
+ * Check for valid JSON string
+ */
+var isJson = function (str) {
+    var t = !1;
+    try {
+        t = JSON.parse(str);
+    }
+    catch (e) {
+        return !1;
+    }
+    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t;
+};
+/**
+ * Create DOM element node
+ */
+var createElement = function (nodeName, attrs) {
+    var dom = document.createElement(nodeName);
+    if (attrs && "object" == typeof attrs) {
+        for (var attr in attrs) {
+            if ("html" === attr) {
+                dom.innerHTML = attrs[attr];
+            }
+            else {
+                dom.setAttribute(attr, attrs[attr]);
+            }
+        }
+    }
+    return dom;
+};
+var flush = function (el) {
+    if (Array.isArray(el)) {
+        el.forEach(function (e) { return flush(e); });
+    }
+    else {
+        el.innerHTML = "";
+    }
+};
+/**
+ * Create button helper
+ */
+var paginationListItem = function (className, linkClassName, page, text) { return createElement("li", {
+    "class": className,
+    html: "<a href=\"#\" class=\"".concat(linkClassName, "\" data-page=\"").concat(String(page), "\">").concat(text, "</a>")
+}); };
+/**
+ * Pager truncation algorithm
+ */
+var truncate = function (paginationListItems, currentPage, pagesLength, options) {
+    var pagerDelta = options.pagerDelta || 2;
+    var classes = options.classes || { ellipsis: "datatable-ellipsis",
+        active: "datatable-active" };
+    var ellipsisText = options.ellipsisText || "&hellip;";
+    var doublePagerDelta = 2 * pagerDelta;
+    var previousPage = currentPage - pagerDelta;
+    var nextPage = currentPage + pagerDelta;
+    if (currentPage < 4 - pagerDelta + doublePagerDelta) {
+        nextPage = 3 + doublePagerDelta;
+    }
+    else if (currentPage > pagesLength - (3 - pagerDelta + doublePagerDelta)) {
+        previousPage = pagesLength - (2 + doublePagerDelta);
+    }
+    var paginationListItemsToModify = [];
+    for (var k = 1; k <= pagesLength; k++) {
+        if (1 == k || k == pagesLength || (k >= previousPage && k <= nextPage)) {
+            var link = paginationListItems[k - 1];
+            link.classList.remove(classes.active);
+            paginationListItemsToModify.push(link);
+        }
+    }
+    var previousLink;
+    var modifiedLinks = [];
+    paginationListItemsToModify.forEach(function (link) {
+        var pageNumber = parseInt(link.children[0].getAttribute("data-page"), 10);
+        if (previousLink) {
+            var previousPageNumber = parseInt(previousLink.children[0].getAttribute("data-page"), 10);
+            if (pageNumber - previousPageNumber == 2) {
+                modifiedLinks.push(paginationListItems[previousPageNumber]);
+            }
+            else if (pageNumber - previousPageNumber != 1) {
+                var newLink = createElement("li", {
+                    "class": "".concat(classes.paginationListItem, " ").concat(classes.ellipsis, " ").concat(classes.disabled),
+                    html: "<a class=\"".concat(classes.paginationListItemLink, "\">").concat(ellipsisText, "</a>")
+                });
+                modifiedLinks.push(newLink);
+            }
+        }
+        modifiedLinks.push(link);
+        previousLink = link;
+    });
+    return modifiedLinks;
+};
+var objToText = function (obj) {
+    if (["#text", "#comment"].includes(obj.nodeName)) {
+        return obj.data;
+    }
+    if (obj.childNodes) {
+        return obj.childNodes.map(function (childNode) { return objToText(childNode); }).join("");
+    }
+    return "";
+};
+var escapeText = function (text) {
+    return text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+};
+var visibleToColumnIndex = function (visibleIndex, columns) {
+    var counter = 0;
+    var columnIndex = 0;
+    while (counter < (visibleIndex + 1)) {
+        var columnSettings = columns[columnIndex] || {};
+        if (!columnSettings.hidden) {
+            counter += 1;
+        }
+        columnIndex += 1;
+    }
+    return columnIndex - 1;
+};
+
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
 
 var stringToObj;
@@ -268,131 +393,6 @@ var parseDate = function (content, format) {
         }
     }
     return date;
-};
-
-/**
- * Check is item is object
- */
-var isObject = function (val) { return Object.prototype.toString.call(val) === "[object Object]"; };
-/**
- * Check for valid JSON string
- */
-var isJson = function (str) {
-    var t = !1;
-    try {
-        t = JSON.parse(str);
-    }
-    catch (e) {
-        return !1;
-    }
-    return !(null === t || (!Array.isArray(t) && !isObject(t))) && t;
-};
-/**
- * Create DOM element node
- */
-var createElement = function (nodeName, attrs) {
-    var dom = document.createElement(nodeName);
-    if (attrs && "object" == typeof attrs) {
-        for (var attr in attrs) {
-            if ("html" === attr) {
-                dom.innerHTML = attrs[attr];
-            }
-            else {
-                dom.setAttribute(attr, attrs[attr]);
-            }
-        }
-    }
-    return dom;
-};
-var flush = function (el) {
-    if (Array.isArray(el)) {
-        el.forEach(function (e) { return flush(e); });
-    }
-    else {
-        el.innerHTML = "";
-    }
-};
-/**
- * Create button helper
- */
-var button = function (className, page, text) { return createElement("li", {
-    "class": className,
-    html: "<a href=\"#\" data-page=\"".concat(String(page), "\">").concat(text, "</a>")
-}); };
-/**
- * Pager truncation algorithm
- */
-var truncate = function (links, currentPage, pagesLength, options) {
-    var pagerDelta = options.pagerDelta || 2;
-    var classes = options.classes || { ellipsis: "datatable-ellipsis",
-        active: "datatable-active" };
-    var ellipsisText = options.ellipsisText || "&hellip;";
-    var doublePagerDelta = 2 * pagerDelta;
-    var previousPage = currentPage - pagerDelta;
-    var nextPage = currentPage + pagerDelta;
-    if (currentPage < 4 - pagerDelta + doublePagerDelta) {
-        nextPage = 3 + doublePagerDelta;
-    }
-    else if (currentPage > pagesLength - (3 - pagerDelta + doublePagerDelta)) {
-        previousPage = pagesLength - (2 + doublePagerDelta);
-    }
-    var linksToModify = [];
-    for (var k = 1; k <= pagesLength; k++) {
-        if (1 == k || k == pagesLength || (k >= previousPage && k <= nextPage)) {
-            var link = links[k - 1];
-            link.classList.remove(classes.active);
-            linksToModify.push(link);
-        }
-    }
-    var previousLink;
-    var modifiedLinks = [];
-    linksToModify.forEach(function (link) {
-        var pageNumber = parseInt(link.children[0].getAttribute("data-page"), 10);
-        if (previousLink) {
-            var previousPageNumber = parseInt(previousLink.children[0].getAttribute("data-page"), 10);
-            if (pageNumber - previousPageNumber == 2) {
-                modifiedLinks.push(links[previousPageNumber]);
-            }
-            else if (pageNumber - previousPageNumber != 1) {
-                var newLink = createElement("li", {
-                    "class": classes.ellipsis,
-                    html: ellipsisText
-                });
-                modifiedLinks.push(newLink);
-            }
-        }
-        modifiedLinks.push(link);
-        previousLink = link;
-    });
-    return modifiedLinks;
-};
-var objToText = function (obj) {
-    if (["#text", "#comment"].includes(obj.nodeName)) {
-        return obj.data;
-    }
-    if (obj.childNodes) {
-        return obj.childNodes.map(function (childNode) { return objToText(childNode); }).join("");
-    }
-    return "";
-};
-var escapeText = function (text) {
-    return text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;");
-};
-var visibleToColumnIndex = function (visibleIndex, columns) {
-    var counter = 0;
-    var columnIndex = 0;
-    while (counter < (visibleIndex + 1)) {
-        var columnSettings = columns[columnIndex] || {};
-        if (!columnSettings.hidden) {
-            counter += 1;
-        }
-        columnIndex += 1;
-    }
-    return columnIndex - 1;
 };
 
 var readDataCell = function (cell, columnSettings) {
@@ -954,6 +954,18 @@ var Columns = /** @class */ (function () {
     return Columns;
 }());
 
+// Template for custom layouts
+var layoutTemplate = function (options) {
+    return "<div class='".concat(options.classes.top, "'>\n    ").concat(options.layout.top, "\n</div>\n<div class='").concat(options.classes.container, "'").concat(options.scrollY.length ? " style='height: ".concat(options.scrollY, "; overflow-Y: auto;'") : '', ">\n</div>\n<div class='").concat(options.classes.bottom, "'>\n    ").concat(options.layout.bottom, "\n</div>");
+};
+// template to wrap around dropdown.
+var wrapDropdownTemplate = function (options) {
+    return "<div class='".concat(options.classes.dropdown, "'>\n    <label>\n        ").concat(options.labels.perPage, "\n    </label>\n</div>");
+};
+var searchFormTemplate = function (options) {
+    return "<div class='".concat(options.classes.search, "'><input class='").concat(options.classes.input, "' placeholder='").concat(options.labels.placeholder, "' type='text'></div>");
+};
+
 /**
  * Default configuration
  */
@@ -990,6 +1002,7 @@ var defaultConfig$1 = {
     tabIndex: false,
     rowNavigation: false,
     rowRender: false,
+    tableRender: false,
     // Customise the display text
     labels: {
         placeholder: "Search...",
@@ -1001,13 +1014,17 @@ var defaultConfig$1 = {
     // Customise the layout
     layout: {
         top: "{select}{search}",
-        bottom: "{info}{pager}"
+        bottom: "{info}{pager}",
+        template: layoutTemplate,
+        wrapDropdown: wrapDropdownTemplate,
+        searchForm: searchFormTemplate
     },
     classes: {
         active: "active",
         bottom: "datatable-bottom",
         container: "datatable-container",
         cursor: "datatable-cursor",
+        disabled: "disabled",
         dropdown: "datatable-dropdown",
         ellipsis: "ellipsis",
         empty: "datatable-empty",
@@ -1017,6 +1034,8 @@ var defaultConfig$1 = {
         loading: "datatable-loading",
         pagination: "datatable-pagination",
         paginationList: "datatable-pagination-list",
+        paginationListItem: "datatable-pagination-list-item",
+        paginationListItemLink: "datatable-pagination-list-item-link",
         search: "datatable-search",
         selector: "datatable-selector",
         sorter: "datatable-sorter",
@@ -1032,6 +1051,7 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         this.dom = typeof table === "string" ? document.querySelector(table) : table;
         this.id = this.dom.id;
+        //const layout : LayoutConfiguration = options.layout
         var layout = __assign(__assign({}, defaultConfig$1.layout), options.layout);
         var labels = __assign(__assign({}, defaultConfig$1.labels), options.labels);
         var classes = __assign(__assign({}, defaultConfig$1.classes), options.classes);
@@ -1086,27 +1106,12 @@ var DataTable = /** @class */ (function () {
         this.wrapper = createElement("div", {
             "class": "".concat(this.options.classes.wrapper, " ").concat(this.options.classes.loading)
         });
-        // Template for custom layouts
-        var template = "";
-        template += "<div class='".concat(this.options.classes.top, "'>");
-        template += this.options.layout.top;
-        template += "</div>";
-        if (this.options.scrollY.length) {
-            template += "<div class='".concat(this.options.classes.container, "' style='height: ").concat(this.options.scrollY, "; overflow-Y: auto;'></div>");
-        }
-        else {
-            template += "<div class='".concat(this.options.classes.container, "'></div>");
-        }
-        template += "<div class='".concat(this.options.classes.bottom, "'>");
-        template += this.options.layout.bottom;
-        template += "</div>";
+        var template = this.options.layout.template(this.options);
         // Info placement
         template = template.replace("{info}", this.options.paging ? "<div class='".concat(this.options.classes.info, "'></div>") : "");
         // Per Page Select
         if (this.options.paging && this.options.perPageSelect) {
-            var wrap = "<div class='".concat(this.options.classes.dropdown, "'><label>");
-            wrap += this.options.labels.perPage;
-            wrap += "</label></div>";
+            var wrap = this.options.layout.wrapDropdown(this.options);
             // Create the select
             var select_1 = createElement("select", {
                 "class": this.options.classes.selector
@@ -1128,7 +1133,7 @@ var DataTable = /** @class */ (function () {
         }
         // Searchable
         if (this.options.searchable) {
-            var form = "<div class='".concat(this.options.classes.search, "'><input class='").concat(this.options.classes.input, "' placeholder='").concat(this.options.labels.placeholder, "' type='text'></div>");
+            var form = this.options.layout.searchForm(this.options);
             // Search input placement
             template = template.replace("{search}", form);
         }
@@ -1190,6 +1195,12 @@ var DataTable = /** @class */ (function () {
                 row: row,
                 index: index
             }); }), this.columns.settings, this.columns.widths, this.rows.cursor, this.options, renderOptions);
+        if (this.options.tableRender) {
+            var renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, 'main');
+            if (renderedTableVirtualDOM) {
+                newVirtualDOM = renderedTableVirtualDOM;
+            }
+        }
         var diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
         this.dd.apply(this.dom, diff);
         this.virtualDOM = newVirtualDOM;
@@ -1260,38 +1271,37 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         flush(this.pagers);
         if (this.totalPages > 1) {
-            var c = "pager";
             var frag_1 = document.createDocumentFragment();
             var prev = this.onFirstPage ? 1 : this.currentPage - 1;
             var next = this.onLastPage ? this.totalPages : this.currentPage + 1;
             // first button
             if (this.options.firstLast) {
-                frag_1.appendChild(button(c, 1, this.options.firstText));
+                frag_1.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, 1, this.options.firstText));
             }
             // prev button
             if (this.options.nextPrev && !this.onFirstPage) {
-                frag_1.appendChild(button(c, prev, this.options.prevText));
+                frag_1.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, prev, this.options.prevText));
             }
-            var pager = this.links;
-            // truncate the links
+            var pager = this.paginationListItems;
+            // truncate the paginationListItems
             if (this.options.truncatePager) {
-                pager = truncate(this.links, this.currentPage, this.pages.length, this.options);
+                pager = truncate(this.paginationListItems, this.currentPage, this.pages.length, this.options);
             }
             // active page link
-            this.links[this.currentPage - 1].classList.add(this.options.classes.active);
-            // append the links
+            this.paginationListItems[this.currentPage - 1].classList.add(this.options.classes.active);
+            // append the paginationListItems
             pager.forEach(function (p) {
                 p.classList.remove(_this.options.classes.active);
                 frag_1.appendChild(p);
             });
-            this.links[this.currentPage - 1].classList.add(this.options.classes.active);
+            this.paginationListItems[this.currentPage - 1].classList.add(this.options.classes.active);
             // next button
             if (this.options.nextPrev && !this.onLastPage) {
-                frag_1.appendChild(button(c, next, this.options.nextText));
+                frag_1.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, next, this.options.nextText));
             }
             // first button
             if (this.options.firstLast) {
-                frag_1.appendChild(button(c, this.totalPages, this.options.lastText));
+                frag_1.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, this.totalPages, this.options.lastText));
             }
             // We may have more than one pager
             this.pagers.forEach(function (pager) {
@@ -1310,26 +1320,33 @@ var DataTable = /** @class */ (function () {
             };
         }
         container.parentElement.insertBefore(this.headerDOM, container);
+        var tableVirtualDOM = {
+            nodeName: "TABLE",
+            attributes: {
+                "class": this.options.classes.table
+            },
+            childNodes: [
+                {
+                    nodeName: "THEAD",
+                    childNodes: [
+                        headingsToVirtualHeaderRowDOM(this.data.headings, this.columns.settings, this.columns.widths, this.options, { unhideHeader: true })
+                    ]
+                }
+            ]
+        };
+        if (this.options.tableRender) {
+            var renderedTableVirtualDOM = this.options.tableRender(this.data, tableVirtualDOM, 'header');
+            if (renderedTableVirtualDOM) {
+                tableVirtualDOM = renderedTableVirtualDOM;
+            }
+        }
         var newVirtualHeaderDOM = {
             nodeName: "DIV",
             attributes: {
                 "class": this.options.classes.headercontainer
             },
             childNodes: [
-                {
-                    nodeName: "TABLE",
-                    attributes: {
-                        "class": this.options.classes.table
-                    },
-                    childNodes: [
-                        {
-                            nodeName: "THEAD",
-                            childNodes: [
-                                headingsToVirtualHeaderRowDOM(this.data.headings, this.columns.settings, this.columns.widths, this.options, { unhideHeader: true })
-                            ]
-                        }
-                    ]
-                }
+                tableVirtualDOM
             ]
         };
         var diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
@@ -1507,11 +1524,11 @@ var DataTable = /** @class */ (function () {
         this.wrapper.classList.remove(this.options.classes.empty);
         this._paginate();
         this._renderPage();
-        this.links = [];
+        this.paginationListItems = [];
         var i = this.pages.length;
         while (i--) {
             var num = i + 1;
-            this.links[i] = button(i === 0 ? this.options.classes.active : "", num, String(num));
+            this.paginationListItems[i] = paginationListItem(i === 0 ? "".concat(this.options.classes.active, " ").concat(this.options.classes.paginationListItem) : this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, num, String(num));
         }
         this._renderPager();
         if (this.options.scrollY.length) {
@@ -1697,6 +1714,12 @@ var DataTable = /** @class */ (function () {
             noColumnWidths: true,
             unhideHeader: true
         });
+        if (this.options.tableRender) {
+            var renderedTableVirtualDOM = this.options.tableRender(this.data, newTableVirtualDOM, 'print');
+            if (renderedTableVirtualDOM) {
+                newTableVirtualDOM = renderedTableVirtualDOM;
+            }
+        }
         var diff = this.dd.diff(tableVirtualDOM, newTableVirtualDOM);
         this.dd.apply(tableDOM, diff);
         // Open new window
@@ -1746,6 +1769,12 @@ var DataTable = /** @class */ (function () {
                 ]
             }
         ];
+        if (this.options.tableRender) {
+            var renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, 'message');
+            if (renderedTableVirtualDOM) {
+                newVirtualDOM = renderedTableVirtualDOM;
+            }
+        }
         var diff = this.dd.diff(this.virtualDOM, newVirtualDOM);
         this.dd.apply(this.dom, diff);
         this.virtualDOM = newVirtualDOM;
