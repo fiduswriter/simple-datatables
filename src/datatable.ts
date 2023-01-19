@@ -15,6 +15,7 @@ import {
 } from "./helpers"
 import {
     cellType,
+    DataTableConfiguration,
     DataTableOptions,
     filterStateType,
     headerCellType,
@@ -69,7 +70,7 @@ export class DataTable {
 
     onLastPage: boolean
 
-    options: DataTableOptions
+    options: DataTableConfiguration
 
     pagers: HTMLUListElement[]
 
@@ -97,22 +98,28 @@ export class DataTable {
 
         this.id = this.dom.id
 
+        const layout = {
+            ...defaultConfig.layout,
+            ...options.layout
+        }
+
+        const labels = {
+            ...defaultConfig.labels,
+            ...options.labels
+        }
+
+        const classes = {
+            ...defaultConfig.classes,
+            ...options.classes
+        }
+
         // user options
         this.options = {
             ...defaultConfig,
             ...options,
-            layout: {
-                ...defaultConfig.layout,
-                ...options.layout
-            },
-            labels: {
-                ...defaultConfig.labels,
-                ...options.labels
-            },
-            classes: {
-                ...defaultConfig.classes,
-                ...options.classes
-            }
+            layout,
+            labels,
+            classes
         }
 
         this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : "" // preserve in case of later destruction

@@ -965,6 +965,7 @@ var defaultConfig$1 = {
     // assume input data is in simple-datatables native format.
     dataConvert: true,
     data: {},
+    columns: [],
     // Pagination
     paging: true,
     perPage: 10,
@@ -1031,8 +1032,11 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         this.dom = typeof table === "string" ? document.querySelector(table) : table;
         this.id = this.dom.id;
+        var layout = __assign(__assign({}, defaultConfig$1.layout), options.layout);
+        var labels = __assign(__assign({}, defaultConfig$1.labels), options.labels);
+        var classes = __assign(__assign({}, defaultConfig$1.classes), options.classes);
         // user options
-        this.options = __assign(__assign(__assign({}, defaultConfig$1), options), { layout: __assign(__assign({}, defaultConfig$1.layout), options.layout), labels: __assign(__assign({}, defaultConfig$1.labels), options.labels), classes: __assign(__assign({}, defaultConfig$1.classes), options.classes) });
+        this.options = __assign(__assign(__assign({}, defaultConfig$1), options), { layout: layout, labels: labels, classes: classes });
         this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : ""; // preserve in case of later destruction
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex;

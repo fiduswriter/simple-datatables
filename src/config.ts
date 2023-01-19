@@ -1,9 +1,9 @@
-import {DataTableOptions} from "./types"
+import {DataTableConfiguration} from "./types"
 
 /**
  * Default configuration
  */
-export const defaultConfig: DataTableOptions = {
+export const defaultConfig: DataTableConfiguration = {
     sortable: true,
     searchable: true,
     destroyable: true,
@@ -11,6 +11,7 @@ export const defaultConfig: DataTableOptions = {
     // assume input data is in simple-datatables native format.
     dataConvert: true,
     data: {},
+    columns: [],
 
     // Pagination
     paging: true,
@@ -56,11 +57,11 @@ export const defaultConfig: DataTableOptions = {
         bottom: "{info}{pager}"
     },
 
-    classes: {
+    classes: { // Note: use single class names
         active: "active", // singel class, TODO in 7.0.0: datatable-active
         bottom: "datatable-bottom",
         container: "datatable-container",
-        cursor: "datatable-cursor", // single class
+        cursor: "datatable-cursor",
         dropdown: "datatable-dropdown",
         ellipsis: "ellipsis", // TODO in 7.0.0: datatable-ellipsis
         empty: "datatable-empty",
