@@ -956,14 +956,13 @@ var Columns = /** @class */ (function () {
 
 // Template for custom layouts
 var layoutTemplate = function (options) {
-    return "<div class='".concat(options.classes.top, "'>\n    ").concat(options.layout.top, "\n</div>\n<div class='").concat(options.classes.container, "'").concat(options.scrollY.length ? " style='height: ".concat(options.scrollY, "; overflow-Y: auto;'") : '', ">\n</div>\n<div class='").concat(options.classes.bottom, "'>\n    ").concat(options.layout.bottom, "\n</div>");
-};
-// template to wrap around dropdown.
-var wrapDropdownTemplate = function (options) {
-    return "<div class='".concat(options.classes.dropdown, "'>\n    <label>\n        ").concat(options.labels.perPage, "\n    </label>\n</div>");
-};
-var searchFormTemplate = function (options) {
-    return "<div class='".concat(options.classes.search, "'><input class='").concat(options.classes.input, "' placeholder='").concat(options.labels.placeholder, "' type='text'></div>");
+    return "<div class='".concat(options.classes.top, "'>\n    ").concat(options.paging && options.perPageSelect ?
+        "<div class='".concat(options.classes.dropdown, "'>\n            <label>\n                {select} ").concat(options.labels.perPage, "\n            </label>\n        </div>") :
+        '', "\n    ").concat(options.searchable ?
+        "<div class='".concat(options.classes.search, "'>\n            <input class='").concat(options.classes.input, "' placeholder='").concat(options.labels.placeholder, "' type='text'>\n        </div>") :
+        '', "\n</div>\n<div class='").concat(options.classes.container, "'").concat(options.scrollY.length ? " style='height: ".concat(options.scrollY, "; overflow-Y: auto;'") : "", "></div>\n<div class='").concat(options.classes.bottom, "'>\n    ").concat(options.paging ?
+        "<div class='".concat(options.classes.info, "'></div>") :
+        '', "\n    {pager}\n</div>");
 };
 
 /**
@@ -1006,19 +1005,13 @@ var defaultConfig$1 = {
     // Customise the display text
     labels: {
         placeholder: "Search...",
-        perPage: "{select} entries per page",
+        perPage: "entries per page",
         noRows: "No entries found",
         noResults: "No results match your search query",
         info: "Showing {start} to {end} of {rows} entries" //
     },
     // Customise the layout
-    layout: {
-        top: "{select}{search}",
-        bottom: "{info}{pager}",
-        template: layoutTemplate,
-        wrapDropdown: wrapDropdownTemplate,
-        searchForm: searchFormTemplate
-    },
+    template: layoutTemplate,
     classes: {
         active: "active",
         bottom: "datatable-bottom",
@@ -1051,12 +1044,10 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         this.dom = typeof table === "string" ? document.querySelector(table) : table;
         this.id = this.dom.id;
-        //const layout : LayoutConfiguration = options.layout
-        var layout = __assign(__assign({}, defaultConfig$1.layout), options.layout);
         var labels = __assign(__assign({}, defaultConfig$1.labels), options.labels);
         var classes = __assign(__assign({}, defaultConfig$1.classes), options.classes);
         // user options
-        this.options = __assign(__assign(__assign({}, defaultConfig$1), options), { layout: layout, labels: labels, classes: classes });
+        this.options = __assign(__assign(__assign({}, defaultConfig$1), options), { labels: labels, classes: classes });
         this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : ""; // preserve in case of later destruction
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex;
@@ -1106,12 +1097,9 @@ var DataTable = /** @class */ (function () {
         this.wrapper = createElement("div", {
             "class": "".concat(this.options.classes.wrapper, " ").concat(this.options.classes.loading)
         });
-        var template = this.options.layout.template(this.options);
-        // Info placement
-        template = template.replace("{info}", this.options.paging ? "<div class='".concat(this.options.classes.info, "'></div>") : "");
+        var template = this.options.template(this.options);
         // Per Page Select
         if (this.options.paging && this.options.perPageSelect) {
-            var wrap = this.options.layout.wrapDropdown(this.options);
             // Create the select
             var select_1 = createElement("select", {
                 "class": this.options.classes.selector
@@ -1123,22 +1111,11 @@ var DataTable = /** @class */ (function () {
                 var option = new Option(lab, String(val), selected, selected);
                 select_1.appendChild(option);
             });
-            // Custom label
-            wrap = wrap.replace("{select}", select_1.outerHTML);
             // Selector placement
-            template = template.replace("{select}", wrap);
+            template = template.replace("{select}", select_1.outerHTML);
         }
         else {
             template = template.replace("{select}", "");
-        }
-        // Searchable
-        if (this.options.searchable) {
-            var form = this.options.layout.searchForm(this.options);
-            // Search input placement
-            template = template.replace("{search}", form);
-        }
-        else {
-            template = template.replace("{search}", "");
         }
         // Paginator
         var paginatorWrapper = createElement("nav", {
@@ -1196,7 +1173,7 @@ var DataTable = /** @class */ (function () {
                 index: index
             }); }), this.columns.settings, this.columns.widths, this.rows.cursor, this.options, renderOptions);
         if (this.options.tableRender) {
-            var renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, 'main');
+            var renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, "main");
             if (renderedTableVirtualDOM) {
                 newVirtualDOM = renderedTableVirtualDOM;
             }
@@ -1335,7 +1312,7 @@ var DataTable = /** @class */ (function () {
             ]
         };
         if (this.options.tableRender) {
-            var renderedTableVirtualDOM = this.options.tableRender(this.data, tableVirtualDOM, 'header');
+            var renderedTableVirtualDOM = this.options.tableRender(this.data, tableVirtualDOM, "header");
             if (renderedTableVirtualDOM) {
                 tableVirtualDOM = renderedTableVirtualDOM;
             }
@@ -1345,9 +1322,7 @@ var DataTable = /** @class */ (function () {
             attributes: {
                 "class": this.options.classes.headercontainer
             },
-            childNodes: [
-                tableVirtualDOM
-            ]
+            childNodes: [tableVirtualDOM]
         };
         var diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
         this.dd.apply(this.headerDOM, diff);
@@ -1715,7 +1690,7 @@ var DataTable = /** @class */ (function () {
             unhideHeader: true
         });
         if (this.options.tableRender) {
-            var renderedTableVirtualDOM = this.options.tableRender(this.data, newTableVirtualDOM, 'print');
+            var renderedTableVirtualDOM = this.options.tableRender(this.data, newTableVirtualDOM, "print");
             if (renderedTableVirtualDOM) {
                 newTableVirtualDOM = renderedTableVirtualDOM;
             }
@@ -1770,7 +1745,7 @@ var DataTable = /** @class */ (function () {
             }
         ];
         if (this.options.tableRender) {
-            var renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, 'message');
+            var renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, "message");
             if (renderedTableVirtualDOM) {
                 newVirtualDOM = renderedTableVirtualDOM;
             }

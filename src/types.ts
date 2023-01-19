@@ -119,33 +119,6 @@ interface LabelsConfiguration {
     info: string;
 }
 
-interface LayoutConfiguration {
-    /**
-     * default: '{select}{search}'
-     * Sets the top container content
-     *
-     * {select} - The per-page dropdown
-     * {search} - The search input
-     * {info} - The info label (Showing X of Y entries)
-     * {pager} - The pager
-     */
-    top: string;
-    /**
-     * default: '{info}{pager}'
-     * Sets the bottom container content
-     *
-     * {select} - The per-page dropdown
-     * {search} - The search input
-     * {info} - The info label (Showing X of Y entries)
-     * {pager} - The pager
-     */
-    bottom: string;
-    template: (DataTableConfiguration) => string;
-    searchForm: (DataTableConfiguration) => string;
-    wrapDropdown: (DataTableConfiguration) => string;
-}
-
-
 interface ClassConfiguration {
     active: string;
     bottom: string;
@@ -267,29 +240,11 @@ interface DataTableConfiguration {
      */
     labels: LabelsConfiguration;
     /**
-     * Default:
-     * layout: {
-     *
-     *           top: "{select}{search}",
-     *           bottom: "{info}{pager}"
-     *   },
-     *
-     *Allows for custom arranging of the DOM elements in the top and bottom containers. There are for 4 variables you can utilize:
-     *
-     *       {select} - The per-page dropdown
-     *       {search} - The search input
-     *       {info} - The info label (Showing X of Y entries)
-     *       {pager} - The pager
-     *   A maximum of 2 variables per container (top or bottom) is recommended. If you need to use more than 2 then you'll have to sort the CSS out to make them fit.
-     *
-     *   Note, also, that while the {select}, {search} and {info} variables are single-use only, the {pager} variable can be used multiple times to produce multiple pagers.
-     *
-     *   Use of the {select} variable depends on the option perPageSelect being enabled and use of the {search} variable depends on the option searchable being enabled. Trying to use these variables while their corresponding options are disabled will result in nothing being inserted.
-     *
+     * Allows for custom arranging of the DOM elements in the top and bottom containers. There are for 4 variables you can utilize:
      *
      * Docs :https://github.com/fiduswriter/simple-datatables/wiki/layout
      */
-    layout: LayoutConfiguration;
+    template: (DataTableConfiguration) => string;
     /**
      * default: '&raquo;'
      * Set the content of the skip to last page button.
@@ -429,7 +384,6 @@ export {
     inputCellType,
     inputHeaderCellType,
     elementNodeType,
-    LayoutConfiguration,
     renderOptions,
     renderType,
     rowRenderType,

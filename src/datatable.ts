@@ -14,7 +14,6 @@ import {
     headerCellType,
     inputCellType,
     elementNodeType,
-    LayoutConfiguration,
     renderOptions,
     TableDataType
 } from "./types"
@@ -99,12 +98,6 @@ export class DataTable {
 
         this.id = this.dom.id
 
-        //const layout : LayoutConfiguration = options.layout
-        const layout : LayoutConfiguration = {
-            ...defaultConfig.layout,
-            ...options.layout
-        }
-
         const labels = {
             ...defaultConfig.labels,
             ...options.labels
@@ -119,7 +112,6 @@ export class DataTable {
         this.options = {
             ...defaultConfig,
             ...options,
-            layout,
             labels,
             classes
         }
@@ -188,14 +180,10 @@ export class DataTable {
             class: `${this.options.classes.wrapper} ${this.options.classes.loading}`
         })
 
-        let template = this.options.layout.template(this.options)
-
-        // Info placement
-        template = template.replace("{info}", this.options.paging ? `<div class='${this.options.classes.info}'></div>` : "")
+        let template = this.options.template(this.options)
 
         // Per Page Select
         if (this.options.paging && this.options.perPageSelect) {
-            let wrap = this.options.layout.wrapDropdown(this.options)
 
             // Create the select
             const select = createElement("select", {
@@ -210,23 +198,10 @@ export class DataTable {
                 select.appendChild(option)
             })
 
-            // Custom label
-            wrap = wrap.replace("{select}", select.outerHTML)
-
             // Selector placement
-            template = template.replace("{select}", wrap)
+            template = template.replace("{select}", select.outerHTML)
         } else {
             template = template.replace("{select}", "")
-        }
-
-        // Searchable
-        if (this.options.searchable) {
-            const form = this.options.layout.searchForm(this.options)
-
-            // Search input placement
-            template = template.replace("{search}", form)
-        } else {
-            template = template.replace("{search}", "")
         }
 
         // Paginator

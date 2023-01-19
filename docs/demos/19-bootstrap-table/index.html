@@ -758,13 +758,36 @@
                         format: "YYYY/DD/MM"
                     }
                 ],
-                layout: {
-                    searchForm: options => `<div class='${options.classes.search} float-right search btn-group'><input class='${options.classes.input} form-control search-input' placeholder='${options.labels.placeholder}' type='search'></div>`,
-                    top: "<div class='fixed-table-toolbar'><div class='bs-bars float-left'>{select}</div>{search}</div>"
-                },
+                template: options => `<div class='${options.classes.top} fixed-table-toolbar'>
+    ${
+    options.paging && options.perPageSelect ?
+        `<div class='${options.classes.dropdown} bs-bars float-left'>
+            <label>
+                {select} ${options.labels.perPage}
+            </label>
+        </div>` :
+        ""
+}
+    ${
+    options.searchable ?
+        `<div class='${options.classes.search} float-right search btn-group'>
+            <input class='${options.classes.input} form-control search-input' placeholder='${options.labels.placeholder}' type='search'>
+        </div>` :
+        ""
+}
+</div>
+<div class='${options.classes.container}'${options.scrollY.length ? ` style='height: ${options.scrollY}; overflow-Y: auto;'` : ""}></div>
+<div class='${options.classes.bottom}'>
+    ${
+    options.paging ?
+        `<div class='${options.classes.info}'></div>` :
+        ""
+}
+    {pager}
+</div>`,
                 labels: {
                     placeholder: "Search",
-                    perPage: "{select}"
+                    perPage: ""
                 },
                 tableRender: (_data, table, _type) => {
                     // We ignore type ('main', 'print', 'header', 'message')

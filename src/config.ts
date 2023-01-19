@@ -1,5 +1,5 @@
 import {DataTableConfiguration} from "./types"
-import {layoutTemplate, searchFormTemplate, wrapDropdownTemplate} from "./templates"
+import {layoutTemplate} from "./templates"
 /**
  * Default configuration
  */
@@ -46,20 +46,14 @@ export const defaultConfig: DataTableConfiguration = {
     // Customise the display text
     labels: {
         placeholder: "Search...", // The search input placeholder
-        perPage: "{select} entries per page", // per-page dropdown label
+        perPage: "entries per page", // per-page dropdown label
         noRows: "No entries found", // Message shown when there are no records to show
         noResults: "No results match your search query", // Message shown when there are no search results
         info: "Showing {start} to {end} of {rows} entries" //
     },
 
     // Customise the layout
-    layout: {
-        top: "{select}{search}",
-        bottom: "{info}{pager}",
-        template: layoutTemplate,
-        wrapDropdown: wrapDropdownTemplate,
-        searchForm: searchFormTemplate
-    },
+    template: layoutTemplate,
 
     classes: { // Note: use single class names
         active: "active", // TODO in 7.0.0: datatable-active
