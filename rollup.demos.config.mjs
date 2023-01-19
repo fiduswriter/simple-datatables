@@ -1,6 +1,6 @@
 import commonjs from '@rollup/plugin-commonjs'
 import resolve from '@rollup/plugin-node-resolve'
-import typescript from 'rollup-plugin-typescript2'
+import typescript from "@rollup/plugin-typescript"
 
 export default [
     {
@@ -8,10 +8,9 @@ export default [
         plugins: [
             resolve({browser: true}),
             typescript({
-                tsconfigOverride: {
-                    compilerOptions: {
-                        allowSyntheticDefaultImports: true,
-                    }
+                compilerOptions: {
+                    declaration: false,
+                    declarationDir: undefined
                 }
             }),
             commonjs()

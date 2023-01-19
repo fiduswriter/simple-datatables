@@ -4,7 +4,7 @@ import resolve from '@rollup/plugin-node-resolve'
 import babel from '@rollup/plugin-babel'
 import { DEFAULT_EXTENSIONS } from '@babel/core';
 import terser from '@rollup/plugin-terser'
-import typescript from 'rollup-plugin-typescript2'
+import typescript from "@rollup/plugin-typescript"
 import dts from 'rollup-plugin-dts'
 
 export default [
@@ -12,95 +12,28 @@ export default [
         input: 'src/index.ts',
         plugins: [
             resolve({browser: true}),
-            typescript({
-                useTsconfigDeclarationDir: true,
-                tsconfigDefaults: {
-                    compilerOptions: {
-                        allowSyntheticDefaultImports: true,
-                        declaration: true,
-                        //emitDeclarationOnly: true,
-                        declarationDir: "dist/dts"
-                    }
-                }
-            }),
+            typescript(),
             commonjs(),
-            nodePolyfills(),
-            babel({
-                babelHelpers: 'bundled',
-                extensions: [
-			        ...DEFAULT_EXTENSIONS,
-			        '.ts',
-			        '.tsx'
-		        ],
-            }),
             terser()
         ],
         output: // ES module version, for modern browsers
-        {
-            dir: "dist/module",
-            format: "es",
-            sourcemap: true
-        }
-    },
-    {
-        input: 'src/index.ts',
-        plugins: [
-            resolve({browser: true}),
-            typescript({
-                tsconfigOverride: {
-                    compilerOptions: {
-                        allowSyntheticDefaultImports: true,
-                    }
-                }
-            }),
-            commonjs(),
-            nodePolyfills(),
-            babel({
-                babelHelpers: 'bundled',
-                extensions: [
-                    ...DEFAULT_EXTENSIONS,
-                    '.ts',
-                    '.tsx'
-                ],
-            }),
-            terser()
+        [
+            {
+                file: "dist/index.js",
+                format: "cjs",
+                sourcemap: true,
+            },
+            {
+                file: "dist/module.js",
+                format: "es",
+                sourcemap: true,
+            },
+            {
+                file: "dist/nomodule.js",
+                format: "system",
+                sourcemap: true,
+            },
         ],
-        output: // SystemJS version, for older browsers
-        {
-            dir: "dist/nomodule",
-            format: "system",
-            sourcemap: true
-        },
-    },
-    {
-        input: 'src/index.ts',
-        plugins: [
-            resolve({browser: true}),
-            typescript({
-                tsconfigOverride: {
-                    compilerOptions: {
-                        allowSyntheticDefaultImports: true,
-                    }
-                }
-            }),
-            commonjs(),
-            nodePolyfills(),
-            babel({
-                babelHelpers: 'bundled',
-                extensions: [
-                    ...DEFAULT_EXTENSIONS,
-                    '.ts',
-                    '.tsx'
-                ],
-            }),
-            terser()
-        ],
-        output: // CJS version
-        {
-            dir: "dist",
-            format: "cjs",
-            sourcemap: true
-        }
     },
     {
         // path to your declaration files root
