@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "jsdelivr": "dist/umd/simple-datatables.js",
   "unpkg": "dist/umd/simple-datatables.js",
-  "module": "src/index.js",
+  "module": "dist/index.js",
   "scripts": {
     "test": "mocha",
     "test_server": "node test/server.mjs",
