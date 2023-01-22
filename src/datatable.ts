@@ -82,7 +82,7 @@ export class DataTable {
 
     searchData: number[]
 
-    searching: boolean
+    searching: string
 
     totalPages: number
 
@@ -735,11 +735,10 @@ export class DataTable {
         if (!this.hasRows) return false
 
         this.currentPage = 1
-        this.searching = true
+        this.searching = query
         this.searchData = []
 
         if (!query.length) {
-            this.searching = false
             this.update()
             this.emit("datatable.search", query, this.searchData)
             this.wrapper.classList.remove("search-results")
@@ -882,7 +881,7 @@ export class DataTable {
     refresh() {
         if (this.options.searchable) {
             this.input.value = ""
-            this.searching = false
+            this.searching = ""
         }
         this.currentPage = 1
         this.onFirstPage = true

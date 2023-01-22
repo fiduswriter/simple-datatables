@@ -426,20 +426,22 @@ var readDataCell = function (cell, columnSettings) {
             cellData.text = String(cell);
             cellData.data = parseInt(cell, 10);
             break;
-        case "html":
+        case "html": {
             var node = Array.isArray(cell) ?
-                { nodeName: 'TD', childNodes: cell } : // If it is an array, we assume it is an array of nodeType
+                { nodeName: "TD",
+                    childNodes: cell } : // If it is an array, we assume it is an array of nodeType
                 k("<td>".concat(String(cell), "</td>"));
             cellData.data = node.childNodes || [];
             var text = objToText(node);
             cellData.text = text;
             cellData.order = text;
             break;
+        }
         case "boolean":
             if (typeof cell === "string") {
                 cell = cell.toLowerCase().trim();
             }
-            cellData.data = ["false", false, null, undefined, 0].includes(cell) ? false : true;
+            cellData.data = !["false", false, null, undefined, 0].includes(cell);
             cellData.order = cellData.data ? 1 : 0;
             cellData.text = String(cellData.data);
             break;
@@ -498,7 +500,7 @@ var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
             var heading = readHeaderCell(th.innerHTML);
             if (!columnSettings.columns[index]) {
                 columnSettings.columns[index] = {
-                    type: 'string',
+                    type: "string",
                     searchable: true,
                     sortable: true
                 };
@@ -532,7 +534,7 @@ var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
         // Make sure that there are settings for all columns
         if (!columnSettings.columns[i]) {
             columnSettings.columns[i] = {
-                type: 'string',
+                type: "string",
                 sortable: true,
                 searchable: true
             };
@@ -584,7 +586,7 @@ var Rows = /** @class */ (function () {
         var _this = this;
         var row = this.dt.options.dataConvert ?
             data.map(function (cell, index) {
-                var columnSettings = _this.dt.columns.settings.columns[index] || { type: 'string' };
+                var columnSettings = _this.dt.columns.settings.columns[index] || { type: "string" };
                 return readDataCell(cell, columnSettings);
             }) :
             data;
@@ -651,7 +653,7 @@ var Rows = /** @class */ (function () {
         var _this = this;
         var row = this.dt.options.dataConvert ?
             data.map(function (cell, index) {
-                var columnSettings = _this.dt.columns.settings.columns[index] || { type: 'string' };
+                var columnSettings = _this.dt.columns.settings.columns[index] || { type: "string" };
                 return readDataCell(cell, columnSettings);
             }) :
             data;
@@ -733,7 +735,11 @@ var readColumnSettings = function (columnOptions) {
             }
         });
     });
-    columns = columns.map(function (column) { return column ? column : { type: 'string', sortable: true, searchable: true }; });
+    columns = columns.map(function (column) { return column ?
+        column :
+        { type: "string",
+            sortable: true,
+            searchable: true }; });
     return { columns: columns, sort: sort };
 };
 
@@ -783,7 +789,7 @@ var Columns = /** @class */ (function () {
         columns.forEach(function (index) {
             if (!_this.settings.columns[index]) {
                 _this.settings.columns[index] = {
-                    type: 'string'
+                    type: "string"
                 };
             }
             var column = _this.settings.columns[index];
@@ -802,7 +808,7 @@ var Columns = /** @class */ (function () {
         columns.forEach(function (index) {
             if (!_this.settings.columns[index]) {
                 _this.settings.columns[index] = {
-                    type: 'string',
+                    type: "string",
                     sortable: true
                 };
             }
@@ -981,7 +987,7 @@ var Columns = /** @class */ (function () {
         }
         var collator = ["string", "html"].includes(column.type) ?
             new Intl.Collator(column.locale || this.dt.options.locale, {
-                usage: 'sort',
+                usage: "sort",
                 numeric: column.numeric || this.dt.options.numeric,
                 caseFirst: column.caseFirst || this.dt.options.caseFirst,
                 ignorePunctuation: column.ignorePunctuation || this.dt.options.ignorePunctuation
@@ -1006,7 +1012,11 @@ var Columns = /** @class */ (function () {
             return 0;
         });
         this.settings.sort = { column: index, dir: dir };
-        if (!init) {
+        if (this.dt.searching) {
+            this.dt.search(this.dt.searching);
+            this.dt.emit("datatable.sort", index, dir);
+        }
+        else if (!init) {
             this.dt.update();
             this.dt.emit("datatable.sort", index, dir);
         }
@@ -1090,7 +1100,7 @@ var layoutTemplate = function (options) { return "<div class='".concat(options.c
 var defaultConfig$1 = {
     // for sorting
     sortable: true,
-    locale: 'en',
+    locale: "en",
     numeric: true,
     caseFirst: "false",
     // for searching
@@ -1683,10 +1693,9 @@ var DataTable = /** @class */ (function () {
         if (!this.hasRows)
             return false;
         this.currentPage = 1;
-        this.searching = true;
+        this.searching = query;
         this.searchData = [];
         if (!query.length) {
-            this.searching = false;
             this.update();
             this.emit("datatable.search", query, this.searchData);
             this.wrapper.classList.remove("search-results");
@@ -1710,34 +1719,30 @@ var DataTable = /** @class */ (function () {
             }
             return columnQuery;
         });
-        console.log({ queryWords: queryWords });
         this.data.data.forEach(function (row, idx) {
             var _loop_1 = function (i) {
                 var query_1 = queryWords[i];
-                if (!query_1) {
-                    return "continue";
-                }
-                var cell = row[i];
-                var content = (cell.text || String(cell.data)).trim();
-                if (!content.length) {
-                    return "continue";
-                }
-                var column = _this.columns.settings.columns[i];
-                var sensitivity = column.sensitivity || _this.options.sensitivity;
-                if (["base", "accent"].includes(sensitivity)) {
-                    content = content.toLowerCase();
-                }
-                if (["base", "case"].includes(sensitivity)) {
-                    content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "");
-                }
-                var ignorePunctuation = column.ignorePunctuation || _this.options.ignorePunctuation;
-                if (ignorePunctuation) {
-                    content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "");
-                }
-                if (query_1.split(' ').find(function (queryWord) { return content.includes(queryWord); })) {
-                    console.log({ query: query_1, content: content });
-                    _this.searchData.push(idx);
-                    return "break";
+                if (query_1) {
+                    var cell = row[i];
+                    var content_1 = (cell.text || String(cell.data)).trim();
+                    if (content_1.length) {
+                        var column = _this.columns.settings.columns[i];
+                        var sensitivity = column.sensitivity || _this.options.sensitivity;
+                        if (["base", "accent"].includes(sensitivity)) {
+                            content_1 = content_1.toLowerCase();
+                        }
+                        if (["base", "case"].includes(sensitivity)) {
+                            content_1 = content_1.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+                        }
+                        var ignorePunctuation = column.ignorePunctuation || _this.options.ignorePunctuation;
+                        if (ignorePunctuation) {
+                            content_1 = content_1.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "");
+                        }
+                        if (query_1.split(" ").find(function (queryWord) { return content_1.includes(queryWord); })) {
+                            _this.searchData.push(idx);
+                            return "break";
+                        }
+                    }
                 }
             };
             for (var i = 0; i < row.length; i++) {
@@ -1745,54 +1750,8 @@ var DataTable = /** @class */ (function () {
                 if (state_1 === "break")
                     break;
             }
-            //const inArray = this.searchData.includes(idx)
-            // const columnCollators = this.columns.settings.columns.map(
-            //     column =>
-            //         (column.hidden || !column.searchable) ?
-            //         false :
-            //         new Intl.Collator(column.locale || this.options.locale, {
-            //             usage: 'search',
-            //             sensitivity: column.sensitivity || this.options.sensitivity,
-            //             ignorePunctuation: column.ignorePunctuation|| this.options.ignorePunctuation,
-            //         })
-            // )
-            // const doesQueryMatch = query.split(" ").reduce((bool: boolean, word: string) => {
-            //     let includes = false
-            //     let cell = null
-            //     let content = null
-            //
-            //     for (let x = 0; x < row.length; x++) {
-            //         cell = row[x]
-            //
-            //         //const collator = columnCollators[x]
-            //         const column = this.columns.settings.columns[x]
-            //         if (column.hidden || !column.searchable) {
-            //             continue
-            //         }
-            //
-            //         //if (!collator) {
-            //         //    continue
-            //         //}
-            //         content = cell.text || String(cell.data)
-            //         console.log({content, word, col: collator.compare(content, word)})
-            //         if (
-            //             content.split(' ').find(cWord => collator.compare(cWord, word) === 0)
-            //         ) {
-            //             console.log(collator.compare(content, word))
-            //             includes = true
-            //             break
-            //         }
-            //     }
-            //
-            //     return bool && includes
-            // }, true)
-            //
-            // if (doesQueryMatch && !inArray) {
-            //     this.searchData.push(idx)
-            // }
         });
         this.wrapper.classList.add("search-results");
-        //console.log(this.searchData)
         if (this.searchData.length) {
             this.update();
         }
@@ -1872,7 +1831,7 @@ var DataTable = /** @class */ (function () {
     DataTable.prototype.refresh = function () {
         if (this.options.searchable) {
             this.input.value = "";
-            this.searching = false;
+            this.searching = "";
         }
         this.currentPage = 1;
         this.onFirstPage = true;
