@@ -34,8 +34,11 @@ export const headingsToVirtualHeaderRowDOM = (
                     attributes["data-sortable"] = "true"
                 }
             }
+            if (column.headerClass) {
+                attributes.class = columnSettings.headerClass
+            }
             if (columnSettings.sort?.column === index) {
-                attributes.class = columnSettings.sort.dir
+                attributes.class = attributes.class ? `${attributes.class} ${columnSettings.sort.dir}` : columnSettings.sort.dir
                 attributes["aria-sort"] = columnSettings.sort.dir === "asc" ? "ascending" : "descending"
             }
             let style = ""

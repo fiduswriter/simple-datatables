@@ -25,7 +25,7 @@ import {menuItemType, dataType, EditorOptions} from "./types"
 export class Editor {
     closed: boolean
 
-    container: HTMLElement
+    containerDOM: HTMLElement
 
     data: dataType
 
@@ -47,15 +47,15 @@ export class Editor {
 
     limits: {x: number, y: number}
 
-    menu: HTMLElement
+    menuDOM: HTMLElement
 
-    modal: HTMLElement | false
+    modalDOM: HTMLElement | false
 
     options: EditorOptions
 
     rect: {width: number, height: number}
 
-    wrapper: HTMLElement
+    wrapperDOM: HTMLElement
 
     constructor(dataTable: DataTable, options = {}) {
         this.dt = dataTable
@@ -73,15 +73,15 @@ export class Editor {
         if (this.initialized) {
             return
         }
-        this.dt.wrapper.classList.add(this.options.classes.editable)
+        this.dt.wrapperDOM.classList.add(this.options.classes.editable)
         if (this.options.contextMenu) {
-            this.container = createElement("div", {
+            this.containerDOM = createElement("div", {
                 id: this.options.classes.container
             })
-            this.wrapper = createElement("div", {
+            this.wrapperDOM = createElement("div", {
                 class: this.options.classes.wrapper
             })
-            this.menu = createElement("ul", {
+            this.menuDOM = createElement("ul", {
                 class: this.options.classes.menu
             })
             if (this.options.menuItems && this.options.menuItems.length) {
@@ -103,11 +103,11 @@ export class Editor {
                             })
                         }
                     }
-                    this.menu.appendChild(li)
+                    this.menuDOM.appendChild(li)
                 })
             }
-            this.wrapper.appendChild(this.menu)
-            this.container.appendChild(this.wrapper)
+            this.wrapperDOM.appendChild(this.menuDOM)
+            this.containerDOM.appendChild(this.wrapperDOM)
             this.update()
         }
         this.data = {}
@@ -177,8 +177,8 @@ export class Editor {
             if (y > this.limits.y) {
                 y -= this.rect.height
             }
-            this.wrapper.style.top = `${y}px`
-            this.wrapper.style.left = `${x}px`
+            this.wrapperDOM.style.top = `${y}px`
+            this.wrapperDOM.style.left = `${x}px`
             this.openMenu()
             this.update()
         }
@@ -211,7 +211,7 @@ export class Editor {
      * @return {Void}
      */
     keydown(event: KeyboardEvent) {
-        if (this.modal) {
+        if (this.modalDOM) {
             if (event.key === "Escape") { // close button
                 this.closeModal()
             } else if (event.key === "Enter") { // save button
@@ -278,7 +278,7 @@ export class Editor {
             class: this.options.classes.modal,
             html: template
         })
-        this.modal = modal
+        this.modalDOM = modal
         this.openModal()
         this.editing = true
         this.editingCell = true
@@ -369,7 +369,7 @@ export class Editor {
                 }), form.lastElementChild)
             }
         })
-        this.modal = modal
+        this.modalDOM = modal
         this.openModal()
         // Grab the inputs
         const inputs = Array.from(form.querySelectorAll("input[type=text]")) as HTMLInputElement[]
@@ -419,8 +419,8 @@ export class Editor {
      * @return {Void}
      */
     openModal() {
-        if (!this.editing && this.modal) {
-            document.body.appendChild(this.modal)
+        if (!this.editing && this.modalDOM) {
+            document.body.appendChild(this.modalDOM)
         }
     }
 
@@ -429,9 +429,9 @@ export class Editor {
      * @return {Void}
      */
     closeModal() {
-        if (this.editing && this.modal) {
-            document.body.removeChild(this.modal)
-            this.modal = this.editing = this.editingRow = this.editingCell = false
+        if (this.editing && this.modalDOM) {
+            document.body.removeChild(this.modalDOM)
+            this.modalDOM = this.editing = this.editingRow = this.editingCell = false
         }
     }
 
@@ -454,7 +454,7 @@ export class Editor {
     update() {
         const scrollX = window.scrollX || window.pageXOffset
         const scrollY = window.scrollY || window.pageYOffset
-        this.rect = this.wrapper.getBoundingClientRect()
+        this.rect = this.wrapperDOM.getBoundingClientRect()
         this.limits = {
             x: window.innerWidth + scrollX - this.rect.width,
             y: window.innerHeight + scrollY - this.rect.height
@@ -473,9 +473,9 @@ export class Editor {
         }
         let valid = true
         if (this.options.contextMenu) {
-            valid = !this.wrapper.contains(target)
+            valid = !this.wrapperDOM.contains(target)
             if (this.editing) {
-                valid = !this.wrapper.contains(target) && target !== this.data.input
+                valid = !this.wrapperDOM.contains(target) && target !== this.data.input
             }
         }
         if (valid) {
@@ -496,7 +496,7 @@ export class Editor {
             this.saveCell(this.data.input.value)
         }
         if (this.options.contextMenu) {
-            document.body.appendChild(this.container)
+            document.body.appendChild(this.containerDOM)
             this.closed = false
             this.dt.emit("editable.context.open")
         }
@@ -509,7 +509,7 @@ export class Editor {
     closeMenu() {
         if (this.options.contextMenu && !this.closed) {
             this.closed = true
-            document.body.removeChild(this.container)
+            document.body.removeChild(this.containerDOM)
             this.dt.emit("editable.context.close")
         }
     }
@@ -525,8 +525,8 @@ export class Editor {
         document.removeEventListener("keydown", this.events.keydown)
         window.removeEventListener("resize", this.events.reset)
         window.removeEventListener("scroll", this.events.reset)
-        if (document.body.contains(this.container)) {
-            document.body.removeChild(this.container)
+        if (document.body.contains(this.containerDOM)) {
+            document.body.removeChild(this.containerDOM)
         }
         this.initialized = false
     }

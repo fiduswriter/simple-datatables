@@ -7,13 +7,13 @@ import {readColumnSettings} from "./column_settings"
 export class Columns {
     dt: DataTable
 
-    widths: number[]
+    _widths: number[]
 
     settings: allColumnSettingsType
 
     constructor(dt: DataTable) {
         this.dt = dt
-        this.widths = []
+        this._widths = []
         this.init()
     }
 
@@ -217,7 +217,7 @@ export class Columns {
             return
         }
 
-        const currentFilter = this.dt.filterStates.find((filterState: filterStateType) => filterState.column === column)
+        const currentFilter = this.dt._filterStates.find((filterState: filterStateType) => filterState.column === column)
         let newFilterState
         if (currentFilter) {
             let returnNext = false
@@ -237,9 +237,9 @@ export class Columns {
         if (currentFilter && newFilterState) {
             currentFilter.state = newFilterState
         } else if (currentFilter) {
-            this.dt.filterStates = this.dt.filterStates.filter((filterState: filterStateType) => filterState.column !== column)
+            this.dt._filterStates = this.dt._filterStates.filter((filterState: filterStateType) => filterState.column !== column)
         } else {
-            this.dt.filterStates.push({column,
+            this.dt._filterStates.push({column,
                 state: newFilterState})
         }
 
@@ -312,8 +312,8 @@ export class Columns {
 
         this.settings.sort = {column: index,
             dir}
-        if (this.dt.searching) {
-            this.dt.search(this.dt.searching)
+        if (this.dt._searchQuery) {
+            this.dt.search(this.dt._searchQuery)
             this.dt.emit("datatable.sort", index, dir)
         } else if (!init) {
             this.dt.update()
@@ -329,7 +329,7 @@ export class Columns {
         const activeHeadings = this.dt.data.headings.filter((heading: headerCellType, index: number) => !this.settings.columns[index]?.hidden)
         if ((this.dt.options.scrollY.length || this.dt.options.fixedColumns) && activeHeadings?.length) {
 
-            this.widths = []
+            this._widths = []
             const renderOptions: {noPaging?: true, noColumnWidths?: true, unhideHeader?: true, renderHeader?: true} = {
                 noPaging: true
             }
@@ -364,7 +364,7 @@ export class Columns {
                     (total, cellWidth) => total + cellWidth,
                     0
                 )
-                this.widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
+                this._widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
 
             } else {
                 renderOptions.renderHeader = true
@@ -385,7 +385,7 @@ export class Columns {
                     (total, cellWidth) => total + cellWidth,
                     0
                 )
-                this.widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
+                this._widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
             }
             // render table without options for measurements
             this.dt._renderTable()
