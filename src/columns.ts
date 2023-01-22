@@ -254,7 +254,10 @@ export class Columns {
 
         this.settings.sort = {column,
             dir}
-        if (!init) {
+        if (this.dt.searching) {
+            this.dt.search(this.dt.searching)
+            this.dt.emit("datatable.sort", column, dir)
+        } else if (!init) {
             this.dt.update()
             this.dt.emit("datatable.sort", column, dir)
         }
