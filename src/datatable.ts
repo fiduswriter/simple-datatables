@@ -793,54 +793,6 @@ export class DataTable {
                     }
                 }
             }
-
-
-            //const inArray = this.searchData.includes(idx)
-
-            // const columnCollators = this.columns.settings.columns.map(
-            //     column =>
-            //         (column.hidden || !column.searchable) ?
-            //         false :
-            //         new Intl.Collator(column.locale || this.options.locale, {
-            //             usage: 'search',
-            //             sensitivity: column.sensitivity || this.options.sensitivity,
-            //             ignorePunctuation: column.ignorePunctuation|| this.options.ignorePunctuation,
-            //         })
-            // )
-
-
-            // const doesQueryMatch = query.split(" ").reduce((bool: boolean, word: string) => {
-            //     let includes = false
-            //     let cell = null
-            //     let content = null
-            //
-            //     for (let x = 0; x < row.length; x++) {
-            //         cell = row[x]
-            //
-            //         //const collator = columnCollators[x]
-            //         const column = this.columns.settings.columns[x]
-            //         if (column.hidden || !column.searchable) {
-            //             continue
-            //         }
-            //
-            //         //if (!collator) {
-            //         //    continue
-            //         //}
-            //         content = cell.text || String(cell.data)
-            //         if (
-            //             content.split(' ').find(cWord => collator.compare(cWord, word) === 0)
-            //         ) {
-            //             includes = true
-            //             break
-            //         }
-            //     }
-            //
-            //     return bool && includes
-            // }, true)
-            //
-            // if (doesQueryMatch && !inArray) {
-            //     this.searchData.push(idx)
-            // }
         })
 
         this.wrapper.classList.add("search-results")
