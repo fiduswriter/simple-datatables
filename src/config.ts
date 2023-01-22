@@ -4,8 +4,15 @@ import {layoutTemplate} from "./templates"
  * Default configuration
  */
 export const defaultConfig: DataTableConfiguration = {
+    // for sorting
     sortable: true,
+    locale: "en",
+    numeric: true,
+    caseFirst: "false",
+    // for searching
     searchable: true,
+    sensitivity: "base",
+    ignorePunctuation: true,
     destroyable: true,
     // Whether to attempt to convert input data (not from dom). If false, we
     // assume input data is in simple-datatables native format.

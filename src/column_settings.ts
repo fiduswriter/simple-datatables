@@ -5,7 +5,7 @@ import {
 
 export const readColumnSettings = (columnOptions = []) : allColumnSettingsType => {
 
-    const columns: (singleColumnSettingsType | undefined)[] = []
+    let columns: (singleColumnSettingsType | undefined)[] = []
     let sort: (false | {column: number, dir: "asc" | "desc"}) = false
 
     // Check for the columns option
@@ -17,7 +17,11 @@ export const readColumnSettings = (columnOptions = []) : allColumnSettingsType =
 
         columnSelectors.forEach((selector: number) => {
             if (!columns[selector]) {
-                columns[selector] = {}
+                columns[selector] = {
+                    type: data.type || "string",
+                    sortable: true,
+                    searchable: true
+                }
             }
             const column = columns[selector]
 
@@ -26,16 +30,45 @@ export const readColumnSettings = (columnOptions = []) : allColumnSettingsType =
                 column.render = data.render
             }
 
-            if (data.type) {
-                column.type = data.type
-            }
-
             if (data.format) {
                 column.format = data.format
             }
 
+            if (data.cellClass) {
+                column.cellClass = data.cellClass
+            }
+
+            if (data.headerClass) {
+                column.headerClass = data.headerClass
+            }
+
+            if (data.locale) {
+                column.locale = data.locale
+            }
+
             if (data.sortable === false) {
-                column.notSortable = true
+                column.sortable = false
+            } else {
+                if (data.numeric) {
+                    column.numeric = data.numeric
+                }
+                if (data.caseFirst) {
+                    column.caseFirst = data.caseFirst
+                }
+            }
+
+            if (data.searchable === false) {
+                column.searchable = false
+            } else {
+                if (data.sensitivity) {
+                    column.sensitivity = data.sensitivity
+                }
+            }
+
+            if (column.searchable || column.sortable) {
+                if (data.ignorePunctuation) {
+                    column.ignorePunctuation = data.ignorePunctuation
+                }
             }
 
             if (data.hidden) {
@@ -58,7 +91,14 @@ export const readColumnSettings = (columnOptions = []) : allColumnSettingsType =
 
         })
 
+
     })
+
+    columns = columns.map(column => column ?
+        column :
+        {type: "string",
+            sortable: true,
+            searchable: true})
 
     return {columns,
         sort}

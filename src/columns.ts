@@ -1,6 +1,6 @@
 import {readDataCell, readHeaderCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {allColumnSettingsType, cellType, headerCellType, filterStateType, inputCellType, inputHeaderCellType, elementNodeType, renderType} from "./types"
+import {allColumnSettingsType, cellType, headerCellType, filterStateType, inputCellType, inputHeaderCellType, elementNodeType, singleColumnSettingsType} from "./types"
 import {readColumnSettings} from "./column_settings"
 
 
@@ -65,7 +65,9 @@ export class Columns {
         }
         columns.forEach((index: number) => {
             if (!this.settings.columns[index]) {
-                this.settings.columns[index] = {}
+                this.settings.columns[index] = {
+                    type: "string"
+                }
             }
             const column = this.settings.columns[index]
             column.hidden = true
@@ -83,7 +85,10 @@ export class Columns {
         }
         columns.forEach((index: number) => {
             if (!this.settings.columns[index]) {
-                this.settings.columns[index] = {}
+                this.settings.columns[index] = {
+                    type: "string",
+                    sortable: true
+                }
             }
             const column = this.settings.columns[index]
             delete column.hidden
@@ -107,7 +112,7 @@ export class Columns {
     /**
      * Add a new column
      */
-    add(data: {data: inputCellType[], heading: inputHeaderCellType, type?: "date", format?: string, sortable?: boolean, render?: renderType, filter?: (string | number | boolean | ((arg: (string | number | boolean)) => boolean))[]}) {
+    add(data: {data: inputCellType[], heading: inputHeaderCellType} & singleColumnSettingsType) {
         const newColumnSelector = this.dt.data.headings.length
         this.dt.data.headings = this.dt.options.dataConvert ?
             this.dt.data.headings.concat([readHeaderCell(data.heading)]) :
@@ -119,28 +124,69 @@ export class Columns {
             this.dt.data.data.map(
                 (row: cellType[], index: number) => row.concat([data.data[index] as cellType])
             )
+        this.settings.columns[newColumnSelector] = {
+            type: data.type || "string",
+            sortable: true,
+            searchable: true
+        }
         if (data.type || data.format || data.sortable || data.render || data.filter) {
-            if (!this.settings.columns[newColumnSelector]) {
-                this.settings.columns[newColumnSelector] = {}
-            }
             const column = this.settings.columns[newColumnSelector]
-            if (data.type) {
-                column.type = data.type
+
+            if (data.render) {
+                column.render = data.render
             }
+
             if (data.format) {
                 column.format = data.format
             }
-            if (data.sortable) {
-                column.notSortable = !data.sortable
+
+            if (data.cellClass) {
+                column.cellClass = data.cellClass
             }
+
+            if (data.headerClass) {
+                column.headerClass = data.headerClass
+            }
+
+            if (data.locale) {
+                column.locale = data.locale
+            }
+
+            if (data.sortable === false) {
+                column.sortable = false
+            } else {
+                if (data.numeric) {
+                    column.numeric = data.numeric
+                }
+                if (data.caseFirst) {
+                    column.caseFirst = data.caseFirst
+                }
+            }
+
+            if (data.searchable === false) {
+                column.searchable = false
+            } else {
+                if (data.sensitivity) {
+                    column.sensitivity = data.sensitivity
+                }
+            }
+
+            if (column.searchable || column.sortable) {
+                if (data.ignorePunctuation) {
+                    column.ignorePunctuation = data.ignorePunctuation
+                }
+            }
+
+            if (data.hidden) {
+                column.hidden = true
+            }
+
             if (data.filter) {
                 column.filter = data.filter
             }
-            if (data.type) {
-                column.type = data.type
-            }
-            if (data.render) {
-                column.render = data.render
+
+            if (data.sortSequence) {
+                column.sortSequence = data.sortSequence
             }
         }
         this.dt.update(true)
@@ -207,20 +253,20 @@ export class Columns {
     /**
      * Sort by column
      */
-    sort(column: number, dir: ("asc" | "desc" | undefined) = undefined, init = false) {
-        const columnSettings = this.settings.columns[column]
+    sort(index: number, dir: ("asc" | "desc" | undefined) = undefined, init = false) {
+        const column = this.settings.columns[index]
         // If there is a filter for this column, apply it instead of sorting
-        if (columnSettings?.filter?.length) {
-            return this.filter(column, init)
+        if (column?.filter?.length) {
+            return this.filter(index, init)
         }
 
         if (!init) {
-            this.dt.emit("datatable.sorting", column, dir)
+            this.dt.emit("datatable.sorting", index, dir)
         }
 
         if (!dir) {
             const currentDir = this.settings.sort ? this.settings.sort?.dir : false
-            const sortSequence = columnSettings?.sortSequence || ["asc", "desc"]
+            const sortSequence = column?.sortSequence || ["asc", "desc"]
             if (!currentDir) {
                 dir = sortSequence.length ? sortSequence[0] : "asc"
             } else {
@@ -236,13 +282,25 @@ export class Columns {
 
         }
 
+        const collator = ["string", "html"].includes(column.type) ?
+            new Intl.Collator(column.locale || this.dt.options.locale, {
+                usage: "sort",
+                numeric: column.numeric || this.dt.options.numeric,
+                caseFirst: column.caseFirst || this.dt.options.caseFirst,
+                ignorePunctuation: column.ignorePunctuation|| this.dt.options.ignorePunctuation
+            }) :
+            false
+
         this.dt.data.data.sort((row1: cellType[], row2: cellType[]) => {
-            let order1 = row1[column].order || row1[column].data,
-                order2 = row2[column].order || row2[column].data
+            let order1 = row1[index].order || row1[index].data,
+                order2 = row2[index].order || row2[index].data
             if (dir === "desc") {
                 const temp = order1
                 order1 = order2
                 order2 = temp
+            }
+            if (collator) {
+                return collator.compare(String(order1), String(order2))
             }
             if (order1 < order2) {
                 return -1
@@ -252,11 +310,11 @@ export class Columns {
             return 0
         })
 
-        this.settings.sort = {column,
+        this.settings.sort = {column: index,
             dir}
         if (!init) {
             this.dt.update()
-            this.dt.emit("datatable.sort", column, dir)
+            this.dt.emit("datatable.sort", index, dir)
         }
     }
 

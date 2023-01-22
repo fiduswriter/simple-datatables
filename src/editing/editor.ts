@@ -355,7 +355,7 @@ export class Editor {
         }
         // Add the inputs for each cell
         row.forEach((cell: cellType, i: number) => {
-            const columnSettings = this.dt.columns.settings.columns[i] || {}
+            const columnSettings = this.dt.columns.settings.columns[i]
             if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 const label = this.dt.data.headings[i].text || String(this.dt.data.headings[i].data)
                 form.insertBefore(createElement("div", {

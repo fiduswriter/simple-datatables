@@ -128,7 +128,7 @@ export const visibleToColumnIndex = function(visibleIndex: number, columns: sing
     let counter = 0
     let columnIndex = 0
     while (counter < (visibleIndex+1)) {
-        const columnSettings = columns[columnIndex] || {}
+        const columnSettings = columns[columnIndex]
         if (!columnSettings.hidden) {
             counter += 1
         }

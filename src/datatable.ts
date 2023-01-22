@@ -734,8 +734,6 @@ export class DataTable {
     search(query: string) {
         if (!this.hasRows) return false
 
-        query = query.toLowerCase()
-
         this.currentPage = 1
         this.searching = true
         this.searchData = []
@@ -748,42 +746,110 @@ export class DataTable {
             return false
         }
 
+        const queryWords : (string | false)[]= this.columns.settings.columns.map(
+            column => {
+                if (column.hidden || !column.searchable) {
+                    return false
+                }
+                let columnQuery = query
+                const sensitivity = column.sensitivity || this.options.sensitivity
+                if (["base", "accent"].includes(sensitivity)) {
+                    columnQuery = columnQuery.toLowerCase()
+                }
+                if (["base", "case"].includes(sensitivity)) {
+                    columnQuery = columnQuery.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+                }
+                const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
+                if (ignorePunctuation) {
+                    columnQuery = columnQuery.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
+                }
+                return columnQuery
+            }
+        )
+
         this.data.data.forEach((row: cellType[], idx: number) => {
-            const inArray = this.searchData.includes(idx)
-
-            // https://github.com/Mobius1/Vanilla-DataTables/issues/12
-            const doesQueryMatch = query.split(" ").reduce((bool: boolean, word: string) => {
-                let includes = false
-                let cell = null
-                let content = null
-
-                for (let x = 0; x < row.length; x++) {
-                    cell = row[x]
-                    content = cell.text || String(cell.data)
-                    if (
-                        this.columns.visible(x) && content.toLowerCase().includes(word)
-                    ) {
-                        includes = true
-                        break
+            for (let i=0; i<row.length; i++) {
+                const query = queryWords[i]
+                if (query) {
+                    const cell = row[i]
+                    let content = (cell.text || String(cell.data)).trim()
+                    if (content.length) {
+                        const column = this.columns.settings.columns[i]
+                        const sensitivity = column.sensitivity || this.options.sensitivity
+                        if (["base", "accent"].includes(sensitivity)) {
+                            content = content.toLowerCase()
+                        }
+                        if (["base", "case"].includes(sensitivity)) {
+                            content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+                        }
+                        const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
+                        if (ignorePunctuation) {
+                            content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
+                        }
+                        if (query.split(" ").find(queryWord => content.includes(queryWord))) {
+                            this.searchData.push(idx)
+                            break
+                        }
                     }
                 }
-
-                return bool && includes
-            }, true)
-
-            if (doesQueryMatch && !inArray) {
-                this.searchData.push(idx)
             }
+
+
+            //const inArray = this.searchData.includes(idx)
+
+            // const columnCollators = this.columns.settings.columns.map(
+            //     column =>
+            //         (column.hidden || !column.searchable) ?
+            //         false :
+            //         new Intl.Collator(column.locale || this.options.locale, {
+            //             usage: 'search',
+            //             sensitivity: column.sensitivity || this.options.sensitivity,
+            //             ignorePunctuation: column.ignorePunctuation|| this.options.ignorePunctuation,
+            //         })
+            // )
+
+
+            // const doesQueryMatch = query.split(" ").reduce((bool: boolean, word: string) => {
+            //     let includes = false
+            //     let cell = null
+            //     let content = null
+            //
+            //     for (let x = 0; x < row.length; x++) {
+            //         cell = row[x]
+            //
+            //         //const collator = columnCollators[x]
+            //         const column = this.columns.settings.columns[x]
+            //         if (column.hidden || !column.searchable) {
+            //             continue
+            //         }
+            //
+            //         //if (!collator) {
+            //         //    continue
+            //         //}
+            //         content = cell.text || String(cell.data)
+            //         if (
+            //             content.split(' ').find(cWord => collator.compare(cWord, word) === 0)
+            //         ) {
+            //             includes = true
+            //             break
+            //         }
+            //     }
+            //
+            //     return bool && includes
+            // }, true)
+            //
+            // if (doesQueryMatch && !inArray) {
+            //     this.searchData.push(idx)
+            // }
         })
 
         this.wrapper.classList.add("search-results")
-
-        if (!this.searchData.length) {
+        if (this.searchData.length) {
+            this.update()
+        } else {
             this.wrapper.classList.remove("search-results")
 
             this.setMessage(this.options.labels.noResults)
-        } else {
-            this.update()
         }
 
         this.emit("datatable.search", query, this.searchData)

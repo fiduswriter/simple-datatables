@@ -27,8 +27,12 @@ export const headingsToVirtualHeaderRowDOM = (
                 return
             }
             const attributes : { [key: string]: string} = {}
-            if (!column.notSortable && sortable && (!scrollY.length || unhideHeader)) {
-                attributes["data-sortable"] = "true"
+            if (column.sortable && sortable && (!scrollY.length || unhideHeader)) {
+                if (column.filter) {
+                    attributes["data-filterable"] = "true"
+                } else {
+                    attributes["data-sortable"] = "true"
+                }
             }
             if (columnSettings.sort?.column === index) {
                 attributes.class = columnSettings.sort.dir
@@ -45,7 +49,10 @@ export const headingsToVirtualHeaderRowDOM = (
             if (style.length) {
                 attributes.style = style
             }
-            const headerNodes : elementNodeType[] = heading.type === "node" ?
+            if (column.headerClass) {
+                attributes.class = columnSettings.headerClass
+            }
+            const headerNodes : elementNodeType[] = heading.type === "html" ?
                 heading.data as elementNodeType[] :
                 [
                     {
@@ -62,7 +69,7 @@ export const headingsToVirtualHeaderRowDOM = (
                             {nodeName: "#text",
                                 data: ""}
                         ] :
-                        column.notSortable || !sortable ?
+                        !column.sortable || !sortable ?
                             headerNodes :
                             [
                                 {
@@ -113,11 +120,11 @@ export const dataToVirtualDOM = (id: string, headings: headerCellType[], rows: {
                             },
                             childNodes: row.map(
                                 (cell: cellType, cIndex: number) => {
-                                    const column = columnSettings.columns[cIndex] || {}
+                                    const column = columnSettings.columns[cIndex]
                                     if (column.hidden) {
                                         return
                                     }
-                                    const td : elementNodeType = cell.type === "node" ?
+                                    const td : elementNodeType = column.type === "html" ?
                                         {
                                             nodeName: "TD",
                                             childNodes: cell.data
@@ -135,6 +142,9 @@ export const dataToVirtualDOM = (id: string, headings: headerCellType[], rows: {
                                         td.attributes = {
                                             style: `width: ${columnWidths[cIndex]}%;`
                                         }
+                                    }
+                                    if (column.cellClass) {
+                                        td.attributes.class = column.cellClass
                                     }
                                     if (column.render) {
                                         const renderedCell : (string | elementNodeType | void) = column.render(cell.data, td, index, cIndex)

@@ -37,7 +37,7 @@ export class Rows {
     add(data: cellType[]) {
         const row = this.dt.options.dataConvert ?
             data.map((cell: cellType, index: number) => {
-                const columnSettings = this.dt.columns.settings.columns[index] || {}
+                const columnSettings = this.dt.columns.settings.columns[index] || {type: "string"}
                 return readDataCell(cell, columnSettings)
             }) :
             data
@@ -110,7 +110,7 @@ export class Rows {
     updateRow(select: number, data: inputCellType[]) {
         const row = this.dt.options.dataConvert ?
             data.map((cell: inputCellType, index: number) => {
-                const columnSettings = this.dt.columns.settings.columns[index] || {}
+                const columnSettings = this.dt.columns.settings.columns[index] || {type: "string"}
                 return readDataCell(cell, columnSettings)
             }) :
             data as cellType[]

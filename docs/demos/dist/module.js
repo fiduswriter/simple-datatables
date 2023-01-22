@@ -140,7 +140,7 @@ var visibleToColumnIndex = function (visibleIndex, columns) {
     var counter = 0;
     var columnIndex = 0;
     while (counter < (visibleIndex + 1)) {
-        var columnSettings = columns[columnIndex] || {};
+        var columnSettings = columns[columnIndex];
         if (!columnSettings.hidden) {
             counter += 1;
         }
@@ -163,8 +163,13 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                 return;
             }
             var attributes = {};
-            if (!column.notSortable && sortable && (!scrollY.length || unhideHeader)) {
-                attributes["data-sortable"] = "true";
+            if (column.sortable && sortable && (!scrollY.length || unhideHeader)) {
+                if (column.filter) {
+                    attributes["data-filterable"] = "true";
+                }
+                else {
+                    attributes["data-sortable"] = "true";
+                }
             }
             if (((_a = columnSettings.sort) === null || _a === void 0 ? void 0 : _a.column) === index) {
                 attributes["class"] = columnSettings.sort.dir;
@@ -180,7 +185,10 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
             if (style.length) {
                 attributes.style = style;
             }
-            var headerNodes = heading.type === "node" ?
+            if (column.headerClass) {
+                attributes["class"] = columnSettings.headerClass;
+            }
+            var headerNodes = heading.type === "html" ?
                 heading.data :
                 [
                     {
@@ -196,7 +204,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                         { nodeName: "#text",
                             data: "" }
                     ] :
-                    column.notSortable || !sortable ?
+                    !column.sortable || !sortable ?
                         headerNodes :
                         [
                             {
@@ -232,11 +240,11 @@ var dataToVirtualDOM = function (id, headings, rows, columnSettings, columnWidth
                         },
                         childNodes: row.map(function (cell, cIndex) {
                             var _a;
-                            var column = columnSettings.columns[cIndex] || {};
+                            var column = columnSettings.columns[cIndex];
                             if (column.hidden) {
                                 return;
                             }
-                            var td = cell.type === "node" ?
+                            var td = column.type === "html" ?
                                 {
                                     nodeName: "TD",
                                     childNodes: cell.data
@@ -254,6 +262,9 @@ var dataToVirtualDOM = function (id, headings, rows, columnSettings, columnWidth
                                 td.attributes = {
                                     style: "width: ".concat(columnWidths[cIndex], "%;")
                                 };
+                            }
+                            if (column.cellClass) {
+                                td.attributes["class"] = column.cellClass;
                             }
                             if (column.render) {
                                 var renderedCell = column.render(cell.data, td, index, cIndex);
@@ -393,34 +404,52 @@ var parseDate = function (content, format) {
 };
 
 var readDataCell = function (cell, columnSettings) {
-    if (columnSettings === void 0) { columnSettings = {}; }
     if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell;
     }
     var cellData = {
         data: cell
     };
-    if (typeof cell === "string") {
-        if (cell.length) {
-            var node = k("<td>".concat(cell, "</td>"));
-            if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
-                cellData.data = node.childNodes;
-                cellData.type = "node";
-                var text = objToText(node);
-                cellData.text = text;
-                cellData.order = text;
+    switch (columnSettings.type) {
+        case "string":
+            if (!(typeof cell === "string")) {
+                cellData.text = String(cell);
+                cellData.order = cellData.text;
             }
-        }
-    }
-    else if ([null, undefined].includes(cell)) {
-        cellData.text = "";
-        cellData.order = 0;
-    }
-    else {
-        cellData.text = JSON.stringify(cell);
-    }
-    if (columnSettings.type === "date" && columnSettings.format) {
-        cellData.order = parseDate(String(cell), columnSettings.format);
+            break;
+        case "date":
+            if (columnSettings.format) {
+                cellData.order = parseDate(String(cell), columnSettings.format);
+            }
+            break;
+        case "number":
+            cellData.text = String(cell);
+            cellData.data = parseInt(cell, 10);
+            break;
+        case "html":
+            var node = Array.isArray(cell) ?
+                { nodeName: 'TD', childNodes: cell } : // If it is an array, we assume it is an array of nodeType
+                k("<td>".concat(String(cell), "</td>"));
+            cellData.data = node.childNodes || [];
+            var text = objToText(node);
+            cellData.text = text;
+            cellData.order = text;
+            break;
+        case "boolean":
+            if (typeof cell === "string") {
+                cell = cell.toLowerCase().trim();
+            }
+            cellData.data = ["false", false, null, undefined, 0].includes(cell) ? false : true;
+            cellData.order = cellData.data ? 1 : 0;
+            cellData.text = String(cellData.data);
+            break;
+        case "other":
+            cellData.text = "";
+            cellData.order = 0;
+            break;
+        default:
+            cellData.text = JSON.stringify(cell);
+            break;
     }
     return cellData;
 };
@@ -436,7 +465,7 @@ var readHeaderCell = function (cell) {
             var node = k("<th>".concat(cell, "</th>"));
             if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
                 cellData.data = node.childNodes;
-                cellData.type = "node";
+                cellData.type = "html";
                 var text = objToText(node);
                 cellData.text = text;
             }
@@ -465,25 +494,30 @@ var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(function (th, index) {
+            var _a, _b, _c, _d, _e;
             var heading = readHeaderCell(th.innerHTML);
-            var settings = {};
-            if (th.dataset.sortable === "false" || th.dataset.sort === "false") {
-                settings.notSortable = true;
+            if (!columnSettings.columns[index]) {
+                columnSettings.columns[index] = {
+                    type: 'string',
+                    searchable: true,
+                    sortable: true
+                };
             }
-            if (th.dataset.hidden === "true" || th.getAttribute("hidden") === "true") {
+            var settings = columnSettings.columns[index];
+            if (((_a = th.dataset.sortable) === null || _a === void 0 ? void 0 : _a.trim().toLowerCase()) === "false" || ((_b = th.dataset.sort) === null || _b === void 0 ? void 0 : _b.trim().toLowerCase()) === "false") {
+                settings.sortable = false;
+            }
+            if (((_c = th.dataset.searchable) === null || _c === void 0 ? void 0 : _c.trim().toLowerCase()) === "false") {
+                settings.searchable = false;
+            }
+            if (((_d = th.dataset.hidden) === null || _d === void 0 ? void 0 : _d.trim().toLowerCase()) === "true" || ((_e = th.getAttribute("hidden")) === null || _e === void 0 ? void 0 : _e.trim().toLowerCase()) === "true") {
                 settings.hidden = true;
             }
-            if (th.dataset.type === "date") {
-                settings.type = "date";
-                if (th.dataset.format) {
+            if (["number", "string", "html", "date", "boolean", "other"].includes(th.dataset.type)) {
+                settings.type = th.dataset.type;
+                if (settings.type === "date" && th.dataset.format) {
                     settings.format = th.dataset.format;
                 }
-            }
-            if (Object.keys(settings).length) {
-                if (!columnSettings.columns[index]) {
-                    columnSettings.columns[index] = {};
-                }
-                columnSettings.columns[index] = __assign(__assign({}, columnSettings.columns[index]), settings);
             }
             return heading;
         });
@@ -493,6 +527,16 @@ var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
     }
     else if (dom === null || dom === void 0 ? void 0 : dom.tBodies.length) {
         data.headings = Array.from(dom.tBodies[0].rows[0].cells).map(function (_cell) { return readHeaderCell(""); });
+    }
+    for (var i = 0; i < data.headings.length; i++) {
+        // Make sure that there are settings for all columns
+        if (!columnSettings.columns[i]) {
+            columnSettings.columns[i] = {
+                type: 'string',
+                sortable: true,
+                searchable: true
+            };
+        }
     }
     if (!dataConvert && dataOption.data) {
         data.data = dataOption.data;
@@ -540,7 +584,7 @@ var Rows = /** @class */ (function () {
         var _this = this;
         var row = this.dt.options.dataConvert ?
             data.map(function (cell, index) {
-                var columnSettings = _this.dt.columns.settings.columns[index] || {};
+                var columnSettings = _this.dt.columns.settings.columns[index] || { type: 'string' };
                 return readDataCell(cell, columnSettings);
             }) :
             data;
@@ -607,7 +651,7 @@ var Rows = /** @class */ (function () {
         var _this = this;
         var row = this.dt.options.dataConvert ?
             data.map(function (cell, index) {
-                var columnSettings = _this.dt.columns.settings.columns[index] || {};
+                var columnSettings = _this.dt.columns.settings.columns[index] || { type: 'string' };
                 return readDataCell(cell, columnSettings);
             }) :
             data;
@@ -627,20 +671,51 @@ var readColumnSettings = function (columnOptions) {
         var columnSelectors = Array.isArray(data.select) ? data.select : [data.select];
         columnSelectors.forEach(function (selector) {
             if (!columns[selector]) {
-                columns[selector] = {};
+                columns[selector] = {
+                    type: data.type || "string",
+                    sortable: true,
+                    searchable: true
+                };
             }
             var column = columns[selector];
             if (data.render) {
                 column.render = data.render;
             }
-            if (data.type) {
-                column.type = data.type;
-            }
             if (data.format) {
                 column.format = data.format;
             }
+            if (data.cellClass) {
+                column.cellClass = data.cellClass;
+            }
+            if (data.headerClass) {
+                column.headerClass = data.headerClass;
+            }
+            if (data.locale) {
+                column.locale = data.locale;
+            }
             if (data.sortable === false) {
-                column.notSortable = true;
+                column.sortable = false;
+            }
+            else {
+                if (data.numeric) {
+                    column.numeric = data.numeric;
+                }
+                if (data.caseFirst) {
+                    column.caseFirst = data.caseFirst;
+                }
+            }
+            if (data.searchable === false) {
+                column.searchable = false;
+            }
+            else {
+                if (data.sensitivity) {
+                    column.sensitivity = data.sensitivity;
+                }
+            }
+            if (column.searchable || column.sortable) {
+                if (data.ignorePunctuation) {
+                    column.ignorePunctuation = data.ignorePunctuation;
+                }
             }
             if (data.hidden) {
                 column.hidden = true;
@@ -658,6 +733,7 @@ var readColumnSettings = function (columnOptions) {
             }
         });
     });
+    columns = columns.map(function (column) { return column ? column : { type: 'string', sortable: true, searchable: true }; });
     return { columns: columns, sort: sort };
 };
 
@@ -706,7 +782,9 @@ var Columns = /** @class */ (function () {
         }
         columns.forEach(function (index) {
             if (!_this.settings.columns[index]) {
-                _this.settings.columns[index] = {};
+                _this.settings.columns[index] = {
+                    type: 'string'
+                };
             }
             var column = _this.settings.columns[index];
             column.hidden = true;
@@ -723,7 +801,10 @@ var Columns = /** @class */ (function () {
         }
         columns.forEach(function (index) {
             if (!_this.settings.columns[index]) {
-                _this.settings.columns[index] = {};
+                _this.settings.columns[index] = {
+                    type: 'string',
+                    sortable: true
+                };
             }
             var column = _this.settings.columns[index];
             delete column.hidden;
@@ -752,28 +833,60 @@ var Columns = /** @class */ (function () {
         this.dt.data.data = this.dt.options.dataConvert ?
             this.dt.data.data.map(function (row, index) { return row.concat([readDataCell(data.data[index], data)]); }) :
             this.dt.data.data.map(function (row, index) { return row.concat([data.data[index]]); });
+        this.settings.columns[newColumnSelector] = {
+            type: data.type || "string",
+            sortable: true,
+            searchable: true
+        };
         if (data.type || data.format || data.sortable || data.render || data.filter) {
-            if (!this.settings.columns[newColumnSelector]) {
-                this.settings.columns[newColumnSelector] = {};
-            }
             var column = this.settings.columns[newColumnSelector];
-            if (data.type) {
-                column.type = data.type;
+            if (data.render) {
+                column.render = data.render;
             }
             if (data.format) {
                 column.format = data.format;
             }
-            if (data.sortable) {
-                column.notSortable = !data.sortable;
+            if (data.cellClass) {
+                column.cellClass = data.cellClass;
+            }
+            if (data.headerClass) {
+                column.headerClass = data.headerClass;
+            }
+            if (data.locale) {
+                column.locale = data.locale;
+            }
+            if (data.sortable === false) {
+                column.sortable = false;
+            }
+            else {
+                if (data.numeric) {
+                    column.numeric = data.numeric;
+                }
+                if (data.caseFirst) {
+                    column.caseFirst = data.caseFirst;
+                }
+            }
+            if (data.searchable === false) {
+                column.searchable = false;
+            }
+            else {
+                if (data.sensitivity) {
+                    column.sensitivity = data.sensitivity;
+                }
+            }
+            if (column.searchable || column.sortable) {
+                if (data.ignorePunctuation) {
+                    column.ignorePunctuation = data.ignorePunctuation;
+                }
+            }
+            if (data.hidden) {
+                column.hidden = true;
             }
             if (data.filter) {
                 column.filter = data.filter;
             }
-            if (data.type) {
-                column.type = data.type;
-            }
-            if (data.render) {
-                column.render = data.render;
+            if (data.sortSequence) {
+                column.sortSequence = data.sortSequence;
             }
         }
         this.dt.update(true);
@@ -835,21 +948,21 @@ var Columns = /** @class */ (function () {
     /**
      * Sort by column
      */
-    Columns.prototype.sort = function (column, dir, init) {
+    Columns.prototype.sort = function (index, dir, init) {
         var _a, _b;
         if (dir === void 0) { dir = undefined; }
         if (init === void 0) { init = false; }
-        var columnSettings = this.settings.columns[column];
+        var column = this.settings.columns[index];
         // If there is a filter for this column, apply it instead of sorting
-        if ((_a = columnSettings === null || columnSettings === void 0 ? void 0 : columnSettings.filter) === null || _a === void 0 ? void 0 : _a.length) {
-            return this.filter(column, init);
+        if ((_a = column === null || column === void 0 ? void 0 : column.filter) === null || _a === void 0 ? void 0 : _a.length) {
+            return this.filter(index, init);
         }
         if (!init) {
-            this.dt.emit("datatable.sorting", column, dir);
+            this.dt.emit("datatable.sorting", index, dir);
         }
         if (!dir) {
             var currentDir = this.settings.sort ? (_b = this.settings.sort) === null || _b === void 0 ? void 0 : _b.dir : false;
-            var sortSequence = (columnSettings === null || columnSettings === void 0 ? void 0 : columnSettings.sortSequence) || ["asc", "desc"];
+            var sortSequence = (column === null || column === void 0 ? void 0 : column.sortSequence) || ["asc", "desc"];
             if (!currentDir) {
                 dir = sortSequence.length ? sortSequence[0] : "asc";
             }
@@ -866,12 +979,23 @@ var Columns = /** @class */ (function () {
                 }
             }
         }
+        var collator = ["string", "html"].includes(column.type) ?
+            new Intl.Collator(column.locale || this.dt.options.locale, {
+                usage: 'sort',
+                numeric: column.numeric || this.dt.options.numeric,
+                caseFirst: column.caseFirst || this.dt.options.caseFirst,
+                ignorePunctuation: column.ignorePunctuation || this.dt.options.ignorePunctuation
+            }) :
+            false;
         this.dt.data.data.sort(function (row1, row2) {
-            var order1 = row1[column].order || row1[column].data, order2 = row2[column].order || row2[column].data;
+            var order1 = row1[index].order || row1[index].data, order2 = row2[index].order || row2[index].data;
             if (dir === "desc") {
                 var temp = order1;
                 order1 = order2;
                 order2 = temp;
+            }
+            if (collator) {
+                return collator.compare(String(order1), String(order2));
             }
             if (order1 < order2) {
                 return -1;
@@ -881,10 +1005,10 @@ var Columns = /** @class */ (function () {
             }
             return 0;
         });
-        this.settings.sort = { column: column, dir: dir };
+        this.settings.sort = { column: index, dir: dir };
         if (!init) {
             this.dt.update();
-            this.dt.emit("datatable.sort", column, dir);
+            this.dt.emit("datatable.sort", index, dir);
         }
     };
     /**
@@ -964,8 +1088,15 @@ var layoutTemplate = function (options) { return "<div class='".concat(options.c
  * Default configuration
  */
 var defaultConfig$1 = {
+    // for sorting
     sortable: true,
+    locale: 'en',
+    numeric: true,
+    caseFirst: "false",
+    // for searching
     searchable: true,
+    sensitivity: "base",
+    ignorePunctuation: true,
     destroyable: true,
     // Whether to attempt to convert input data (not from dom). If false, we
     // assume input data is in simple-datatables native format.
@@ -1551,7 +1682,6 @@ var DataTable = /** @class */ (function () {
         var _this = this;
         if (!this.hasRows)
             return false;
-        query = query.toLowerCase();
         this.currentPage = 1;
         this.searching = true;
         this.searchData = [];
@@ -1562,34 +1692,113 @@ var DataTable = /** @class */ (function () {
             this.wrapper.classList.remove("search-results");
             return false;
         }
-        this.data.data.forEach(function (row, idx) {
-            var inArray = _this.searchData.includes(idx);
-            // https://github.com/Mobius1/Vanilla-DataTables/issues/12
-            var doesQueryMatch = query.split(" ").reduce(function (bool, word) {
-                var includes = false;
-                var cell = null;
-                var content = null;
-                for (var x = 0; x < row.length; x++) {
-                    cell = row[x];
-                    content = cell.text || String(cell.data);
-                    if (_this.columns.visible(x) && content.toLowerCase().includes(word)) {
-                        includes = true;
-                        break;
-                    }
-                }
-                return bool && includes;
-            }, true);
-            if (doesQueryMatch && !inArray) {
-                _this.searchData.push(idx);
+        var queryWords = this.columns.settings.columns.map(function (column) {
+            if (column.hidden || !column.searchable) {
+                return false;
             }
+            var columnQuery = query;
+            var sensitivity = column.sensitivity || _this.options.sensitivity;
+            if (["base", "accent"].includes(sensitivity)) {
+                columnQuery = columnQuery.toLowerCase();
+            }
+            if (["base", "case"].includes(sensitivity)) {
+                columnQuery = columnQuery.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+            }
+            var ignorePunctuation = column.ignorePunctuation || _this.options.ignorePunctuation;
+            if (ignorePunctuation) {
+                columnQuery = columnQuery.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "");
+            }
+            return columnQuery;
+        });
+        console.log({ queryWords: queryWords });
+        this.data.data.forEach(function (row, idx) {
+            var _loop_1 = function (i) {
+                var query_1 = queryWords[i];
+                if (!query_1) {
+                    return "continue";
+                }
+                var cell = row[i];
+                var content = (cell.text || String(cell.data)).trim();
+                if (!content.length) {
+                    return "continue";
+                }
+                var column = _this.columns.settings.columns[i];
+                var sensitivity = column.sensitivity || _this.options.sensitivity;
+                if (["base", "accent"].includes(sensitivity)) {
+                    content = content.toLowerCase();
+                }
+                if (["base", "case"].includes(sensitivity)) {
+                    content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+                }
+                var ignorePunctuation = column.ignorePunctuation || _this.options.ignorePunctuation;
+                if (ignorePunctuation) {
+                    content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "");
+                }
+                if (query_1.split(' ').find(function (queryWord) { return content.includes(queryWord); })) {
+                    console.log({ query: query_1, content: content });
+                    _this.searchData.push(idx);
+                    return "break";
+                }
+            };
+            for (var i = 0; i < row.length; i++) {
+                var state_1 = _loop_1(i);
+                if (state_1 === "break")
+                    break;
+            }
+            //const inArray = this.searchData.includes(idx)
+            // const columnCollators = this.columns.settings.columns.map(
+            //     column =>
+            //         (column.hidden || !column.searchable) ?
+            //         false :
+            //         new Intl.Collator(column.locale || this.options.locale, {
+            //             usage: 'search',
+            //             sensitivity: column.sensitivity || this.options.sensitivity,
+            //             ignorePunctuation: column.ignorePunctuation|| this.options.ignorePunctuation,
+            //         })
+            // )
+            // const doesQueryMatch = query.split(" ").reduce((bool: boolean, word: string) => {
+            //     let includes = false
+            //     let cell = null
+            //     let content = null
+            //
+            //     for (let x = 0; x < row.length; x++) {
+            //         cell = row[x]
+            //
+            //         //const collator = columnCollators[x]
+            //         const column = this.columns.settings.columns[x]
+            //         if (column.hidden || !column.searchable) {
+            //             continue
+            //         }
+            //
+            //         //if (!collator) {
+            //         //    continue
+            //         //}
+            //         content = cell.text || String(cell.data)
+            //         console.log({content, word, col: collator.compare(content, word)})
+            //         if (
+            //             content.split(' ').find(cWord => collator.compare(cWord, word) === 0)
+            //         ) {
+            //             console.log(collator.compare(content, word))
+            //             includes = true
+            //             break
+            //         }
+            //     }
+            //
+            //     return bool && includes
+            // }, true)
+            //
+            // if (doesQueryMatch && !inArray) {
+            //     this.searchData.push(idx)
+            // }
         });
         this.wrapper.classList.add("search-results");
-        if (!this.searchData.length) {
-            this.wrapper.classList.remove("search-results");
-            this.setMessage(this.options.labels.noResults);
+        //console.log(this.searchData)
+        if (this.searchData.length) {
+            this.update();
         }
         else {
-            this.update();
+            this.wrapper.classList.remove("search-results");
+            this.setMessage(this.options.labels.noResults);
         }
         this.emit("datatable.search", query, this.searchData);
     };
@@ -1983,15 +2192,15 @@ var exportJSON = function (dt, userOptions) {
         if (Array.isArray(options.selection)) {
             // Array of page numbers
             for (var i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dt.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
+                rows = rows.concat(dt.pages[options.selection[i] - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
             }
         }
         else {
-            rows = rows.concat(dt.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
+            rows = rows.concat(dt.pages[options.selection - 1].map(function (row) { return row.row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
         }
     }
     else {
-        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.type === "node" ? cell : cell.data; }); }));
+        rows = rows.concat(dt.data.data.map(function (row) { return row.filter(function (_cell, index) { return columnShown(index); }).map(function (cell) { return cell.data; }); }));
     }
     var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : String(header.data); });
     // Only proceed if we have data
@@ -2583,7 +2792,7 @@ var Editor = /** @class */ (function () {
         }
         // Add the inputs for each cell
         row.forEach(function (cell, i) {
-            var columnSettings = _this.dt.columns.settings.columns[i] || {};
+            var columnSettings = _this.dt.columns.settings.columns[i];
             if ((!columnSettings.hidden || (columnSettings.hidden && _this.options.hiddenColumns)) && !_this.options.excludeColumns.includes(i)) {
                 var label = _this.dt.data.headings[i].text || String(_this.dt.data.headings[i].data);
                 form.insertBefore(createElement("div", {

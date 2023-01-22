@@ -22,7 +22,6 @@ type nodeType = elementNodeType | textNodeType
 
 interface cellType {
     data: string | number | boolean | elementNodeType[] | object;
-    type?: "node";
     text?: string;
     order?: string | number;
 }
@@ -31,7 +30,7 @@ type inputCellType = cellType | string | number | boolean;
 
 interface headerCellType {
     data: string | number | boolean | elementNodeType[] | object;
-    type?: "node";
+    type?: "html";
     text?: string;
 }
 
@@ -306,11 +305,15 @@ interface DataTableConfiguration {
      * Method to call to modify row rendering output.
      */
     scrollY: string;
+    // for searching
     /**
      * Default: ""
      * Specify to create a table with a scrolling body and fixed header.
      */
     searchable: boolean;
+    sensitivity: string,
+    ignorePunctuation: boolean;
+    // for sorting
     /**
      * Default: true
      * Toggle the ability to sort the columns.
@@ -318,6 +321,10 @@ interface DataTableConfiguration {
      * This option will be forced to false if the table has no headings.
      */
     sortable: boolean;
+    locale: string;
+    numeric: boolean;
+    caseFirst: string;
+
     tabIndex: false | number;
     /**
      * Default: false
@@ -346,9 +353,20 @@ interface DataTableOptions extends DeepPartial<DataTableConfiguration> {
 
 interface singleColumnSettingsType {
     render?: renderType,
-    type?: "date",
+    type: ("date" | "html" | "number" | "boolean" | "string" | "other"),
     format?: string,
-    notSortable?: boolean,
+    // for sorting
+    sortable?: boolean,
+    locale?: string,
+    numeric?: boolean,
+    caseFirst?: string,
+    // for searching
+    searchable?: boolean,
+    sensitivity?: string,
+    ignorePunctuation?: boolean,
+    //
+    headerClass?: string,
+    cellClass?: string,
     hidden?: boolean,
     filter?: (string | number | boolean | ((arg: (string | number | boolean)) => boolean))[],
     sort?: "asc" | "desc",
@@ -356,7 +374,7 @@ interface singleColumnSettingsType {
 }
 
 interface allColumnSettingsType {
-    columns: (singleColumnSettingsType | undefined)[],
+    columns: singleColumnSettingsType[],
     sort: (false | {column: number, dir: "asc" | "desc"})
 }
 
@@ -384,6 +402,7 @@ export {
     inputCellType,
     inputHeaderCellType,
     elementNodeType,
+    nodeType,
     renderOptions,
     renderType,
     rowRenderType,
