@@ -223,14 +223,12 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
         }).filter(function (column) { return column; })
     });
 };
-var dataToVirtualDOM = function (id, headings, rows, columnSettings, columnWidths, rowCursor, _a, _b) {
+var dataToVirtualDOM = function (tableAttributes, headings, rows, columnSettings, columnWidths, rowCursor, _a, _b) {
     var classes = _a.classes, hiddenHeader = _a.hiddenHeader, header = _a.header, footer = _a.footer, sortable = _a.sortable, scrollY = _a.scrollY, rowRender = _a.rowRender, tabIndex = _a.tabIndex;
     var noColumnWidths = _b.noColumnWidths, unhideHeader = _b.unhideHeader, renderHeader = _b.renderHeader;
     var table = {
         nodeName: "TABLE",
-        attributes: {
-            "class": classes.table
-        },
+        attributes: Object.assign({}, tableAttributes),
         childNodes: [
             {
                 nodeName: "TBODY",
@@ -316,9 +314,7 @@ var dataToVirtualDOM = function (id, headings, rows, columnSettings, columnWidth
             }
         ]
     };
-    if (id.length) {
-        table.attributes.id = id;
-    }
+    table.attributes["class"] = table.attributes["class"] ? "".concat(table.attributes["class"], " ").concat(classes.table) : classes.table;
     if (header || footer || renderHeader) {
         var headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, { classes: classes, hiddenHeader: hiddenHeader, sortable: sortable, scrollY: scrollY }, { noColumnWidths: noColumnWidths, unhideHeader: unhideHeader });
         if (header || renderHeader) {
@@ -1181,8 +1177,16 @@ var DataTable = /** @class */ (function () {
     function DataTable(table, options) {
         if (options === void 0) { options = {}; }
         var _this = this;
-        this.dom = typeof table === "string" ? document.querySelector(table) : table;
-        this._id = this.dom.id;
+        var dom = typeof table === "string" ?
+            document.querySelector(table) :
+            table;
+        if (dom instanceof HTMLTableElement) {
+            this.dom = dom;
+        }
+        else {
+            this.dom = document.createElement('table');
+            dom.appendChild(this.dom);
+        }
         var labels = __assign(__assign({}, defaultConfig$1.labels), options.labels);
         var classes = __assign(__assign({}, defaultConfig$1.classes), options.classes);
         // user options
@@ -1216,6 +1220,7 @@ var DataTable = /** @class */ (function () {
             return false;
         }
         this.virtualDOM = g(this.dom);
+        this._tableAttributes = Object.assign({}, this.virtualDOM.attributes);
         this.rows = new Rows(this);
         this.columns = new Columns(this);
         this.data = readTableData(this.options.dataConvert, this.options.data, this.dom, this.columns.settings);
@@ -1305,7 +1310,7 @@ var DataTable = /** @class */ (function () {
     };
     DataTable.prototype._renderTable = function (renderOptions) {
         if (renderOptions === void 0) { renderOptions = {}; }
-        var newVirtualDOM = dataToVirtualDOM(this._id, this.data.headings, (this.options.paging || this._searchQuery) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
+        var newVirtualDOM = dataToVirtualDOM(this._tableAttributes, this.data.headings, (this.options.paging || this._searchQuery) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
             this.pages[this._currentPage - 1] :
             this.data.data.map(function (row, index) { return ({
                 row: row,
@@ -1847,7 +1852,7 @@ var DataTable = /** @class */ (function () {
     DataTable.prototype.print = function () {
         var tableDOM = createElement("table");
         var tableVirtualDOM = { nodeName: "TABLE" };
-        var newTableVirtualDOM = dataToVirtualDOM(this._id, this.data.headings, this.data.data.map(function (row, index) { return ({
+        var newTableVirtualDOM = dataToVirtualDOM(this._tableAttributes, this.data.headings, this.data.data.map(function (row, index) { return ({
             row: row,
             index: index
         }); }), this.columns.settings, this.columns._widths, false, // No row cursor

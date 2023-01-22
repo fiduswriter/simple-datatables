@@ -50,8 +50,6 @@ export class DataTable {
 
     headerDOM: HTMLDivElement
 
-    _id: string
-
     _initialInnerHTML: string
 
     initialized: boolean
@@ -84,6 +82,8 @@ export class DataTable {
 
     _searchQuery: string
 
+    _tableAttributes: { [key: string]: string}
+
     totalPages: number
 
     virtualDOM: elementNodeType
@@ -94,9 +94,17 @@ export class DataTable {
 
     constructor(table: HTMLTableElement | string, options: DataTableOptions = {}) {
 
-        this.dom = typeof table === "string" ? document.querySelector(table) : table
 
-        this._id = this.dom.id
+        const dom = typeof table === "string" ?
+            document.querySelector(table) :
+            table
+
+        if (dom instanceof HTMLTableElement) {
+            this.dom = dom
+        } else {
+            this.dom = document.createElement("table")
+            dom.appendChild(this.dom)
+        }
 
         const labels = {
             ...defaultConfig.labels,
@@ -152,6 +160,8 @@ export class DataTable {
         }
 
         this.virtualDOM = nodeToObj(this.dom)
+
+        this._tableAttributes = {...this.virtualDOM.attributes}
 
         this.rows = new Rows(this)
         this.columns = new Columns(this)
@@ -271,7 +281,7 @@ export class DataTable {
 
     _renderTable(renderOptions: renderOptions ={}) {
         let newVirtualDOM = dataToVirtualDOM(
-            this._id,
+            this._tableAttributes,
             this.data.headings,
             (this.options.paging || this._searchQuery) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
                 this.pages[this._currentPage - 1] :
@@ -897,7 +907,7 @@ export class DataTable {
         const tableDOM = createElement("table")
         const tableVirtualDOM = {nodeName: "TABLE"}
         let newTableVirtualDOM = dataToVirtualDOM(
-            this._id,
+            this._tableAttributes,
             this.data.headings,
             this.data.data.map((row, index) => ({
                 row,

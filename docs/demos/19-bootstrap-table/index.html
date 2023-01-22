@@ -18,7 +18,7 @@
     <body class="bootstrap-table bootstrap5">
         <div class="container text-center fixed-table-container">
             <h1>Bootstrap table</h1>
-            <table>
+            <table class="table table-striped">
                 <thead>
                     <tr>
                         <th>
@@ -791,10 +791,6 @@
                 },
                 tableRender: (_data, table, _type) => {
                     // We ignore type ('main', 'print', 'header', 'message')
-                    if (!table.attributes) {
-                        table.attributes = {}
-                    }
-                    table.attributes.class = table.attributes.class ? `${table.attributes.class} table table-striped` : "table table-striped"
                     const thead = table.childNodes[0]
                     thead.childNodes[0].childNodes.forEach(th => {
                         if (!th.attributes) {
