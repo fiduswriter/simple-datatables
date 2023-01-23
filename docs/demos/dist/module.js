@@ -750,7 +750,9 @@ var readColumnSettings = function (columnOptions) {
             sortable: true,
             searchable: true }; });
     var widths = []; // Width are determined later on by measuring on screen.
-    return [columns, { filters: filters, sort: sort, widths: widths }];
+    return [
+        columns, { filters: filters, sort: sort, widths: widths }
+    ];
 };
 
 var Columns = /** @class */ (function () {
@@ -1227,8 +1229,8 @@ var DataTable = /** @class */ (function () {
         if (this.initialized || this.dom.classList.contains(this.options.classes.table)) {
             return false;
         }
-        this.virtualDOM = g(this.dom);
-        this._tableAttributes = __assign({}, this.virtualDOM.attributes);
+        this._virtualDOM = g(this.dom);
+        this._tableAttributes = __assign({}, this._virtualDOM.attributes);
         this.rows = new Rows(this);
         this.columns = new Columns(this);
         this.data = readTableData(this.options.dataConvert, this.options.data, this.dom, this.columns.settings);
@@ -1330,9 +1332,9 @@ var DataTable = /** @class */ (function () {
                 newVirtualDOM = renderedTableVirtualDOM;
             }
         }
-        var diff = this._dd.diff(this.virtualDOM, newVirtualDOM);
+        var diff = this._dd.diff(this._virtualDOM, newVirtualDOM);
         this._dd.apply(this.dom, diff);
-        this.virtualDOM = newVirtualDOM;
+        this._virtualDOM = newVirtualDOM;
     };
     /**
      * Render the page
@@ -1444,7 +1446,7 @@ var DataTable = /** @class */ (function () {
         var container = this.dom.parentElement;
         if (!this.headerDOM) {
             this.headerDOM = document.createElement("div");
-            this.virtualHeaderDOM = {
+            this._virtualHeaderDOM = {
                 nodeName: "DIV"
             };
         }
@@ -1476,17 +1478,17 @@ var DataTable = /** @class */ (function () {
             },
             childNodes: [tableVirtualDOM]
         };
-        var diff = this._dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM);
+        var diff = this._dd.diff(this._virtualHeaderDOM, newVirtualHeaderDOM);
         this._dd.apply(this.headerDOM, diff);
-        this.virtualHeaderDOM = newVirtualHeaderDOM;
+        this._virtualHeaderDOM = newVirtualHeaderDOM;
         // Compensate for scrollbars
         var paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth;
         if (paddingRight) {
-            var paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM);
+            var paddedVirtualHeaderDOM = structuredClone(this._virtualHeaderDOM);
             paddedVirtualHeaderDOM.attributes.style = "padding-right: ".concat(paddingRight, "px;");
-            var diff_1 = this._dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM);
+            var diff_1 = this._dd.diff(this._virtualHeaderDOM, paddedVirtualHeaderDOM);
             this._dd.apply(this.headerDOM, diff_1);
-            this.virtualHeaderDOM = paddedVirtualHeaderDOM;
+            this._virtualHeaderDOM = paddedVirtualHeaderDOM;
         }
         if (container.scrollHeight > container.clientHeight) {
             // scrollbars on one page means scrollbars on all pages.
@@ -1904,7 +1906,7 @@ var DataTable = /** @class */ (function () {
         }
         this.totalPages = 0;
         this._renderPager();
-        var newVirtualDOM = structuredClone(this.virtualDOM);
+        var newVirtualDOM = structuredClone(this._virtualDOM);
         var tbody = (_a = newVirtualDOM.childNodes) === null || _a === void 0 ? void 0 : _a.find(function (node) { return node.nodeName === "TBODY"; });
         if (!tbody) {
             tbody = { nodeName: "TBODY" };
@@ -1936,9 +1938,9 @@ var DataTable = /** @class */ (function () {
                 newVirtualDOM = renderedTableVirtualDOM;
             }
         }
-        var diff = this._dd.diff(this.virtualDOM, newVirtualDOM);
+        var diff = this._dd.diff(this._virtualDOM, newVirtualDOM);
         this._dd.apply(this.dom, diff);
-        this.virtualDOM = newVirtualDOM;
+        this._virtualDOM = newVirtualDOM;
     };
     /**
      * Add custom event listener

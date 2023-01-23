@@ -84,9 +84,9 @@ export class DataTable {
 
     totalPages: number
 
-    virtualDOM: elementNodeType
+    _virtualDOM: elementNodeType
 
-    virtualHeaderDOM: elementNodeType
+    _virtualHeaderDOM: elementNodeType
 
     wrapperDOM: HTMLElement
 
@@ -155,9 +155,9 @@ export class DataTable {
             return false
         }
 
-        this.virtualDOM = nodeToObj(this.dom)
+        this._virtualDOM = nodeToObj(this.dom)
 
-        this._tableAttributes = {...this.virtualDOM.attributes}
+        this._tableAttributes = {...this._virtualDOM.attributes}
 
         this.rows = new Rows(this)
         this.columns = new Columns(this)
@@ -299,9 +299,9 @@ export class DataTable {
             }
         }
 
-        const diff = this._dd.diff(this.virtualDOM, newVirtualDOM)
+        const diff = this._dd.diff(this._virtualDOM, newVirtualDOM)
         this._dd.apply(this.dom, diff)
-        this.virtualDOM = newVirtualDOM
+        this._virtualDOM = newVirtualDOM
     }
 
     /**
@@ -438,7 +438,7 @@ export class DataTable {
         const container = this.dom.parentElement
         if (!this.headerDOM) {
             this.headerDOM = document.createElement("div")
-            this.virtualHeaderDOM = {
+            this._virtualHeaderDOM = {
                 nodeName: "DIV"
             }
 
@@ -476,18 +476,18 @@ export class DataTable {
             childNodes: [tableVirtualDOM]
         }
 
-        const diff = this._dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM)
+        const diff = this._dd.diff(this._virtualHeaderDOM, newVirtualHeaderDOM)
         this._dd.apply(this.headerDOM, diff)
-        this.virtualHeaderDOM = newVirtualHeaderDOM
+        this._virtualHeaderDOM = newVirtualHeaderDOM
 
         // Compensate for scrollbars
         const paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth
         if (paddingRight) {
-            const paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM)
+            const paddedVirtualHeaderDOM = structuredClone(this._virtualHeaderDOM)
             paddedVirtualHeaderDOM.attributes.style = `padding-right: ${paddingRight}px;`
-            const diff = this._dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM)
+            const diff = this._dd.diff(this._virtualHeaderDOM, paddedVirtualHeaderDOM)
             this._dd.apply(this.headerDOM, diff)
-            this.virtualHeaderDOM = paddedVirtualHeaderDOM
+            this._virtualHeaderDOM = paddedVirtualHeaderDOM
         }
 
         if (container.scrollHeight > container.clientHeight) {
@@ -962,7 +962,7 @@ export class DataTable {
         this.totalPages = 0
         this._renderPager()
 
-        let newVirtualDOM = structuredClone(this.virtualDOM)
+        let newVirtualDOM = structuredClone(this._virtualDOM)
 
         let tbody : elementNodeType = newVirtualDOM.childNodes?.find((node: elementNodeType) => node.nodeName === "TBODY") as elementNodeType
 
@@ -999,9 +999,9 @@ export class DataTable {
             }
         }
 
-        const diff = this._dd.diff(this.virtualDOM, newVirtualDOM)
+        const diff = this._dd.diff(this._virtualDOM, newVirtualDOM)
         this._dd.apply(this.dom, diff)
-        this.virtualDOM = newVirtualDOM
+        this._virtualDOM = newVirtualDOM
 
     }
 
