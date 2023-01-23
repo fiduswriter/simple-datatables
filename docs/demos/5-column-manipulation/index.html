@@ -61,7 +61,7 @@
                         fetch("datatable.column.json").then(response => response.json())
                             .then(column => {
                                 // Render a button
-                                column.render = (value, _td, rowIndex, _cellIndex) => `${value}<button type='button' data-id='${rowIndex}' class='btn btn-sm btn-primary pull-right notify'>Click Me</button>`
+                                column.render = (value, _td, rowIndex, _cellIndex) => `${value}%<button type='button' data-id='${rowIndex}' class='btn btn-sm btn-primary pull-right notify'>Click Me</button>`
                                 // the dataIndex property is the correct index of the row in the data array, not the rowIndex
                                 // which will be -1 if not rendered or wrong if the we're not on page 1
                                 datatable.columns.add(column)
