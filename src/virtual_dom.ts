@@ -1,12 +1,12 @@
 import {stringToObj} from "diff-dom"
 
-import {allColumnSettingsType, cellType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions} from "./types"
+import {cellType, columnsStateType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions, singleColumnSettingsType} from "./types"
 
 
 export const headingsToVirtualHeaderRowDOM = (
     headings,
     columnSettings,
-    columnWidths,
+    columnsState: columnsStateType,
     {
         classes,
         hiddenHeader,
@@ -22,7 +22,7 @@ export const headingsToVirtualHeaderRowDOM = (
 
     childNodes: headings.map(
         (heading: headerCellType, index: number) : elementNodeType | void => {
-            const column = columnSettings.columns[index] || {}
+            const column = columnSettings[index]
             if (column.hidden) {
                 return
             }
@@ -35,15 +35,18 @@ export const headingsToVirtualHeaderRowDOM = (
                 }
             }
             if (column.headerClass) {
-                attributes.class = columnSettings.headerClass
+                attributes.class = column.headerClass
             }
             if (columnSettings.sort?.column === index) {
-                attributes.class = attributes.class ? `${attributes.class} ${columnSettings.sort.dir}` : columnSettings.sort.dir
+                const directionClass = columnSettings.sort.dir === "asc" ? classes.ascending : classes.descending
+                attributes.class = attributes.class ? `${attributes.class} ${directionClass}` : directionClass
                 attributes["aria-sort"] = columnSettings.sort.dir === "asc" ? "ascending" : "descending"
+            } else if (columnsState.filters[index]) {
+                attributes.class = attributes.class ? `${attributes.class} ${classes.filterActive}` : classes.filterActive
             }
             let style = ""
-            if (columnWidths[index] && !noColumnWidths) {
-                style += `width: ${columnWidths[index]}%;`
+            if (columnsState.widths[index] && !noColumnWidths) {
+                style += `width: ${columnsState.widths[index]}%;`
             }
             if (scrollY.length && !unhideHeader) {
                 style += "padding-bottom: 0;padding-top: 0;border: 0;"
@@ -53,7 +56,7 @@ export const headingsToVirtualHeaderRowDOM = (
                 attributes.style = style
             }
             if (column.headerClass) {
-                attributes.class = columnSettings.headerClass
+                attributes.class = column.headerClass
             }
             const headerNodes : elementNodeType[] = heading.type === "html" ?
                 heading.data as elementNodeType[] :
@@ -79,7 +82,7 @@ export const headingsToVirtualHeaderRowDOM = (
                                     nodeName: "a",
                                     attributes: {
                                         href: "#",
-                                        class: classes.sorter
+                                        class: column.filter ? classes.filter : classes.sorter
                                     },
                                     childNodes: headerNodes
                                 }
@@ -89,7 +92,7 @@ export const headingsToVirtualHeaderRowDOM = (
     ).filter((column: (elementNodeType | void)) => column)
 })
 
-export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: allColumnSettingsType, columnWidths: number[], rowCursor: (number | false), {
+export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: singleColumnSettingsType[], columnsState: columnsStateType, rowCursor: (number | false), {
     classes,
     hiddenHeader,
     header,
@@ -121,7 +124,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                             },
                             childNodes: row.map(
                                 (cell: cellType, cIndex: number) => {
-                                    const column = columnSettings.columns[cIndex]
+                                    const column = columnSettings[cIndex]
                                     if (column.hidden) {
                                         return
                                     }
@@ -139,9 +142,9 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                                 }
                                             ]
                                         } as elementNodeType
-                                    if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
+                                    if (!header && !footer && columnsState.widths[cIndex] && !noColumnWidths) {
                                         td.attributes = {
-                                            style: `width: ${columnWidths[cIndex]}%;`
+                                            style: `width: ${columnsState.widths[cIndex]}%;`
                                         }
                                     }
                                     if (column.cellClass) {
@@ -200,7 +203,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
     table.attributes.class = table.attributes.class ? `${table.attributes.class} ${classes.table}` : classes.table
 
     if (header || footer || renderHeader) {
-        const headerRow: elementNodeType = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, {classes,
+        const headerRow: elementNodeType = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnsState, {classes,
             hiddenHeader,
             sortable,
             scrollY}, {noColumnWidths,

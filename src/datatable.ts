@@ -42,8 +42,6 @@ export class DataTable {
 
     _events: { [key: string]: ((...args) => void)[]}
 
-    _filterStates: filterStateType[]
-
     hasHeadings: boolean
 
     hasRows: boolean
@@ -145,8 +143,6 @@ export class DataTable {
         this.onFirstPage = true
         this.hasHeadings = false
         this.hasRows = false
-
-        this._filterStates = []
 
         this.init()
     }
@@ -272,8 +268,8 @@ export class DataTable {
 
         this._bindEvents()
 
-        if (this.columns.settings.sort) {
-            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
+        if (this.columns._state.sort) {
+            this.columns.sort(this.columns._state.sort.column, this.columns._state.sort.dir, true)
         }
 
         this.update(true)
@@ -290,7 +286,7 @@ export class DataTable {
                     index
                 })),
             this.columns.settings,
-            this.columns._widths,
+            this.columns._state,
             this.rows.cursor,
             this.options,
             renderOptions
@@ -458,7 +454,7 @@ export class DataTable {
                     nodeName: "THEAD",
                     childNodes: [
                         headingsToVirtualHeaderRowDOM(
-                            this.data.headings, this.columns.settings, this.columns._widths, this.options, {unhideHeader: true})
+                            this.data.headings, this.columns.settings, this.columns._state, this.options, {unhideHeader: true})
                     ]
 
                 }
@@ -541,13 +537,18 @@ export class DataTable {
                 this.page(parseInt(hyperlink.getAttribute("data-page"), 10))
                 event.preventDefault()
             } else if (
-                this.options.sortable &&
-                hyperlink.classList.contains(this.options.classes.sorter) &&
-                hyperlink.parentElement.getAttribute("data-sortable") != "false"
+                hyperlink.classList.contains(this.options.classes.sorter)
             ) {
                 const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
-                const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings.columns)
+                const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
                 this.columns.sort(columnIndex)
+                event.preventDefault()
+            } else if (
+                hyperlink.classList.contains(this.options.classes.filter)
+            ) {
+                const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
+                const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
+                this.columns.filter(columnIndex)
                 event.preventDefault()
             }
         }, false)
@@ -702,11 +703,14 @@ export class DataTable {
                 row: this.data.data[index]}))
         }
 
-        if (this._filterStates.length) {
-            this._filterStates.forEach(
-                (filterState: filterStateType) => {
+        if (this.columns._state.filters.length) {
+            this.columns._state.filters.forEach(
+                (filterState: (filterStateType | undefined), column: number) => {
+                    if (!filterState) {
+                        return
+                    }
                     rows = rows.filter(
-                        (row: {index: number, row: cellType[]}) => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
+                        (row: {index: number, row: cellType[]}) => typeof filterState === "function" ? filterState(row.row[column].data) : row.row[column].data === filterState
                     )
                 }
             )
@@ -755,7 +759,7 @@ export class DataTable {
             return false
         }
 
-        const queryWords : (string | false)[]= this.columns.settings.columns.map(
+        const queryWords : (string | false)[]= this.columns.settings.map(
             column => {
                 if (column.hidden || !column.searchable) {
                     return false
@@ -783,7 +787,7 @@ export class DataTable {
                     const cell = row[i]
                     let content = (cell.text || String(cell.data)).trim()
                     if (content.length) {
-                        const column = this.columns.settings.columns[i]
+                        const column = this.columns.settings[i]
                         const sensitivity = column.sensitivity || this.options.sensitivity
                         if (["base", "accent"].includes(sensitivity)) {
                             content = content.toLowerCase()
@@ -854,9 +858,9 @@ export class DataTable {
                     const index = headings.indexOf(heading)
 
                     if (index > -1) {
-                        r[index] = readDataCell(cell as inputCellType, this.columns.settings.columns[index])
+                        r[index] = readDataCell(cell as inputCellType, this.columns.settings[index])
                     } else if (!this.hasHeadings && !this.hasRows && rIndex === 0) {
-                        r[headings.length] = readDataCell(cell as inputCellType, this.columns.settings.columns[headings.length])
+                        r[headings.length] = readDataCell(cell as inputCellType, this.columns.settings[headings.length])
                         headings.push(heading)
                         this.data.headings.push(readHeaderCell(heading))
                     }
@@ -869,7 +873,7 @@ export class DataTable {
                 this.hasRows = Boolean(this.data.data.length)
                 this.hasHeadings = Boolean(this.data.headings.length)
             } else if (data.data && Array.isArray(data.data)) {
-                rows = data.data.map(row => row.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings.columns[index])))
+                rows = data.data.map(row => row.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings[index])))
             }
         }
         if (rows.length) {
@@ -878,8 +882,8 @@ export class DataTable {
         }
         this.hasHeadings = Boolean(this.data.headings.length)
 
-        if (this.columns.settings.sort) {
-            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
+        if (this.columns._state.sort) {
+            this.columns.sort(this.columns._state.sort.column, this.columns._state.sort.dir, true)
         }
 
         this.update(true)
@@ -914,7 +918,7 @@ export class DataTable {
                 index
             })),
             this.columns.settings,
-            this.columns._widths,
+            this.columns._state,
             false, // No row cursor
             this.options,
             {
@@ -947,7 +951,7 @@ export class DataTable {
      * Show a message in the table
      */
     setMessage(message: string) {
-        const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columns.settings.columns[index]?.hidden)
+        const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columns.settings[index]?.hidden)
         const colspan = activeHeadings.length || 1
 
         this.wrapperDOM.classList.add(this.options.classes.empty)

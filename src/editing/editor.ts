@@ -239,7 +239,7 @@ export class Editor {
      * @return {Void}
      */
     editCell(td: HTMLTableCellElement) {
-        const columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columns.settings.columns)
+        const columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columns.settings)
         if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu()
             return
@@ -355,7 +355,7 @@ export class Editor {
         }
         // Add the inputs for each cell
         row.forEach((cell: cellType, i: number) => {
-            const columnSettings = this.dt.columns.settings.columns[i]
+            const columnSettings = this.dt.columns.settings[i]
             if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
                 const label = this.dt.data.headings[i].text || String(this.dt.data.headings[i].data)
                 form.insertBefore(createElement("div", {

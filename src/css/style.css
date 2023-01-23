@@ -137,7 +137,7 @@
 	color: inherit;
 }
 
-.datatable-sorter {
+.datatable-sorter, .datatable-filter {
 	display: inline-block;
 	height: 100%;
 	position: relative;
@@ -156,6 +156,7 @@
 	opacity: 0.2;
 }
 
+
 .datatable-sorter::before {
 	border-top: 4px solid #000;
 	bottom: 0px;
@@ -168,8 +169,28 @@
 }
 
 .asc .datatable-sorter::after,
-.desc .datatable-sorter::before {
+.desc .datatable-sorter::before,
+.asc .datatable-filter::after,
+.desc .datatable-filter::before {
 	opacity: 0.6;
+}
+
+.datatable-filter::before {
+    content: "";
+    position: absolute;
+    right: 4px;
+    opacity: 0.2;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+	border-radius: 50%;
+    border-top: 10px solid #000;
+    top: 25%;
+}
+
+.datatable-filter-active .datatable-filter::before {
+    opacity: 0.6;
 }
 
 .datatable-empty {

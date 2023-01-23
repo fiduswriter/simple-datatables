@@ -151,14 +151,14 @@ var visibleToColumnIndex = function (visibleIndex, columns) {
 
 function e(t,n,o){var s;return "#text"===t.nodeName?s=o.document.createTextNode(t.data):"#comment"===t.nodeName?s=o.document.createComment(t.data):(n?s=o.document.createElementNS("http://www.w3.org/2000/svg",t.nodeName):"svg"===t.nodeName.toLowerCase()?(s=o.document.createElementNS("http://www.w3.org/2000/svg","svg"),n=!0):s=o.document.createElement(t.nodeName),t.attributes&&Object.entries(t.attributes).forEach((function(e){var t=e[0],n=e[1];return s.setAttribute(t,n)})),t.childNodes&&t.childNodes.forEach((function(t){return s.appendChild(e(t,n,o))})),o.valueDiffing&&(t.value&&(s instanceof HTMLButtonElement||s instanceof HTMLDataElement||s instanceof HTMLInputElement||s instanceof HTMLLIElement||s instanceof HTMLMeterElement||s instanceof HTMLOptionElement||s instanceof HTMLProgressElement||s instanceof HTMLParamElement)&&(s.value=t.value),t.checked&&s instanceof HTMLInputElement&&(s.checked=t.checked),t.selected&&s instanceof HTMLOptionElement&&(s.selected=t.selected))),s}var t=function(e,t){for(t=t.slice();t.length>0;){var n=t.splice(0,1)[0];e=e.childNodes[n];}return e};function n(n,o,s){var i,a,c,l=o[s._const.action],r=o[s._const.route];[s._const.addElement,s._const.addTextElement].includes(l)||(i=t(n,r));var u={diff:o,node:i};if(s.preDiffApply(u))return !0;switch(l){case s._const.addAttribute:if(!(i&&i instanceof Element))return !1;i.setAttribute(o[s._const.name],o[s._const.value]);break;case s._const.modifyAttribute:if(!(i&&i instanceof Element))return !1;i.setAttribute(o[s._const.name],o[s._const.newValue]),i instanceof HTMLInputElement&&"value"===o[s._const.name]&&(i.value=o[s._const.newValue]);break;case s._const.removeAttribute:if(!(i&&i instanceof Element))return !1;i.removeAttribute(o[s._const.name]);break;case s._const.modifyTextElement:if(!(i&&i instanceof Text))return !1;s.textDiff(i,i.data,o[s._const.oldValue],o[s._const.newValue]);break;case s._const.modifyValue:if(!i||void 0===i.value)return !1;i.value=o[s._const.newValue];break;case s._const.modifyComment:if(!(i&&i instanceof Comment))return !1;s.textDiff(i,i.data,o[s._const.oldValue],o[s._const.newValue]);break;case s._const.modifyChecked:if(!i||void 0===i.checked)return !1;i.checked=o[s._const.newValue];break;case s._const.modifySelected:if(!i||void 0===i.selected)return !1;i.selected=o[s._const.newValue];break;case s._const.replaceElement:i.parentNode.replaceChild(e(o[s._const.newValue],"svg"===o[s._const.newValue].nodeName.toLowerCase(),s),i);break;case s._const.relocateGroup:Array.apply(void 0,new Array(o[s._const.groupLength])).map((function(){return i.removeChild(i.childNodes[o[s._const.from]])})).forEach((function(e,t){0===t&&(c=i.childNodes[o[s._const.to]]),i.insertBefore(e,c||null);}));break;case s._const.removeElement:i.parentNode.removeChild(i);break;case s._const.addElement:var d=(h=r.slice()).splice(h.length-1,1)[0];if(!((i=t(n,h))instanceof Element))return !1;i.insertBefore(e(o[s._const.element],"http://www.w3.org/2000/svg"===i.namespaceURI,s),i.childNodes[d]||null);break;case s._const.removeTextElement:if(!i||3!==i.nodeType)return !1;i.parentNode.removeChild(i);break;case s._const.addTextElement:var h;d=(h=r.slice()).splice(h.length-1,1)[0];if(a=s.document.createTextNode(o[s._const.value]),!(i=t(n,h)).childNodes)return !1;i.insertBefore(a,i.childNodes[d]||null);break;default:console.log("unknown action");}return s.postDiffApply({diff:u.diff,node:u.node,newNode:a}),!0}function o(e,t,n){var o=e[t];e[t]=e[n],e[n]=o;}function s(e,t,s){(t=t.slice()).reverse(),t.forEach((function(t){!function(e,t,s){switch(t[s._const.action]){case s._const.addAttribute:t[s._const.action]=s._const.removeAttribute,n(e,t,s);break;case s._const.modifyAttribute:o(t,s._const.oldValue,s._const.newValue),n(e,t,s);break;case s._const.removeAttribute:t[s._const.action]=s._const.addAttribute,n(e,t,s);break;case s._const.modifyTextElement:case s._const.modifyValue:case s._const.modifyComment:case s._const.modifyChecked:case s._const.modifySelected:case s._const.replaceElement:o(t,s._const.oldValue,s._const.newValue),n(e,t,s);break;case s._const.relocateGroup:o(t,s._const.from,s._const.to),n(e,t,s);break;case s._const.removeElement:t[s._const.action]=s._const.addElement,n(e,t,s);break;case s._const.addElement:t[s._const.action]=s._const.removeElement,n(e,t,s);break;case s._const.removeTextElement:t[s._const.action]=s._const.addTextElement,n(e,t,s);break;case s._const.addTextElement:t[s._const.action]=s._const.removeTextElement,n(e,t,s);break;default:console.log("unknown action");}}(e,t,s);}));}var i=function(e){var t=[];return t.push(e.nodeName),"#text"!==e.nodeName&&"#comment"!==e.nodeName&&e.attributes&&(e.attributes.class&&t.push("".concat(e.nodeName,".").concat(e.attributes.class.replace(/ /g,"."))),e.attributes.id&&t.push("".concat(e.nodeName,"#").concat(e.attributes.id))),t},a=function(e){var t={},n={};return e.forEach((function(e){i(e).forEach((function(e){var o=e in t;o||e in n?o&&(delete t[e],n[e]=!0):t[e]=!0;}));})),t},c=function(e,t){var n=a(e),o=a(t),s={};return Object.keys(n).forEach((function(e){o[e]&&(s[e]=!0);})),s},l=function(e){return delete e.outerDone,delete e.innerDone,delete e.valueDone,!e.childNodes||e.childNodes.every(l)},r=function(e){if(Object.prototype.hasOwnProperty.call(e,"data"))return {nodeName:"#text"===e.nodeName?"#text":"#comment",data:e.data};var t={nodeName:e.nodeName};return Object.prototype.hasOwnProperty.call(e,"attributes")&&(t.attributes=e.attributes),Object.prototype.hasOwnProperty.call(e,"checked")&&(t.checked=e.checked),Object.prototype.hasOwnProperty.call(e,"value")&&(t.value=e.value),Object.prototype.hasOwnProperty.call(e,"selected")&&(t.selected=e.selected),Object.prototype.hasOwnProperty.call(e,"childNodes")&&(t.childNodes=e.childNodes.map((function(e){return r(e)}))),t},u=function(e,t){if(!["nodeName","value","checked","selected","data"].every((function(n){return e[n]===t[n]})))return !1;if(Object.prototype.hasOwnProperty.call(e,"data"))return !0;if(Boolean(e.attributes)!==Boolean(t.attributes))return !1;if(Boolean(e.childNodes)!==Boolean(t.childNodes))return !1;if(e.attributes){var n=Object.keys(e.attributes),o=Object.keys(t.attributes);if(n.length!==o.length)return !1;if(!n.every((function(n){return e.attributes[n]===t.attributes[n]})))return !1}if(e.childNodes){if(e.childNodes.length!==t.childNodes.length)return !1;if(!e.childNodes.every((function(e,n){return u(e,t.childNodes[n])})))return !1}return !0},d=function(e,t,n,o,s){if(void 0===s&&(s=!1),!e||!t)return !1;if(e.nodeName!==t.nodeName)return !1;if(["#text","#comment"].includes(e.nodeName))return !!s||e.data===t.data;if(e.nodeName in n)return !0;if(e.attributes&&t.attributes){if(e.attributes.id){if(e.attributes.id!==t.attributes.id)return !1;if("".concat(e.nodeName,"#").concat(e.attributes.id)in n)return !0}if(e.attributes.class&&e.attributes.class===t.attributes.class)if("".concat(e.nodeName,".").concat(e.attributes.class.replace(/ /g,"."))in n)return !0}if(o)return !0;var i=e.childNodes?e.childNodes.slice().reverse():[],a=t.childNodes?t.childNodes.slice().reverse():[];if(i.length!==a.length)return !1;if(s)return i.every((function(e,t){return e.nodeName===a[t].nodeName}));var l=c(i,a);return i.every((function(e,t){return d(e,a[t],l,!0,!0)}))},h=function(e,t){return Array.apply(void 0,new Array(e)).map((function(){return t}))},f=function(e,t){for(var n=e.childNodes?e.childNodes:[],o=t.childNodes?t.childNodes:[],s=h(n.length,!1),a=h(o.length,!1),l=[],r=function(){return arguments[1]},u=!1,f=function(){var e=function(e,t,n,o){var s=0,a=[],l=e.length,r=t.length,u=Array.apply(void 0,new Array(l+1)).map((function(){return []})),h=c(e,t),f=l===r;f&&e.some((function(e,n){var o=i(e),s=i(t[n]);return o.length!==s.length?(f=!1,!0):(o.some((function(e,t){if(e!==s[t])return f=!1,!0})),!f||void 0)}));for(var p=0;p<l;p++)for(var m=e[p],_=0;_<r;_++){var V=t[_];n[p]||o[_]||!d(m,V,h,f)?u[p+1][_+1]=0:(u[p+1][_+1]=u[p][_]?u[p][_]+1:1,u[p+1][_+1]>=s&&(s=u[p+1][_+1],a=[p+1,_+1]));}return 0!==s&&{oldValue:a[0]-s,newValue:a[1]-s,length:s}}(n,o,s,a);e?(l.push(e),Array.apply(void 0,new Array(e.length)).map(r).forEach((function(t){return function(e,t,n,o){e[n.oldValue+o]=!0,t[n.newValue+o]=!0;}(s,a,e,t)}))):u=!0;};!u;)f();return e.subsets=l,e.subsetsAge=100,l},p=function(){function e(){this.list=[];}return e.prototype.add=function(e){var t;(t=this.list).push.apply(t,e);},e.prototype.forEach=function(e){this.list.forEach((function(t){return e(t)}));},e}(),m=function(){function e(e){void 0===e&&(e={});var t=this;Object.entries(e).forEach((function(e){var n=e[0],o=e[1];return t[n]=o}));}return e.prototype.toString=function(){return JSON.stringify(this)},e.prototype.setValue=function(e,t){return this[e]=t,this},e}();function _(e,t){var n,o,s=e;for(t=t.slice();t.length>0;)o=t.splice(0,1)[0],n=s,s=s.childNodes?s.childNodes[o]:void 0;return {node:s,parentNode:n,nodeIndex:o}}function V(e,t,n){return t.forEach((function(t){!function(e,t,n){var o,s,i,a;if(![n._const.addElement,n._const.addTextElement].includes(t[n._const.action])){var c=_(e,t[n._const.route]);s=c.node,i=c.parentNode,a=c.nodeIndex;}var l,r,u=[],d={diff:t,node:s};if(n.preVirtualDiffApply(d))return !0;switch(t[n._const.action]){case n._const.addAttribute:s.attributes||(s.attributes={}),s.attributes[t[n._const.name]]=t[n._const.value],"checked"===t[n._const.name]?s.checked=!0:"selected"===t[n._const.name]?s.selected=!0:"INPUT"===s.nodeName&&"value"===t[n._const.name]&&(s.value=t[n._const.value]);break;case n._const.modifyAttribute:s.attributes[t[n._const.name]]=t[n._const.newValue];break;case n._const.removeAttribute:delete s.attributes[t[n._const.name]],0===Object.keys(s.attributes).length&&delete s.attributes,"checked"===t[n._const.name]?s.checked=!1:"selected"===t[n._const.name]?delete s.selected:"INPUT"===s.nodeName&&"value"===t[n._const.name]&&delete s.value;break;case n._const.modifyTextElement:s.data=t[n._const.newValue];break;case n._const.modifyValue:s.value=t[n._const.newValue];break;case n._const.modifyComment:s.data=t[n._const.newValue];break;case n._const.modifyChecked:s.checked=t[n._const.newValue];break;case n._const.modifySelected:s.selected=t[n._const.newValue];break;case n._const.replaceElement:l=t[n._const.newValue],i.childNodes[a]=l;break;case n._const.relocateGroup:s.childNodes.splice(t[n._const.from],t[n._const.groupLength]).reverse().forEach((function(e){return s.childNodes.splice(t[n._const.to],0,e)})),s.subsets&&s.subsets.forEach((function(e){if(t[n._const.from]<t[n._const.to]&&e.oldValue<=t[n._const.to]&&e.oldValue>t[n._const.from])e.oldValue-=t[n._const.groupLength],(o=e.oldValue+e.length-t[n._const.to])>0&&(u.push({oldValue:t[n._const.to]+t[n._const.groupLength],newValue:e.newValue+e.length-o,length:o}),e.length-=o);else if(t[n._const.from]>t[n._const.to]&&e.oldValue>t[n._const.to]&&e.oldValue<t[n._const.from]){var o;e.oldValue+=t[n._const.groupLength],(o=e.oldValue+e.length-t[n._const.to])>0&&(u.push({oldValue:t[n._const.to]+t[n._const.groupLength],newValue:e.newValue+e.length-o,length:o}),e.length-=o);}else e.oldValue===t[n._const.from]&&(e.oldValue=t[n._const.to]);}));break;case n._const.removeElement:i.childNodes.splice(a,1),i.subsets&&i.subsets.forEach((function(e){e.oldValue>a?e.oldValue-=1:e.oldValue===a?e.delete=!0:e.oldValue<a&&e.oldValue+e.length>a&&(e.oldValue+e.length-1===a?e.length--:(u.push({newValue:e.newValue+a-e.oldValue,oldValue:a,length:e.length-a+e.oldValue-1}),e.length=a-e.oldValue));})),s=i;break;case n._const.addElement:var h=(r=t[n._const.route].slice()).splice(r.length-1,1)[0];s=null===(o=_(e,r))||void 0===o?void 0:o.node,l=t[n._const.element],s.childNodes||(s.childNodes=[]),h>=s.childNodes.length?s.childNodes.push(l):s.childNodes.splice(h,0,l),s.subsets&&s.subsets.forEach((function(e){if(e.oldValue>=h)e.oldValue+=1;else if(e.oldValue<h&&e.oldValue+e.length>h){var t=e.oldValue+e.length-h;u.push({newValue:e.newValue+e.length-t,oldValue:h+1,length:t}),e.length-=t;}}));break;case n._const.removeTextElement:i.childNodes.splice(a,1),"TEXTAREA"===i.nodeName&&delete i.value,i.subsets&&i.subsets.forEach((function(e){e.oldValue>a?e.oldValue-=1:e.oldValue===a?e.delete=!0:e.oldValue<a&&e.oldValue+e.length>a&&(e.oldValue+e.length-1===a?e.length--:(u.push({newValue:e.newValue+a-e.oldValue,oldValue:a,length:e.length-a+e.oldValue-1}),e.length=a-e.oldValue));})),s=i;break;case n._const.addTextElement:var f=(r=t[n._const.route].slice()).splice(r.length-1,1)[0];(l={}).nodeName="#text",l.data=t[n._const.value],(s=_(e,r).node).childNodes||(s.childNodes=[]),f>=s.childNodes.length?s.childNodes.push(l):s.childNodes.splice(f,0,l),"TEXTAREA"===s.nodeName&&(s.value=t[n._const.newValue]),s.subsets&&s.subsets.forEach((function(e){if(e.oldValue>=f&&(e.oldValue+=1),e.oldValue<f&&e.oldValue+e.length>f){var t=e.oldValue+e.length-f;u.push({newValue:e.newValue+e.length-t,oldValue:f+1,length:t}),e.length-=t;}}));break;default:console.log("unknown action");}s.subsets&&(s.subsets=s.subsets.filter((function(e){return !e.delete&&e.oldValue!==e.newValue})),u.length&&(s.subsets=s.subsets.concat(u))),n.postVirtualDiffApply({node:d.node,diff:d.diff,newNode:l});}(e,t,n);})),!0}function g(e,t){void 0===t&&(t={});var n={nodeName:e.nodeName};if(e instanceof Text||e instanceof Comment)n.data=e.data;else {if(e.attributes&&e.attributes.length>0)n.attributes={},Array.prototype.slice.call(e.attributes).forEach((function(e){return n.attributes[e.name]=e.value}));if(e instanceof HTMLTextAreaElement)n.value=e.value;else if(e.childNodes&&e.childNodes.length>0){n.childNodes=[],Array.prototype.slice.call(e.childNodes).forEach((function(e){return n.childNodes.push(g(e,t))}));}t.valueDiffing&&(e instanceof HTMLInputElement&&["radio","checkbox"].includes(e.type.toLowerCase())&&void 0!==e.checked?n.checked=e.checked:(e instanceof HTMLButtonElement||e instanceof HTMLDataElement||e instanceof HTMLInputElement||e instanceof HTMLLIElement||e instanceof HTMLMeterElement||e instanceof HTMLOptionElement||e instanceof HTMLProgressElement||e instanceof HTMLParamElement)&&(n.value=e.value),e instanceof HTMLOptionElement&&(n.selected=e.selected));}return n}var v=/<(?:"[^"]*"['"]*|'[^']*'['"]*|[^'">])+>/g,b=Object.create?Object.create(null):{},N=/\s([^'"/\s><]+?)[\s/>]|([^\s=]+)=\s?(".*?"|'.*?')/g;function y(e){return e.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&")}var w={area:!0,base:!0,br:!0,col:!0,embed:!0,hr:!0,img:!0,input:!0,keygen:!0,link:!0,menuItem:!0,meta:!0,param:!0,source:!0,track:!0,wbr:!0},E=function(e){var t={nodeName:"",attributes:{}},n=!1,o=e.match(/<\/?([^\s]+?)[/\s>]/);if(o&&(t.nodeName=o[1].toUpperCase(),(w[o[1]]||"/"===e.charAt(e.length-2))&&(n=!0),t.nodeName.startsWith("!--"))){var s=e.indexOf("--\x3e");return {type:"comment",node:{nodeName:"#comment",data:-1!==s?e.slice(4,s):""},voidElement:n}}for(var i=new RegExp(N),a=null,c=!1;!c;)if(null===(a=i.exec(e)))c=!0;else if(a[0].trim())if(a[1]){var l=a[1].trim(),r=[l,""];l.indexOf("=")>-1&&(r=l.split("=")),t.attributes[r[0]]=r[1],i.lastIndex--;}else a[2]&&(t.attributes[a[2]]=a[3].trim().substring(1,a[3].length-1));return {type:"tag",node:t,voidElement:n}},k=function(e,t){void 0===t&&(t={components:b});var n,o=[],s=-1,i=[],a=!1;if(0!==e.indexOf("<")){var c=e.indexOf("<");o.push({nodeName:"#text",data:-1===c?e:e.substring(0,c)});}return e.replace(v,(function(c,l){if(a){if(c!=="</".concat(n.node.nodeName,">"))return "";a=!1;}var r="/"!==c.charAt(1),u=c.startsWith("\x3c!--"),d=l+c.length,h=e.charAt(d);if(u){var f=E(c).node;if(s<0)return o.push(f),"";var p=i[s];return p&&(p.node.childNodes||(p.node.childNodes=[]),p.node.childNodes.push(f)),""}if(r){n=E(c),s++,"tag"===n.type&&t.components[n.node.nodeName]&&(n.type="component",a=!0),n.voidElement||a||!h||"<"===h||(n.node.childNodes||(n.node.childNodes=[]),n.node.childNodes.push({nodeName:"#text",data:y(e.slice(d,e.indexOf("<",d)))})),0===s&&o.push(n.node);var m=i[s-1];m&&(m.node.childNodes||(m.node.childNodes=[]),m.node.childNodes.push(n.node)),i[s]=n;}if((!r||n.voidElement)&&(s>-1&&(n.voidElement||n.node.nodeName===c.slice(2,-1).toUpperCase())&&--s>-1&&(n=i[s]),!a&&"<"!==h&&h)){var _=-1===s?o:i[s].node.childNodes||[],V=e.indexOf("<",d),g=y(e.slice(d,-1===V?void 0:V));_.push({nodeName:"#text",data:g});}return ""})),o[0]},x=function(){function e(e,t,n){this.options=n,this.t1="undefined"!=typeof Element&&e instanceof Element?g(e,this.options):"string"==typeof e?k(e,this.options):JSON.parse(JSON.stringify(e)),this.t2="undefined"!=typeof Element&&t instanceof Element?g(t,this.options):"string"==typeof t?k(t,this.options):JSON.parse(JSON.stringify(t)),this.diffcount=0,this.foundAll=!1,this.debug&&(this.t1Orig="undefined"!=typeof Element&&e instanceof Element?g(e,this.options):"string"==typeof e?k(e,this.options):JSON.parse(JSON.stringify(e)),this.t2Orig="undefined"!=typeof Element&&t instanceof Element?g(t,this.options):"string"==typeof t?k(t,this.options):JSON.parse(JSON.stringify(t))),this.tracker=new p;}return e.prototype.init=function(){return this.findDiffs(this.t1,this.t2)},e.prototype.findDiffs=function(e,t){var n;do{if(this.options.debug&&(this.diffcount+=1,this.diffcount>this.options.diffcap))throw new Error("surpassed diffcap:".concat(JSON.stringify(this.t1Orig)," -> ").concat(JSON.stringify(this.t2Orig)));0===(n=this.findNextDiff(e,t,[])).length&&(u(e,t)||(this.foundAll?console.error("Could not find remaining diffs!"):(this.foundAll=!0,l(e),n=this.findNextDiff(e,t,[])))),n.length>0&&(this.foundAll=!1,this.tracker.add(n),V(e,n,this.options));}while(n.length>0);return this.tracker.list},e.prototype.findNextDiff=function(e,t,n){var o,s;if(this.options.maxDepth&&n.length>this.options.maxDepth)return [];if(!e.outerDone){if(o=this.findOuterDiff(e,t,n),this.options.filterOuterDiff&&(s=this.options.filterOuterDiff(e,t,o))&&(o=s),o.length>0)return e.outerDone=!0,o;e.outerDone=!0;}if(Object.prototype.hasOwnProperty.call(e,"data"))return [];if(!e.innerDone){if((o=this.findInnerDiff(e,t,n)).length>0)return o;e.innerDone=!0;}if(this.options.valueDiffing&&!e.valueDone){if((o=this.findValueDiff(e,t,n)).length>0)return e.valueDone=!0,o;e.valueDone=!0;}return []},e.prototype.findOuterDiff=function(e,t,n){var o,s,i,a,c,l,u=[];if(e.nodeName!==t.nodeName){if(!n.length)throw new Error("Top level nodes have to be of the same kind.");return [(new m).setValue(this.options._const.action,this.options._const.replaceElement).setValue(this.options._const.oldValue,r(e)).setValue(this.options._const.newValue,r(t)).setValue(this.options._const.route,n)]}if(n.length&&this.options.diffcap<Math.abs((e.childNodes||[]).length-(t.childNodes||[]).length))return [(new m).setValue(this.options._const.action,this.options._const.replaceElement).setValue(this.options._const.oldValue,r(e)).setValue(this.options._const.newValue,r(t)).setValue(this.options._const.route,n)];if(Object.prototype.hasOwnProperty.call(e,"data")&&e.data!==t.data)return "#text"===e.nodeName?[(new m).setValue(this.options._const.action,this.options._const.modifyTextElement).setValue(this.options._const.route,n).setValue(this.options._const.oldValue,e.data).setValue(this.options._const.newValue,t.data)]:[(new m).setValue(this.options._const.action,this.options._const.modifyComment).setValue(this.options._const.route,n).setValue(this.options._const.oldValue,e.data).setValue(this.options._const.newValue,t.data)];for(s=e.attributes?Object.keys(e.attributes).sort():[],i=t.attributes?Object.keys(t.attributes).sort():[],a=s.length,l=0;l<a;l++)o=s[l],-1===(c=i.indexOf(o))?u.push((new m).setValue(this.options._const.action,this.options._const.removeAttribute).setValue(this.options._const.route,n).setValue(this.options._const.name,o).setValue(this.options._const.value,e.attributes[o])):(i.splice(c,1),e.attributes[o]!==t.attributes[o]&&u.push((new m).setValue(this.options._const.action,this.options._const.modifyAttribute).setValue(this.options._const.route,n).setValue(this.options._const.name,o).setValue(this.options._const.oldValue,e.attributes[o]).setValue(this.options._const.newValue,t.attributes[o])));for(a=i.length,l=0;l<a;l++)o=i[l],u.push((new m).setValue(this.options._const.action,this.options._const.addAttribute).setValue(this.options._const.route,n).setValue(this.options._const.name,o).setValue(this.options._const.value,t.attributes[o]));return u},e.prototype.findInnerDiff=function(e,t,n){var o=e.childNodes?e.childNodes.slice():[],s=t.childNodes?t.childNodes.slice():[],i=Math.max(o.length,s.length),a=Math.abs(o.length-s.length),c=[],l=0;if(!this.options.maxChildCount||i<this.options.maxChildCount){var d=Boolean(e.subsets&&e.subsetsAge--),h=d?e.subsets:e.childNodes&&t.childNodes?f(e,t):[];if(h.length>0&&(c=this.attemptGroupRelocation(e,t,h,n,d)).length>0)return c}for(var p=0;p<i;p+=1){var _=o[p],V=s[p];if(a&&(_&&!V?"#text"===_.nodeName?(c.push((new m).setValue(this.options._const.action,this.options._const.removeTextElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.value,_.data)),l-=1):(c.push((new m).setValue(this.options._const.action,this.options._const.removeElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.element,r(_))),l-=1):V&&!_&&("#text"===V.nodeName?c.push((new m).setValue(this.options._const.action,this.options._const.addTextElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.value,V.data)):c.push((new m).setValue(this.options._const.action,this.options._const.addElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.element,r(V))))),_&&V)if(!this.options.maxChildCount||i<this.options.maxChildCount)c=c.concat(this.findNextDiff(_,V,n.concat(l)));else if(!u(_,V))if(o.length>s.length)"#text"===_.nodeName?c.push((new m).setValue(this.options._const.action,this.options._const.removeTextElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.value,_.data)):c.push((new m).setValue(this.options._const.action,this.options._const.removeElement).setValue(this.options._const.element,r(_)).setValue(this.options._const.route,n.concat(l))),o.splice(p,1),p-=1,l-=1,a-=1;else if(o.length<s.length){var g=r(V);c=c.concat([(new m).setValue(this.options._const.action,this.options._const.addElement).setValue(this.options._const.element,g).setValue(this.options._const.route,n.concat(l))]),o.splice(p,0,g),a-=1;}else c=c.concat([(new m).setValue(this.options._const.action,this.options._const.replaceElement).setValue(this.options._const.oldValue,r(_)).setValue(this.options._const.newValue,r(V)).setValue(this.options._const.route,n.concat(l))]);l+=1;}return e.innerDone=!0,c},e.prototype.attemptGroupRelocation=function(e,t,n,o,s){for(var i,a,c,l,u,f,p=function(e,t,n){var o=e.childNodes?h(e.childNodes.length,!0):[],s=t.childNodes?h(t.childNodes.length,!0):[],i=0;return n.forEach((function(e){for(var t=e.oldValue+e.length,n=e.newValue+e.length,a=e.oldValue;a<t;a+=1)o[a]=i;for(a=e.newValue;a<n;a+=1)s[a]=i;i+=1;})),{gaps1:o,gaps2:s}}(e,t,n),_=p.gaps1,V=p.gaps2,g=Math.min(_.length,V.length),v=[],b=0,N=0;b<g;N+=1,b+=1)if(!s||!0!==_[b]&&!0!==V[b]){if(!0===_[b])if("#text"===(l=e.childNodes[N]).nodeName)if("#text"===t.childNodes[b].nodeName){if(l.data!==t.childNodes[b].data){for(f=N;e.childNodes.length>f+1&&"#text"===e.childNodes[f+1].nodeName;)if(f+=1,t.childNodes[b].data===e.childNodes[f].data){u=!0;break}if(!u)return v.push((new m).setValue(this.options._const.action,this.options._const.modifyTextElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.oldValue,l.data).setValue(this.options._const.newValue,t.childNodes[b].data)),v}}else v.push((new m).setValue(this.options._const.action,this.options._const.removeTextElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.value,l.data)),_.splice(b,1),g=Math.min(_.length,V.length),b-=1;else v.push((new m).setValue(this.options._const.action,this.options._const.removeElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.element,r(l))),_.splice(b,1),g=Math.min(_.length,V.length),b-=1;else if(!0===V[b])"#text"===(l=t.childNodes[b]).nodeName?(v.push((new m).setValue(this.options._const.action,this.options._const.addTextElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.value,l.data)),_.splice(b,0,!0),g=Math.min(_.length,V.length),N-=1):(v.push((new m).setValue(this.options._const.action,this.options._const.addElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.element,r(l))),_.splice(b,0,!0),g=Math.min(_.length,V.length),N-=1);else if(_[b]!==V[b]){if(v.length>0)return v;if(c=n[_[b]],(a=Math.min(c.newValue,e.childNodes.length-c.length))!==c.oldValue){i=!1;for(var y=0;y<c.length;y+=1)d(e.childNodes[a+y],e.childNodes[c.oldValue+y],{},!1,!0)||(i=!0);if(i)return [(new m).setValue(this.options._const.action,this.options._const.relocateGroup).setValue(this.options._const.groupLength,c.length).setValue(this.options._const.from,c.oldValue).setValue(this.options._const.to,a).setValue(this.options._const.route,o)]}}}return v},e.prototype.findValueDiff=function(e,t,n){var o=[];return e.selected!==t.selected&&o.push((new m).setValue(this.options._const.action,this.options._const.modifySelected).setValue(this.options._const.oldValue,e.selected).setValue(this.options._const.newValue,t.selected).setValue(this.options._const.route,n)),(e.value||t.value)&&e.value!==t.value&&"OPTION"!==e.nodeName&&o.push((new m).setValue(this.options._const.action,this.options._const.modifyValue).setValue(this.options._const.oldValue,e.value||"").setValue(this.options._const.newValue,t.value||"").setValue(this.options._const.route,n)),e.checked!==t.checked&&o.push((new m).setValue(this.options._const.action,this.options._const.modifyChecked).setValue(this.options._const.oldValue,e.checked).setValue(this.options._const.newValue,t.checked).setValue(this.options._const.route,n)),o},e}(),O={debug:!1,diffcap:10,maxDepth:!1,maxChildCount:50,valueDiffing:!0,textDiff:function(e,t,n,o){e.data=o;},preVirtualDiffApply:function(){},postVirtualDiffApply:function(){},preDiffApply:function(){},postDiffApply:function(){},filterOuterDiff:null,compress:!1,_const:!1,document:!("undefined"==typeof window||!window.document)&&window.document,components:[]},T=function(){function e(e){if(void 0===e&&(e={}),Object.entries(O).forEach((function(t){var n=t[0],o=t[1];Object.prototype.hasOwnProperty.call(e,n)||(e[n]=o);})),!e._const){var t=["addAttribute","modifyAttribute","removeAttribute","modifyTextElement","relocateGroup","removeElement","addElement","removeTextElement","addTextElement","replaceElement","modifyValue","modifyChecked","modifySelected","modifyComment","action","route","oldValue","newValue","element","group","groupLength","from","to","name","value","data","attributes","nodeName","childNodes","checked","selected"],n={};e.compress?t.forEach((function(e,t){return n[e]=t})):t.forEach((function(e){return n[e]=e})),e._const=n;}this.options=e;}return e.prototype.apply=function(e,t){return function(e,t,o){return t.every((function(t){return n(e,t,o)}))}(e,t,this.options)},e.prototype.undo=function(e,t){return s(e,t,this.options)},e.prototype.diff=function(e,t){return new x(e,t,this.options).init()},e}();
 
-var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWidths, _a, _b) {
+var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnsState, _a, _b) {
     var classes = _a.classes, hiddenHeader = _a.hiddenHeader, sortable = _a.sortable, scrollY = _a.scrollY;
     var noColumnWidths = _b.noColumnWidths, unhideHeader = _b.unhideHeader;
     return ({
         nodeName: "TR",
         childNodes: headings.map(function (heading, index) {
             var _a, _b;
-            var column = columnSettings.columns[index] || {};
+            var column = columnSettings[index];
             if (column.hidden) {
                 return;
             }
@@ -172,15 +172,19 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                 }
             }
             if (column.headerClass) {
-                attributes["class"] = columnSettings.headerClass;
+                attributes["class"] = column.headerClass;
             }
             if (((_a = columnSettings.sort) === null || _a === void 0 ? void 0 : _a.column) === index) {
-                attributes["class"] = attributes["class"] ? "".concat(attributes["class"], " ").concat(columnSettings.sort.dir) : columnSettings.sort.dir;
+                var directionClass = columnSettings.sort.dir === "asc" ? classes.ascending : classes.descending;
+                attributes["class"] = attributes["class"] ? "".concat(attributes["class"], " ").concat(directionClass) : directionClass;
                 attributes["aria-sort"] = columnSettings.sort.dir === "asc" ? "ascending" : "descending";
             }
+            else if (columnsState.filters[index]) {
+                attributes["class"] = attributes["class"] ? "".concat(attributes["class"], " ").concat(classes.filterActive) : classes.filterActive;
+            }
             var style = "";
-            if (columnWidths[index] && !noColumnWidths) {
-                style += "width: ".concat(columnWidths[index], "%;");
+            if (columnsState.widths[index] && !noColumnWidths) {
+                style += "width: ".concat(columnsState.widths[index], "%;");
             }
             if (scrollY.length && !unhideHeader) {
                 style += "padding-bottom: 0;padding-top: 0;border: 0;";
@@ -189,7 +193,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                 attributes.style = style;
             }
             if (column.headerClass) {
-                attributes["class"] = columnSettings.headerClass;
+                attributes["class"] = column.headerClass;
             }
             var headerNodes = heading.type === "html" ?
                 heading.data :
@@ -214,7 +218,7 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
                                 nodeName: "a",
                                 attributes: {
                                     href: "#",
-                                    "class": classes.sorter
+                                    "class": column.filter ? classes.filter : classes.sorter
                                 },
                                 childNodes: headerNodes
                             }
@@ -223,12 +227,12 @@ var headingsToVirtualHeaderRowDOM = function (headings, columnSettings, columnWi
         }).filter(function (column) { return column; })
     });
 };
-var dataToVirtualDOM = function (tableAttributes, headings, rows, columnSettings, columnWidths, rowCursor, _a, _b) {
+var dataToVirtualDOM = function (tableAttributes, headings, rows, columnSettings, columnsState, rowCursor, _a, _b) {
     var classes = _a.classes, hiddenHeader = _a.hiddenHeader, header = _a.header, footer = _a.footer, sortable = _a.sortable, scrollY = _a.scrollY, rowRender = _a.rowRender, tabIndex = _a.tabIndex;
     var noColumnWidths = _b.noColumnWidths, unhideHeader = _b.unhideHeader, renderHeader = _b.renderHeader;
     var table = {
         nodeName: "TABLE",
-        attributes: Object.assign({}, tableAttributes),
+        attributes: __assign({}, tableAttributes),
         childNodes: [
             {
                 nodeName: "TBODY",
@@ -241,7 +245,7 @@ var dataToVirtualDOM = function (tableAttributes, headings, rows, columnSettings
                         },
                         childNodes: row.map(function (cell, cIndex) {
                             var _a;
-                            var column = columnSettings.columns[cIndex];
+                            var column = columnSettings[cIndex];
                             if (column.hidden) {
                                 return;
                             }
@@ -259,9 +263,9 @@ var dataToVirtualDOM = function (tableAttributes, headings, rows, columnSettings
                                         }
                                     ]
                                 };
-                            if (!header && !footer && columnWidths[cIndex] && !noColumnWidths) {
+                            if (!header && !footer && columnsState.widths[cIndex] && !noColumnWidths) {
                                 td.attributes = {
-                                    style: "width: ".concat(columnWidths[cIndex], "%;")
+                                    style: "width: ".concat(columnsState.widths[cIndex], "%;")
                                 };
                             }
                             if (column.cellClass) {
@@ -316,7 +320,7 @@ var dataToVirtualDOM = function (tableAttributes, headings, rows, columnSettings
     };
     table.attributes["class"] = table.attributes["class"] ? "".concat(table.attributes["class"], " ").concat(classes.table) : classes.table;
     if (header || footer || renderHeader) {
-        var headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnWidths, { classes: classes, hiddenHeader: hiddenHeader, sortable: sortable, scrollY: scrollY }, { noColumnWidths: noColumnWidths, unhideHeader: unhideHeader });
+        var headerRow = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnsState, { classes: classes, hiddenHeader: hiddenHeader, sortable: sortable, scrollY: scrollY }, { noColumnWidths: noColumnWidths, unhideHeader: unhideHeader });
         if (header || renderHeader) {
             var thead = {
                 nodeName: "THEAD",
@@ -497,14 +501,14 @@ var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map(function (th, index) {
             var _a, _b, _c, _d, _e;
             var heading = readHeaderCell(th.innerHTML);
-            if (!columnSettings.columns[index]) {
-                columnSettings.columns[index] = {
+            if (!columnSettings[index]) {
+                columnSettings[index] = {
                     type: "string",
                     searchable: true,
                     sortable: true
                 };
             }
-            var settings = columnSettings.columns[index];
+            var settings = columnSettings[index];
             if (((_a = th.dataset.sortable) === null || _a === void 0 ? void 0 : _a.trim().toLowerCase()) === "false" || ((_b = th.dataset.sort) === null || _b === void 0 ? void 0 : _b.trim().toLowerCase()) === "false") {
                 settings.sortable = false;
             }
@@ -531,8 +535,8 @@ var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
     }
     for (var i = 0; i < data.headings.length; i++) {
         // Make sure that there are settings for all columns
-        if (!columnSettings.columns[i]) {
-            columnSettings.columns[i] = {
+        if (!columnSettings[i]) {
+            columnSettings[i] = {
                 type: "string",
                 sortable: true,
                 searchable: true
@@ -543,10 +547,10 @@ var readTableData = function (dataConvert, dataOption, dom, columnSettings) {
         data.data = dataOption.data;
     }
     else if (dataOption.data) {
-        data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings.columns[index]); }); });
+        data.data = dataOption.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, columnSettings[index]); }); });
     }
     else if ((_b = dom === null || dom === void 0 ? void 0 : dom.tBodies) === null || _b === void 0 ? void 0 : _b.length) {
-        data.data = Array.from(dom.tBodies[0].rows).map(function (row) { return Array.from(row.cells).map(function (cell, index) { return readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index]); }); });
+        data.data = Array.from(dom.tBodies[0].rows).map(function (row) { return Array.from(row.cells).map(function (cell, index) { return readDataCell(cell.dataset.content || cell.innerHTML, columnSettings[index]); }); });
     }
     if (data.data.length && data.data[0].length !== data.headings.length) {
         throw new Error("Data heading length mismatch.");
@@ -585,7 +589,7 @@ var Rows = /** @class */ (function () {
         var _this = this;
         var row = this.dt.options.dataConvert ?
             data.map(function (cell, index) {
-                var columnSettings = _this.dt.columns.settings.columns[index] || { type: "string" };
+                var columnSettings = _this.dt.columns.settings[index];
                 return readDataCell(cell, columnSettings);
             }) :
             data;
@@ -652,7 +656,7 @@ var Rows = /** @class */ (function () {
         var _this = this;
         var row = this.dt.options.dataConvert ?
             data.map(function (cell, index) {
-                var columnSettings = _this.dt.columns.settings.columns[index] || { type: "string" };
+                var columnSettings = _this.dt.columns.settings[index];
                 return readDataCell(cell, columnSettings);
             }) :
             data;
@@ -666,6 +670,7 @@ var readColumnSettings = function (columnOptions) {
     if (columnOptions === void 0) { columnOptions = []; }
     var columns = [];
     var sort = false;
+    var filters = [];
     // Check for the columns option
     columnOptions.forEach(function (data) {
         // convert single column selection to array
@@ -728,9 +733,14 @@ var readColumnSettings = function (columnOptions) {
                 column.sortSequence = data.sortSequence;
             }
             if (data.sort) {
-                // We only allow one. The last one will overwrite all other options
-                sort = { column: selector,
-                    dir: data.sort };
+                if (data.filter) {
+                    filters[selector] = data.sort;
+                }
+                else {
+                    // We only allow one. The last one will overwrite all other options
+                    sort = { column: selector,
+                        dir: data.sort };
+                }
             }
         });
     });
@@ -739,17 +749,18 @@ var readColumnSettings = function (columnOptions) {
         { type: "string",
             sortable: true,
             searchable: true }; });
-    return { columns: columns, sort: sort };
+    var widths = []; // Width are determined later on by measuring on screen.
+    return [columns, { filters: filters, sort: sort, widths: widths }];
 };
 
 var Columns = /** @class */ (function () {
     function Columns(dt) {
         this.dt = dt;
-        this._widths = [];
         this.init();
     }
     Columns.prototype.init = function () {
-        this.settings = readColumnSettings(this.dt.options.columns);
+        var _a;
+        _a = readColumnSettings(this.dt.options.columns), this.settings = _a[0], this._state = _a[1];
     };
     /**
      * Swap two columns
@@ -773,7 +784,7 @@ var Columns = /** @class */ (function () {
         var _this = this;
         this.dt.data.headings = columns.map(function (index) { return _this.dt.data.headings[index]; });
         this.dt.data.data = this.dt.data.data.map(function (row) { return columns.map(function (index) { return row[index]; }); });
-        this.settings.columns = columns.map(function (index) { return _this.settings.columns[index]; });
+        this.settings = columns.map(function (index) { return _this.settings[index]; });
         // Update
         this.dt.update();
     };
@@ -786,12 +797,12 @@ var Columns = /** @class */ (function () {
             return;
         }
         columns.forEach(function (index) {
-            if (!_this.settings.columns[index]) {
-                _this.settings.columns[index] = {
+            if (!_this.settings[index]) {
+                _this.settings[index] = {
                     type: "string"
                 };
             }
-            var column = _this.settings.columns[index];
+            var column = _this.settings[index];
             column.hidden = true;
         });
         this.dt.update();
@@ -805,13 +816,13 @@ var Columns = /** @class */ (function () {
             return;
         }
         columns.forEach(function (index) {
-            if (!_this.settings.columns[index]) {
-                _this.settings.columns[index] = {
+            if (!_this.settings[index]) {
+                _this.settings[index] = {
                     type: "string",
                     sortable: true
                 };
             }
-            var column = _this.settings.columns[index];
+            var column = _this.settings[index];
             delete column.hidden;
         });
         this.dt.update();
@@ -823,9 +834,9 @@ var Columns = /** @class */ (function () {
         var _this = this;
         var _a;
         if (Array.isArray(columns)) {
-            return columns.map(function (index) { var _a; return !((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
+            return columns.map(function (index) { var _a; return !((_a = _this.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
         }
-        return !((_a = this.settings.columns[columns]) === null || _a === void 0 ? void 0 : _a.hidden);
+        return !((_a = this.settings[columns]) === null || _a === void 0 ? void 0 : _a.hidden);
     };
     /**
      * Add a new column
@@ -838,13 +849,13 @@ var Columns = /** @class */ (function () {
         this.dt.data.data = this.dt.options.dataConvert ?
             this.dt.data.data.map(function (row, index) { return row.concat([readDataCell(data.data[index], data)]); }) :
             this.dt.data.data.map(function (row, index) { return row.concat([data.data[index]]); });
-        this.settings.columns[newColumnSelector] = {
+        this.settings[newColumnSelector] = {
             type: data.type || "string",
             sortable: true,
             searchable: true
         };
         if (data.type || data.format || data.sortable || data.render || data.filter) {
-            var column = this.settings.columns[newColumnSelector];
+            var column = this.settings[newColumnSelector];
             if (data.render) {
                 column.render = data.render;
             }
@@ -915,35 +926,33 @@ var Columns = /** @class */ (function () {
     Columns.prototype.filter = function (column, init) {
         var _a, _b;
         if (init === void 0) { init = false; }
-        if (!((_b = (_a = this.settings.columns[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length)) {
+        if (!((_b = (_a = this.settings[column]) === null || _a === void 0 ? void 0 : _a.filter) === null || _b === void 0 ? void 0 : _b.length)) {
             // There is no filter to apply.
             return;
         }
-        var currentFilter = this.dt._filterStates.find(function (filterState) { return filterState.column === column; });
+        var currentFilter = this._state.filters[column];
         var newFilterState;
         if (currentFilter) {
             var returnNext_1 = false;
-            newFilterState = this.settings.columns[column].filter.find(function (filter) {
+            newFilterState = this.settings[column].filter.find(function (filter) {
                 if (returnNext_1) {
                     return true;
                 }
-                if (filter === currentFilter.state) {
+                if (filter === currentFilter) {
                     returnNext_1 = true;
                 }
                 return false;
             });
         }
         else {
-            newFilterState = this.settings.columns[column].filter[0];
+            var filter = this.settings[column].filter;
+            newFilterState = filter ? filter[0] : undefined;
         }
-        if (currentFilter && newFilterState) {
-            currentFilter.state = newFilterState;
+        if (newFilterState) {
+            this._state.filters[column] = newFilterState;
         }
         else if (currentFilter) {
-            this.dt._filterStates = this.dt._filterStates.filter(function (filterState) { return filterState.column !== column; });
-        }
-        else {
-            this.dt._filterStates.push({ column: column, state: newFilterState });
+            this._state.filters[column] = undefined;
         }
         this.dt.update();
         if (!init) {
@@ -954,19 +963,15 @@ var Columns = /** @class */ (function () {
      * Sort by column
      */
     Columns.prototype.sort = function (index, dir, init) {
-        var _a, _b;
+        var _a;
         if (dir === void 0) { dir = undefined; }
         if (init === void 0) { init = false; }
-        var column = this.settings.columns[index];
-        // If there is a filter for this column, apply it instead of sorting
-        if ((_a = column === null || column === void 0 ? void 0 : column.filter) === null || _a === void 0 ? void 0 : _a.length) {
-            return this.filter(index, init);
-        }
+        var column = this.settings[index];
         if (!init) {
             this.dt.emit("datatable.sorting", index, dir);
         }
         if (!dir) {
-            var currentDir = this.settings.sort ? (_b = this.settings.sort) === null || _b === void 0 ? void 0 : _b.dir : false;
+            var currentDir = this._state.sort ? (_a = this._state.sort) === null || _a === void 0 ? void 0 : _a.dir : false;
             var sortSequence = (column === null || column === void 0 ? void 0 : column.sortSequence) || ["asc", "desc"];
             if (!currentDir) {
                 dir = sortSequence.length ? sortSequence[0] : "asc";
@@ -1010,7 +1015,7 @@ var Columns = /** @class */ (function () {
             }
             return 0;
         });
-        this.settings.sort = { column: index, dir: dir };
+        this._state.sort = { column: index, dir: dir };
         if (this.dt._searchQuery) {
             this.dt.search(this.dt._searchQuery);
             this.dt.emit("datatable.sort", index, dir);
@@ -1027,9 +1032,9 @@ var Columns = /** @class */ (function () {
     Columns.prototype._measureWidths = function () {
         var _this = this;
         var _a, _b, _c, _d;
-        var activeHeadings = this.dt.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
+        var activeHeadings = this.dt.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
         if ((this.dt.options.scrollY.length || this.dt.options.fixedColumns) && (activeHeadings === null || activeHeadings === void 0 ? void 0 : activeHeadings.length)) {
-            this._widths = [];
+            this._state.widths = [];
             var renderOptions = {
                 noPaging: true
             };
@@ -1050,7 +1055,7 @@ var Columns = /** @class */ (function () {
                 var domCounter_1 = 0;
                 var absoluteColumnWidths = this.dt.data.headings.map(function (_heading, index) {
                     var _a;
-                    if ((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
+                    if ((_a = _this.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
                         return 0;
                     }
                     var width = activeDOMHeadings_1[domCounter_1].offsetWidth;
@@ -1058,7 +1063,7 @@ var Columns = /** @class */ (function () {
                     return width;
                 });
                 var totalOffsetWidth_1 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
-                this._widths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
+                this._state.widths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_1 * 100; });
             }
             else {
                 renderOptions.renderHeader = true;
@@ -1067,7 +1072,7 @@ var Columns = /** @class */ (function () {
                 var domCounter_2 = 0;
                 var absoluteColumnWidths = this.dt.data.headings.map(function (_heading, index) {
                     var _a;
-                    if ((_a = _this.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
+                    if ((_a = _this.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden) {
                         return 0;
                     }
                     var width = activeDOMHeadings_2[domCounter_2].offsetWidth;
@@ -1075,7 +1080,7 @@ var Columns = /** @class */ (function () {
                     return width;
                 });
                 var totalOffsetWidth_2 = absoluteColumnWidths.reduce(function (total, cellWidth) { return total + cellWidth; }, 0);
-                this._widths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });
+                this._state.widths = absoluteColumnWidths.map(function (cellWidth) { return cellWidth / totalOffsetWidth_2 * 100; });
             }
             // render table without options for measurements
             this.dt._renderTable();
@@ -1149,12 +1154,16 @@ var defaultConfig$1 = {
     template: layoutTemplate,
     classes: {
         active: "active",
+        ascending: "asc",
         bottom: "datatable-bottom",
         container: "datatable-container",
         cursor: "datatable-cursor",
+        descending: "desc",
         disabled: "disabled",
         dropdown: "datatable-dropdown",
         ellipsis: "ellipsis",
+        filter: "datatable-filter",
+        filterActive: "datatable-filter-active",
         empty: "datatable-empty",
         headercontainer: "datatable-headercontainer",
         info: "datatable-info",
@@ -1184,7 +1193,7 @@ var DataTable = /** @class */ (function () {
             this.dom = dom;
         }
         else {
-            this.dom = document.createElement('table');
+            this.dom = document.createElement("table");
             dom.appendChild(this.dom);
         }
         var labels = __assign(__assign({}, defaultConfig$1.labels), options.labels);
@@ -1208,7 +1217,6 @@ var DataTable = /** @class */ (function () {
         this.onFirstPage = true;
         this.hasHeadings = false;
         this.hasRows = false;
-        this._filterStates = [];
         this.init();
     }
     /**
@@ -1220,7 +1228,7 @@ var DataTable = /** @class */ (function () {
             return false;
         }
         this.virtualDOM = g(this.dom);
-        this._tableAttributes = Object.assign({}, this.virtualDOM.attributes);
+        this._tableAttributes = __assign({}, this.virtualDOM.attributes);
         this.rows = new Rows(this);
         this.columns = new Columns(this);
         this.data = readTableData(this.options.dataConvert, this.options.data, this.dom, this.columns.settings);
@@ -1303,8 +1311,8 @@ var DataTable = /** @class */ (function () {
             this.wrapperDOM.classList.add("fixed-columns");
         }
         this._bindEvents();
-        if (this.columns.settings.sort) {
-            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true);
+        if (this.columns._state.sort) {
+            this.columns.sort(this.columns._state.sort.column, this.columns._state.sort.dir, true);
         }
         this.update(true);
     };
@@ -1315,7 +1323,7 @@ var DataTable = /** @class */ (function () {
             this.data.data.map(function (row, index) { return ({
                 row: row,
                 index: index
-            }); }), this.columns.settings, this.columns._widths, this.rows.cursor, this.options, renderOptions);
+            }); }), this.columns.settings, this.columns._state, this.rows.cursor, this.options, renderOptions);
         if (this.options.tableRender) {
             var renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, "main");
             if (renderedTableVirtualDOM) {
@@ -1450,7 +1458,7 @@ var DataTable = /** @class */ (function () {
                 {
                     nodeName: "THEAD",
                     childNodes: [
-                        headingsToVirtualHeaderRowDOM(this.data.headings, this.columns.settings, this.columns._widths, this.options, { unhideHeader: true })
+                        headingsToVirtualHeaderRowDOM(this.data.headings, this.columns.settings, this.columns._state, this.options, { unhideHeader: true })
                     ]
                 }
             ]
@@ -1522,12 +1530,16 @@ var DataTable = /** @class */ (function () {
                 _this.page(parseInt(hyperlink.getAttribute("data-page"), 10));
                 event.preventDefault();
             }
-            else if (_this.options.sortable &&
-                hyperlink.classList.contains(_this.options.classes.sorter) &&
-                hyperlink.parentElement.getAttribute("data-sortable") != "false") {
+            else if (hyperlink.classList.contains(_this.options.classes.sorter)) {
                 var visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement);
-                var columnIndex = visibleToColumnIndex(visibleIndex, _this.columns.settings.columns);
+                var columnIndex = visibleToColumnIndex(visibleIndex, _this.columns.settings);
                 _this.columns.sort(columnIndex);
+                event.preventDefault();
+            }
+            else if (hyperlink.classList.contains(_this.options.classes.filter)) {
+                var visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement);
+                var columnIndex = visibleToColumnIndex(visibleIndex, _this.columns.settings);
+                _this.columns.filter(columnIndex);
                 event.preventDefault();
             }
         }, false);
@@ -1665,9 +1677,12 @@ var DataTable = /** @class */ (function () {
             rows = [];
             this._searchData.forEach(function (index) { return rows.push({ index: index, row: _this.data.data[index] }); });
         }
-        if (this._filterStates.length) {
-            this._filterStates.forEach(function (filterState) {
-                rows = rows.filter(function (row) { return typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state; });
+        if (this.columns._state.filters.length) {
+            this.columns._state.filters.forEach(function (filterState, column) {
+                if (!filterState) {
+                    return;
+                }
+                rows = rows.filter(function (row) { return typeof filterState === "function" ? filterState(row.row[column].data) : row.row[column].data === filterState; });
             });
         }
         if (this.options.paging && this.options.perPage > 0) {
@@ -1709,7 +1724,7 @@ var DataTable = /** @class */ (function () {
             this.wrapperDOM.classList.remove("search-results");
             return false;
         }
-        var queryWords = this.columns.settings.columns.map(function (column) {
+        var queryWords = this.columns.settings.map(function (column) {
             if (column.hidden || !column.searchable) {
                 return false;
             }
@@ -1734,7 +1749,7 @@ var DataTable = /** @class */ (function () {
                     var cell = row[i];
                     var content_1 = (cell.text || String(cell.data)).trim();
                     if (content_1.length) {
-                        var column = _this.columns.settings.columns[i];
+                        var column = _this.columns.settings[i];
                         var sensitivity = column.sensitivity || _this.options.sensitivity;
                         if (["base", "accent"].includes(sensitivity)) {
                             content_1 = content_1.toLowerCase();
@@ -1802,10 +1817,10 @@ var DataTable = /** @class */ (function () {
                     var heading = _a[0], cell = _a[1];
                     var index = headings_1.indexOf(heading);
                     if (index > -1) {
-                        r[index] = readDataCell(cell, _this.columns.settings.columns[index]);
+                        r[index] = readDataCell(cell, _this.columns.settings[index]);
                     }
                     else if (!_this.hasHeadings && !_this.hasRows && rIndex === 0) {
-                        r[headings_1.length] = readDataCell(cell, _this.columns.settings.columns[headings_1.length]);
+                        r[headings_1.length] = readDataCell(cell, _this.columns.settings[headings_1.length]);
                         headings_1.push(heading);
                         _this.data.headings.push(readHeaderCell(heading));
                     }
@@ -1820,7 +1835,7 @@ var DataTable = /** @class */ (function () {
                 this.hasHeadings = Boolean(this.data.headings.length);
             }
             else if (data.data && Array.isArray(data.data)) {
-                rows = data.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, _this.columns.settings.columns[index]); }); });
+                rows = data.data.map(function (row) { return row.map(function (cell, index) { return readDataCell(cell, _this.columns.settings[index]); }); });
             }
         }
         if (rows.length) {
@@ -1828,8 +1843,8 @@ var DataTable = /** @class */ (function () {
             this.hasRows = true;
         }
         this.hasHeadings = Boolean(this.data.headings.length);
-        if (this.columns.settings.sort) {
-            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true);
+        if (this.columns._state.sort) {
+            this.columns.sort(this.columns._state.sort.column, this.columns._state.sort.dir, true);
         }
         this.update(true);
     };
@@ -1855,7 +1870,7 @@ var DataTable = /** @class */ (function () {
         var newTableVirtualDOM = dataToVirtualDOM(this._tableAttributes, this.data.headings, this.data.data.map(function (row, index) { return ({
             row: row,
             index: index
-        }); }), this.columns.settings, this.columns._widths, false, // No row cursor
+        }); }), this.columns.settings, this.columns._state, false, // No row cursor
         this.options, {
             noColumnWidths: true,
             unhideHeader: true
@@ -1881,7 +1896,7 @@ var DataTable = /** @class */ (function () {
     DataTable.prototype.setMessage = function (message) {
         var _this = this;
         var _a;
-        var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
+        var activeHeadings = this.data.headings.filter(function (heading, index) { var _a; return !((_a = _this.columns.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden); });
         var colspan = activeHeadings.length || 1;
         this.wrapperDOM.classList.add(this.options.classes.empty);
         if (this._label) {
@@ -2072,7 +2087,7 @@ var exportCSV = function (dt, userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
     var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
     // Include headings
@@ -2151,7 +2166,7 @@ var exportJSON = function (dt, userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
     // Selection or whole table
     if (options.selection) {
@@ -2218,7 +2233,7 @@ var exportSQL = function (dt, userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
     // Selection or whole table
     if (options.selection) {
@@ -2305,7 +2320,7 @@ var exportTXT = function (dt, userOptions) {
         return false;
     }
     var options = __assign(__assign({}, defaults), userOptions);
-    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings.columns[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
+    var columnShown = function (index) { var _a; return !options.skipColumn.includes(index) && !((_a = dt.columns.settings[index]) === null || _a === void 0 ? void 0 : _a.hidden); };
     var rows = [];
     var headers = dt.data.headings.filter(function (_heading, index) { return columnShown(index); }).map(function (header) { var _a; return (_a = header.text) !== null && _a !== void 0 ? _a : header.data; });
     // Include headings
@@ -2642,7 +2657,7 @@ var Editor = /** @class */ (function () {
      */
     Editor.prototype.editCell = function (td) {
         var _this = this;
-        var columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columns.settings.columns);
+        var columnIndex = visibleToColumnIndex(td.cellIndex, this.dt.columns.settings);
         if (this.options.excludeColumns.includes(columnIndex)) {
             this.closeMenu();
             return;
@@ -2759,7 +2774,7 @@ var Editor = /** @class */ (function () {
         }
         // Add the inputs for each cell
         row.forEach(function (cell, i) {
-            var columnSettings = _this.dt.columns.settings.columns[i];
+            var columnSettings = _this.dt.columns.settings[i];
             if ((!columnSettings.hidden || (columnSettings.hidden && _this.options.hiddenColumns)) && !_this.options.excludeColumns.includes(i)) {
                 var label = _this.dt.data.headings[i].text || String(_this.dt.data.headings[i].data);
                 form.insertBefore(createElement("div", {

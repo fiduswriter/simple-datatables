@@ -64,12 +64,16 @@ export const defaultConfig: DataTableConfiguration = {
 
     classes: { // Note: use single class names
         active: "active", // TODO in 7.0.0: datatable-active
+        ascending: "asc", // TODO in 7.0.0: datatable-ascending
         bottom: "datatable-bottom",
         container: "datatable-container",
         cursor: "datatable-cursor",
+        descending: "desc", // TODO in 7.0.0: datatable-descending
         disabled: "disabled", // TODO in 7.0.0: datatable-disabled
         dropdown: "datatable-dropdown",
         ellipsis: "ellipsis", // TODO in 7.0.0: datatable-ellipsis
+        filter: "datatable-filter",
+        filterActive: "datatable-filter-active",
         empty: "datatable-empty",
         headercontainer: "datatable-headercontainer",
         info: "datatable-info",

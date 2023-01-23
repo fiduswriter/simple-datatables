@@ -39,7 +39,7 @@ export const exportTXT = function(dt: DataTable, userOptions : txtUserOptions = 
         ...userOptions
     }
 
-    const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
+    const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings[index]?.hidden
 
     let rows : (string | number | boolean | object | undefined | null)[][] = []
     const headers = dt.data.headings.filter((_heading: headerCellType, index: number) => columnShown(index)).map((header: headerCellType) => header.text ?? header.data)

@@ -1,12 +1,14 @@
 import {
-    allColumnSettingsType,
+    columnsStateType,
+    filterStateType,
     singleColumnSettingsType
 } from "./types"
 
-export const readColumnSettings = (columnOptions = []) : allColumnSettingsType => {
+export const readColumnSettings = (columnOptions = []) : [singleColumnSettingsType[], columnsStateType] => {
 
     let columns: (singleColumnSettingsType | undefined)[] = []
     let sort: (false | {column: number, dir: "asc" | "desc"}) = false
+    const filters: (filterStateType | undefined )[] = []
 
     // Check for the columns option
 
@@ -84,9 +86,13 @@ export const readColumnSettings = (columnOptions = []) : allColumnSettingsType =
             }
 
             if (data.sort) {
-                // We only allow one. The last one will overwrite all other options
-                sort = {column: selector,
-                    dir: data.sort}
+                if (data.filter) {
+                    filters[selector] = data.sort
+                } else {
+                    // We only allow one. The last one will overwrite all other options
+                    sort = {column: selector,
+                        dir: data.sort}
+                }
             }
 
         })
@@ -100,7 +106,12 @@ export const readColumnSettings = (columnOptions = []) : allColumnSettingsType =
             sortable: true,
             searchable: true})
 
-    return {columns,
-        sort}
+    const widths = [] // Width are determined later on by measuring on screen.
+
+    return [
+        columns, {filters,
+            sort,
+            widths}
+    ]
 
 }

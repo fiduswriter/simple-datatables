@@ -42,7 +42,7 @@ export const exportJSON = function(dt: DataTable, userOptions: jsonUserOptions =
         ...userOptions
     }
 
-    const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings.columns[index]?.hidden
+    const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings[index]?.hidden
 
     let rows : (string | number | boolean | object | undefined | null)[][] = []
     // Selection or whole table

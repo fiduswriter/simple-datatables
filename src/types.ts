@@ -120,13 +120,17 @@ interface LabelsConfiguration {
 
 interface ClassConfiguration {
     active: string;
+    ascending: string;
     bottom: string;
     container: string;
     cursor: string;
+    descending: string;
     disabled: string;
     dropdown: string;
     ellipsis: string;
     empty: string;
+    filter: string;
+    filterActive: string;
     headercontainer: string;
     info: string;
     input: string;
@@ -373,11 +377,6 @@ interface singleColumnSettingsType {
     sortSequence?: ("asc" | "desc")[],
 }
 
-interface allColumnSettingsType {
-    columns: singleColumnSettingsType[],
-    sort: (false | {column: number, dir: "asc" | "desc"})
-}
-
 interface renderOptions {
     noPaging?: true;
     noColumnWidths?: true;
@@ -385,15 +384,18 @@ interface renderOptions {
     renderHeader?: true
 }
 
-type filterStateType = {
-    column: number;
-    state: (string | number | boolean | elementNodeType[] | object | ((arg: (string | number | boolean | elementNodeType[] | object)) => boolean));
+type filterStateType = (string | number | boolean | elementNodeType[] | object | ((arg: (string | number | boolean | elementNodeType[] | object)) => boolean));
+
+interface columnsStateType {
+    sort: (false | {column: number, dir: "asc" | "desc"}),
+    filters: (filterStateType | undefined)[]
+    widths: number[]
 }
 
 
 export {
-    allColumnSettingsType,
     cellType,
+    columnsStateType,
     DataOption,
     DataTableConfiguration,
     DataTableOptions,

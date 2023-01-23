@@ -97,14 +97,14 @@ export const readTableData = (dataConvert, dataOption: DataOption, dom: (HTMLTab
     } else if (dom?.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
             const heading = readHeaderCell(th.innerHTML)
-            if (!columnSettings.columns[index]) {
-                columnSettings.columns[index] = {
+            if (!columnSettings[index]) {
+                columnSettings[index] = {
                     type: "string",
                     searchable: true,
                     sortable: true
                 }
             }
-            const settings = columnSettings.columns[index]
+            const settings = columnSettings[index]
             if (th.dataset.sortable?.trim().toLowerCase() === "false" || th.dataset.sort?.trim().toLowerCase() === "false") {
                 settings.sortable = false
             }
@@ -129,8 +129,8 @@ export const readTableData = (dataConvert, dataOption: DataOption, dom: (HTMLTab
     }
     for (let i=0; i<data.headings.length; i++) {
         // Make sure that there are settings for all columns
-        if (!columnSettings.columns[i]) {
-            columnSettings.columns[i] = {
+        if (!columnSettings[i]) {
+            columnSettings[i] = {
                 type: "string",
                 sortable: true,
                 searchable: true
@@ -140,11 +140,11 @@ export const readTableData = (dataConvert, dataOption: DataOption, dom: (HTMLTab
     if (!dataConvert && dataOption.data) {
         data.data = dataOption.data
     } else if (dataOption.data) {
-        data.data = dataOption.data.map((row: inputCellType[]) => row.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings.columns[index])))
+        data.data = dataOption.data.map((row: inputCellType[]) => row.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings[index])))
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(
             row => Array.from(row.cells).map(
-                (cell, index) => readDataCell(cell.dataset.content || cell.innerHTML, columnSettings.columns[index])
+                (cell, index) => readDataCell(cell.dataset.content || cell.innerHTML, columnSettings[index])
             )
         )
     }
