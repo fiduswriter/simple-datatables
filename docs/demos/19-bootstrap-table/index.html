@@ -766,7 +766,7 @@
     options.paging && options.perPageSelect ?
         `<div class='${options.classes.dropdown} bs-bars float-left'>
             <label>
-                {select} ${options.labels.perPage}
+                <select class='${options.classes.selector}'></select>
             </label>
         </div>` :
         ""
@@ -774,7 +774,7 @@
     ${
     options.searchable ?
         `<div class='${options.classes.search} float-right search btn-group'>
-            <input class='${options.classes.input} form-control search-input' placeholder='${options.labels.placeholder}' type='search'>
+            <input class='${options.classes.input} form-control search-input' placeholder='Search' type='search'>
         </div>` :
         ""
 }
@@ -786,12 +786,8 @@
         `<div class='${options.classes.info}'></div>` :
         ""
 }
-    {pager}
+    <nav class='${options.classes.pagination}'></nav>
 </div>`,
-                labels: {
-                    placeholder: "Search",
-                    perPage: ""
-                },
                 tableRender: (_data, table, _type) => {
                     // We ignore type ('main', 'print', 'header', 'message')
                     const thead = table.childNodes[0]

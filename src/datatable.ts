@@ -184,42 +184,24 @@ export class DataTable {
             class: `${this.options.classes.wrapper} ${this.options.classes.loading}`
         })
 
-        let template = this.options.template(this.options)
+        this.wrapperDOM.innerHTML = this.options.template(this.options)
+
+        const selector = this.wrapperDOM.querySelector(`select.${this.options.classes.selector}`)
 
         // Per Page Select
-        if (this.options.paging && this.options.perPageSelect) {
-
-            // Create the select
-            const select = createElement("select", {
-                class: this.options.classes.selector
-            })
+        if (selector && this.options.paging && this.options.perPageSelect) {
 
             // Create the options
             this.options.perPageSelect.forEach((choice: number | [string, number]) => {
                 const [lab, val] = Array.isArray(choice) ? [choice[0], choice[1]] : [String(choice), choice]
                 const selected = val === this.options.perPage
                 const option = new Option(lab, String(val), selected, selected)
-                select.appendChild(option)
+                selector.appendChild(option)
             })
 
-            // Selector placement
-            template = template.replace("{select}", select.outerHTML)
-        } else {
-            template = template.replace("{select}", "")
+        } else if (selector) {
+            selector.parentElement.removeChild(selector)
         }
-
-        // Paginator
-        const paginatorWrapper = createElement("nav", {
-            class: this.options.classes.pagination
-        })
-        const paginator = createElement("ul", {
-            class: this.options.classes.paginationList
-        })
-        paginatorWrapper.appendChild(paginator)
-
-        // Pager(s) placement
-        template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML)
-        this.wrapperDOM.innerHTML = template
 
         this.containerDOM = this.wrapperDOM.querySelector(`.${this.options.classes.container}`)
 
@@ -388,6 +370,9 @@ export class DataTable {
      *
      */
     _renderPagers() {
+        if (!this.options.paging) {
+            return
+        }
         let newPagerVirtualDOM = createVirtualPagerDOM(this.onFirstPage, this.onLastPage, this._currentPage, this.totalPages, this.options)
 
         if (this.options.pagerRender) {

@@ -4,7 +4,7 @@ export const layoutTemplate = options => `<div class='${options.classes.top}'>
     options.paging && options.perPageSelect ?
         `<div class='${options.classes.dropdown}'>
             <label>
-                {select} ${options.labels.perPage}
+                <select class='${options.classes.selector}'></select> ${options.labels.perPage}
             </label>
         </div>` :
         ""
@@ -24,5 +24,5 @@ export const layoutTemplate = options => `<div class='${options.classes.top}'>
         `<div class='${options.classes.info}'></div>` :
         ""
 }
-    {pager}
+    <nav class='${options.classes.pagination}'></nav>
 </div>`
