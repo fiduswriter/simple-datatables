@@ -172,6 +172,9 @@ const dataToVirtualDOM = (tableAttributes, headings, rows, columnSettings, colum
                                 };
                             }
                             if (column.cellClass) {
+                                if (!td.attributes) {
+                                    td.attributes = {};
+                                }
                                 td.attributes.class = column.cellClass;
                             }
                             if (column.render) {
@@ -1056,15 +1059,15 @@ const defaultConfig$1 = {
     // Customise the layout
     template: layoutTemplate,
     classes: {
-        active: "active",
-        ascending: "asc",
+        active: "datatable-active",
+        ascending: "datatable-ascending",
         bottom: "datatable-bottom",
         container: "datatable-container",
         cursor: "datatable-cursor",
-        descending: "desc",
-        disabled: "disabled",
+        descending: "datatable-descending",
+        disabled: "datatable-disabled",
         dropdown: "datatable-dropdown",
-        ellipsis: "ellipsis",
+        ellipsis: "datatable-ellipsis",
         filter: "datatable-filter",
         filterActive: "datatable-filter-active",
         empty: "datatable-empty",

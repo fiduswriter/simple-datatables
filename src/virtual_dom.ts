@@ -148,6 +148,9 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                         }
                                     }
                                     if (column.cellClass) {
+                                        if (!td.attributes) {
+                                            td.attributes = {}
+                                        }
                                         td.attributes.class = column.cellClass
                                     }
                                     if (column.render) {

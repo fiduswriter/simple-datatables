@@ -67,14 +67,6 @@
 	background-color: #d9d9d9;
 }
 
-/* TODO in 7.0.0: remove */
-.datatable-pagination .active a,
-.datatable-pagination .active a:focus,
-.datatable-pagination .active a:hover {
-	background-color: #d9d9d9;
-	cursor: default;
-}
-
 .datatable-pagination .datatable-active a,
 .datatable-pagination .datatable-active a:focus,
 .datatable-pagination .datatable-active a:hover {
@@ -83,22 +75,21 @@
 }
 
 .datatable-pagination .datatable-ellipsis a,
-.datatable-pagination .ellipsis a, /* TODO in 7.0.0: remove */
-.datatable-pagination .disabled a,
-.datatable-pagination .disabled a:focus,
-.datatable-pagination .disabled a:hover {
+.datatable-pagination .datatable-disabled a,
+.datatable-pagination .datatable-disabled a:focus,
+.datatable-pagination .datatable-disabled a:hover {
     pointer-events: none;
     cursor: default;
 }
 
-.datatable-pagination .disabled a,
-.datatable-pagination .disabled a:focus,
-.datatable-pagination .disabled a:hover {
+.datatable-pagination .datatable-disabled a,
+.datatable-pagination .datatable-disabled a:focus,
+.datatable-pagination .datatable-disabled a:hover {
 	cursor: not-allowed;
 	opacity: 0.4;
 }
 
-.datatable-pagination .pager a {
+.datatable-pagination .datatable-pagination a {
 	font-weight: bold;
 }
 
@@ -173,10 +164,10 @@
 	top: 0px;
 }
 
-.asc .datatable-sorter::after,
-.desc .datatable-sorter::before,
-.asc .datatable-filter::after,
-.desc .datatable-filter::before {
+.datatable-ascending .datatable-sorter::after,
+.datatable-descending .datatable-sorter::before,
+.datatable-ascending .datatable-filter::after,
+.datatable-descending .datatable-filter::before {
 	opacity: 0.6;
 }
 

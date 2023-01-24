@@ -2,7 +2,7 @@
 #### Type: `object`
 
 ### Default
-```javascript
+
 layout: {
     top: "{select}{search}",
     bottom: "{info}{pager}"
