@@ -1,9 +1,6 @@
 import {
     isObject,
     createElement,
-    flush,
-    paginationListItem,
-    truncate,
     visibleToColumnIndex
 } from "./helpers"
 import {
@@ -24,6 +21,7 @@ import {readTableData, readDataCell, readHeaderCell} from "./read_data"
 import {Rows} from "./rows"
 import {Columns} from "./columns"
 import {defaultConfig} from "./config"
+import {createVirtualPagerDOM} from "./virtual_pager_dom"
 
 
 export class DataTable {
@@ -58,8 +56,6 @@ export class DataTable {
 
     lastPage: number
 
-    _paginationListItems: HTMLElement[]
-
     _listeners: { [key: string]: () => void}
 
     onFirstPage: boolean
@@ -68,7 +64,9 @@ export class DataTable {
 
     options: DataTableConfiguration
 
-    _pagers: HTMLUListElement[]
+    _pagerDOMs: HTMLElement[]
+
+    _virtualPagerDOM: elementNodeType
 
     pages: {row: cellType[], index: number}[][]
 
@@ -225,7 +223,23 @@ export class DataTable {
 
         this.containerDOM = this.wrapperDOM.querySelector(`.${this.options.classes.container}`)
 
-        this._pagers = Array.from(this.wrapperDOM.querySelectorAll(`ul.${this.options.classes.paginationList}`))
+        this._pagerDOMs = []
+        Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.pagination}`)).forEach(el => {
+            if (!(el instanceof HTMLElement)) {
+                return
+            }
+            // We remove the inner part of the pager containers to ensure they are all the same.
+            el.innerHTML = `<ul class="${this.options.classes.paginationList}"></ul>`
+            this._pagerDOMs.push(el.firstElementChild as HTMLElement)
+        })
+
+        this._virtualPagerDOM = {
+            nodeName: "UL",
+            attributes: {
+                class: this.options.classes.paginationList
+            }
+        }
+
 
         this._label = this.wrapperDOM.querySelector(`.${this.options.classes.info}`)
 
@@ -370,66 +384,26 @@ export class DataTable {
         }
     }
 
-    /**
-     * Render the pager(s)
-     * @return {Void}
+    /** Render the pager(s)
+     *
      */
-    _renderPager() {
-        flush(this._pagers)
+    _renderPagers() {
+        let newPagerVirtualDOM = createVirtualPagerDOM(this.onFirstPage, this.onLastPage, this._currentPage, this.totalPages, this.options)
 
-        if (this.totalPages > 1) {
-            const frag = document.createDocumentFragment()
-            const prev = this.onFirstPage ? 1 : this._currentPage - 1
-            const next = this.onLastPage ? this.totalPages : this._currentPage + 1
-
-            // first button
-            if (this.options.firstLast) {
-                frag.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, 1, this.options.firstText))
+        if (this.options.pagerRender) {
+            const renderedPagerVirtualDOM : (elementNodeType | void) = this.options.pagerRender([this.onFirstPage, this.onLastPage, this._currentPage, this.totalPages], newPagerVirtualDOM)
+            if (renderedPagerVirtualDOM) {
+                newPagerVirtualDOM = renderedPagerVirtualDOM
             }
-
-            // prev button
-            if (this.options.nextPrev && !this.onFirstPage) {
-                frag.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, prev, this.options.prevText))
-            }
-
-            let pager = this._paginationListItems
-
-            // truncate the paginationListItems
-            if (this.options.truncatePager) {
-                pager = truncate(
-                    this._paginationListItems,
-                    this._currentPage,
-                    this.pages.length,
-                    this.options
-                )
-            }
-
-            // active page link
-            this._paginationListItems[this._currentPage - 1].classList.add(this.options.classes.active)
-
-            // append the paginationListItems
-            pager.forEach((p: HTMLElement) => {
-                p.classList.remove(this.options.classes.active)
-                frag.appendChild(p)
-            })
-
-            this._paginationListItems[this._currentPage - 1].classList.add(this.options.classes.active)
-
-            // next button
-            if (this.options.nextPrev && !this.onLastPage) {
-                frag.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, next, this.options.nextText))
-            }
-
-            // first button
-            if (this.options.firstLast) {
-                frag.appendChild(paginationListItem(this.options.classes.paginationListItem, this.options.classes.paginationListItemLink, this.totalPages, this.options.lastText))
-            }
-
-            // We may have more than one pager
-            this._pagers.forEach((pager: HTMLElement) => {
-                pager.appendChild(frag.cloneNode(true))
-            })
         }
+
+        const diffs = this._dd.diff(this._virtualPagerDOM, newPagerVirtualDOM)
+        // We may have more than one pager
+        this._pagerDOMs.forEach((pagerDOM: HTMLElement) => {
+            this._dd.apply(pagerDOM, diffs)
+        })
+
+        this._virtualPagerDOM = newPagerVirtualDOM
     }
 
     // Render header that is not in the same table element as the remainder
@@ -669,19 +643,7 @@ export class DataTable {
         this._paginate()
         this._renderPage()
 
-        this._paginationListItems = []
-
-        let i = this.pages.length
-        while (i--) {
-            const num = i + 1
-            this._paginationListItems[i] = paginationListItem(
-                i === 0 ? `${this.options.classes.active} ${this.options.classes.paginationListItem}` : this.options.classes.paginationListItem,
-                this.options.classes.paginationListItemLink,
-                num,
-                String(num)
-            )
-        }
-        this._renderPager()
+        this._renderPagers()
 
         if (this.options.scrollY.length) {
             this._renderSeparateHeader()
@@ -838,7 +800,7 @@ export class DataTable {
         }
 
         this._renderPage(lastRowCursor)
-        this._renderPager()
+        this._renderPagers()
 
         this.emit("datatable.page", page)
     }
@@ -960,7 +922,7 @@ export class DataTable {
             this._label.innerHTML = ""
         }
         this.totalPages = 0
-        this._renderPager()
+        this._renderPagers()
 
         let newVirtualDOM = structuredClone(this._virtualDOM)
 

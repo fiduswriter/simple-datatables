@@ -48,6 +48,10 @@
 	float: left;
 }
 
+.datatable-pagination li.datatable-hidden {
+    visibility: hidden;
+}
+
 .datatable-pagination a {
 	border: 1px solid transparent;
 	float: left;
@@ -56,6 +60,7 @@
 	position: relative;
 	text-decoration: none;
 	color: #333;
+    cursor: pointer;
 }
 
 .datatable-pagination a:hover {

@@ -132,6 +132,7 @@ interface ClassConfiguration {
     filter: string;
     filterActive: string;
     headercontainer: string;
+    hidden: string;
     info: string;
     input: string;
     loading: string;
@@ -146,6 +147,8 @@ interface ClassConfiguration {
     top: string;
     wrapper: string;
 }
+
+type pagerRenderType = ((data: [onFirstPage: boolean, onLastPage: boolean, currentPage: number, totalPages: number], pager: elementNodeType) => elementNodeType | void);
 
 type rowRenderType = ((row: object, tr: object, index: number) => elementNodeType | void);
 
@@ -164,21 +167,18 @@ interface DataTableConfiguration {
     */
     classes: ClassConfiguration;
     columns: ColumnOption[];
+    data: DataOption;
     /**
      * Pass an object of data to populate the table.
      *
      * You can set both the headings and rows with headings and data properties, respectively. The headings property is optional.
      *
-     * Docs : https://github.com/fiduswriter/simple-datatables/wiki/data
+     * Docs : https://fiduswriter.github.io/simple-datatable/documentation/data
      */
-    data: DataOption;
+    dataConvert: boolean;
     /**
      * Whether to attempt to convert input data instead of assuming it is in simpel-datatables native format.
      * Is true by default.
-     */
-    dataConvert: boolean;
-    /**Toggle the skip to first page and skip to last page buttons.
-     * Default: false
      */
     descText: string;
      /**
@@ -191,43 +191,47 @@ interface DataTableConfiguration {
      */
     ellipsisText: string;
     /**
-     * Default: '&hellip;'
+     * Default: '…'
      * Text to be used for ellipsis.
      */
     firstLast: boolean;
+    /**Toggle the skip to first page and skip to last page buttons.
+     * Default: false
+     */
+    firstText: string;
     /**
-     * default: '&laquo;'
+     * default: '«'
      * Set the content of the skip to first page button.
      *
      */
-    firstText: string;
+    fixedColumns: boolean;
     /**
      * Default: true
      * Fix the width of the columns. This stops the columns changing width when loading a new page.
      */
-    fixedColumns: boolean;
+    fixedHeight: boolean;
     /**
      * Default: false
      * Fix the height of the table. This is useful if your last page contains less rows than set in the perPage options and simply stops the table from changing size and affecting the layout of the page.
      */
-    fixedHeight: boolean;
+    footer: boolean;
     /**
      * Default: false
      * Enable or disable the table footer.
      */
-    footer: boolean;
+    header: boolean;
     /**
      * Default :true
      * Enable or disable the table header.
      */
-    header: boolean;
+    hiddenHeader: boolean;
     /**
      * Default:false
      * Whether to hide the table header.
      */
-    hiddenHeader: boolean;
+    labels: LabelsConfiguration;
     /**
-     * Customise the displayed labels. (v1.0.6 and above)
+     * Customise the displayed labels.
      *
      * Defaults :
      *
@@ -239,45 +243,50 @@ interface DataTableConfiguration {
             info: "Showing {start} to {end} of {rows} entries",
         }
      *
-     * Docs : https://github.com/fiduswriter/simple-datatables/wiki/labels
-     */
-    labels: LabelsConfiguration;
-    /**
-     * Allows for custom arranging of the DOM elements in the top and bottom containers. There are for 4 variables you can utilize:
-     *
-     * Docs :https://github.com/fiduswriter/simple-datatables/wiki/layout
+     * Docs : https://fiduswriter.github.io/simple-datatables/documentation/labels
      */
     template: (DataTableConfiguration) => string;
     /**
-     * default: '&raquo;'
-     * Set the content of the skip to last page button.
+     * Allows for custom arranging of the DOM elements in the top and bottom containers. There are for 4 variables you can utilize:
+     *
+     * Docs :https://fiduswriter.github.io/simple-datatables/documentation/layout
      */
     lastText: string;
+    /**
+     * default: '»'
+     * Set the content of the skip to last page button.
+     */
+    nextPrev: boolean;
     /**
      * Default : true
      * Toggle the next and previous pagination buttons.
      */
-    nextPrev: boolean;
-    /**
-     * default: '&rsaquo;'
-     * Set the content on the next button.
-     */
     nextText: string;
     /**
-     * Default : true
-     * Whether or not paging is enabled for the table
+     * default: '›'
+     * Set the content on the next button.
      */
     pagerDelta: number;
     /**
      * Default: 2
      * Delta to use with pager
      */
+    pagerRender: false | pagerRenderType;
+     /**
+     * Default: false
+     * Method to call to modify pager rendering output.
+     */
     paging: boolean;
+    /**
+     * Default : true
+     * Whether or not paging is enabled for the table
+     */
+    perPage: number;
     /**
      * Default : 10
      * Sets the maximum number of rows to display on each page.
      */
-    perPage: number;
+    perPageSelect: (number | [string, number])[];
     /**
      * Default: [5, 10, 15, 20, 25]
      *
@@ -285,18 +294,10 @@ interface DataTableConfiguration {
      *
      *   Setting this to false will hide the dropdown.
      */
-    perPageSelect: (number | [string, number])[];
-    /**
-     * default: '&lsaquo;'
-     * Set the content on the previous button.
-     */
     prevText: string;
     /**
-     * Default : ""
-     *
-     * Enable vertical scrolling. Vertical scrolling will constrain the DataTable to the given height, and enable scrolling for any data which overflows the current viewport. This can be used as an alternative to paging to display a lot of data in a small area.
-     *
-     * The value given here can be given in any CSS unit.
+     * default: '‹'
+     * Set the content on the previous button.
      */
     rowNavigation: boolean;
     /**
@@ -309,11 +310,14 @@ interface DataTableConfiguration {
      * Method to call to modify row rendering output.
      */
     scrollY: string;
-    // for searching
     /**
-     * Default: ""
-     * Specify to create a table with a scrolling body and fixed header.
+     * Default : ""
+     *
+     * Enable vertical scrolling. Vertical scrolling will constrain the DataTable to the given height, and enable scrolling for any data which overflows the current viewport. This can be used as an alternative to paging to display a lot of data in a small area.
+     *
+     * The value given here can be given in any CSS unit.
      */
+    // for searching
     searchable: boolean;
     sensitivity: string,
     ignorePunctuation: boolean;
