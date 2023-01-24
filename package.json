@@ -1,6 +1,6 @@
 {
   "name": "simple-datatables",
-  "version": "6.0.7",
+  "version": "6.0.8",
   "description": "A lightweight, dependency-free JavaScript HTML table plugin.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -73,6 +73,6 @@
   },
   "dependencies": {
     "dayjs": "^1.11.7",
-    "diff-dom": "5.0.1"
+    "diff-dom": "5.0.2"
   }
 }
