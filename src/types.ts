@@ -176,10 +176,6 @@ interface DataTableConfiguration {
      * Whether to attempt to convert input data instead of assuming it is in simpel-datatables native format.
      * Is true by default.
      */
-    descText: string;
-     /**
-     * Default: "▾"
-     */
     destroyable: boolean;
     /**
      * Default: true

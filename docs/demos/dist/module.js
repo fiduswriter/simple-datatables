@@ -1033,18 +1033,17 @@ const defaultConfig$1 = {
     firstText: "«",
     lastText: "»",
     ellipsisText: "…",
-    ascText: "▴",
-    descText: "▾",
     truncatePager: true,
     pagerDelta: 2,
     scrollY: "",
     fixedColumns: true,
     fixedHeight: false,
+    footer: false,
     header: true,
     hiddenHeader: false,
-    footer: false,
-    tabIndex: false,
     rowNavigation: false,
+    tabIndex: false,
+    // for overriding rendering
     pagerRender: false,
     rowRender: false,
     tableRender: false,
@@ -1058,6 +1057,7 @@ const defaultConfig$1 = {
     },
     // Customise the layout
     template: layoutTemplate,
+    // Customize the class names used by datatable for different parts
     classes: {
         active: "datatable-active",
         ascending: "datatable-ascending",
