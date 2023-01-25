@@ -31,8 +31,6 @@ export const defaultConfig: DataTableConfiguration = {
     firstText: "«",
     lastText: "»",
     ellipsisText: "…",
-    ascText: "▴",
-    descText: "▾",
     truncatePager: true,
     pagerDelta: 2,
 
@@ -41,12 +39,15 @@ export const defaultConfig: DataTableConfiguration = {
     fixedColumns: true,
     fixedHeight: false,
 
+    footer: false,
     header: true,
     hiddenHeader: false,
-    footer: false,
 
-    tabIndex: false,
     rowNavigation: false,
+    tabIndex: false,
+
+
+    // for overriding rendering
     pagerRender: false,
     rowRender: false,
     tableRender: false,
@@ -63,6 +64,7 @@ export const defaultConfig: DataTableConfiguration = {
     // Customise the layout
     template: layoutTemplate,
 
+    // Customize the class names used by datatable for different parts
     classes: { // Note: use single class names
         active: "datatable-active",
         ascending: "datatable-ascending",

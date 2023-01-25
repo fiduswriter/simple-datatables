@@ -157,16 +157,12 @@ type tableRenderType = ((data: object, table: elementNodeType, type: string) => 
 
 
 interface DataTableConfiguration {
-    /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
-     *
-     * Docs :https://github.com/fiduswriter/simple-datatables/wiki/columns
-     */
-    ascText: string;
-    /**
-    * Default: "▴"
-    */
     classes: ClassConfiguration;
     columns: ColumnOption[];
+    /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
+     *
+     * Docs :https://fiduswriter.github.io/simple-datatables/documentation/columns
+     */
     data: DataOption;
     /**
      * Pass an object of data to populate the table.

@@ -1,5 +1,5 @@
 ### `nextText`
 #### Type: `string`
-#### defaut: `'&rsaquo;'`
+#### defaut: `'›'`
 
 Set the content on the next button.
