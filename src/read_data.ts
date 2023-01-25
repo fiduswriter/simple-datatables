@@ -4,9 +4,6 @@ import {objToText} from "./helpers"
 import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, nodeType, singleColumnSettingsType} from "./types"
 
 export const readDataCell = (cell: inputCellType, columnSettings : singleColumnSettingsType) : cellType => {
-    if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
-        return cell
-    }
     const cellData : cellType = {
         data: cell
     }
@@ -31,7 +28,6 @@ export const readDataCell = (cell: inputCellType, columnSettings : singleColumnS
             {nodeName: "TD",
                 childNodes: (cell as nodeType[])} : // If it is an array, we assume it is an array of nodeType
             stringToObj(`<td>${String(cell)}</td>`)
-
         cellData.data = node.childNodes || []
         const text = objToText(node)
         cellData.text = text

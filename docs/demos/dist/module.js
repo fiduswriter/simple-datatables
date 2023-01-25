@@ -317,9 +317,6 @@ const parseDate = (content, format) => {
 };
 
 const readDataCell = (cell, columnSettings) => {
-    if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
-        return cell;
-    }
     const cellData = {
         data: cell
     };
@@ -1997,7 +1994,7 @@ const convertCSV = function (userOptions) {
                         if (options.removeDoubleQuotes) {
                             value = value.trim().replace(/(^"|"$)/g, "");
                         }
-                        obj.data[i].push({ data: value });
+                        obj.data[i].push(value);
                     });
                 }
             });
@@ -2040,12 +2037,7 @@ const convertJSON = function (userOptions) {
                     if (!obj.headings.includes(column)) {
                         obj.headings.push(column);
                     }
-                    if (value?.constructor == Object) {
-                        obj.data[i].push(value);
-                    }
-                    else {
-                        obj.data[i].push({ data: value });
-                    }
+                    obj.data[i].push(value);
                 });
             });
         }
