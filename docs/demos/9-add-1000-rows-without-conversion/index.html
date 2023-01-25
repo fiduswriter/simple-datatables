@@ -14057,8 +14057,12 @@
             const datatable = new window.simpleDatatables.DataTable("table", {
                 perPageSelect: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500, 1000],
                 perPage: 10,
-                dataConvert: false,
+                type: "string",
                 columns: [
+                    {
+                        select: 1,
+                        type: "number"
+                    },
                     {
                     // select the fourth column ...
                         select: 3,
@@ -14070,10 +14074,14 @@
                         sort: "desc"
                     }
                 ],
-                data: structuredClone(data)
+                data
             })
+            //datatable.data = structuredClone(data)
+            //datatable.update(true)
             document.getElementById("add").addEventListener("click", _event => {
-                datatable.insert(structuredClone(data))
+                const newData = structuredClone(data.data)
+                datatable.data.data = datatable.data.data.concat(newData)
+                datatable.update()
             })
         </script>
     </body>

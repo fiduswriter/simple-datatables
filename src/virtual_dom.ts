@@ -1,6 +1,6 @@
 import {stringToObj} from "diff-dom"
 
-import {cellType, columnsStateType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions, columnSettingsType} from "./types"
+import {cellType, columnsStateType, columnSettingsType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions} from "./types"
 
 
 export const headingsToVirtualHeaderRowDOM = (
@@ -9,9 +9,11 @@ export const headingsToVirtualHeaderRowDOM = (
     columnsState: columnsStateType,
     {
         classes,
+        format,
         hiddenHeader,
         sortable,
-        scrollY
+        scrollY,
+        type
     }: DataTableOptions,
     {
         noColumnWidths,
@@ -22,7 +24,12 @@ export const headingsToVirtualHeaderRowDOM = (
 
     childNodes: headings.map(
         (heading: headerCellType, index: number) : elementNodeType | void => {
-            const column = columnSettings[index]
+            const column = columnSettings[index] || ({
+                type,
+                format,
+                sortable: true,
+                searchable: true
+            } as columnSettingsType)
             if (column.hidden) {
                 return
             }
@@ -37,10 +44,10 @@ export const headingsToVirtualHeaderRowDOM = (
             if (column.headerClass) {
                 attributes.class = column.headerClass
             }
-            if (columnSettings.sort?.column === index) {
-                const directionClass = columnSettings.sort.dir === "asc" ? classes.ascending : classes.descending
+            if (columnsState.sort && columnsState.sort.column === index) {
+                const directionClass = columnsState.sort.dir === "asc" ? classes.ascending : classes.descending
                 attributes.class = attributes.class ? `${attributes.class} ${directionClass}` : directionClass
-                attributes["aria-sort"] = columnSettings.sort.dir === "asc" ? "ascending" : "descending"
+                attributes["aria-sort"] = columnsState.sort.dir === "asc" ? "ascending" : "descending"
             } else if (columnsState.filters[index]) {
                 attributes.class = attributes.class ? `${attributes.class} ${classes.filterActive}` : classes.filterActive
             }
@@ -97,8 +104,10 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
     hiddenHeader,
     header,
     footer,
+    format,
     sortable,
     scrollY,
+    type,
     rowRender,
     tabIndex
 }: DataTableOptions, {
@@ -124,7 +133,12 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                             },
                             childNodes: row.map(
                                 (cell: cellType, cIndex: number) => {
-                                    const column = columnSettings[cIndex]
+                                    const column = columnSettings[cIndex] || ({
+                                        type,
+                                        format,
+                                        sortable: true,
+                                        searchable: true
+                                    } as columnSettingsType)
                                     if (column.hidden) {
                                         return
                                     }

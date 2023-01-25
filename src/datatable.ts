@@ -160,10 +160,7 @@ export class DataTable {
         this.rows = new Rows(this)
         this.columns = new Columns(this)
 
-        this.data = readTableData(this.options.dataConvert, this.options.data, this.dom, this.columns.settings)
-        this.hasRows = Boolean(this.data.data.length)
-        this.hasHeadings = Boolean(this.data.headings.length)
-
+        this.data = readTableData(this.options.data, this.dom, this.columns.settings, this.options.type, this.options.format)
 
         this._render()
 
@@ -622,6 +619,8 @@ export class DataTable {
     update(measureWidths = false) {
         if (measureWidths) {
             this.columns._measureWidths()
+            this.hasRows = Boolean(this.data.data.length)
+            this.hasHeadings = Boolean(this.data.headings.length)
         }
         this.wrapperDOM.classList.remove(this.options.classes.empty)
 
@@ -657,7 +656,7 @@ export class DataTable {
                         return
                     }
                     rows = rows.filter(
-                        (row: {index: number, row: cellType[]}) => typeof filterState === "function" ? filterState(row.row[column].data) : row.row[column].data === filterState
+                        (row: {index: number, row: cellType[]}) => typeof filterState === "function" ? filterState(row.row[column].data) : (row.row[column].text ?? row.row[column].data) === filterState
                     )
                 }
             )
@@ -816,16 +815,13 @@ export class DataTable {
             })
         } else if (isObject(data)) {
             if (data.headings && !this.hasHeadings && !this.hasRows) {
-                this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings)
-                this.hasRows = Boolean(this.data.data.length)
-                this.hasHeadings = Boolean(this.data.headings.length)
+                this.data = readTableData(data, undefined, this.columns.settings, this.options.type, this.options.format)
             } else if (data.data && Array.isArray(data.data)) {
                 rows = data.data.map(row => row.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings[index])))
             }
         }
         if (rows.length) {
             rows.forEach((row: cellType[]) => this.data.data.push(row))
-            this.hasRows = true
         }
         this.hasHeadings = Boolean(this.data.headings.length)
 

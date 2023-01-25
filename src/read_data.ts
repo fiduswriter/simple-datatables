@@ -4,6 +4,9 @@ import {objToText} from "./helpers"
 import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, nodeType, columnSettingsType} from "./types"
 
 export const readDataCell = (cell: inputCellType, columnSettings : columnSettingsType) : cellType => {
+    if (cell?.constructor === Object && Object.prototype.hasOwnProperty.call(cell, "data") && !Object.keys(cell).find(key => !(["text", "order", "data"].includes(key)))) {
+        return (cell as cellType)
+    }
     const cellData : cellType = {
         data: cell
     }
@@ -81,21 +84,20 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
     return cellData
 }
 
-export const readTableData = (dataConvert, dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings) => {
+export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings, defaultType, defaultFormat) => {
     const data = {
         data: [],
         headings: []
     }
-    if (!dataConvert && dataOption.headings) {
-        data.headings = dataOption.headings
-    } else if (dataOption.headings) {
+    if (dataOption.headings) {
         data.headings = dataOption.headings.map((heading: inputHeaderCellType) => readHeaderCell(heading))
     } else if (dom?.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
             const heading = readHeaderCell(th.innerHTML)
             if (!columnSettings[index]) {
                 columnSettings[index] = {
-                    type: "string",
+                    type: defaultType,
+                    format: defaultFormat,
                     searchable: true,
                     sortable: true
                 }
@@ -127,15 +129,14 @@ export const readTableData = (dataConvert, dataOption: DataOption, dom: (HTMLTab
         // Make sure that there are settings for all columns
         if (!columnSettings[i]) {
             columnSettings[i] = {
-                type: "string",
+                type: defaultType,
+                format: defaultFormat,
                 sortable: true,
                 searchable: true
             }
         }
     }
-    if (!dataConvert && dataOption.data) {
-        data.data = dataOption.data
-    } else if (dataOption.data) {
+    if (dataOption.data) {
         data.data = dataOption.data.map((row: inputCellType[]) => row.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings[index])))
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(

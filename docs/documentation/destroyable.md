@@ -1,4 +1,4 @@
-### `dataConvert`
+### `destroyable`
 #### Type: `boolean`
 
 ### Default

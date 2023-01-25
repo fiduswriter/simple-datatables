@@ -24,6 +24,7 @@
             ).then(
                 data => {
                     const datatable = new DataTable("table", {
+                        type: "string",
                         data: {
                             headings: ["Checked"].concat(Object.keys(data[0])),
                             data: data.map(item => [false].concat(Object.values(item)))

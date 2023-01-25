@@ -4,7 +4,7 @@ import {
     columnSettingsType
 } from "./types"
 
-export const readColumnSettings = (columnOptions = []) : [columnSettingsType[], columnsStateType] => {
+export const readColumnSettings = (columnOptions = [], defaultType, defaultFormat) : [columnSettingsType[], columnsStateType] => {
 
     let columns: (columnSettingsType | undefined)[] = []
     let sort: (false | {column: number, dir: "asc" | "desc"}) = false
@@ -20,7 +20,7 @@ export const readColumnSettings = (columnOptions = []) : [columnSettingsType[], 
         columnSelectors.forEach((selector: number) => {
             if (!columns[selector]) {
                 columns[selector] = {
-                    type: data.type || "string",
+                    type: data.type || defaultType,
                     sortable: true,
                     searchable: true
                 }
@@ -34,6 +34,8 @@ export const readColumnSettings = (columnOptions = []) : [columnSettingsType[], 
 
             if (data.format) {
                 column.format = data.format
+            } else if (data.type === "date") {
+                column.format = defaultFormat
             }
 
             if (data.cellClass) {
@@ -102,7 +104,8 @@ export const readColumnSettings = (columnOptions = []) : [columnSettingsType[], 
 
     columns = columns.map(column => column ?
         column :
-        {type: "string",
+        {type: defaultType,
+            format: defaultType === "date" ? defaultFormat : undefined,
             sortable: true,
             searchable: true})
 

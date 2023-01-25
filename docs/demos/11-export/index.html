@@ -759,7 +759,7 @@
                     ...defaults,
                     ...clonedUserOptions
                 }
-                const separatorRow = Array(dataTable.data.headings.filter((_heading, index) => !dataTable.columnSettings.columns[index]?.hidden).length).fill("-")
+                const separatorRow = Array(dataTable.data.headings.filter((_heading, index) => !dataTable.columns.settings[index]?.hidden).length).fill("-")
         .join(options.columnDelimiter)
                 const str = `${separatorRow}${options.lineDelimiter}${csv}${options.lineDelimiter}${separatorRow}`
                 if (userOptions.download) {

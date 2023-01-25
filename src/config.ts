@@ -14,10 +14,11 @@ export const defaultConfig: DataTableConfiguration = {
     sensitivity: "base",
     ignorePunctuation: true,
     destroyable: true,
-    // Whether to attempt to convert input data (not from dom). If false, we
-    // assume input data is in simple-datatables native format.
-    dataConvert: true,
+
+    // data
     data: {},
+    type: "html", // Default data type for columns.
+    format: "YYYY-MM-DD",
     columns: [],
 
     // Pagination

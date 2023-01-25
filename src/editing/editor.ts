@@ -309,8 +309,34 @@ export class Editor {
      */
     saveCell(value: string) {
         const oldData = this.data.content
+        // Get the type of that column
+        const type = this.dt.columns.settings[this.data.rowIndex].type || this.dt.options.type
+        const stringValue = value.trim()
+        let cell
+        if (type === "number") {
+            cell = {data: parseFloat(stringValue)}
+        } else if (type === "boolean") {
+            if (["", "false", "0"].includes(stringValue)) {
+                cell = {data: false,
+                    text: "false",
+                    order: 0}
+            } else {
+                cell = {data: true,
+                    text: "true",
+                    order: 1}
+            }
+        } else if (type === "html") {
+            cell = {data: [
+                {nodeName: "#text",
+                    data: value}
+            ],
+            text: value,
+            order: value}
+        } else {
+            cell = {data: value}
+        }
         // Set the cell content
-        this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = {data: value.trim()}
+        this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = cell
         this.closeModal()
         this.dt.update(true)
         this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex)
@@ -407,7 +433,34 @@ export class Editor {
     saveRow(data: string[], row: cellType[]) {
         // Store the old data for the emitter
         const oldData = row.map((cell: cellType) => cell.text ?? String(cell.data))
-        this.dt.data.data[this.data.rowIndex] = data.map(str => ({data: str}))
+        this.dt.data.data[this.data.rowIndex] = data.map((value, rowIndex) => {
+            const type = this.dt.columns.settings[rowIndex].type || this.dt.options.type
+            const stringValue = value.trim()
+            let cell
+            if (type === "number") {
+                cell = {data: parseFloat(stringValue)}
+            } else if (type === "boolean") {
+                if (["", "false", "0"].includes(stringValue)) {
+                    cell = {data: false,
+                        text: "false",
+                        order: 0}
+                } else {
+                    cell = {data: true,
+                        text: "true",
+                        order: 1}
+                }
+            } else if (type === "html") {
+                cell = {data: [
+                    {nodeName: "#text",
+                        data: value}
+                ],
+                text: value,
+                order: value}
+            } else {
+                cell = {data: value}
+            }
+            return cell
+        })
         this.dt.update(true)
         this.data = {}
         this.closeModal()

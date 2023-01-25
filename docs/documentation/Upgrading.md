@@ -18,18 +18,20 @@
 
 * The `columns` option allows for the specification of a specific class for the header cell or body cell using `headerClass` and `cellClass`.
 
-* The `columns` option allows for the selection of several new values for `type`. You can now chosoe between:
+* The `columns` option allows for the selection of several new values for `type`. You can now chose between:
 
-    * `string` (default)
-    * `html`
+    * `html` (default)
+    * `string`
     * `date`
     * `number`
     * `boolean`
     * `other`
 
-`html` has to be used for text that can contain HTML tags that should be rendered, whereas `string` will escape all tags. The `type` is used to determine how to order items in the column when sorting.
+`html` has to be used for text that can contain HTML tags that should be rendered, whereas `string` will escape all tags. The `type` is used to determine how to order items in the column when sorting. Setting the `type` on the table's configuration will set a default value.
 
 * There are several new options to influence how search and sorting works that can be applied either to the entire table configuration or specific columns. For sorting: `locale`, `numeric` and `caseFirst` and for searching: `sensitivity`. `ignorePunctuation` is used for both.
+
+* The `dataConvert` configuration option has been dropped, as it's faster to manipulate the values in `datatable.data.data` and then run `datatable.update()` to render the table again.
 
 ## From 5.0.x to 6.0.x:
 

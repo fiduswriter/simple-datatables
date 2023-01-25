@@ -14,7 +14,8 @@ Instead of ordering the row, clicking on the header will filter it. Specify an a
 
 #### `format`
 
-A string representing the `datetime` format when using the `date` type.
+A string representing the `datetime` format when using the `date` type. Specifying `format`
+as part of the table's configuration will define a default for all columns.
 
 #### `hidden`
 
@@ -68,12 +69,14 @@ When set to `false` the column(s) cannot be sorted.
 
 A `string` representing the type of data in the column(s) cells. Choose from the following options:
 
-* `string` (default)
-* `html`
+* `html` (default)
+* `string`
 * `date` - a valid `datetime` string
 * `number`
 * `boolean`
 * `other`
+
+Specifying `type` as part of the table's configuration will define a default for all columns.
 
 #### `render`
 

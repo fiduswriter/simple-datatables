@@ -171,10 +171,15 @@ interface DataTableConfiguration {
      *
      * Docs : https://fiduswriter.github.io/simple-datatable/documentation/data
      */
-    dataConvert: boolean;
+    type: ("date" | "html" | "number" | "boolean" | "string" | "other");
     /**
-     * Whether to attempt to convert input data instead of assuming it is in simpel-datatables native format.
-     * Is true by default.
+     * Default data type.
+     * 'html' by default.
+     */
+    format: string;
+    /**
+     * Default date format.
+     * 'YYYY-MM-DD' by default.
      */
     destroyable: boolean;
     /**

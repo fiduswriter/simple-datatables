@@ -17,7 +17,7 @@ export class Columns {
     }
 
     init() {
-        [this.settings, this._state] = readColumnSettings(this.dt.options.columns)
+        [this.settings, this._state] = readColumnSettings(this.dt.options.columns, this.dt.options.type, this.dt.options.format)
     }
 
     /**
@@ -113,16 +113,10 @@ export class Columns {
      */
     add(data: {data: inputCellType[], heading: inputHeaderCellType} & columnSettingsType) {
         const newColumnSelector = this.dt.data.headings.length
-        this.dt.data.headings = this.dt.options.dataConvert ?
-            this.dt.data.headings.concat([readHeaderCell(data.heading)]) :
-            this.dt.data.headings.concat([data.heading as headerCellType])
-        this.dt.data.data = this.dt.options.dataConvert ?
-            this.dt.data.data.map(
-                (row: cellType[], index: number) => row.concat([readDataCell(data.data[index], data)])
-            ) :
-            this.dt.data.data.map(
-                (row: cellType[], index: number) => row.concat([data.data[index] as cellType])
-            )
+        this.dt.data.headings = this.dt.data.headings.concat([readHeaderCell(data.heading)])
+        this.dt.data.data = this.dt.data.data.map(
+            (row: cellType[], index: number) => row.concat([readDataCell(data.data[index], data)])
+        )
         this.settings[newColumnSelector] = {
             type: data.type || "string",
             sortable: true,

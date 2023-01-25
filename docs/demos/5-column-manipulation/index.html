@@ -38,7 +38,7 @@
             // Customise our labels
             const labelData = {
                 placeholder: "Search students...",
-                perPage: "Show {select} students per page",
+                perPage: " students per page",
                 noRows: "No students to display",
                 info: "Showing {start} to {end} of {rows} students (Page {page} of {pages} pages)"
             }
@@ -53,7 +53,8 @@
                             data: data.map(item => Object.values(item))
                         },
                         columns: columnData,
-                        labels: labelData
+                        labels: labelData,
+                        type: "string"
                     })
                     // Wait for the instance to finish rendering
                     // and add a new column

@@ -12,7 +12,8 @@ let dataTable = new DataTable(myTable, options);
 ---
 ### Data
 * [data](data)
-* [dataConvert](dataConvert)
+* [type](columns#type)
+* [format](columns#format)
 ### Appearance
 * [columns](columns)
 * [fixedColumns](fixedColumns)

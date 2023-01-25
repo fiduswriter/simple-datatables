@@ -35,12 +35,10 @@ export class Rows {
      * Add new row
      */
     add(data: cellType[]) {
-        const row = this.dt.options.dataConvert ?
-            data.map((cell: cellType, index: number) => {
-                const columnSettings = this.dt.columns.settings[index]
-                return readDataCell(cell, columnSettings)
-            }) :
-            data
+        const row = data.map((cell: cellType, index: number) => {
+            const columnSettings = this.dt.columns.settings[index]
+            return readDataCell(cell, columnSettings)
+        })
         this.dt.data.data.push(row)
 
         // We may have added data to an empty table
@@ -108,12 +106,10 @@ export class Rows {
      * Update a row with new data
      */
     updateRow(select: number, data: inputCellType[]) {
-        const row = this.dt.options.dataConvert ?
-            data.map((cell: inputCellType, index: number) => {
-                const columnSettings = this.dt.columns.settings[index]
-                return readDataCell(cell, columnSettings)
-            }) :
-            data as cellType[]
+        const row = data.map((cell: inputCellType, index: number) => {
+            const columnSettings = this.dt.columns.settings[index]
+            return readDataCell(cell, columnSettings)
+        })
         this.dt.data.data.splice(select, 1, row)
         this.dt.update(true)
     }
