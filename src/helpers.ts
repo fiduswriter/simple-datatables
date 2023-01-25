@@ -1,4 +1,4 @@
-import {elementNodeType, singleColumnSettingsType, textNodeType} from "./types"
+import {elementNodeType, columnSettingsType, textNodeType} from "./types"
 
 /**
  * Check is item is object
@@ -55,7 +55,7 @@ export const escapeText = function(text: string) {
 }
 
 
-export const visibleToColumnIndex = function(visibleIndex: number, columns: singleColumnSettingsType[]) {
+export const visibleToColumnIndex = function(visibleIndex: number, columns: columnSettingsType[]) {
     let counter = 0
     let columnIndex = 0
     while (counter < (visibleIndex+1)) {

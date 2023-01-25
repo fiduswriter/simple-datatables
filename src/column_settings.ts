@@ -1,12 +1,12 @@
 import {
     columnsStateType,
     filterStateType,
-    singleColumnSettingsType
+    columnSettingsType
 } from "./types"
 
-export const readColumnSettings = (columnOptions = []) : [singleColumnSettingsType[], columnsStateType] => {
+export const readColumnSettings = (columnOptions = []) : [columnSettingsType[], columnsStateType] => {
 
-    let columns: (singleColumnSettingsType | undefined)[] = []
+    let columns: (columnSettingsType | undefined)[] = []
     let sort: (false | {column: number, dir: "asc" | "desc"}) = false
     const filters: (filterStateType | undefined )[] = []
 

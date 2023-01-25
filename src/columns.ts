@@ -1,13 +1,13 @@
 import {readDataCell, readHeaderCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {cellType, columnsStateType, headerCellType, inputCellType, inputHeaderCellType, elementNodeType, singleColumnSettingsType} from "./types"
+import {cellType, columnsStateType, headerCellType, inputCellType, inputHeaderCellType, elementNodeType, columnSettingsType} from "./types"
 import {readColumnSettings} from "./column_settings"
 
 
 export class Columns {
     dt: DataTable
 
-    settings: singleColumnSettingsType[]
+    settings: columnSettingsType[]
 
     _state: columnsStateType
 
@@ -111,7 +111,7 @@ export class Columns {
     /**
      * Add a new column
      */
-    add(data: {data: inputCellType[], heading: inputHeaderCellType} & singleColumnSettingsType) {
+    add(data: {data: inputCellType[], heading: inputHeaderCellType} & columnSettingsType) {
         const newColumnSelector = this.dt.data.headings.length
         this.dt.data.headings = this.dt.options.dataConvert ?
             this.dt.data.headings.concat([readHeaderCell(data.heading)]) :

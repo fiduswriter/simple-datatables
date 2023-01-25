@@ -351,7 +351,7 @@ interface DataTableOptions extends DeepPartial<DataTableConfiguration> {
 }
 
 
-interface singleColumnSettingsType {
+interface columnSettingsType {
     render?: renderType,
     type: ("date" | "html" | "number" | "boolean" | "string" | "other"),
     format?: string,
@@ -404,7 +404,7 @@ export {
     renderOptions,
     renderType,
     rowRenderType,
-    singleColumnSettingsType,
+    columnSettingsType,
     TableDataType,
     textNodeType
 }

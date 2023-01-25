@@ -1,6 +1,6 @@
 import {stringToObj} from "diff-dom"
 
-import {cellType, columnsStateType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions, singleColumnSettingsType} from "./types"
+import {cellType, columnsStateType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions, columnSettingsType} from "./types"
 
 
 export const headingsToVirtualHeaderRowDOM = (
@@ -92,7 +92,7 @@ export const headingsToVirtualHeaderRowDOM = (
     ).filter((column: (elementNodeType | void)) => column)
 })
 
-export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: singleColumnSettingsType[], columnsState: columnsStateType, rowCursor: (number | false), {
+export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: columnSettingsType[], columnsState: columnsStateType, rowCursor: (number | false), {
     classes,
     hiddenHeader,
     header,

@@ -1,9 +1,9 @@
 import {stringToObj} from "diff-dom"
 import {parseDate} from "./date"
 import {objToText} from "./helpers"
-import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, nodeType, singleColumnSettingsType} from "./types"
+import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, nodeType, columnSettingsType} from "./types"
 
-export const readDataCell = (cell: inputCellType, columnSettings : singleColumnSettingsType) : cellType => {
+export const readDataCell = (cell: inputCellType, columnSettings : columnSettingsType) : cellType => {
     const cellData : cellType = {
         data: cell
     }
