@@ -138,7 +138,7 @@ export const createVirtualPagerDOM = (onFirstPage: boolean, onLastPage: boolean,
         attributes: {
             class: options.classes.paginationList
         },
-        childNodes: pagerListItems
+        childNodes: pages.length > 1 ? pagerListItems : [] // Don't show single page
     }
 
     return pager

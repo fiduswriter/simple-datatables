@@ -1221,7 +1221,7 @@ const createVirtualPagerDOM = (onFirstPage, onLastPage, currentPage, totalPages,
         attributes: {
             class: options.classes.paginationList
         },
-        childNodes: pagerListItems
+        childNodes: pages.length > 1 ? pagerListItems : [] // Don't show single page
     };
     return pager;
 };
@@ -2791,7 +2791,8 @@ class Editor {
         }
         else if (type === "date") {
             const format = this.dt.columns.settings[this.data.columnIndex].format || this.dt.options.format;
-            cell = { data: value, order: parseDate(String(value), format) };
+            cell = { data: value,
+                order: parseDate(String(value), format) };
         }
         else {
             cell = { data: value };
@@ -2943,7 +2944,8 @@ class Editor {
             }
             else if (type === "date") {
                 const format = this.dt.columns.settings[colIndex].format || this.dt.options.format;
-                cell = { data: value, order: parseDate(String(value), format) };
+                cell = { data: value,
+                    order: parseDate(String(value), format) };
             }
             else {
                 cell = { data: value };
