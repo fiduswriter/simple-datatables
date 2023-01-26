@@ -48,6 +48,10 @@
 	float: left;
 }
 
+.datatable-pagination li.datatable-hidden {
+    visibility: hidden;
+}
+
 .datatable-pagination a {
 	border: 1px solid transparent;
 	float: left;
@@ -56,18 +60,11 @@
 	position: relative;
 	text-decoration: none;
 	color: #333;
+    cursor: pointer;
 }
 
 .datatable-pagination a:hover {
 	background-color: #d9d9d9;
-}
-
-/* TODO in 7.0.0: remove */
-.datatable-pagination .active a,
-.datatable-pagination .active a:focus,
-.datatable-pagination .active a:hover {
-	background-color: #d9d9d9;
-	cursor: default;
 }
 
 .datatable-pagination .datatable-active a,
@@ -78,21 +75,21 @@
 }
 
 .datatable-pagination .datatable-ellipsis a,
-.datatable-pagination .ellipsis a, /* TODO in 7.0.0: remove */
-.datatable-pagination .disabled a,
-.datatable-pagination .disabled a:focus,
-.datatable-pagination .disabled a:hover {
-	cursor: not-allowed;
+.datatable-pagination .datatable-disabled a,
+.datatable-pagination .datatable-disabled a:focus,
+.datatable-pagination .datatable-disabled a:hover {
+    pointer-events: none;
+    cursor: default;
 }
 
-.datatable-pagination .disabled a,
-.datatable-pagination .disabled a:focus,
-.datatable-pagination .disabled a:hover {
+.datatable-pagination .datatable-disabled a,
+.datatable-pagination .datatable-disabled a:focus,
+.datatable-pagination .datatable-disabled a:hover {
 	cursor: not-allowed;
 	opacity: 0.4;
 }
 
-.datatable-pagination .pager a {
+.datatable-pagination .datatable-pagination a {
 	font-weight: bold;
 }
 
@@ -136,7 +133,7 @@
 	color: inherit;
 }
 
-.datatable-sorter {
+.datatable-sorter, .datatable-filter {
 	display: inline-block;
 	height: 100%;
 	position: relative;
@@ -155,6 +152,7 @@
 	opacity: 0.2;
 }
 
+
 .datatable-sorter::before {
 	border-top: 4px solid #000;
 	bottom: 0px;
@@ -166,9 +164,29 @@
 	top: 0px;
 }
 
-.asc .datatable-sorter::after,
-.desc .datatable-sorter::before {
+.datatable-ascending .datatable-sorter::after,
+.datatable-descending .datatable-sorter::before,
+.datatable-ascending .datatable-filter::after,
+.datatable-descending .datatable-filter::before {
 	opacity: 0.6;
+}
+
+.datatable-filter::before {
+    content: "";
+    position: absolute;
+    right: 4px;
+    opacity: 0.2;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+	border-radius: 50%;
+    border-top: 10px solid #000;
+    top: 25%;
+}
+
+.datatable-filter-active .datatable-filter::before {
+    opacity: 0.6;
 }
 
 .datatable-empty {

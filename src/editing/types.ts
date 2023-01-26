@@ -48,6 +48,9 @@ interface EditorOptions {
     // include hidden columns in the editor
     hiddenColumns?: boolean,
 
+    // edit inline instead of using a modal lay-over for editing content
+    inline?: boolean,
+
     // enable the context menu
     contextMenu?: boolean,
 

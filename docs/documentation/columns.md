@@ -3,9 +3,48 @@
 
 Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
 
+#### `caseFirst`
+
+Default: `"false"` Options: `["false", "upper", "lower"]`. Influences how string sorting is done and wehther upper or lower case letters are sorted first. If `"false"` is selected, will use the chosen `locale`'s default sorting order. Specifying `caseFirst`
+as part of the table's configuration will define a default for all columns.
+
+#### `filter`
+
+Instead of ordering the row, clicking on the header will filter it. Specify an array of items to filter for. The array can also contain functions that will be executed on the data item of the cell to determine whether to include it in the filtered content.
+
+#### `format`
+
+A string representing the `datetime` format when using the `date` type. Specifying `format`
+as part of the table's configuration will define a default for all columns.
+
+#### `hidden`
+
+When set to `true` the column(s) will not be visible and will be excluded from search results.
+
+#### `ignorePunctuation`
+
+Default: `true` (boolean). Influences how sorting and searching is done. Specifying `ignorePunctuation` as part of the table's configuration will define a default for all columns.
+
+#### `locale`
+
+Default: `"en-US"` (string). Set a locale such as `en-UK` or `de` for the column. Influences how string sorting is done. Allows even for specification of specific subvariants such as `de-DE-u-co-phonebk`. Specifying `locale` as part of the table's configuration will define a default for all columns.
+
+#### `numeric`
+
+Default: `true` (boolean). Influences how string sorting is done. If `true` multiple numbers will be seen as just one so that "file 1.jpg" will come before "file 100.jpg". Specifying `numeric`
+as part of the table's configuration will define a default for all columns.
+
+#### `searchable`
+
+When set to `false` the column(s) cannot be searched.
+
 #### `select`
 
 An integer or array of integers representing the column(s) to be manipulated.
+
+#### `sensitivity`
+
+Default: `"base"`. Options: `["base", "accent", "case", "variant"]`. Influences how searching is done. `"base"` and `"accent"` will ignore case differences. `"base"` and `"case"` will ignore differences in accent symbols. Specifying `sensitivity` as part of the table's configuration will define a default for all columns.
 
 #### `sort`
 
@@ -20,35 +59,29 @@ An array of "asc" and "desc" describing the order sort will be executed as the u
 ["desc", "asc"]
 ["asc"]
 ["desc"]
-``` 
+```
 
 #### `sortable`
 
 When set to `false` the column(s) cannot be sorted.
 
-#### `hidden`
-
-When set to `true` the column(s) will not be visible and will be excluded from search results.
-
 #### `type`
 
 A `string` representing the type of data in the column(s) cells. Choose from the following options:
 
+* `html` (default)
+* `string`
 * `date` - a valid `datetime` string
-* `none` (default)
+* `number`
+* `boolean`
+* `other`
 
-#### `format`
-
-A string representing the `datetime` format when using the `date` type.
-
-#### `filter`
-
-Instead of ordering the row, clicking on the header will filter it. Specify an array of items to filter for. The array can also contain functions that will be executed on the data item of the cell to determine whether to include it in the filtered content.
+Specifying `type` as part of the table's configuration will define a default for all columns.
 
 #### `render`
 
 A callback to customise the rendering of the column(s) cell content. The function takes 4 parameters.
-You can either return a string representing the cells content, you can modify the provided td in the format used by (diffDOM)[https://github.com/fiduswriter/diffDOM] or you can return a new td in that same format. 
+You can either return a string representing the cells content, you can modify the provided td in the format used by (diffDOM)[https://github.com/fiduswriter/diffDOM] or you can return a new td in that same format.
 
 ```javascript
  =>

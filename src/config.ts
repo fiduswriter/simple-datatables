@@ -1,16 +1,25 @@
-import {DataTableOptions} from "./types"
-
+import {DataTableConfiguration} from "./types"
+import {layoutTemplate} from "./templates"
 /**
  * Default configuration
  */
-export const defaultConfig: DataTableOptions = {
+export const defaultConfig: DataTableConfiguration = {
+    // for sorting
     sortable: true,
+    locale: "en",
+    numeric: true,
+    caseFirst: "false",
+    // for searching
     searchable: true,
+    sensitivity: "base",
+    ignorePunctuation: true,
     destroyable: true,
-    // Whether to attempt to convert input data (not from dom). If false, we
-    // assume input data is in simple-datatables native format.
-    dataConvert: true,
+
+    // data
     data: {},
+    type: "html", // Default data type for columns.
+    format: "YYYY-MM-DD",
+    columns: [],
 
     // Pagination
     paging: true,
@@ -18,13 +27,11 @@ export const defaultConfig: DataTableOptions = {
     perPageSelect: [5, 10, 15, 20, 25],
     nextPrev: true,
     firstLast: false,
-    prevText: "&lsaquo;",
-    nextText: "&rsaquo;",
-    firstText: "&laquo;",
-    lastText: "&raquo;",
-    ellipsisText: "&hellip;",
-    ascText: "▴",
-    descText: "▾",
+    prevText: "‹",
+    nextText: "›",
+    firstText: "«",
+    lastText: "»",
+    ellipsisText: "…",
     truncatePager: true,
     pagerDelta: 2,
 
@@ -33,43 +40,54 @@ export const defaultConfig: DataTableOptions = {
     fixedColumns: true,
     fixedHeight: false,
 
+    footer: false,
     header: true,
     hiddenHeader: false,
-    footer: false,
 
-    tabIndex: false,
     rowNavigation: false,
+    tabIndex: false,
+
+
+    // for overriding rendering
+    pagerRender: false,
     rowRender: false,
+    tableRender: false,
 
     // Customise the display text
     labels: {
         placeholder: "Search...", // The search input placeholder
-        perPage: "{select} entries per page", // per-page dropdown label
+        perPage: "entries per page", // per-page dropdown label
         noRows: "No entries found", // Message shown when there are no records to show
         noResults: "No results match your search query", // Message shown when there are no search results
         info: "Showing {start} to {end} of {rows} entries" //
     },
 
     // Customise the layout
-    layout: {
-        top: "{select}{search}",
-        bottom: "{info}{pager}"
-    },
+    template: layoutTemplate,
 
-    classes: {
-        active: "active", // singel class, TODO in 7.0.0: datatable-active
+    // Customize the class names used by datatable for different parts
+    classes: { // Note: use single class names
+        active: "datatable-active",
+        ascending: "datatable-ascending",
         bottom: "datatable-bottom",
         container: "datatable-container",
-        cursor: "datatable-cursor", // single class
+        cursor: "datatable-cursor",
+        descending: "datatable-descending",
+        disabled: "datatable-disabled",
         dropdown: "datatable-dropdown",
-        ellipsis: "ellipsis", // TODO in 7.0.0: datatable-ellipsis
+        ellipsis: "datatable-ellipsis",
+        filter: "datatable-filter",
+        filterActive: "datatable-filter-active",
         empty: "datatable-empty",
         headercontainer: "datatable-headercontainer",
+        hidden: "datatable-hidden",
         info: "datatable-info",
         input: "datatable-input",
         loading: "datatable-loading",
         pagination: "datatable-pagination",
         paginationList: "datatable-pagination-list",
+        paginationListItem: "datatable-pagination-list-item",
+        paginationListItemLink: "datatable-pagination-list-item-link",
         search: "datatable-search",
         selector: "datatable-selector",
         sorter: "datatable-sorter",

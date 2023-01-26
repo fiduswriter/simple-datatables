@@ -1,6 +1,39 @@
 ### Upgrading
 
-## From 5.0.x to 6.0:
+## From 6.0.x to 7.0.x
+
+* Attributes and class names of the main table are no longer removed.
+
+* The configuration options [pagerRender](pagerRender) and [tableRender](tableRender) allow you to specify functions to be called to influence the rendering of pagers and the table, similar to how [rowRender](rowRender) and [render](columns#render) already allow you to modify the way cells and rows are rendered.
+
+* The `layout` configuration options have been removed. Instead, there is now a `template` configuration option that allows you to freely decide where to put all the elements around the table. Take a look at the [default template](template), then copy and modify it.
+
+* The default values of some class names have changed:
+
+    * `active` is now `datatable-active`
+    * `asc` is now `datatable-ascending`
+    * `desc` is now `datatable-descending`
+    * `disabled` is now `datatable-disabled`
+    * `ellipsis` is now `datatable-ellipsis`
+
+* The `columns` option allows for the specification of a specific class for the header cell or body cell using `headerClass` and `cellClass`.
+
+* The `columns` option allows for the selection of several new values for `type`. You can now chose between:
+
+    * `html` (default)
+    * `string`
+    * `date`
+    * `number`
+    * `boolean`
+    * `other`
+
+`html` has to be used for text that can contain HTML tags that should be rendered, whereas `string` will escape all tags. The `type` is used to determine how to order items in the column when sorting. Setting the `type` on the table's configuration will set a default value.
+
+* There are several new options to influence how search and sorting works that can be applied either to the entire table configuration or specific columns. For sorting: `locale`, `numeric` and `caseFirst` and for searching: `sensitivity`. `ignorePunctuation` is used for both.
+
+* The `dataConvert` configuration option has been dropped, as it's faster to manipulate the values in `datatable.data.data` and then run `datatable.update()` to render the table again.
+
+## From 5.0.x to 6.0.x:
 
 Version 6.0 is the biggest update to simple-datatables since version 1.0. I do not expect similar changes in the the next few years.
 

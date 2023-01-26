@@ -186,7 +186,13 @@
     visible = []
             let inputs = []
             const datatable = new DataTable(table, {
-                perPage: 5
+                perPage: 5,
+                columns: [
+                    {
+                        select: [1, 4, 5],
+                        type: "html"
+                    }
+                ]
             })
             window.datatable = datatable
             const updateColumns = function() {
@@ -246,6 +252,7 @@
             datatable.on("datatable.init", () => {
                 setCheckboxes()
             })
+            window.dt = datatable
             textarea.addEventListener("input", function(_event) {
                 if (this.value.length) {
                     this.parentNode.classList.remove("error")

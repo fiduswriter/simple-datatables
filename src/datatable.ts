@@ -1,20 +1,11 @@
-import {DiffDOM, nodeToObj} from "diff-dom"
-
-import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
-import {readTableData, readDataCell, readHeaderCell} from "./read_data"
-import {Rows} from "./rows"
-import {Columns} from "./columns"
-import {defaultConfig} from "./config"
 import {
     isObject,
     createElement,
-    flush,
-    button,
-    truncate,
     visibleToColumnIndex
 } from "./helpers"
 import {
     cellType,
+    DataTableConfiguration,
     DataTableOptions,
     filterStateType,
     headerCellType,
@@ -23,25 +14,31 @@ import {
     renderOptions,
     TableDataType
 } from "./types"
+import {DiffDOM, nodeToObj} from "diff-dom"
+
+import {dataToVirtualDOM, headingsToVirtualHeaderRowDOM} from "./virtual_dom"
+import {readTableData, readDataCell, readHeaderCell} from "./read_data"
+import {Rows} from "./rows"
+import {Columns} from "./columns"
+import {defaultConfig} from "./config"
+import {createVirtualPagerDOM} from "./virtual_pager_dom"
 
 
 export class DataTable {
 
     columns: Columns
 
-    container: HTMLDivElement
+    containerDOM: HTMLDivElement
 
-    currentPage: number
+    _currentPage: number
 
     data: TableDataType
 
-    dd: DiffDOM
+    _dd: DiffDOM
 
     dom: HTMLTableElement
 
-    events: { [key: string]: ((...args) => void)[]}
-
-    filterStates: filterStateType[]
+    _events: { [key: string]: ((...args) => void)[]}
 
     hasHeadings: boolean
 
@@ -49,73 +46,81 @@ export class DataTable {
 
     headerDOM: HTMLDivElement
 
-    id: string
-
-    initialInnerHTML: string
+    _initialInnerHTML: string
 
     initialized: boolean
 
-    input: HTMLInputElement
+    _input: HTMLInputElement
 
-    label: HTMLElement
+    _label: HTMLElement
 
     lastPage: number
 
-    links: HTMLElement[]
-
-    listeners: { [key: string]: () => void}
+    _listeners: { [key: string]: () => void}
 
     onFirstPage: boolean
 
     onLastPage: boolean
 
-    options: DataTableOptions
+    options: DataTableConfiguration
 
-    pagers: HTMLUListElement[]
+    _pagerDOMs: HTMLElement[]
+
+    _virtualPagerDOM: elementNodeType
 
     pages: {row: cellType[], index: number}[][]
 
-    rect: {width: number, height: number}
+    _rect: {width: number, height: number}
 
     rows: Rows
 
-    searchData: number[]
+    _searchData: number[]
 
-    searching: string
+    _searchQuery: string
+
+    _tableAttributes: { [key: string]: string}
 
     totalPages: number
 
-    virtualDOM: elementNodeType
+    _virtualDOM: elementNodeType
 
-    virtualHeaderDOM: elementNodeType
+    _virtualHeaderDOM: elementNodeType
 
-    wrapper: HTMLElement
+    wrapperDOM: HTMLElement
 
     constructor(table: HTMLTableElement | string, options: DataTableOptions = {}) {
 
-        this.dom = typeof table === "string" ? document.querySelector(table) : table
 
-        this.id = this.dom.id
+        const dom = typeof table === "string" ?
+            document.querySelector(table) :
+            table
+
+        if (dom instanceof HTMLTableElement) {
+            this.dom = dom
+        } else {
+            this.dom = document.createElement("table")
+            dom.appendChild(this.dom)
+        }
+
+        const labels = {
+            ...defaultConfig.labels,
+            ...options.labels
+        }
+
+        const classes = {
+            ...defaultConfig.classes,
+            ...options.classes
+        }
 
         // user options
         this.options = {
             ...defaultConfig,
             ...options,
-            layout: {
-                ...defaultConfig.layout,
-                ...options.layout
-            },
-            labels: {
-                ...defaultConfig.labels,
-                ...options.labels
-            },
-            classes: {
-                ...defaultConfig.classes,
-                ...options.classes
-            }
+            labels,
+            classes
         }
 
-        this.initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : "" // preserve in case of later destruction
+        this._initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : "" // preserve in case of later destruction
 
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex
@@ -123,21 +128,19 @@ export class DataTable {
             this.dom.tabIndex = 0
         }
 
-        this.listeners = {
+        this._listeners = {
             onResize: () => this._onResize()
         }
 
-        this.dd = new DiffDOM()
+        this._dd = new DiffDOM()
 
         this.initialized = false
-        this.events = {}
+        this._events = {}
 
-        this.currentPage = 0
+        this._currentPage = 0
         this.onFirstPage = true
         this.hasHeadings = false
         this.hasRows = false
-
-        this.filterStates = []
 
         this.init()
     }
@@ -150,15 +153,14 @@ export class DataTable {
             return false
         }
 
-        this.virtualDOM = nodeToObj(this.dom)
+        this._virtualDOM = nodeToObj(this.dom)
+
+        this._tableAttributes = {...this._virtualDOM.attributes}
 
         this.rows = new Rows(this)
         this.columns = new Columns(this)
 
-        this.data = readTableData(this.options.dataConvert, this.options.data, this.dom, this.columns.settings)
-        this.hasRows = Boolean(this.data.data.length)
-        this.hasHeadings = Boolean(this.data.headings.length)
-
+        this.data = readTableData(this.options.data, this.dom, this.columns.settings, this.options.type, this.options.format)
 
         this._render()
 
@@ -175,91 +177,57 @@ export class DataTable {
     _render() {
 
         // Build
-        this.wrapper = createElement("div", {
+        this.wrapperDOM = createElement("div", {
             class: `${this.options.classes.wrapper} ${this.options.classes.loading}`
         })
 
-        // Template for custom layouts
-        let template = ""
-        template += `<div class='${this.options.classes.top}'>`
-        template += this.options.layout.top
-        template += "</div>"
-        if (this.options.scrollY.length) {
-            template += `<div class='${this.options.classes.container}' style='height: ${this.options.scrollY}; overflow-Y: auto;'></div>`
-        } else {
-            template += `<div class='${this.options.classes.container}'></div>`
-        }
-        template += `<div class='${this.options.classes.bottom}'>`
-        template += this.options.layout.bottom
-        template += "</div>"
+        this.wrapperDOM.innerHTML = this.options.template(this.options)
 
-        // Info placement
-        template = template.replace("{info}", this.options.paging ? `<div class='${this.options.classes.info}'></div>` : "")
+        const selector = this.wrapperDOM.querySelector(`select.${this.options.classes.selector}`)
 
         // Per Page Select
-        if (this.options.paging && this.options.perPageSelect) {
-            let wrap = `<div class='${this.options.classes.dropdown}'><label>`
-            wrap += this.options.labels.perPage
-            wrap += "</label></div>"
-
-            // Create the select
-            const select = createElement("select", {
-                class: this.options.classes.selector
-            })
+        if (selector && this.options.paging && this.options.perPageSelect) {
 
             // Create the options
             this.options.perPageSelect.forEach((choice: number | [string, number]) => {
                 const [lab, val] = Array.isArray(choice) ? [choice[0], choice[1]] : [String(choice), choice]
                 const selected = val === this.options.perPage
                 const option = new Option(lab, String(val), selected, selected)
-                select.appendChild(option)
+                selector.appendChild(option)
             })
 
-            // Custom label
-            wrap = wrap.replace("{select}", select.outerHTML)
-
-            // Selector placement
-            template = template.replace("{select}", wrap)
-        } else {
-            template = template.replace("{select}", "")
+        } else if (selector) {
+            selector.parentElement.removeChild(selector)
         }
 
-        // Searchable
-        if (this.options.searchable) {
-            const form =
-                `<div class='${this.options.classes.search}'><input class='${this.options.classes.input}' placeholder='${this.options.labels.placeholder}' type='text'></div>`
+        this.containerDOM = this.wrapperDOM.querySelector(`.${this.options.classes.container}`)
 
-            // Search input placement
-            template = template.replace("{search}", form)
-        } else {
-            template = template.replace("{search}", "")
+        this._pagerDOMs = []
+        Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.pagination}`)).forEach(el => {
+            if (!(el instanceof HTMLElement)) {
+                return
+            }
+            // We remove the inner part of the pager containers to ensure they are all the same.
+            el.innerHTML = `<ul class="${this.options.classes.paginationList}"></ul>`
+            this._pagerDOMs.push(el.firstElementChild as HTMLElement)
+        })
+
+        this._virtualPagerDOM = {
+            nodeName: "UL",
+            attributes: {
+                class: this.options.classes.paginationList
+            }
         }
 
-        // Paginator
-        const paginatorWrapper = createElement("nav", {
-            class: this.options.classes.pagination
-        })
-        const paginator = createElement("ul", {
-            class: this.options.classes.paginationList
-        })
-        paginatorWrapper.appendChild(paginator)
 
-        // Pager(s) placement
-        template = template.replace(/\{pager\}/g, paginatorWrapper.outerHTML)
-        this.wrapper.innerHTML = template
-
-        this.container = this.wrapper.querySelector(`.${this.options.classes.container}`)
-
-        this.pagers = Array.from(this.wrapper.querySelectorAll(`ul.${this.options.classes.paginationList}`))
-
-        this.label = this.wrapper.querySelector(`.${this.options.classes.info}`)
+        this._label = this.wrapperDOM.querySelector(`.${this.options.classes.info}`)
 
         // Insert in to DOM tree
-        this.dom.parentElement.replaceChild(this.wrapper, this.dom)
-        this.container.appendChild(this.dom)
+        this.dom.parentElement.replaceChild(this.wrapperDOM, this.dom)
+        this.containerDOM.appendChild(this.dom)
 
         // Store the table dimensions
-        this.rect = this.dom.getBoundingClientRect()
+        this._rect = this.dom.getBoundingClientRect()
 
         // // Fix height
         this._fixHeight()
@@ -268,58 +236,65 @@ export class DataTable {
 
         // Class names
         if (!this.options.header) {
-            this.wrapper.classList.add("no-header")
+            this.wrapperDOM.classList.add("no-header")
         }
 
         if (!this.options.footer) {
-            this.wrapper.classList.add("no-footer")
+            this.wrapperDOM.classList.add("no-footer")
         }
 
         if (this.options.sortable) {
-            this.wrapper.classList.add("sortable")
+            this.wrapperDOM.classList.add("sortable")
         }
 
         if (this.options.searchable) {
-            this.wrapper.classList.add("searchable")
+            this.wrapperDOM.classList.add("searchable")
         }
 
         if (this.options.fixedHeight) {
-            this.wrapper.classList.add("fixed-height")
+            this.wrapperDOM.classList.add("fixed-height")
         }
 
         if (this.options.fixedColumns) {
-            this.wrapper.classList.add("fixed-columns")
+            this.wrapperDOM.classList.add("fixed-columns")
         }
 
         this._bindEvents()
 
-        if (this.columns.settings.sort) {
-            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
+        if (this.columns._state.sort) {
+            this.columns.sort(this.columns._state.sort.column, this.columns._state.sort.dir, true)
         }
 
         this.update(true)
     }
 
     _renderTable(renderOptions: renderOptions ={}) {
-        const newVirtualDOM = dataToVirtualDOM(
-            this.id,
+        let newVirtualDOM = dataToVirtualDOM(
+            this._tableAttributes,
             this.data.headings,
-            (this.options.paging || this.searching) && this.currentPage && this.pages.length && !renderOptions.noPaging ?
-                this.pages[this.currentPage - 1] :
+            (this.options.paging || this._searchQuery) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
+                this.pages[this._currentPage - 1] :
                 this.data.data.map((row, index) => ({
                     row,
                     index
                 })),
             this.columns.settings,
-            this.columns.widths,
+            this.columns._state,
             this.rows.cursor,
             this.options,
             renderOptions
         )
 
-        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
-        this.dd.apply(this.dom, diff)
-        this.virtualDOM = newVirtualDOM
+        if (this.options.tableRender) {
+            const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, newVirtualDOM, "main")
+            if (renderedTableVirtualDOM) {
+                newVirtualDOM = renderedTableVirtualDOM
+            }
+        }
+
+        const diff = this._dd.diff(this._virtualDOM, newVirtualDOM)
+        this._dd.apply(this.dom, diff)
+        this._virtualDOM = newVirtualDOM
     }
 
     /**
@@ -328,15 +303,15 @@ export class DataTable {
      */
     _renderPage(lastRowCursor=false) {
         if (this.hasRows && this.totalPages) {
-            if (this.currentPage > this.totalPages) {
-                this.currentPage = 1
+            if (this._currentPage > this.totalPages) {
+                this._currentPage = 1
             }
 
             // Use a fragment to limit touching the DOM
             this._renderTable()
 
-            this.onFirstPage = this.currentPage === 1
-            this.onLastPage = this.currentPage === this.lastPage
+            this.onFirstPage = this._currentPage === 1
+            this.onLastPage = this._currentPage === this.lastPage
         } else {
             this.setMessage(this.options.labels.noRows)
         }
@@ -349,34 +324,34 @@ export class DataTable {
         let items
 
         if (this.totalPages) {
-            current = this.currentPage - 1
+            current = this._currentPage - 1
             f = current * this.options.perPage
             t = f + this.pages[current].length
             f = f + 1
-            items = this.searching ? this.searchData.length : this.data.data.length
+            items = this._searchQuery ? this._searchData.length : this.data.data.length
         }
 
-        if (this.label && this.options.labels.info.length) {
+        if (this._label && this.options.labels.info.length) {
             // CUSTOM LABELS
             const string = this.options.labels.info
                 .replace("{start}", String(f))
                 .replace("{end}", String(t))
-                .replace("{page}", String(this.currentPage))
+                .replace("{page}", String(this._currentPage))
                 .replace("{pages}", String(this.totalPages))
                 .replace("{rows}", String(items))
 
-            this.label.innerHTML = items ? string : ""
+            this._label.innerHTML = items ? string : ""
         }
 
-        if (this.currentPage == 1) {
+        if (this._currentPage == 1) {
             this._fixHeight()
         }
 
-        if (this.options.rowNavigation && this.currentPage) {
-            if (!this.rows.cursor || !this.pages[this.currentPage-1].find(
+        if (this.options.rowNavigation && this._currentPage) {
+            if (!this.rows.cursor || !this.pages[this._currentPage-1].find(
                 row => row.index === this.rows.cursor)
             ) {
-                const rows = this.pages[this.currentPage-1]
+                const rows = this.pages[this._currentPage-1]
                 if (rows.length) {
                     if (lastRowCursor) {
                         this.rows.setCursor(rows[rows.length-1].index)
@@ -388,67 +363,29 @@ export class DataTable {
         }
     }
 
-    /**
-     * Render the pager(s)
-     * @return {Void}
+    /** Render the pager(s)
+     *
      */
-    _renderPager() {
-        flush(this.pagers)
-
-        if (this.totalPages > 1) {
-            const c = "pager"
-            const frag = document.createDocumentFragment()
-            const prev = this.onFirstPage ? 1 : this.currentPage - 1
-            const next = this.onLastPage ? this.totalPages : this.currentPage + 1
-
-            // first button
-            if (this.options.firstLast) {
-                frag.appendChild(button(c, 1, this.options.firstText))
-            }
-
-            // prev button
-            if (this.options.nextPrev && !this.onFirstPage) {
-                frag.appendChild(button(c, prev, this.options.prevText))
-            }
-
-            let pager = this.links
-
-            // truncate the links
-            if (this.options.truncatePager) {
-                pager = truncate(
-                    this.links,
-                    this.currentPage,
-                    this.pages.length,
-                    this.options
-                )
-            }
-
-            // active page link
-            this.links[this.currentPage - 1].classList.add(this.options.classes.active)
-
-            // append the links
-            pager.forEach((p: HTMLElement) => {
-                p.classList.remove(this.options.classes.active)
-                frag.appendChild(p)
-            })
-
-            this.links[this.currentPage - 1].classList.add(this.options.classes.active)
-
-            // next button
-            if (this.options.nextPrev && !this.onLastPage) {
-                frag.appendChild(button(c, next, this.options.nextText))
-            }
-
-            // first button
-            if (this.options.firstLast) {
-                frag.appendChild(button(c, this.totalPages, this.options.lastText))
-            }
-
-            // We may have more than one pager
-            this.pagers.forEach((pager: HTMLElement) => {
-                pager.appendChild(frag.cloneNode(true))
-            })
+    _renderPagers() {
+        if (!this.options.paging) {
+            return
         }
+        let newPagerVirtualDOM = createVirtualPagerDOM(this.onFirstPage, this.onLastPage, this._currentPage, this.totalPages, this.options)
+
+        if (this.options.pagerRender) {
+            const renderedPagerVirtualDOM : (elementNodeType | void) = this.options.pagerRender([this.onFirstPage, this.onLastPage, this._currentPage, this.totalPages], newPagerVirtualDOM)
+            if (renderedPagerVirtualDOM) {
+                newPagerVirtualDOM = renderedPagerVirtualDOM
+            }
+        }
+
+        const diffs = this._dd.diff(this._virtualPagerDOM, newPagerVirtualDOM)
+        // We may have more than one pager
+        this._pagerDOMs.forEach((pagerDOM: HTMLElement) => {
+            this._dd.apply(pagerDOM, diffs)
+        })
+
+        this._virtualPagerDOM = newPagerVirtualDOM
     }
 
     // Render header that is not in the same table element as the remainder
@@ -457,49 +394,56 @@ export class DataTable {
         const container = this.dom.parentElement
         if (!this.headerDOM) {
             this.headerDOM = document.createElement("div")
-            this.virtualHeaderDOM = {
+            this._virtualHeaderDOM = {
                 nodeName: "DIV"
             }
 
         }
         container.parentElement.insertBefore(this.headerDOM, container)
+        let tableVirtualDOM : elementNodeType = {
+            nodeName: "TABLE",
+            attributes: {
+                class: this.options.classes.table
+            },
+            childNodes: [
+                {
+                    nodeName: "THEAD",
+                    childNodes: [
+                        headingsToVirtualHeaderRowDOM(
+                            this.data.headings, this.columns.settings, this.columns._state, this.options, {unhideHeader: true})
+                    ]
+
+                }
+
+            ]
+        }
+        if (this.options.tableRender) {
+            const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, tableVirtualDOM, "header")
+            if (renderedTableVirtualDOM) {
+                tableVirtualDOM = renderedTableVirtualDOM
+            }
+        }
+
         const newVirtualHeaderDOM = {
             nodeName: "DIV",
             attributes: {
                 class: this.options.classes.headercontainer
             },
-            childNodes: [
-                {
-                    nodeName: "TABLE",
-                    attributes: {
-                        class: this.options.classes.table
-                    },
-                    childNodes: [
-                        {
-                            nodeName: "THEAD",
-                            childNodes: [
-                                headingsToVirtualHeaderRowDOM(
-                                    this.data.headings, this.columns.settings, this.columns.widths, this.options, {unhideHeader: true})
-                            ]
-
-                        }
-
-                    ]
-                }
-            ]
+            childNodes: [tableVirtualDOM]
         }
-        const diff = this.dd.diff(this.virtualHeaderDOM, newVirtualHeaderDOM)
-        this.dd.apply(this.headerDOM, diff)
-        this.virtualHeaderDOM = newVirtualHeaderDOM
+
+        const diff = this._dd.diff(this._virtualHeaderDOM, newVirtualHeaderDOM)
+        this._dd.apply(this.headerDOM, diff)
+        this._virtualHeaderDOM = newVirtualHeaderDOM
 
         // Compensate for scrollbars
         const paddingRight = this.headerDOM.firstElementChild.clientWidth - this.dom.clientWidth
         if (paddingRight) {
-            const paddedVirtualHeaderDOM = structuredClone(this.virtualHeaderDOM)
+            const paddedVirtualHeaderDOM = structuredClone(this._virtualHeaderDOM)
             paddedVirtualHeaderDOM.attributes.style = `padding-right: ${paddingRight}px;`
-            const diff = this.dd.diff(this.virtualHeaderDOM, paddedVirtualHeaderDOM)
-            this.dd.apply(this.headerDOM, diff)
-            this.virtualHeaderDOM = paddedVirtualHeaderDOM
+            const diff = this._dd.diff(this._virtualHeaderDOM, paddedVirtualHeaderDOM)
+            this._dd.apply(this.headerDOM, diff)
+            this._virtualHeaderDOM = paddedVirtualHeaderDOM
         }
 
         if (container.scrollHeight > container.clientHeight) {
@@ -515,7 +459,7 @@ export class DataTable {
     _bindEvents() {
         // Per page selector
         if (this.options.perPageSelect) {
-            const selector = this.wrapper.querySelector(`select.${this.options.classes.selector}`)
+            const selector = this.wrapperDOM.querySelector(`select.${this.options.classes.selector}`)
             if (selector && selector instanceof HTMLSelectElement) {
                 // Change per page
                 selector.addEventListener("change", () => {
@@ -531,14 +475,14 @@ export class DataTable {
 
         // Search input
         if (this.options.searchable) {
-            this.input = this.wrapper.querySelector(`.${this.options.classes.input}`)
-            if (this.input) {
-                this.input.addEventListener("keyup", () => this.search(this.input.value), false)
+            this._input = this.wrapperDOM.querySelector(`.${this.options.classes.input}`)
+            if (this._input) {
+                this._input.addEventListener("keyup", () => this.search(this._input.value), false)
             }
         }
 
         // Pager(s) / sorting
-        this.wrapper.addEventListener("click", (event: Event) => {
+        this.wrapperDOM.addEventListener("click", (event: Event) => {
             const target = event.target as Element
             const hyperlink = target.closest("a")
             if (!hyperlink) {
@@ -549,13 +493,18 @@ export class DataTable {
                 this.page(parseInt(hyperlink.getAttribute("data-page"), 10))
                 event.preventDefault()
             } else if (
-                this.options.sortable &&
-                hyperlink.classList.contains(this.options.classes.sorter) &&
-                hyperlink.parentElement.getAttribute("data-sortable") != "false"
+                hyperlink.classList.contains(this.options.classes.sorter)
             ) {
                 const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
-                const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings.columns)
+                const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
                 this.columns.sort(columnIndex)
+                event.preventDefault()
+            } else if (
+                hyperlink.classList.contains(this.options.classes.filter)
+            ) {
+                const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
+                const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
+                this.columns.filter(columnIndex)
                 event.preventDefault()
             }
         }, false)
@@ -565,7 +514,7 @@ export class DataTable {
                     event.preventDefault()
                     event.stopPropagation()
                     let lastRow
-                    this.pages[this.currentPage-1].find((row: {row: cellType[], index: number}) => {
+                    this.pages[this._currentPage-1].find((row: {row: cellType[], index: number}) => {
                         if (row.index===this.rows.cursor) {
                             return true
                         }
@@ -575,13 +524,13 @@ export class DataTable {
                     if (lastRow) {
                         this.rows.setCursor(lastRow.index)
                     } else if (!this.onFirstPage) {
-                        this.page(this.currentPage-1, true)
+                        this.page(this._currentPage-1, true)
                     }
                 } else if (event.key === "ArrowDown") {
                     event.preventDefault()
                     event.stopPropagation()
                     let foundRow: boolean
-                    const nextRow = this.pages[this.currentPage-1].find((row: {row: cellType[], index: number}) => {
+                    const nextRow = this.pages[this._currentPage-1].find((row: {row: cellType[], index: number}) => {
                         if (foundRow) {
                             return true
                         }
@@ -593,7 +542,7 @@ export class DataTable {
                     if (nextRow) {
                         this.rows.setCursor(nextRow.index)
                     } else if (!this.onLastPage) {
-                        this.page(this.currentPage+1)
+                        this.page(this._currentPage+1)
                     }
                 } else if (["Enter", " "].includes(event.key)) {
                     this.emit("datatable.selectrow", this.rows.cursor, event)
@@ -625,15 +574,15 @@ export class DataTable {
             })
         }
 
-        window.addEventListener("resize", this.listeners.onResize)
+        window.addEventListener("resize", this._listeners.onResize)
     }
 
     /**
      * execute on resize
      */
     _onResize() {
-        this.rect = this.container.getBoundingClientRect()
-        if (!this.rect.width) {
+        this._rect = this.containerDOM.getBoundingClientRect()
+        if (!this._rect.width) {
             // No longer shown, likely no longer part of DOM. Give up.
             return
         }
@@ -648,19 +597,19 @@ export class DataTable {
         if (!this.options.destroyable) {
             return
         }
-        this.dom.innerHTML = this.initialInnerHTML
+        this.dom.innerHTML = this._initialInnerHTML
 
         // Remove the className
         this.dom.classList.remove(this.options.classes.table)
 
         // Remove the containers
-        if (this.wrapper.parentElement) {
-            this.wrapper.parentElement.replaceChild(this.dom, this.wrapper)
+        if (this.wrapperDOM.parentElement) {
+            this.wrapperDOM.parentElement.replaceChild(this.dom, this.wrapperDOM)
         }
 
         this.initialized = false
 
-        window.removeEventListener("resize", this.listeners.onResize)
+        window.removeEventListener("resize", this._listeners.onResize)
     }
 
     /**
@@ -670,21 +619,15 @@ export class DataTable {
     update(measureWidths = false) {
         if (measureWidths) {
             this.columns._measureWidths()
+            this.hasRows = Boolean(this.data.data.length)
+            this.hasHeadings = Boolean(this.data.headings.length)
         }
-        this.wrapper.classList.remove(this.options.classes.empty)
+        this.wrapperDOM.classList.remove(this.options.classes.empty)
 
         this._paginate()
         this._renderPage()
 
-        this.links = []
-
-        let i = this.pages.length
-        while (i--) {
-            const num = i + 1
-            this.links[i] = button(i === 0 ? this.options.classes.active : "", num, String(num))
-        }
-
-        this._renderPager()
+        this._renderPagers()
 
         if (this.options.scrollY.length) {
             this._renderSeparateHeader()
@@ -699,18 +642,21 @@ export class DataTable {
             index
         }))
 
-        if (this.searching) {
+        if (this._searchQuery) {
             rows = []
 
-            this.searchData.forEach((index: number) => rows.push({index,
+            this._searchData.forEach((index: number) => rows.push({index,
                 row: this.data.data[index]}))
         }
 
-        if (this.filterStates.length) {
-            this.filterStates.forEach(
-                (filterState: filterStateType) => {
+        if (this.columns._state.filters.length) {
+            this.columns._state.filters.forEach(
+                (filterState: (filterStateType | undefined), column: number) => {
+                    if (!filterState) {
+                        return
+                    }
                     rows = rows.filter(
-                        (row: {index: number, row: cellType[]}) => typeof filterState.state === "function" ? filterState.state(row.row[filterState.column].data) : row.row[filterState.column].data === filterState.state
+                        (row: {index: number, row: cellType[]}) => typeof filterState === "function" ? filterState(row.row[column].data) : (row.row[column].text ?? row.row[column].data) === filterState
                     )
                 }
             )
@@ -727,7 +673,9 @@ export class DataTable {
 
         this.totalPages = this.lastPage = this.pages.length
 
-        this.currentPage = 1
+        if (!this._currentPage) {
+            this._currentPage = 1
+        }
         return this.totalPages
     }
 
@@ -736,9 +684,9 @@ export class DataTable {
      */
     _fixHeight() {
         if (this.options.fixedHeight) {
-            this.container.style.height = null
-            this.rect = this.container.getBoundingClientRect()
-            this.container.style.height = `${this.rect.height}px`
+            this.containerDOM.style.height = null
+            this._rect = this.containerDOM.getBoundingClientRect()
+            this.containerDOM.style.height = `${this._rect.height}px`
         }
     }
 
@@ -748,58 +696,76 @@ export class DataTable {
     search(query: string) {
         if (!this.hasRows) return false
 
-        query = query.toLowerCase()
-
-        this.currentPage = 1
-        this.searching = query
-        this.searchData = []
+        this._currentPage = 1
+        this._searchQuery = query
+        this._searchData = []
 
         if (!query.length) {
             this.update()
-            this.emit("datatable.search", query, this.searchData)
-            this.wrapper.classList.remove("search-results")
+            this.emit("datatable.search", query, this._searchData)
+            this.wrapperDOM.classList.remove("search-results")
             return false
         }
 
+        const queryWords : (string | false)[]= this.columns.settings.map(
+            column => {
+                if (column.hidden || !column.searchable) {
+                    return false
+                }
+                let columnQuery = query
+                const sensitivity = column.sensitivity || this.options.sensitivity
+                if (["base", "accent"].includes(sensitivity)) {
+                    columnQuery = columnQuery.toLowerCase()
+                }
+                if (["base", "case"].includes(sensitivity)) {
+                    columnQuery = columnQuery.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+                }
+                const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
+                if (ignorePunctuation) {
+                    columnQuery = columnQuery.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
+                }
+                return columnQuery
+            }
+        )
+
         this.data.data.forEach((row: cellType[], idx: number) => {
-            const inArray = this.searchData.includes(idx)
-
-            // https://github.com/Mobius1/Vanilla-DataTables/issues/12
-            const doesQueryMatch = query.split(" ").reduce((bool: boolean, word: string) => {
-                let includes = false
-                let cell = null
-                let content = null
-
-                for (let x = 0; x < row.length; x++) {
-                    cell = row[x]
-                    content = cell.text || String(cell.data)
-                    if (
-                        this.columns.visible(x) && content.toLowerCase().includes(word)
-                    ) {
-                        includes = true
-                        break
+            for (let i=0; i<row.length; i++) {
+                const query = queryWords[i]
+                if (query) {
+                    const cell = row[i]
+                    let content = (cell.text || String(cell.data)).trim()
+                    if (content.length) {
+                        const column = this.columns.settings[i]
+                        const sensitivity = column.sensitivity || this.options.sensitivity
+                        if (["base", "accent"].includes(sensitivity)) {
+                            content = content.toLowerCase()
+                        }
+                        if (["base", "case"].includes(sensitivity)) {
+                            content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+                        }
+                        const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
+                        if (ignorePunctuation) {
+                            content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
+                        }
+                        if (query.split(" ").find(queryWord => content.includes(queryWord))) {
+                            this._searchData.push(idx)
+                            break
+                        }
                     }
                 }
-
-                return bool && includes
-            }, true)
-
-            if (doesQueryMatch && !inArray) {
-                this.searchData.push(idx)
             }
         })
 
-        this.wrapper.classList.add("search-results")
-
-        if (!this.searchData.length) {
-            this.wrapper.classList.remove("search-results")
+        this.wrapperDOM.classList.add("search-results")
+        if (this._searchData.length) {
+            this.update()
+        } else {
+            this.wrapperDOM.classList.remove("search-results")
 
             this.setMessage(this.options.labels.noResults)
-        } else {
-            this.update()
         }
 
-        this.emit("datatable.search", query, this.searchData)
+        this.emit("datatable.search", query, this._searchData)
     }
 
     /**
@@ -807,12 +773,12 @@ export class DataTable {
      */
     page(page: number, lastRowCursor = false) {
         // We don't want to load the current page again.
-        if (page === this.currentPage) {
+        if (page === this._currentPage) {
             return false
         }
 
         if (!isNaN(page)) {
-            this.currentPage = page
+            this._currentPage = page
         }
 
         if (page > this.pages.length || page < 0) {
@@ -820,7 +786,7 @@ export class DataTable {
         }
 
         this._renderPage(lastRowCursor)
-        this._renderPager()
+        this._renderPagers()
 
         this.emit("datatable.page", page)
     }
@@ -840,9 +806,9 @@ export class DataTable {
                     const index = headings.indexOf(heading)
 
                     if (index > -1) {
-                        r[index] = readDataCell(cell as inputCellType, this.columns.settings.columns[index])
+                        r[index] = readDataCell(cell as inputCellType, this.columns.settings[index])
                     } else if (!this.hasHeadings && !this.hasRows && rIndex === 0) {
-                        r[headings.length] = readDataCell(cell as inputCellType, this.columns.settings.columns[headings.length])
+                        r[headings.length] = readDataCell(cell as inputCellType, this.columns.settings[headings.length])
                         headings.push(heading)
                         this.data.headings.push(readHeaderCell(heading))
                     }
@@ -851,21 +817,18 @@ export class DataTable {
             })
         } else if (isObject(data)) {
             if (data.headings && !this.hasHeadings && !this.hasRows) {
-                this.data = readTableData(this.options.dataConvert, data, undefined, this.columns.settings)
-                this.hasRows = Boolean(this.data.data.length)
-                this.hasHeadings = Boolean(this.data.headings.length)
+                this.data = readTableData(data, undefined, this.columns.settings, this.options.type, this.options.format)
             } else if (data.data && Array.isArray(data.data)) {
-                rows = data.data.map(row => row.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings.columns[index])))
+                rows = data.data.map(row => row.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings[index])))
             }
         }
         if (rows.length) {
             rows.forEach((row: cellType[]) => this.data.data.push(row))
-            this.hasRows = true
         }
         this.hasHeadings = Boolean(this.data.headings.length)
 
-        if (this.columns.settings.sort) {
-            this.columns.sort(this.columns.settings.sort.column, this.columns.settings.sort.dir, true)
+        if (this.columns._state.sort) {
+            this.columns.sort(this.columns._state.sort.column, this.columns._state.sort.dir, true)
         }
 
         this.update(true)
@@ -876,10 +839,10 @@ export class DataTable {
      */
     refresh() {
         if (this.options.searchable) {
-            this.input.value = ""
-            this.searching = ""
+            this._input.value = ""
+            this._searchQuery = ""
         }
-        this.currentPage = 1
+        this._currentPage = 1
         this.onFirstPage = true
         this.update(true)
 
@@ -892,15 +855,15 @@ export class DataTable {
     print() {
         const tableDOM = createElement("table")
         const tableVirtualDOM = {nodeName: "TABLE"}
-        const newTableVirtualDOM = dataToVirtualDOM(
-            this.id,
+        let newTableVirtualDOM = dataToVirtualDOM(
+            this._tableAttributes,
             this.data.headings,
             this.data.data.map((row, index) => ({
                 row,
                 index
             })),
             this.columns.settings,
-            this.columns.widths,
+            this.columns._state,
             false, // No row cursor
             this.options,
             {
@@ -909,8 +872,15 @@ export class DataTable {
             }
         )
 
-        const diff = this.dd.diff(tableVirtualDOM, newTableVirtualDOM)
-        this.dd.apply(tableDOM, diff)
+        if (this.options.tableRender) {
+            const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, newTableVirtualDOM, "print")
+            if (renderedTableVirtualDOM) {
+                newTableVirtualDOM = renderedTableVirtualDOM
+            }
+        }
+
+        const diff = this._dd.diff(tableVirtualDOM, newTableVirtualDOM)
+        this._dd.apply(tableDOM, diff)
 
         // Open new window
         const w = window.open()
@@ -926,18 +896,18 @@ export class DataTable {
      * Show a message in the table
      */
     setMessage(message: string) {
-        const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columns.settings.columns[index]?.hidden)
+        const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columns.settings[index]?.hidden)
         const colspan = activeHeadings.length || 1
 
-        this.wrapper.classList.add(this.options.classes.empty)
+        this.wrapperDOM.classList.add(this.options.classes.empty)
 
-        if (this.label) {
-            this.label.innerHTML = ""
+        if (this._label) {
+            this._label.innerHTML = ""
         }
         this.totalPages = 0
-        this._renderPager()
+        this._renderPagers()
 
-        const newVirtualDOM = structuredClone(this.virtualDOM)
+        let newVirtualDOM = structuredClone(this._virtualDOM)
 
         let tbody : elementNodeType = newVirtualDOM.childNodes?.find((node: elementNodeType) => node.nodeName === "TBODY") as elementNodeType
 
@@ -967,10 +937,16 @@ export class DataTable {
             }
         ]
 
+        if (this.options.tableRender) {
+            const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, newVirtualDOM, "message")
+            if (renderedTableVirtualDOM) {
+                newVirtualDOM = renderedTableVirtualDOM
+            }
+        }
 
-        const diff = this.dd.diff(this.virtualDOM, newVirtualDOM)
-        this.dd.apply(this.dom, diff)
-        this.virtualDOM = newVirtualDOM
+        const diff = this._dd.diff(this._virtualDOM, newVirtualDOM)
+        this._dd.apply(this.dom, diff)
+        this._virtualDOM = newVirtualDOM
 
     }
 
@@ -978,25 +954,25 @@ export class DataTable {
      * Add custom event listener
      */
     on(event: string, callback: () => void) {
-        this.events[event] = this.events[event] || []
-        this.events[event].push(callback)
+        this._events[event] = this._events[event] || []
+        this._events[event].push(callback)
     }
 
     /**
      * Remove custom event listener
      */
     off(event: string, callback: () => void) {
-        if (event in this.events === false) return
-        this.events[event].splice(this.events[event].indexOf(callback), 1)
+        if (event in this._events === false) return
+        this._events[event].splice(this._events[event].indexOf(callback), 1)
     }
 
     /**
      * Fire custom event
      */
     emit(event: string, ...args) {
-        if (event in this.events === false) return
-        for (let i = 0; i < this.events[event].length; i++) {
-            this.events[event][i](...args)
+        if (event in this._events === false) return
+        for (let i = 0; i < this._events[event].length; i++) {
+            this._events[event][i](...args)
         }
     }
 }

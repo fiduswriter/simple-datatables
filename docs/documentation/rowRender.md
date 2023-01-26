@@ -1,6 +1,6 @@
 ### `rowRender`
 #### Default: `false`
-#### Type: `boolean` \ `function`
+#### Type: `boolean` \ `function(rowValue, tr, index)`
 
 
 If specified, declares a callback to customise the rendering of all rows. The function can take 3 parameters:

@@ -1,5 +1,5 @@
 ### `prevText`
 #### Type: `string`
-#### defaut: `'&lsaquo;'`
+#### defaut: `'‹'`
 
 Set the content on the previous button.

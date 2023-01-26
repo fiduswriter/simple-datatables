@@ -11,6 +11,14 @@
 
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
+        <style>
+            .red {
+                background-color: red;
+            }
+            .green {
+                background-color: green;
+            }
+        </style>
     </head>
     <body>
         <h1>Simple</h1>
@@ -742,6 +750,11 @@
                     {
                         select: 3,
                         sortSequence: ["desc"]
+                    },
+                    {
+                        select: 4,
+                        cellClass: "green",
+                        headerClass: "red"
                     }
                 ]
 })

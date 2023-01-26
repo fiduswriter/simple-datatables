@@ -1,4 +1,4 @@
-import {elementNodeType, singleColumnSettingsType, textNodeType, DataTableOptions} from "./types"
+import {elementNodeType, columnSettingsType, textNodeType} from "./types"
 
 /**
  * Check is item is object
@@ -35,75 +35,6 @@ export const createElement = (nodeName: string, attrs?: { [key: string]: string}
     return dom
 }
 
-export const flush = (el: HTMLElement | HTMLElement[]) => {
-    if (Array.isArray(el)) {
-        el.forEach(e => flush(e))
-    } else {
-        el.innerHTML = ""
-    }
-}
-
-/**
- * Create button helper
- */
-export const button = (className: string, page: number, text: string) => createElement(
-    "li",
-    {
-        class: className,
-        html: `<a href="#" data-page="${String(page)}">${text}</a>`
-    }
-)
-
-/**
- * Pager truncation algorithm
- */
-export const truncate = (links: HTMLElement[], currentPage: number, pagesLength: number, options: DataTableOptions) => {
-    const pagerDelta = options.pagerDelta || 2
-    const classes = options.classes || {ellipsis: "datatable-ellipsis",
-        active: "datatable-active"}
-    const ellipsisText = options.ellipsisText || "&hellip;"
-
-    const doublePagerDelta = 2 * pagerDelta
-    let previousPage = currentPage - pagerDelta
-    let nextPage = currentPage + pagerDelta
-
-    if (currentPage < 4 - pagerDelta + doublePagerDelta) {
-        nextPage = 3 + doublePagerDelta
-    } else if (currentPage > pagesLength - (3 - pagerDelta + doublePagerDelta)) {
-        previousPage = pagesLength - (2 + doublePagerDelta)
-    }
-    const linksToModify: HTMLElement[] = []
-    for (let k = 1; k <= pagesLength; k++) {
-        if (1 == k || k == pagesLength || (k >= previousPage && k <= nextPage)) {
-            const link = links[k - 1]
-            link.classList.remove(classes.active)
-            linksToModify.push(link)
-        }
-    }
-    let previousLink: HTMLElement
-    const modifiedLinks: HTMLElement[] = []
-    linksToModify.forEach(link => {
-        const pageNumber = parseInt(link.children[0].getAttribute("data-page"), 10)
-        if (previousLink) {
-            const previousPageNumber = parseInt(previousLink.children[0].getAttribute("data-page"), 10)
-            if (pageNumber - previousPageNumber == 2) {
-                modifiedLinks.push(links[previousPageNumber])
-            } else if (pageNumber - previousPageNumber != 1) {
-                const newLink = createElement("li", {
-                    class: classes.ellipsis,
-                    html: ellipsisText
-                })
-                modifiedLinks.push(newLink)
-            }
-        }
-        modifiedLinks.push(link)
-        previousLink = link
-    })
-
-    return modifiedLinks
-}
-
-
 export const objToText = (obj: (elementNodeType| textNodeType)) => {
     if (["#text", "#comment"].includes(obj.nodeName)) {
         return (obj as textNodeType).data
@@ -124,15 +55,28 @@ export const escapeText = function(text: string) {
 }
 
 
-export const visibleToColumnIndex = function(visibleIndex: number, columns: singleColumnSettingsType[]) {
+export const visibleToColumnIndex = function(visibleIndex: number, columns: columnSettingsType[]) {
     let counter = 0
     let columnIndex = 0
     while (counter < (visibleIndex+1)) {
-        const columnSettings = columns[columnIndex] || {}
+        const columnSettings = columns[columnIndex]
         if (!columnSettings.hidden) {
             counter += 1
         }
         columnIndex += 1
     }
     return columnIndex-1
+}
+
+export const columnToVisibleIndex = function(columnIndex: number, columns: columnSettingsType[]) {
+    let visibleIndex = columnIndex
+    let counter = 0
+    while (counter < columnIndex) {
+        const columnSettings = columns[columnIndex]
+        if (columnSettings.hidden) {
+            visibleIndex -= 1
+        }
+        counter++
+    }
+    return visibleIndex
 }

@@ -10,29 +10,48 @@ let dataTable = new DataTable(myTable, options);
 ```
 
 ---
-
-* [perPage](perPage)
-* [perPageSelect](perPageSelect)
-* [nextPrev](nextPrev)
-* [prevText](prevText)
-* [nextText](nextText)
-* [firstLast](firstLast)
-* [firstText](firstText)
-* [lastText](lastText)
-* [searchable](searchable)
-* [sortable](sortable)
-* [truncatePager](truncatePager)
+### Data
+* [data](data)
+* [type](columns#type)
+* [format](columns#format)
+### Appearance
+* [columns](columns)
 * [fixedColumns](fixedColumns)
 * [fixedHeight](fixedHeight)
-* [columns](columns)
-* [data](data)
-* [ajax](ajax)
-* [labels](labels)
-* [layout](layout)
-* [header](header)
 * [footer](footer)
+* [header](header)
+* [hiddenHeader](hiddenHeader)
+* [labels](labels)
+* [template](template)
+* [scrollY](scrollY)
+### Rendering
+* [pagerRender](pagerRender)
+* [rowRender](rowRender)
+* [tableRender](tableRender)
+### Pagination
+* [paging](paging)
+* [perPage](perPage)
+* [perPageSelect](perPageSelect)
+* [firstLast](firstLast)
+* [nextPrev](nextPrev)
+* [firstText](firstText)
+* [lastText](lastText)
+* [prevText](prevText)
+* [nextText](nextText)
+* [ellipsisText](ellipsisText)
+* [truncatePager](truncatePager)
+* [pagerDelta](pagerDelta)
+### Searching
+* [searchable](searchable)
+* [sensitivity](columns#sensitivity)
+### Sorting
+* [sortable](sortable)
+* [locale](columns#locale)
+* [numeric](columns#numeric)
+* [caseFirst](columns#caseFirst)
+* [ignorePunctuation](columns#ignorePunctuation)
+### Navigation
 * [rowNavigation](rowNavigation)
 * [tabIndex](tabIndex)
-* [rowRender](rowRender)
-* **dataConvert** (boolean, default: true): Whether to attempt to convert incoming data instead of assuming it already is in the format used natively.
-* **destroyable** (boolean, default: true): Whether to keep the original HTML in memory in order to be able to destroy the table again,
+### Other
+* [destroyable](destroyable)

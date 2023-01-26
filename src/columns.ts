@@ -1,24 +1,23 @@
 import {readDataCell, readHeaderCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {allColumnSettingsType, cellType, headerCellType, filterStateType, inputCellType, inputHeaderCellType, elementNodeType, renderType} from "./types"
+import {cellType, columnsStateType, headerCellType, inputCellType, inputHeaderCellType, elementNodeType, columnSettingsType} from "./types"
 import {readColumnSettings} from "./column_settings"
 
 
 export class Columns {
     dt: DataTable
 
-    widths: number[]
+    settings: columnSettingsType[]
 
-    settings: allColumnSettingsType
+    _state: columnsStateType
 
     constructor(dt: DataTable) {
         this.dt = dt
-        this.widths = []
         this.init()
     }
 
     init() {
-        this.settings = readColumnSettings(this.dt.options.columns)
+        [this.settings, this._state] = readColumnSettings(this.dt.options.columns, this.dt.options.type, this.dt.options.format)
     }
 
     /**
@@ -48,8 +47,8 @@ export class Columns {
         this.dt.data.data = this.dt.data.data.map(
             (row: cellType[]) => columns.map((index: number) => row[index])
         )
-        this.settings.columns = columns.map(
-            (index: number) => this.settings.columns[index]
+        this.settings = columns.map(
+            (index: number) => this.settings[index]
         )
 
         // Update
@@ -64,10 +63,12 @@ export class Columns {
             return
         }
         columns.forEach((index: number) => {
-            if (!this.settings.columns[index]) {
-                this.settings.columns[index] = {}
+            if (!this.settings[index]) {
+                this.settings[index] = {
+                    type: "string"
+                }
             }
-            const column = this.settings.columns[index]
+            const column = this.settings[index]
             column.hidden = true
         })
 
@@ -82,10 +83,13 @@ export class Columns {
             return
         }
         columns.forEach((index: number) => {
-            if (!this.settings.columns[index]) {
-                this.settings.columns[index] = {}
+            if (!this.settings[index]) {
+                this.settings[index] = {
+                    type: "string",
+                    sortable: true
+                }
             }
-            const column = this.settings.columns[index]
+            const column = this.settings[index]
             delete column.hidden
         })
 
@@ -98,49 +102,84 @@ export class Columns {
     visible(columns: number | number[]) {
 
         if (Array.isArray(columns)) {
-            return columns.map(index => !this.settings.columns[index]?.hidden)
+            return columns.map(index => !this.settings[index]?.hidden)
         }
-        return !this.settings.columns[columns]?.hidden
+        return !this.settings[columns]?.hidden
 
     }
 
     /**
      * Add a new column
      */
-    add(data: {data: inputCellType[], heading: inputHeaderCellType, type?: "date", format?: string, sortable?: boolean, render?: renderType, filter?: (string | number | boolean | ((arg: (string | number | boolean)) => boolean))[]}) {
+    add(data: {data: inputCellType[], heading: inputHeaderCellType} & columnSettingsType) {
         const newColumnSelector = this.dt.data.headings.length
-        this.dt.data.headings = this.dt.options.dataConvert ?
-            this.dt.data.headings.concat([readHeaderCell(data.heading)]) :
-            this.dt.data.headings.concat([data.heading as headerCellType])
-        this.dt.data.data = this.dt.options.dataConvert ?
-            this.dt.data.data.map(
-                (row: cellType[], index: number) => row.concat([readDataCell(data.data[index], data)])
-            ) :
-            this.dt.data.data.map(
-                (row: cellType[], index: number) => row.concat([data.data[index] as cellType])
-            )
+        this.dt.data.headings = this.dt.data.headings.concat([readHeaderCell(data.heading)])
+        this.dt.data.data = this.dt.data.data.map(
+            (row: cellType[], index: number) => row.concat([readDataCell(data.data[index], data)])
+        )
+        this.settings[newColumnSelector] = {
+            type: data.type || "string",
+            sortable: true,
+            searchable: true
+        }
         if (data.type || data.format || data.sortable || data.render || data.filter) {
-            if (!this.settings.columns[newColumnSelector]) {
-                this.settings.columns[newColumnSelector] = {}
+            const column = this.settings[newColumnSelector]
+
+            if (data.render) {
+                column.render = data.render
             }
-            const column = this.settings.columns[newColumnSelector]
-            if (data.type) {
-                column.type = data.type
-            }
+
             if (data.format) {
                 column.format = data.format
             }
-            if (data.sortable) {
-                column.notSortable = !data.sortable
+
+            if (data.cellClass) {
+                column.cellClass = data.cellClass
             }
+
+            if (data.headerClass) {
+                column.headerClass = data.headerClass
+            }
+
+            if (data.locale) {
+                column.locale = data.locale
+            }
+
+            if (data.sortable === false) {
+                column.sortable = false
+            } else {
+                if (data.numeric) {
+                    column.numeric = data.numeric
+                }
+                if (data.caseFirst) {
+                    column.caseFirst = data.caseFirst
+                }
+            }
+
+            if (data.searchable === false) {
+                column.searchable = false
+            } else {
+                if (data.sensitivity) {
+                    column.sensitivity = data.sensitivity
+                }
+            }
+
+            if (column.searchable || column.sortable) {
+                if (data.ignorePunctuation) {
+                    column.ignorePunctuation = data.ignorePunctuation
+                }
+            }
+
+            if (data.hidden) {
+                column.hidden = true
+            }
+
             if (data.filter) {
                 column.filter = data.filter
             }
-            if (data.type) {
-                column.type = data.type
-            }
-            if (data.render) {
-                column.render = data.render
+
+            if (data.sortSequence) {
+                column.sortSequence = data.sortSequence
             }
         }
         this.dt.update(true)
@@ -166,35 +205,33 @@ export class Columns {
      */
     filter(column: number, init = false) {
 
-        if (!this.settings.columns[column]?.filter?.length) {
+        if (!this.settings[column]?.filter?.length) {
             // There is no filter to apply.
             return
         }
 
-        const currentFilter = this.dt.filterStates.find((filterState: filterStateType) => filterState.column === column)
+        const currentFilter = this._state.filters[column]
         let newFilterState
         if (currentFilter) {
             let returnNext = false
-            newFilterState = this.settings.columns[column].filter.find((filter: (string | number | boolean | elementNodeType[] | object | ((arg: (string | number | boolean | elementNodeType[] | object)) => boolean))) => {
+            newFilterState = this.settings[column].filter.find((filter: (string | number | boolean | elementNodeType[] | object | ((arg: (string | number | boolean | elementNodeType[] | object)) => boolean))) => {
                 if (returnNext) {
                     return true
                 }
-                if (filter === currentFilter.state) {
+                if (filter === currentFilter) {
                     returnNext = true
                 }
                 return false
             })
         } else {
-            newFilterState = this.settings.columns[column].filter[0]
+            const filter = this.settings[column].filter
+            newFilterState = filter ? filter[0] : undefined
         }
 
-        if (currentFilter && newFilterState) {
-            currentFilter.state = newFilterState
+        if (newFilterState) {
+            this._state.filters[column] = newFilterState
         } else if (currentFilter) {
-            this.dt.filterStates = this.dt.filterStates.filter((filterState: filterStateType) => filterState.column !== column)
-        } else {
-            this.dt.filterStates.push({column,
-                state: newFilterState})
+            this._state.filters[column] = undefined
         }
 
         this.dt.update()
@@ -207,20 +244,16 @@ export class Columns {
     /**
      * Sort by column
      */
-    sort(column: number, dir: ("asc" | "desc" | undefined) = undefined, init = false) {
-        const columnSettings = this.settings.columns[column]
-        // If there is a filter for this column, apply it instead of sorting
-        if (columnSettings?.filter?.length) {
-            return this.filter(column, init)
-        }
+    sort(index: number, dir: ("asc" | "desc" | undefined) = undefined, init = false) {
+        const column = this.settings[index]
 
         if (!init) {
-            this.dt.emit("datatable.sorting", column, dir)
+            this.dt.emit("datatable.sorting", index, dir)
         }
 
         if (!dir) {
-            const currentDir = this.settings.sort ? this.settings.sort?.dir : false
-            const sortSequence = columnSettings?.sortSequence || ["asc", "desc"]
+            const currentDir = this._state.sort ? this._state.sort?.dir : false
+            const sortSequence = column?.sortSequence || ["asc", "desc"]
             if (!currentDir) {
                 dir = sortSequence.length ? sortSequence[0] : "asc"
             } else {
@@ -236,13 +269,25 @@ export class Columns {
 
         }
 
+        const collator = ["string", "html"].includes(column.type) ?
+            new Intl.Collator(column.locale || this.dt.options.locale, {
+                usage: "sort",
+                numeric: column.numeric || this.dt.options.numeric,
+                caseFirst: column.caseFirst || this.dt.options.caseFirst,
+                ignorePunctuation: column.ignorePunctuation|| this.dt.options.ignorePunctuation
+            }) :
+            false
+
         this.dt.data.data.sort((row1: cellType[], row2: cellType[]) => {
-            let order1 = row1[column].order || row1[column].data,
-                order2 = row2[column].order || row2[column].data
+            let order1 = row1[index].order || row1[index].data,
+                order2 = row2[index].order || row2[index].data
             if (dir === "desc") {
                 const temp = order1
                 order1 = order2
                 order2 = temp
+            }
+            if (collator) {
+                return collator.compare(String(order1), String(order2))
             }
             if (order1 < order2) {
                 return -1
@@ -252,14 +297,14 @@ export class Columns {
             return 0
         })
 
-        this.settings.sort = {column,
+        this._state.sort = {column: index,
             dir}
-        if (this.dt.searching) {
-            this.dt.search(this.dt.searching)
-            this.dt.emit("datatable.sort", column, dir)
+        if (this.dt._searchQuery) {
+            this.dt.search(this.dt._searchQuery)
+            this.dt.emit("datatable.sort", index, dir)
         } else if (!init) {
             this.dt.update()
-            this.dt.emit("datatable.sort", column, dir)
+            this.dt.emit("datatable.sort", index, dir)
         }
     }
 
@@ -268,10 +313,10 @@ export class Columns {
      * Note: Destroys current DOM and therefore requires subsequent dt.update()
      */
     _measureWidths() {
-        const activeHeadings = this.dt.data.headings.filter((heading: headerCellType, index: number) => !this.settings.columns[index]?.hidden)
+        const activeHeadings = this.dt.data.headings.filter((heading: headerCellType, index: number) => !this.settings[index]?.hidden)
         if ((this.dt.options.scrollY.length || this.dt.options.fixedColumns) && activeHeadings?.length) {
 
-            this.widths = []
+            this._state.widths = []
             const renderOptions: {noPaging?: true, noColumnWidths?: true, unhideHeader?: true, renderHeader?: true} = {
                 noPaging: true
             }
@@ -294,7 +339,7 @@ export class Columns {
                 const activeDOMHeadings : HTMLTableCellElement[] = Array.from(this.dt.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
                 let domCounter = 0
                 const absoluteColumnWidths = this.dt.data.headings.map((_heading: headerCellType, index: number) => {
-                    if (this.settings.columns[index]?.hidden) {
+                    if (this.settings[index]?.hidden) {
                         return 0
                     }
                     const width = activeDOMHeadings[domCounter].offsetWidth
@@ -306,7 +351,7 @@ export class Columns {
                     (total, cellWidth) => total + cellWidth,
                     0
                 )
-                this.widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
+                this._state.widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
 
             } else {
                 renderOptions.renderHeader = true
@@ -315,7 +360,7 @@ export class Columns {
                 const activeDOMHeadings: HTMLTableCellElement[] = Array.from(this.dt.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
                 let domCounter = 0
                 const absoluteColumnWidths = this.dt.data.headings.map((_heading: headerCellType, index: number) => {
-                    if (this.settings.columns[index]?.hidden) {
+                    if (this.settings[index]?.hidden) {
                         return 0
                     }
                     const width = activeDOMHeadings[domCounter].offsetWidth
@@ -327,7 +372,7 @@ export class Columns {
                     (total, cellWidth) => total + cellWidth,
                     0
                 )
-                this.widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
+                this._state.widths = absoluteColumnWidths.map(cellWidth => cellWidth / totalOffsetWidth * 100)
             }
             // render table without options for measurements
             this.dt._renderTable()
