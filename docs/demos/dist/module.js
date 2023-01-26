@@ -866,6 +866,7 @@ class Columns {
         else if (currentFilter) {
             this._state.filters[column] = undefined;
         }
+        this.dt._currentPage = 1;
         this.dt.update();
         if (!init) {
             this.dt.emit("datatable.filter", column, newFilterState);
@@ -931,6 +932,7 @@ class Columns {
             this.dt.emit("datatable.sort", index, dir);
         }
         else if (!init) {
+            this.dt._currentPage = 1;
             this.dt.update();
             this.dt.emit("datatable.sort", index, dir);
         }

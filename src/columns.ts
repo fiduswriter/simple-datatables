@@ -233,7 +233,7 @@ export class Columns {
         } else if (currentFilter) {
             this._state.filters[column] = undefined
         }
-
+        this.dt._currentPage = 1
         this.dt.update()
 
         if (!init) {
@@ -303,6 +303,7 @@ export class Columns {
             this.dt.search(this.dt._searchQuery)
             this.dt.emit("datatable.sort", index, dir)
         } else if (!init) {
+            this.dt._currentPage = 1
             this.dt.update()
             this.dt.emit("datatable.sort", index, dir)
         }
