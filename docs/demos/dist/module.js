@@ -60,6 +60,18 @@ const visibleToColumnIndex = function (visibleIndex, columns) {
     }
     return columnIndex - 1;
 };
+const columnToVisibleIndex = function (columnIndex, columns) {
+    let visibleIndex = columnIndex;
+    let counter = 0;
+    while (counter < columnIndex) {
+        const columnSettings = columns[columnIndex];
+        if (columnSettings.hidden) {
+            visibleIndex -= 1;
+        }
+        counter++;
+    }
+    return visibleIndex;
+};
 
 function e(t,n,o){var s;return "#text"===t.nodeName?s=o.document.createTextNode(t.data):"#comment"===t.nodeName?s=o.document.createComment(t.data):(n?s=o.document.createElementNS("http://www.w3.org/2000/svg",t.nodeName):"svg"===t.nodeName.toLowerCase()?(s=o.document.createElementNS("http://www.w3.org/2000/svg","svg"),n=!0):s=o.document.createElement(t.nodeName),t.attributes&&Object.entries(t.attributes).forEach((function(e){var t=e[0],n=e[1];return s.setAttribute(t,n)})),t.childNodes&&t.childNodes.forEach((function(t){return s.appendChild(e(t,n,o))})),o.valueDiffing&&(t.value&&(s instanceof HTMLButtonElement||s instanceof HTMLDataElement||s instanceof HTMLInputElement||s instanceof HTMLLIElement||s instanceof HTMLMeterElement||s instanceof HTMLOptionElement||s instanceof HTMLProgressElement||s instanceof HTMLParamElement)&&(s.value=t.value),t.checked&&s instanceof HTMLInputElement&&(s.checked=t.checked),t.selected&&s instanceof HTMLOptionElement&&(s.selected=t.selected))),s}var t=function(e,t){for(t=t.slice();t.length>0;){var n=t.splice(0,1)[0];e=e.childNodes[n];}return e};function n(n,o,s){var i,a,c,l=o[s._const.action],r=o[s._const.route];[s._const.addElement,s._const.addTextElement].includes(l)||(i=t(n,r));var u={diff:o,node:i};if(s.preDiffApply(u))return !0;switch(l){case s._const.addAttribute:if(!(i&&i instanceof Element))return !1;i.setAttribute(o[s._const.name],o[s._const.value]);break;case s._const.modifyAttribute:if(!(i&&i instanceof Element))return !1;i.setAttribute(o[s._const.name],o[s._const.newValue]),i instanceof HTMLInputElement&&"value"===o[s._const.name]&&(i.value=o[s._const.newValue]);break;case s._const.removeAttribute:if(!(i&&i instanceof Element))return !1;i.removeAttribute(o[s._const.name]);break;case s._const.modifyTextElement:if(!(i&&i instanceof Text))return !1;s.textDiff(i,i.data,o[s._const.oldValue],o[s._const.newValue]);break;case s._const.modifyValue:if(!i||void 0===i.value)return !1;i.value=o[s._const.newValue];break;case s._const.modifyComment:if(!(i&&i instanceof Comment))return !1;s.textDiff(i,i.data,o[s._const.oldValue],o[s._const.newValue]);break;case s._const.modifyChecked:if(!i||void 0===i.checked)return !1;i.checked=o[s._const.newValue];break;case s._const.modifySelected:if(!i||void 0===i.selected)return !1;i.selected=o[s._const.newValue];break;case s._const.replaceElement:i.parentNode.replaceChild(e(o[s._const.newValue],"svg"===o[s._const.newValue].nodeName.toLowerCase(),s),i);break;case s._const.relocateGroup:Array.apply(void 0,new Array(o[s._const.groupLength])).map((function(){return i.removeChild(i.childNodes[o[s._const.from]])})).forEach((function(e,t){0===t&&(c=i.childNodes[o[s._const.to]]),i.insertBefore(e,c||null);}));break;case s._const.removeElement:i.parentNode.removeChild(i);break;case s._const.addElement:var d=(h=r.slice()).splice(h.length-1,1)[0];if(!((i=t(n,h))instanceof Element))return !1;i.insertBefore(e(o[s._const.element],"http://www.w3.org/2000/svg"===i.namespaceURI,s),i.childNodes[d]||null);break;case s._const.removeTextElement:if(!i||3!==i.nodeType)return !1;i.parentNode.removeChild(i);break;case s._const.addTextElement:var h;d=(h=r.slice()).splice(h.length-1,1)[0];if(a=s.document.createTextNode(o[s._const.value]),!(i=t(n,h)).childNodes)return !1;i.insertBefore(a,i.childNodes[d]||null);break;default:console.log("unknown action");}return s.postDiffApply({diff:u.diff,node:u.node,newNode:a}),!0}function o(e,t,n){var o=e[t];e[t]=e[n],e[n]=o;}function s(e,t,s){(t=t.slice()).reverse(),t.forEach((function(t){!function(e,t,s){switch(t[s._const.action]){case s._const.addAttribute:t[s._const.action]=s._const.removeAttribute,n(e,t,s);break;case s._const.modifyAttribute:o(t,s._const.oldValue,s._const.newValue),n(e,t,s);break;case s._const.removeAttribute:t[s._const.action]=s._const.addAttribute,n(e,t,s);break;case s._const.modifyTextElement:case s._const.modifyValue:case s._const.modifyComment:case s._const.modifyChecked:case s._const.modifySelected:case s._const.replaceElement:o(t,s._const.oldValue,s._const.newValue),n(e,t,s);break;case s._const.relocateGroup:o(t,s._const.from,s._const.to),n(e,t,s);break;case s._const.removeElement:t[s._const.action]=s._const.addElement,n(e,t,s);break;case s._const.addElement:t[s._const.action]=s._const.removeElement,n(e,t,s);break;case s._const.removeTextElement:t[s._const.action]=s._const.addTextElement,n(e,t,s);break;case s._const.addTextElement:t[s._const.action]=s._const.removeTextElement,n(e,t,s);break;default:console.log("unknown action");}}(e,t,s);}));}var i=function(e){var t=[];return t.push(e.nodeName),"#text"!==e.nodeName&&"#comment"!==e.nodeName&&e.attributes&&(e.attributes.class&&t.push("".concat(e.nodeName,".").concat(e.attributes.class.replace(/ /g,"."))),e.attributes.id&&t.push("".concat(e.nodeName,"#").concat(e.attributes.id))),t},a=function(e){var t={},n={};return e.forEach((function(e){i(e).forEach((function(e){var o=e in t;o||e in n?o&&(delete t[e],n[e]=!0):t[e]=!0;}));})),t},c=function(e,t){var n=a(e),o=a(t),s={};return Object.keys(n).forEach((function(e){o[e]&&(s[e]=!0);})),s},l=function(e){return delete e.outerDone,delete e.innerDone,delete e.valueDone,!e.childNodes||e.childNodes.every(l)},r=function(e){if(Object.prototype.hasOwnProperty.call(e,"data"))return {nodeName:"#text"===e.nodeName?"#text":"#comment",data:e.data};var t={nodeName:e.nodeName};return Object.prototype.hasOwnProperty.call(e,"attributes")&&(t.attributes=e.attributes),Object.prototype.hasOwnProperty.call(e,"checked")&&(t.checked=e.checked),Object.prototype.hasOwnProperty.call(e,"value")&&(t.value=e.value),Object.prototype.hasOwnProperty.call(e,"selected")&&(t.selected=e.selected),Object.prototype.hasOwnProperty.call(e,"childNodes")&&(t.childNodes=e.childNodes.map((function(e){return r(e)}))),t},u=function(e,t){if(!["nodeName","value","checked","selected","data"].every((function(n){return e[n]===t[n]})))return !1;if(Object.prototype.hasOwnProperty.call(e,"data"))return !0;if(Boolean(e.attributes)!==Boolean(t.attributes))return !1;if(Boolean(e.childNodes)!==Boolean(t.childNodes))return !1;if(e.attributes){var n=Object.keys(e.attributes),o=Object.keys(t.attributes);if(n.length!==o.length)return !1;if(!n.every((function(n){return e.attributes[n]===t.attributes[n]})))return !1}if(e.childNodes){if(e.childNodes.length!==t.childNodes.length)return !1;if(!e.childNodes.every((function(e,n){return u(e,t.childNodes[n])})))return !1}return !0},d=function(e,t,n,o,s){if(void 0===s&&(s=!1),!e||!t)return !1;if(e.nodeName!==t.nodeName)return !1;if(["#text","#comment"].includes(e.nodeName))return !!s||e.data===t.data;if(e.nodeName in n)return !0;if(e.attributes&&t.attributes){if(e.attributes.id){if(e.attributes.id!==t.attributes.id)return !1;if("".concat(e.nodeName,"#").concat(e.attributes.id)in n)return !0}if(e.attributes.class&&e.attributes.class===t.attributes.class)if("".concat(e.nodeName,".").concat(e.attributes.class.replace(/ /g,"."))in n)return !0}if(o)return !0;var i=e.childNodes?e.childNodes.slice().reverse():[],a=t.childNodes?t.childNodes.slice().reverse():[];if(i.length!==a.length)return !1;if(s)return i.every((function(e,t){return e.nodeName===a[t].nodeName}));var l=c(i,a);return i.every((function(e,t){return d(e,a[t],l,!0,!0)}))},h=function(e,t){return Array.apply(void 0,new Array(e)).map((function(){return t}))},f=function(e,t){for(var n=e.childNodes?e.childNodes:[],o=t.childNodes?t.childNodes:[],s=h(n.length,!1),a=h(o.length,!1),l=[],r=function(){return arguments[1]},u=!1,f=function(){var e=function(e,t,n,o){var s=0,a=[],l=e.length,r=t.length,u=Array.apply(void 0,new Array(l+1)).map((function(){return []})),h=c(e,t),f=l===r;f&&e.some((function(e,n){var o=i(e),s=i(t[n]);return o.length!==s.length?(f=!1,!0):(o.some((function(e,t){if(e!==s[t])return f=!1,!0})),!f||void 0)}));for(var p=0;p<l;p++)for(var m=e[p],_=0;_<r;_++){var V=t[_];n[p]||o[_]||!d(m,V,h,f)?u[p+1][_+1]=0:(u[p+1][_+1]=u[p][_]?u[p][_]+1:1,u[p+1][_+1]>=s&&(s=u[p+1][_+1],a=[p+1,_+1]));}return 0!==s&&{oldValue:a[0]-s,newValue:a[1]-s,length:s}}(n,o,s,a);e?(l.push(e),Array.apply(void 0,new Array(e.length)).map(r).forEach((function(t){return function(e,t,n,o){e[n.oldValue+o]=!0,t[n.newValue+o]=!0;}(s,a,e,t)}))):u=!0;};!u;)f();return e.subsets=l,e.subsetsAge=100,l},p=function(){function e(){this.list=[];}return e.prototype.add=function(e){var t;(t=this.list).push.apply(t,e);},e.prototype.forEach=function(e){this.list.forEach((function(t){return e(t)}));},e}(),m=function(){function e(e){void 0===e&&(e={});var t=this;Object.entries(e).forEach((function(e){var n=e[0],o=e[1];return t[n]=o}));}return e.prototype.toString=function(){return JSON.stringify(this)},e.prototype.setValue=function(e,t){return this[e]=t,this},e}();function _(e,t){var n,o,s=e;for(t=t.slice();t.length>0;)o=t.splice(0,1)[0],n=s,s=s.childNodes?s.childNodes[o]:void 0;return {node:s,parentNode:n,nodeIndex:o}}function V(e,t,n){return t.forEach((function(t){!function(e,t,n){var o,s,i,a;if(![n._const.addElement,n._const.addTextElement].includes(t[n._const.action])){var c=_(e,t[n._const.route]);s=c.node,i=c.parentNode,a=c.nodeIndex;}var l,r,u=[],d={diff:t,node:s};if(n.preVirtualDiffApply(d))return !0;switch(t[n._const.action]){case n._const.addAttribute:s.attributes||(s.attributes={}),s.attributes[t[n._const.name]]=t[n._const.value],"checked"===t[n._const.name]?s.checked=!0:"selected"===t[n._const.name]?s.selected=!0:"INPUT"===s.nodeName&&"value"===t[n._const.name]&&(s.value=t[n._const.value]);break;case n._const.modifyAttribute:s.attributes[t[n._const.name]]=t[n._const.newValue];break;case n._const.removeAttribute:delete s.attributes[t[n._const.name]],0===Object.keys(s.attributes).length&&delete s.attributes,"checked"===t[n._const.name]?s.checked=!1:"selected"===t[n._const.name]?delete s.selected:"INPUT"===s.nodeName&&"value"===t[n._const.name]&&delete s.value;break;case n._const.modifyTextElement:s.data=t[n._const.newValue];break;case n._const.modifyValue:s.value=t[n._const.newValue];break;case n._const.modifyComment:s.data=t[n._const.newValue];break;case n._const.modifyChecked:s.checked=t[n._const.newValue];break;case n._const.modifySelected:s.selected=t[n._const.newValue];break;case n._const.replaceElement:l=t[n._const.newValue],i.childNodes[a]=l;break;case n._const.relocateGroup:s.childNodes.splice(t[n._const.from],t[n._const.groupLength]).reverse().forEach((function(e){return s.childNodes.splice(t[n._const.to],0,e)})),s.subsets&&s.subsets.forEach((function(e){if(t[n._const.from]<t[n._const.to]&&e.oldValue<=t[n._const.to]&&e.oldValue>t[n._const.from])e.oldValue-=t[n._const.groupLength],(o=e.oldValue+e.length-t[n._const.to])>0&&(u.push({oldValue:t[n._const.to]+t[n._const.groupLength],newValue:e.newValue+e.length-o,length:o}),e.length-=o);else if(t[n._const.from]>t[n._const.to]&&e.oldValue>t[n._const.to]&&e.oldValue<t[n._const.from]){var o;e.oldValue+=t[n._const.groupLength],(o=e.oldValue+e.length-t[n._const.to])>0&&(u.push({oldValue:t[n._const.to]+t[n._const.groupLength],newValue:e.newValue+e.length-o,length:o}),e.length-=o);}else e.oldValue===t[n._const.from]&&(e.oldValue=t[n._const.to]);}));break;case n._const.removeElement:i.childNodes.splice(a,1),i.subsets&&i.subsets.forEach((function(e){e.oldValue>a?e.oldValue-=1:e.oldValue===a?e.delete=!0:e.oldValue<a&&e.oldValue+e.length>a&&(e.oldValue+e.length-1===a?e.length--:(u.push({newValue:e.newValue+a-e.oldValue,oldValue:a,length:e.length-a+e.oldValue-1}),e.length=a-e.oldValue));})),s=i;break;case n._const.addElement:var h=(r=t[n._const.route].slice()).splice(r.length-1,1)[0];s=null===(o=_(e,r))||void 0===o?void 0:o.node,l=t[n._const.element],s.childNodes||(s.childNodes=[]),h>=s.childNodes.length?s.childNodes.push(l):s.childNodes.splice(h,0,l),s.subsets&&s.subsets.forEach((function(e){if(e.oldValue>=h)e.oldValue+=1;else if(e.oldValue<h&&e.oldValue+e.length>h){var t=e.oldValue+e.length-h;u.push({newValue:e.newValue+e.length-t,oldValue:h+1,length:t}),e.length-=t;}}));break;case n._const.removeTextElement:i.childNodes.splice(a,1),"TEXTAREA"===i.nodeName&&delete i.value,i.subsets&&i.subsets.forEach((function(e){e.oldValue>a?e.oldValue-=1:e.oldValue===a?e.delete=!0:e.oldValue<a&&e.oldValue+e.length>a&&(e.oldValue+e.length-1===a?e.length--:(u.push({newValue:e.newValue+a-e.oldValue,oldValue:a,length:e.length-a+e.oldValue-1}),e.length=a-e.oldValue));})),s=i;break;case n._const.addTextElement:var f=(r=t[n._const.route].slice()).splice(r.length-1,1)[0];(l={}).nodeName="#text",l.data=t[n._const.value],(s=_(e,r).node).childNodes||(s.childNodes=[]),f>=s.childNodes.length?s.childNodes.push(l):s.childNodes.splice(f,0,l),"TEXTAREA"===s.nodeName&&(s.value=t[n._const.newValue]),s.subsets&&s.subsets.forEach((function(e){if(e.oldValue>=f&&(e.oldValue+=1),e.oldValue<f&&e.oldValue+e.length>f){var t=e.oldValue+e.length-f;u.push({newValue:e.newValue+e.length-t,oldValue:f+1,length:t}),e.length-=t;}}));break;default:console.log("unknown action");}s.subsets&&(s.subsets=s.subsets.filter((function(e){return !e.delete&&e.oldValue!==e.newValue})),u.length&&(s.subsets=s.subsets.concat(u))),n.postVirtualDiffApply({node:d.node,diff:d.diff,newNode:l});}(e,t,n);})),!0}function g(e,t){void 0===t&&(t={});var n={nodeName:e.nodeName};if(e instanceof Text||e instanceof Comment)n.data=e.data;else {if(e.attributes&&e.attributes.length>0)n.attributes={},Array.prototype.slice.call(e.attributes).forEach((function(e){return n.attributes[e.name]=e.value}));if(e instanceof HTMLTextAreaElement)n.value=e.value;else if(e.childNodes&&e.childNodes.length>0){n.childNodes=[],Array.prototype.slice.call(e.childNodes).forEach((function(e){return n.childNodes.push(g(e,t))}));}t.valueDiffing&&(e instanceof HTMLInputElement&&["radio","checkbox"].includes(e.type.toLowerCase())&&void 0!==e.checked?n.checked=e.checked:(e instanceof HTMLButtonElement||e instanceof HTMLDataElement||e instanceof HTMLInputElement||e instanceof HTMLLIElement||e instanceof HTMLMeterElement||e instanceof HTMLOptionElement||e instanceof HTMLProgressElement||e instanceof HTMLParamElement)&&(n.value=e.value),e instanceof HTMLOptionElement&&(n.selected=e.selected));}return n}var v=/<(?:"[^"]*"['"]*|'[^']*'['"]*|[^'">])+>/g,b=Object.create?Object.create(null):{},N=/\s([^'"/\s><]+?)[\s/>]|([^\s=]+)=\s?(".*?"|'.*?')/g;function y(e){return e.replace(/&lt;/g,"<").replace(/&gt;/g,">").replace(/&amp;/g,"&")}var w={area:!0,base:!0,br:!0,col:!0,embed:!0,hr:!0,img:!0,input:!0,keygen:!0,link:!0,menuItem:!0,meta:!0,param:!0,source:!0,track:!0,wbr:!0},E=function(e){var t={nodeName:"",attributes:{}},n=!1,o=e.match(/<\/?([^\s]+?)[/\s>]/);if(o&&(t.nodeName=o[1].toUpperCase(),(w[o[1]]||"/"===e.charAt(e.length-2))&&(n=!0),t.nodeName.startsWith("!--"))){var s=e.indexOf("--\x3e");return {type:"comment",node:{nodeName:"#comment",data:-1!==s?e.slice(4,s):""},voidElement:n}}for(var i=new RegExp(N),a=null,c=!1;!c;)if(null===(a=i.exec(e)))c=!0;else if(a[0].trim())if(a[1]){var l=a[1].trim(),r=[l,""];l.indexOf("=")>-1&&(r=l.split("=")),t.attributes[r[0]]=r[1],i.lastIndex--;}else a[2]&&(t.attributes[a[2]]=a[3].trim().substring(1,a[3].length-1));return {type:"tag",node:t,voidElement:n}},k=function(e,t){void 0===t&&(t={components:b});var n,o=[],s=-1,i=[],a=!1;if(0!==e.indexOf("<")){var c=e.indexOf("<");o.push({nodeName:"#text",data:-1===c?e:e.substring(0,c)});}return e.replace(v,(function(c,l){if(a){if(c!=="</".concat(n.node.nodeName,">"))return "";a=!1;}var r="/"!==c.charAt(1),u=c.startsWith("\x3c!--"),d=l+c.length,h=e.charAt(d);if(u){var f=E(c).node;if(s<0)return o.push(f),"";var p=i[s];return p&&(p.node.childNodes||(p.node.childNodes=[]),p.node.childNodes.push(f)),""}if(r){n=E(c),s++,"tag"===n.type&&t.components[n.node.nodeName]&&(n.type="component",a=!0),n.voidElement||a||!h||"<"===h||(n.node.childNodes||(n.node.childNodes=[]),n.node.childNodes.push({nodeName:"#text",data:y(e.slice(d,e.indexOf("<",d)))})),0===s&&o.push(n.node);var m=i[s-1];m&&(m.node.childNodes||(m.node.childNodes=[]),m.node.childNodes.push(n.node)),i[s]=n;}if((!r||n.voidElement)&&(s>-1&&(n.voidElement||n.node.nodeName===c.slice(2,-1).toUpperCase())&&--s>-1&&(n=i[s]),!a&&"<"!==h&&h)){var _=-1===s?o:i[s].node.childNodes||[],V=e.indexOf("<",d),g=y(e.slice(d,-1===V?void 0:V));_.push({nodeName:"#text",data:g});}return ""})),o[0]},x=function(){function e(e,t,n){this.options=n,this.t1="undefined"!=typeof Element&&e instanceof Element?g(e,this.options):"string"==typeof e?k(e,this.options):JSON.parse(JSON.stringify(e)),this.t2="undefined"!=typeof Element&&t instanceof Element?g(t,this.options):"string"==typeof t?k(t,this.options):JSON.parse(JSON.stringify(t)),this.diffcount=0,this.foundAll=!1,this.debug&&(this.t1Orig="undefined"!=typeof Element&&e instanceof Element?g(e,this.options):"string"==typeof e?k(e,this.options):JSON.parse(JSON.stringify(e)),this.t2Orig="undefined"!=typeof Element&&t instanceof Element?g(t,this.options):"string"==typeof t?k(t,this.options):JSON.parse(JSON.stringify(t))),this.tracker=new p;}return e.prototype.init=function(){return this.findDiffs(this.t1,this.t2)},e.prototype.findDiffs=function(e,t){var n;do{if(this.options.debug&&(this.diffcount+=1,this.diffcount>this.options.diffcap))throw new Error("surpassed diffcap:".concat(JSON.stringify(this.t1Orig)," -> ").concat(JSON.stringify(this.t2Orig)));0===(n=this.findNextDiff(e,t,[])).length&&(u(e,t)||(this.foundAll?console.error("Could not find remaining diffs!"):(this.foundAll=!0,l(e),n=this.findNextDiff(e,t,[])))),n.length>0&&(this.foundAll=!1,this.tracker.add(n),V(e,n,this.options));}while(n.length>0);return this.tracker.list},e.prototype.findNextDiff=function(e,t,n){var o,s;if(this.options.maxDepth&&n.length>this.options.maxDepth)return [];if(!e.outerDone){if(o=this.findOuterDiff(e,t,n),this.options.filterOuterDiff&&(s=this.options.filterOuterDiff(e,t,o))&&(o=s),o.length>0)return e.outerDone=!0,o;e.outerDone=!0;}if(Object.prototype.hasOwnProperty.call(e,"data"))return [];if(!e.innerDone){if((o=this.findInnerDiff(e,t,n)).length>0)return o;e.innerDone=!0;}if(this.options.valueDiffing&&!e.valueDone){if((o=this.findValueDiff(e,t,n)).length>0)return e.valueDone=!0,o;e.valueDone=!0;}return []},e.prototype.findOuterDiff=function(e,t,n){var o,s,i,a,c,l,u=[];if(e.nodeName!==t.nodeName){if(!n.length)throw new Error("Top level nodes have to be of the same kind.");return [(new m).setValue(this.options._const.action,this.options._const.replaceElement).setValue(this.options._const.oldValue,r(e)).setValue(this.options._const.newValue,r(t)).setValue(this.options._const.route,n)]}if(n.length&&this.options.diffcap<Math.abs((e.childNodes||[]).length-(t.childNodes||[]).length))return [(new m).setValue(this.options._const.action,this.options._const.replaceElement).setValue(this.options._const.oldValue,r(e)).setValue(this.options._const.newValue,r(t)).setValue(this.options._const.route,n)];if(Object.prototype.hasOwnProperty.call(e,"data")&&e.data!==t.data)return "#text"===e.nodeName?[(new m).setValue(this.options._const.action,this.options._const.modifyTextElement).setValue(this.options._const.route,n).setValue(this.options._const.oldValue,e.data).setValue(this.options._const.newValue,t.data)]:[(new m).setValue(this.options._const.action,this.options._const.modifyComment).setValue(this.options._const.route,n).setValue(this.options._const.oldValue,e.data).setValue(this.options._const.newValue,t.data)];for(s=e.attributes?Object.keys(e.attributes).sort():[],i=t.attributes?Object.keys(t.attributes).sort():[],a=s.length,l=0;l<a;l++)o=s[l],-1===(c=i.indexOf(o))?u.push((new m).setValue(this.options._const.action,this.options._const.removeAttribute).setValue(this.options._const.route,n).setValue(this.options._const.name,o).setValue(this.options._const.value,e.attributes[o])):(i.splice(c,1),e.attributes[o]!==t.attributes[o]&&u.push((new m).setValue(this.options._const.action,this.options._const.modifyAttribute).setValue(this.options._const.route,n).setValue(this.options._const.name,o).setValue(this.options._const.oldValue,e.attributes[o]).setValue(this.options._const.newValue,t.attributes[o])));for(a=i.length,l=0;l<a;l++)o=i[l],u.push((new m).setValue(this.options._const.action,this.options._const.addAttribute).setValue(this.options._const.route,n).setValue(this.options._const.name,o).setValue(this.options._const.value,t.attributes[o]));return u},e.prototype.findInnerDiff=function(e,t,n){var o=e.childNodes?e.childNodes.slice():[],s=t.childNodes?t.childNodes.slice():[],i=Math.max(o.length,s.length),a=Math.abs(o.length-s.length),c=[],l=0;if(!this.options.maxChildCount||i<this.options.maxChildCount){var d=Boolean(e.subsets&&e.subsetsAge--),h=d?e.subsets:e.childNodes&&t.childNodes?f(e,t):[];if(h.length>0&&(c=this.attemptGroupRelocation(e,t,h,n,d)).length>0)return c}for(var p=0;p<i;p+=1){var _=o[p],V=s[p];if(a&&(_&&!V?"#text"===_.nodeName?(c.push((new m).setValue(this.options._const.action,this.options._const.removeTextElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.value,_.data)),l-=1):(c.push((new m).setValue(this.options._const.action,this.options._const.removeElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.element,r(_))),l-=1):V&&!_&&("#text"===V.nodeName?c.push((new m).setValue(this.options._const.action,this.options._const.addTextElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.value,V.data)):c.push((new m).setValue(this.options._const.action,this.options._const.addElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.element,r(V))))),_&&V)if(!this.options.maxChildCount||i<this.options.maxChildCount)c=c.concat(this.findNextDiff(_,V,n.concat(l)));else if(!u(_,V))if(o.length>s.length)"#text"===_.nodeName?c.push((new m).setValue(this.options._const.action,this.options._const.removeTextElement).setValue(this.options._const.route,n.concat(l)).setValue(this.options._const.value,_.data)):c.push((new m).setValue(this.options._const.action,this.options._const.removeElement).setValue(this.options._const.element,r(_)).setValue(this.options._const.route,n.concat(l))),o.splice(p,1),p-=1,l-=1,a-=1;else if(o.length<s.length){var g=r(V);c=c.concat([(new m).setValue(this.options._const.action,this.options._const.addElement).setValue(this.options._const.element,g).setValue(this.options._const.route,n.concat(l))]),o.splice(p,0,g),a-=1;}else c=c.concat([(new m).setValue(this.options._const.action,this.options._const.replaceElement).setValue(this.options._const.oldValue,r(_)).setValue(this.options._const.newValue,r(V)).setValue(this.options._const.route,n.concat(l))]);l+=1;}return e.innerDone=!0,c},e.prototype.attemptGroupRelocation=function(e,t,n,o,s){for(var i,a,c,l,u,f,p=function(e,t,n){var o=e.childNodes?h(e.childNodes.length,!0):[],s=t.childNodes?h(t.childNodes.length,!0):[],i=0;return n.forEach((function(e){for(var t=e.oldValue+e.length,n=e.newValue+e.length,a=e.oldValue;a<t;a+=1)o[a]=i;for(a=e.newValue;a<n;a+=1)s[a]=i;i+=1;})),{gaps1:o,gaps2:s}}(e,t,n),_=p.gaps1,V=p.gaps2,g=Math.min(_.length,V.length),v=[],b=0,N=0;b<g;N+=1,b+=1)if(!s||!0!==_[b]&&!0!==V[b]){if(!0===_[b])if("#text"===(l=e.childNodes[N]).nodeName)if("#text"===t.childNodes[b].nodeName){if(l.data!==t.childNodes[b].data){for(f=N;e.childNodes.length>f+1&&"#text"===e.childNodes[f+1].nodeName;)if(f+=1,t.childNodes[b].data===e.childNodes[f].data){u=!0;break}if(!u)return v.push((new m).setValue(this.options._const.action,this.options._const.modifyTextElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.oldValue,l.data).setValue(this.options._const.newValue,t.childNodes[b].data)),v}}else v.push((new m).setValue(this.options._const.action,this.options._const.removeTextElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.value,l.data)),_.splice(b,1),g=Math.min(_.length,V.length),b-=1;else v.push((new m).setValue(this.options._const.action,this.options._const.removeElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.element,r(l))),_.splice(b,1),g=Math.min(_.length,V.length),b-=1;else if(!0===V[b])"#text"===(l=t.childNodes[b]).nodeName?(v.push((new m).setValue(this.options._const.action,this.options._const.addTextElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.value,l.data)),_.splice(b,0,!0),g=Math.min(_.length,V.length),N-=1):(v.push((new m).setValue(this.options._const.action,this.options._const.addElement).setValue(this.options._const.route,o.concat(b)).setValue(this.options._const.element,r(l))),_.splice(b,0,!0),g=Math.min(_.length,V.length),N-=1);else if(_[b]!==V[b]){if(v.length>0)return v;if(c=n[_[b]],(a=Math.min(c.newValue,e.childNodes.length-c.length))!==c.oldValue){i=!1;for(var y=0;y<c.length;y+=1)d(e.childNodes[a+y],e.childNodes[c.oldValue+y],{},!1,!0)||(i=!0);if(i)return [(new m).setValue(this.options._const.action,this.options._const.relocateGroup).setValue(this.options._const.groupLength,c.length).setValue(this.options._const.from,c.oldValue).setValue(this.options._const.to,a).setValue(this.options._const.route,o)]}}}return v},e.prototype.findValueDiff=function(e,t,n){var o=[];return e.selected!==t.selected&&o.push((new m).setValue(this.options._const.action,this.options._const.modifySelected).setValue(this.options._const.oldValue,e.selected).setValue(this.options._const.newValue,t.selected).setValue(this.options._const.route,n)),(e.value||t.value)&&e.value!==t.value&&"OPTION"!==e.nodeName&&o.push((new m).setValue(this.options._const.action,this.options._const.modifyValue).setValue(this.options._const.oldValue,e.value||"").setValue(this.options._const.newValue,t.value||"").setValue(this.options._const.route,n)),e.checked!==t.checked&&o.push((new m).setValue(this.options._const.action,this.options._const.modifyChecked).setValue(this.options._const.oldValue,e.checked).setValue(this.options._const.newValue,t.checked).setValue(this.options._const.route,n)),o},e}(),O={debug:!1,diffcap:10,maxDepth:!1,maxChildCount:50,valueDiffing:!0,textDiff:function(e,t,n,o){e.data=o;},preVirtualDiffApply:function(){},postVirtualDiffApply:function(){},preDiffApply:function(){},postDiffApply:function(){},filterOuterDiff:null,compress:!1,_const:!1,document:!("undefined"==typeof window||!window.document)&&window.document,components:[]},T=function(){function e(e){if(void 0===e&&(e={}),Object.entries(O).forEach((function(t){var n=t[0],o=t[1];Object.prototype.hasOwnProperty.call(e,n)||(e[n]=o);})),!e._const){var t=["addAttribute","modifyAttribute","removeAttribute","modifyTextElement","relocateGroup","removeElement","addElement","removeTextElement","addTextElement","replaceElement","modifyValue","modifyChecked","modifySelected","modifyComment","action","route","oldValue","newValue","element","group","groupLength","from","to","name","value","data","attributes","nodeName","childNodes","checked","selected"],n={};e.compress?t.forEach((function(e,t){return n[e]=t})):t.forEach((function(e){return n[e]=e})),e._const=n;}this.options=e;}return e.prototype.apply=function(e,t){return function(e,t,o){return t.every((function(t){return n(e,t,o)}))}(e,t,this.options)},e.prototype.undo=function(e,t){return s(e,t,this.options)},e.prototype.diff=function(e,t){return new x(e,t,this.options).init()},e}();
 
@@ -2402,6 +2414,8 @@ const defaultConfig = {
         removeRow: "Remove Row",
         reallyRemove: "Are you sure?"
     },
+    // edit inline instead of using a modal lay-over for editing content
+    inline: true,
     // include hidden columns in the editor
     hiddenColumns: false,
     // enable the context menu
@@ -2481,6 +2495,16 @@ class Editor {
             return;
         }
         this.dt.wrapperDOM.classList.add(this.options.classes.editable);
+        if (this.options.inline) {
+            this.originalRowRender = this.dt.options.rowRender;
+            this.dt.options.rowRender = (row, tr, index) => {
+                let newTr = this.rowRender(row, tr, index);
+                if (this.originalRowRender) {
+                    newTr = this.originalRowRender(row, newTr, index);
+                }
+                return newTr;
+            };
+        }
         if (this.options.contextMenu) {
             this.containerDOM = createElement("div", {
                 id: this.options.classes.container
@@ -2597,7 +2621,10 @@ class Editor {
             return;
         }
         if (this.editing && this.data && this.editingCell) {
-            this.saveCell(this.data.input.value);
+            const input = this.modalDOM ?
+                this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) :
+                this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`);
+            this.saveCell(input.value);
         }
         else if (!this.editing) {
             const cell = target.closest("tbody td");
@@ -2619,17 +2646,26 @@ class Editor {
             }
             else if (event.key === "Enter") { // save button
                 // Save
-                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
+                if (this.editingCell) {
+                    const input = this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`);
+                    this.saveCell(input.value);
+                }
+                else {
+                    const inputs = Array.from(this.modalDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`));
+                    this.saveRow(inputs.map(input => input.value.trim()), this.data.row);
+                }
             }
         }
         else if (this.editing && this.data) {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
-                    this.saveCell(this.data.input.value);
+                    const input = this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`);
+                    this.saveCell(input.value);
                 }
                 else if (this.editingRow) {
-                    this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row);
+                    const inputs = Array.from(this.dt.wrapperDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`));
+                    this.saveRow(inputs.map(input => input.value.trim()), this.data.row);
                 }
             }
             else if (event.key === "Escape") {
@@ -2658,6 +2694,19 @@ class Editor {
             columnIndex,
             content: cell.text || String(cell.data)
         };
+        this.editing = true;
+        this.editingCell = true;
+        if (this.options.inline) {
+            this.dt.update();
+        }
+        else {
+            this.editCellModal();
+        }
+        this.closeMenu();
+    }
+    editCellModal() {
+        const cell = this.data.cell;
+        const columnIndex = this.data.columnIndex;
         const label = this.dt.data.headings[columnIndex].text || String(this.dt.data.headings[columnIndex].data);
         const template = [
             `<div class='${this.options.classes.inner}'>`,
@@ -2678,19 +2727,17 @@ class Editor {
             "</div>",
             "</div>"
         ].join("");
-        const modal = createElement("div", {
+        const modalDOM = createElement("div", {
             class: this.options.classes.modal,
             html: template
         });
-        this.modalDOM = modal;
+        this.modalDOM = modalDOM;
         this.openModal();
-        this.editing = true;
-        this.editingCell = true;
-        this.data.input = modal.querySelector("input[type=text]");
-        this.data.input.focus();
-        this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length;
+        const input = modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`);
+        input.focus();
+        input.selectionStart = input.selectionEnd = input.value.length;
         // Close / save
-        modal.addEventListener("click", (event) => {
+        modalDOM.addEventListener("click", (event) => {
             const target = event.target;
             if (!(target instanceof Element)) {
                 return;
@@ -2700,10 +2747,9 @@ class Editor {
             }
             else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveCell(this.data.input.value);
+                this.saveCell(input.value);
             }
         });
-        this.closeMenu();
     }
     /**
      * Save edited cell
@@ -2714,7 +2760,7 @@ class Editor {
     saveCell(value) {
         const oldData = this.data.content;
         // Get the type of that column
-        const type = this.dt.columns.settings[this.data.rowIndex].type || this.dt.options.type;
+        const type = this.dt.columns.settings[this.data.columnIndex].type || this.dt.options.type;
         const stringValue = value.trim();
         let cell;
         if (type === "number") {
@@ -2740,15 +2786,26 @@ class Editor {
                 text: value,
                 order: value };
         }
+        else if (type === "string") {
+            cell = { data: value };
+        }
+        else if (type === "date") {
+            const format = this.dt.columns.settings[this.data.columnIndex].format || this.dt.options.format;
+            cell = { data: value, order: parseDate(String(value), format) };
+        }
         else {
             cell = { data: value };
         }
         // Set the cell content
         this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = cell;
         this.closeModal();
-        this.dt.update(true);
-        this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex);
+        const rowIndex = this.data.rowIndex;
+        const columnIndex = this.data.columnIndex;
         this.data = {};
+        this.dt.update(true);
+        this.editing = false;
+        this.editingCell = false;
+        this.dt.emit("editable.save.cell", value, oldData, rowIndex, columnIndex);
     }
     /**
      * Edit row
@@ -2760,6 +2817,22 @@ class Editor {
             return;
         const rowIndex = parseInt(tr.dataset.index, 10);
         const row = this.dt.data.data[rowIndex];
+        this.data = {
+            row,
+            rowIndex
+        };
+        this.editing = true;
+        this.editingRow = true;
+        if (this.options.inline) {
+            this.dt.update();
+        }
+        else {
+            this.editRowModal();
+        }
+        this.closeMenu();
+    }
+    editRowModal() {
+        const row = this.data.row;
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
@@ -2775,11 +2848,11 @@ class Editor {
             "</div>",
             "</div>"
         ].join("");
-        const modal = createElement("div", {
+        const modalDOM = createElement("div", {
             class: this.options.classes.modal,
             html: template
         });
-        const inner = modal.firstElementChild;
+        const inner = modalDOM.firstElementChild;
         if (!inner) {
             return;
         }
@@ -2803,21 +2876,14 @@ class Editor {
                 }), form.lastElementChild);
             }
         });
-        this.modalDOM = modal;
+        this.modalDOM = modalDOM;
         this.openModal();
         // Grab the inputs
-        const inputs = Array.from(form.querySelectorAll("input[type=text]"));
+        const inputs = Array.from(form.querySelectorAll(`input.${this.options.classes.input}[type=text]`));
         // Remove save button
         inputs.pop();
-        this.data = {
-            row,
-            inputs,
-            rowIndex
-        };
-        this.editing = true;
-        this.editingRow = true;
         // Close / save
-        modal.addEventListener("click", (event) => {
+        modalDOM.addEventListener("click", (event) => {
             const target = event.target;
             if (!(target instanceof Element)) {
                 return;
@@ -2827,10 +2893,9 @@ class Editor {
             }
             else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveRow(this.data.inputs.map((input) => input.value.trim()), this.data.row);
+                this.saveRow(inputs.map((input) => input.value.trim()), this.data.row);
             }
         });
-        this.closeMenu();
     }
     /**
      * Save edited row
@@ -2841,8 +2906,13 @@ class Editor {
     saveRow(data, row) {
         // Store the old data for the emitter
         const oldData = row.map((cell) => cell.text ?? String(cell.data));
-        this.dt.data.data[this.data.rowIndex] = data.map((value, rowIndex) => {
-            const type = this.dt.columns.settings[rowIndex].type || this.dt.options.type;
+        this.dt.data.data[this.data.rowIndex] = this.dt.data.data[this.data.rowIndex].map((oldCell, colIndex) => {
+            const columnSetting = this.dt.columns.settings[colIndex];
+            if (columnSetting.hidden || this.options.excludeColumns.includes(colIndex)) {
+                return oldCell;
+            }
+            const type = this.dt.columns.settings[colIndex].type || this.dt.options.type;
+            const value = data[columnToVisibleIndex(colIndex, this.dt.columns.settings)];
             const stringValue = value.trim();
             let cell;
             if (type === "number") {
@@ -2868,13 +2938,20 @@ class Editor {
                     text: value,
                     order: value };
             }
+            else if (type === "string") {
+                cell = { data: value };
+            }
+            else if (type === "date") {
+                const format = this.dt.columns.settings[colIndex].format || this.dt.options.format;
+                cell = { data: value, order: parseDate(String(value), format) };
+            }
             else {
                 cell = { data: value };
             }
             return cell;
         });
-        this.dt.update(true);
         this.data = {};
+        this.dt.update(true);
         this.closeModal();
         this.dt.emit("editable.save.row", data, oldData, row);
     }
@@ -2883,7 +2960,7 @@ class Editor {
      * @return {Void}
      */
     openModal() {
-        if (!this.editing && this.modalDOM) {
+        if (this.modalDOM) {
             document.body.appendChild(this.modalDOM);
         }
     }
@@ -2936,7 +3013,7 @@ class Editor {
         if (this.options.contextMenu) {
             valid = !this.wrapperDOM.contains(target);
             if (this.editing) {
-                valid = !this.wrapperDOM.contains(target) && target !== this.data.input;
+                valid = !this.wrapperDOM.contains(target) && !(target.matches(`input.${this.options.classes.input}[type=text]`));
             }
         }
         if (valid) {
@@ -2953,7 +3030,10 @@ class Editor {
      */
     openMenu() {
         if (this.editing && this.data && this.editingCell) {
-            this.saveCell(this.data.input.value);
+            const input = this.modalDOM ?
+                this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) :
+                this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`);
+            this.saveCell(input.value);
         }
         if (this.options.contextMenu) {
             document.body.appendChild(this.containerDOM);
@@ -2986,7 +3066,51 @@ class Editor {
         if (document.body.contains(this.containerDOM)) {
             document.body.removeChild(this.containerDOM);
         }
+        if (this.options.inline) {
+            this.dt.options.rowRender = this.originalRowRender;
+        }
         this.initialized = false;
+    }
+    rowRender(row, tr, index) {
+        if (!this.data || this.data.rowIndex !== index) {
+            return tr;
+        }
+        if (this.editingCell) {
+            // cell editing
+            const cell = tr.childNodes[columnToVisibleIndex(this.data.columnIndex, this.dt.columns.settings)];
+            cell.childNodes = [
+                {
+                    nodeName: "INPUT",
+                    attributes: {
+                        type: "text",
+                        value: this.data.content,
+                        class: this.options.classes.input
+                    }
+                }
+            ];
+        }
+        else {
+            // row editing
+            // Add the inputs for each cell
+            tr.childNodes.forEach((cell, i) => {
+                const index = visibleToColumnIndex(i, this.dt.columns.settings);
+                const dataCell = row[index];
+                if (!this.options.excludeColumns.includes(index)) {
+                    const cell = tr.childNodes[i];
+                    cell.childNodes = [
+                        {
+                            nodeName: "INPUT",
+                            attributes: {
+                                type: "text",
+                                value: escapeText(dataCell.text || String(dataCell.data) || ""),
+                                class: this.options.classes.input
+                            }
+                        }
+                    ];
+                }
+            });
+        }
+        return tr;
     }
 }
 const makeEditable = function (dataTable, options = {}) {

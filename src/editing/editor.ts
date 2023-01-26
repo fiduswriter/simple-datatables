@@ -1,11 +1,16 @@
 import {
     createElement,
     escapeText,
-    visibleToColumnIndex
+    visibleToColumnIndex,
+    columnToVisibleIndex
 } from "../helpers"
 import {
-    cellType
+    cellType,
+    rowRenderType,
+    elementNodeType
 } from "../types"
+import {DataTable} from "../datatable"
+import {parseDate} from "../date"
 
 import {
     defaultConfig
@@ -13,7 +18,6 @@ import {
 import {
     debounce
 } from "./helpers"
-import {DataTable} from "../datatable"
 import {menuItemType, dataType, EditorOptions} from "./types"
 
 
@@ -53,6 +57,8 @@ export class Editor {
 
     options: EditorOptions
 
+    originalRowRender: rowRenderType | false
+
     rect: {width: number, height: number}
 
     wrapperDOM: HTMLElement
@@ -74,6 +80,16 @@ export class Editor {
             return
         }
         this.dt.wrapperDOM.classList.add(this.options.classes.editable)
+        if (this.options.inline) {
+            this.originalRowRender = this.dt.options.rowRender
+            this.dt.options.rowRender = (row, tr, index) => {
+                let newTr = this.rowRender(row, tr, index)
+                if (this.originalRowRender) {
+                    newTr = this.originalRowRender(row, newTr, index)
+                }
+                return newTr
+            }
+        }
         if (this.options.contextMenu) {
             this.containerDOM = createElement("div", {
                 id: this.options.classes.container
@@ -195,7 +211,10 @@ export class Editor {
             return
         }
         if (this.editing && this.data && this.editingCell) {
-            this.saveCell(this.data.input.value)
+            const input = this.modalDOM ?
+                (this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement) :
+                (this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+            this.saveCell(input.value)
         } else if (!this.editing) {
             const cell = target.closest("tbody td") as HTMLTableCellElement
             if (cell) {
@@ -216,15 +235,25 @@ export class Editor {
                 this.closeModal()
             } else if (event.key === "Enter") { // save button
                 // Save
-                this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row)
+                if (this.editingCell) {
+                    const input = (this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+                    this.saveCell(input.value)
+                } else {
+                    const inputs = (Array.from(this.modalDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[])
+                    this.saveRow(inputs.map(input => input.value.trim()), this.data.row)
+                }
+
+
             }
         } else if (this.editing && this.data) {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
-                    this.saveCell(this.data.input.value)
+                    const input = (this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+                    this.saveCell(input.value)
                 } else if (this.editingRow) {
-                    this.saveRow(this.data.inputs.map(input => input.value.trim()), this.data.row)
+                    const inputs = (Array.from(this.dt.wrapperDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[])
+                    this.saveRow(inputs.map(input => input.value.trim()), this.data.row)
                 }
             } else if (event.key === "Escape") {
                 // Escape key reverts
@@ -254,6 +283,19 @@ export class Editor {
             columnIndex,
             content: cell.text || String(cell.data)
         }
+        this.editing = true
+        this.editingCell = true
+        if (this.options.inline) {
+            this.dt.update()
+        } else {
+            this.editCellModal()
+        }
+        this.closeMenu()
+    }
+
+    editCellModal() {
+        const cell = this.data.cell
+        const columnIndex = this.data.columnIndex
         const label = this.dt.data.headings[columnIndex].text || String(this.dt.data.headings[columnIndex].data)
         const template = [
             `<div class='${this.options.classes.inner}'>`,
@@ -274,19 +316,17 @@ export class Editor {
             "</div>",
             "</div>"
         ].join("")
-        const modal = createElement("div", {
+        const modalDOM = createElement("div", {
             class: this.options.classes.modal,
             html: template
         })
-        this.modalDOM = modal
+        this.modalDOM = modalDOM
         this.openModal()
-        this.editing = true
-        this.editingCell = true
-        this.data.input = modal.querySelector("input[type=text]")
-        this.data.input.focus()
-        this.data.input.selectionStart = this.data.input.selectionEnd = this.data.input.value.length
+        const input = (modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+        input.focus()
+        input.selectionStart = input.selectionEnd = input.value.length
         // Close / save
-        modal.addEventListener("click", (event: Event) => {
+        modalDOM.addEventListener("click", (event: Event) => {
             const target = event.target
             if (!(target instanceof Element)) {
                 return
@@ -295,10 +335,9 @@ export class Editor {
                 this.closeModal()
             } else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveCell(this.data.input.value)
+                this.saveCell(input.value)
             }
         })
-        this.closeMenu()
     }
 
     /**
@@ -310,7 +349,7 @@ export class Editor {
     saveCell(value: string) {
         const oldData = this.data.content
         // Get the type of that column
-        const type = this.dt.columns.settings[this.data.rowIndex].type || this.dt.options.type
+        const type = this.dt.columns.settings[this.data.columnIndex].type || this.dt.options.type
         const stringValue = value.trim()
         let cell
         if (type === "number") {
@@ -332,15 +371,25 @@ export class Editor {
             ],
             text: value,
             order: value}
+        } else if (type === "string") {
+            cell = {data: value}
+        } else if (type === "date") {
+            const format = this.dt.columns.settings[this.data.columnIndex].format || this.dt.options.format
+            cell = {data: value,
+                order: parseDate(String(value), format)}
         } else {
             cell = {data: value}
         }
         // Set the cell content
         this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = cell
         this.closeModal()
-        this.dt.update(true)
-        this.dt.emit("editable.save.cell", value, oldData, this.data.rowIndex, this.data.columnIndex)
+        const rowIndex = this.data.rowIndex
+        const columnIndex = this.data.columnIndex
         this.data = {}
+        this.dt.update(true)
+        this.editing = false
+        this.editingCell = false
+        this.dt.emit("editable.save.cell", value, oldData, rowIndex, columnIndex)
     }
 
     /**
@@ -352,6 +401,23 @@ export class Editor {
         if (!tr || tr.nodeName !== "TR" || this.editing) return
         const rowIndex = parseInt(tr.dataset.index, 10)
         const row = this.dt.data.data[rowIndex]
+        this.data = {
+            row,
+            rowIndex
+        }
+        this.editing = true
+        this.editingRow = true
+        if (this.options.inline) {
+            this.dt.update()
+        } else {
+            this.editRowModal()
+        }
+        this.closeMenu()
+    }
+
+    editRowModal() {
+        const row = this.data.row
+
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
@@ -367,11 +433,11 @@ export class Editor {
             "</div>",
             "</div>"
         ].join("")
-        const modal = createElement("div", {
+        const modalDOM = createElement("div", {
             class: this.options.classes.modal,
             html: template
         })
-        const inner = modal.firstElementChild
+        const inner = modalDOM.firstElementChild
         if (!inner) {
             return
         }
@@ -395,21 +461,15 @@ export class Editor {
                 }), form.lastElementChild)
             }
         })
-        this.modalDOM = modal
+        this.modalDOM = modalDOM
         this.openModal()
         // Grab the inputs
-        const inputs = Array.from(form.querySelectorAll("input[type=text]")) as HTMLInputElement[]
+        const inputs = Array.from(form.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[]
         // Remove save button
         inputs.pop()
-        this.data = {
-            row,
-            inputs,
-            rowIndex
-        }
-        this.editing = true
-        this.editingRow = true
+
         // Close / save
-        modal.addEventListener("click", (event: MouseEvent) => {
+        modalDOM.addEventListener("click", (event: MouseEvent) => {
             const target = event.target
             if (!(target instanceof Element)) {
                 return
@@ -418,10 +478,9 @@ export class Editor {
                 this.closeModal()
             } else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveRow(this.data.inputs.map((input: HTMLInputElement) => input.value.trim()), this.data.row)
+                this.saveRow(inputs.map((input: HTMLInputElement) => input.value.trim()), this.data.row)
             }
         })
-        this.closeMenu()
     }
 
     /**
@@ -433,8 +492,13 @@ export class Editor {
     saveRow(data: string[], row: cellType[]) {
         // Store the old data for the emitter
         const oldData = row.map((cell: cellType) => cell.text ?? String(cell.data))
-        this.dt.data.data[this.data.rowIndex] = data.map((value, rowIndex) => {
-            const type = this.dt.columns.settings[rowIndex].type || this.dt.options.type
+        this.dt.data.data[this.data.rowIndex] = this.dt.data.data[this.data.rowIndex].map((oldCell, colIndex) => {
+            const columnSetting = this.dt.columns.settings[colIndex]
+            if (columnSetting.hidden || this.options.excludeColumns.includes(colIndex)) {
+                return oldCell
+            }
+            const type = this.dt.columns.settings[colIndex].type || this.dt.options.type
+            const value = data[columnToVisibleIndex(colIndex, this.dt.columns.settings)]
             const stringValue = value.trim()
             let cell
             if (type === "number") {
@@ -456,13 +520,19 @@ export class Editor {
                 ],
                 text: value,
                 order: value}
+            } else if (type === "string") {
+                cell = {data: value}
+            } else if (type === "date") {
+                const format = this.dt.columns.settings[colIndex].format || this.dt.options.format
+                cell = {data: value,
+                    order: parseDate(String(value), format)}
             } else {
                 cell = {data: value}
             }
             return cell
         })
-        this.dt.update(true)
         this.data = {}
+        this.dt.update(true)
         this.closeModal()
         this.dt.emit("editable.save.row", data, oldData, row)
     }
@@ -472,7 +542,7 @@ export class Editor {
      * @return {Void}
      */
     openModal() {
-        if (!this.editing && this.modalDOM) {
+        if (this.modalDOM) {
             document.body.appendChild(this.modalDOM)
         }
     }
@@ -528,7 +598,7 @@ export class Editor {
         if (this.options.contextMenu) {
             valid = !this.wrapperDOM.contains(target)
             if (this.editing) {
-                valid = !this.wrapperDOM.contains(target) && target !== this.data.input
+                valid = !this.wrapperDOM.contains(target) && !(target.matches(`input.${this.options.classes.input}[type=text]`))
             }
         }
         if (valid) {
@@ -546,7 +616,11 @@ export class Editor {
      */
     openMenu() {
         if (this.editing && this.data && this.editingCell) {
-            this.saveCell(this.data.input.value)
+            const input = this.modalDOM ?
+                (this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement) :
+                (this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+
+            this.saveCell(input.value)
         }
         if (this.options.contextMenu) {
             document.body.appendChild(this.containerDOM)
@@ -581,7 +655,55 @@ export class Editor {
         if (document.body.contains(this.containerDOM)) {
             document.body.removeChild(this.containerDOM)
         }
+        if (this.options.inline) {
+            this.dt.options.rowRender = this.originalRowRender
+        }
         this.initialized = false
+    }
+
+    rowRender(row, tr, index) {
+        if (!this.data || this.data.rowIndex !== index) {
+            return tr
+        }
+
+        if (this.editingCell) {
+            // cell editing
+            const cell = tr.childNodes[columnToVisibleIndex(this.data.columnIndex, this.dt.columns.settings)]
+            cell.childNodes = [
+                {
+                    nodeName: "INPUT",
+                    attributes: {
+                        type: "text",
+                        value: this.data.content,
+                        class: this.options.classes.input
+                    }
+                }
+            ]
+        } else {
+            // row editing
+
+            // Add the inputs for each cell
+            tr.childNodes.forEach((cell: elementNodeType, i: number) => {
+                const index = visibleToColumnIndex(i, this.dt.columns.settings)
+                const dataCell = row[index]
+                if (!this.options.excludeColumns.includes(index)) {
+                    const cell = tr.childNodes[i]
+                    cell.childNodes = [
+                        {
+                            nodeName: "INPUT",
+                            attributes: {
+                                type: "text",
+                                value: escapeText(dataCell.text || String(dataCell.data) || ""),
+                                class: this.options.classes.input
+                            }
+                        }
+                    ]
+                }
+            })
+
+        }
+        return tr
+
     }
 }
 

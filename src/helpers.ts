@@ -67,3 +67,16 @@ export const visibleToColumnIndex = function(visibleIndex: number, columns: colu
     }
     return columnIndex-1
 }
+
+export const columnToVisibleIndex = function(columnIndex: number, columns: columnSettingsType[]) {
+    let visibleIndex = columnIndex
+    let counter = 0
+    while (counter < columnIndex) {
+        const columnSettings = columns[columnIndex]
+        if (columnSettings.hidden) {
+            visibleIndex -= 1
+        }
+        counter++
+    }
+    return visibleIndex
+}

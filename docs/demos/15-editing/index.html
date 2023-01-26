@@ -13,6 +13,10 @@
     </head>
     <body>
         <h1>Editing</h1>
+        <div>
+            <input type="checkbox" class="modal">
+            <b>Modal:</b> Whether to use modal for data editing
+        </div>
         <table class="table">
             <thead>
                 <tr>
@@ -731,35 +735,62 @@
                 DataTable,
                 makeEditable
             } from "../dist/module.js"
-            const dataTable = new DataTable("table")
-            makeEditable(dataTable, {
-                contextMenu: true,
-                hiddenColumns: true,
-                menuItems: [
-                    {
-                        text: "<span class = 'mdi mdi-lead-pencil'> </span> Edit Cell",
-                        action: (editor, _event) => {
-                            const td = editor.event.target.closest("td")
-                            return editor.editCell(td)
+            let editor = false,
+    inline = true,
+    table = false
+
+            const resetTable = function() {
+                if (editor) {
+                    editor.destroy()
+                }
+                if (table) {
+                    table.destroy()
+                }
+                table = new DataTable("table", {
+                    columns: [
+                        {
+                            select: 3,
+                            type: "date",
+                            format: "YYYY/DD/MM"
                         }
-                    }, {
-                        text: "<span class = 'mdi mdi-lead-pencil'> </span> Edit Row",
-                        action: (editor, _event) => {
-                            const tr = editor.event.target.closest("tr")
-                            return editor.editRow(tr)
-                        }
-                    }, {
-                        separator: true
-                    }, {
-                        text: "<span class = 'mdi mdi-delete'> </span> Remove",
-                        action: (editor, _event) => {
-                            if (confirm("Are you sure?")) {
+                    ]
+                })
+                window.table = table
+                editor = makeEditable(table, {
+                    contextMenu: true,
+                    hiddenColumns: true,
+                    inline,
+                    menuItems: [
+                        {
+                            text: "<span class = 'mdi mdi-lead-pencil'> </span> Edit Cell",
+                            action: (editor, _event) => {
+                                const td = editor.event.target.closest("td")
+                                return editor.editCell(td)
+                            }
+                        }, {
+                            text: "<span class = 'mdi mdi-lead-pencil'> </span> Edit Row",
+                            action: (editor, _event) => {
                                 const tr = editor.event.target.closest("tr")
-                                editor.removeRow(tr)
+                                return editor.editRow(tr)
+                            }
+                        }, {
+                            separator: true
+                        }, {
+                            text: "<span class = 'mdi mdi-delete'> </span> Remove",
+                            action: (editor, _event) => {
+                                if (confirm("Are you sure?")) {
+                                    const tr = editor.event.target.closest("tr")
+                                    editor.removeRow(tr)
+                                }
                             }
                         }
-                    }
-                ]
+                    ]
+                })
+            }
+            resetTable()
+            document.querySelector("input.modal").addEventListener("input", _event => {
+                inline = !inline
+                resetTable()
             })
         </script>
     </body>

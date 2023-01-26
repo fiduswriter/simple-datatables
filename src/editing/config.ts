@@ -32,6 +32,9 @@ export const defaultConfig = {
         reallyRemove: "Are you sure?"
     },
 
+    // edit inline instead of using a modal lay-over for editing content
+    inline: true,
+
     // include hidden columns in the editor
     hiddenColumns: false,
 
