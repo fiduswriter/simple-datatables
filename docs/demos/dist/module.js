@@ -1708,7 +1708,9 @@ class DataTable {
             this.pages = [rows];
         }
         this.totalPages = this.lastPage = this.pages.length;
-        this._currentPage = 1;
+        if (!this._currentPage) {
+            this._currentPage = 1;
+        }
         return this.totalPages;
     }
     /**
