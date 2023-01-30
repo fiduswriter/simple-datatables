@@ -13,24 +13,24 @@ export const readDataCell = (cell: inputCellType, columnSettings : columnSetting
     switch (columnSettings.type) {
     case "string":
         if (!(typeof cell === "string")) {
-            cellData.text = String(cell)
+            cellData.text = String(cellData.data)
             cellData.order = cellData.text
         }
         break
     case "date":
         if (columnSettings.format) {
-            cellData.order = parseDate(String(cell), columnSettings.format)
+            cellData.order = parseDate(String(cellData.data), columnSettings.format)
         }
         break
     case "number":
-        cellData.text = String(cell as number)
-        cellData.data = parseInt(cell as string, 10)
+        cellData.text = String(cellData.data as number)
+        cellData.data = parseInt(cellData.data as string, 10)
         break
     case "html": {
-        const node = Array.isArray(cell) ?
+        const node = Array.isArray(cellData.data) ?
             {nodeName: "TD",
-                childNodes: (cell as nodeType[])} : // If it is an array, we assume it is an array of nodeType
-            stringToObj(`<td>${String(cell)}</td>`)
+                childNodes: (cellData.data as nodeType[])} : // If it is an array, we assume it is an array of nodeType
+            stringToObj(`<td>${String(cellData.data)}</td>`)
         cellData.data = node.childNodes || []
         const text = objToText(node)
         cellData.text = text
@@ -38,10 +38,10 @@ export const readDataCell = (cell: inputCellType, columnSettings : columnSetting
         break
     }
     case "boolean":
-        if (typeof cell === "string") {
-            cell = cell.toLowerCase().trim()
+        if (typeof cellData.data === "string") {
+            cellData.data = cellData.data.toLowerCase().trim()
         }
-        cellData.data = !["false", false, null, undefined, 0].includes(cell as (string | number | boolean | null | undefined))
+        cellData.data = !["false", false, null, undefined, 0].includes(cellData.data as (string | number | boolean | null | undefined))
         cellData.order = cellData.data ? 1 : 0
         cellData.text = String(cellData.data)
         break
@@ -50,7 +50,7 @@ export const readDataCell = (cell: inputCellType, columnSettings : columnSetting
         cellData.order = 0
         break
     default:
-        cellData.text = JSON.stringify(cell)
+        cellData.text = JSON.stringify(cellData.data)
         break
     }
 
@@ -85,6 +85,12 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
 }
 
 export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings, defaultType, defaultFormat) => {
+    const decodeDOM = document.createElement("textarea")
+    const decode = function(input: string) {
+        decodeDOM.innerHTML = input
+        return decodeDOM.value
+    }
+
     const data = {
         data: [],
         headings: []
@@ -93,7 +99,7 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         data.headings = dataOption.headings.map((heading: inputHeaderCellType) => readHeaderCell(heading))
     } else if (dom?.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
-            const heading = readHeaderCell(th.innerHTML)
+            const heading = readHeaderCell(decode(th.innerHTML))
             if (!columnSettings[index]) {
                 columnSettings[index] = {
                     type: defaultType,
@@ -141,7 +147,7 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(
             row => Array.from(row.cells).map(
-                (cell, index) => readDataCell(cell.dataset.content || cell.innerHTML, columnSettings[index])
+                (cell, index) => readDataCell(cell.dataset.content || decode(cell.innerHTML), columnSettings[index])
             )
         )
     }
