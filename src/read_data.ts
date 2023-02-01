@@ -85,10 +85,10 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
 }
 
 export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings, defaultType, defaultFormat) => {
-    const decodeDOM = document.createElement("textarea")
+    const decodeDOM = dom ? document.createElement("textarea") : undefined
     const decode = function(input: string) {
         decodeDOM.innerHTML = input
-        return decodeDOM.value
+        return decodeDOM.value.replace(/\n|\r/g, " ")
     }
 
     const data = {

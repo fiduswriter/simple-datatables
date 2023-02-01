@@ -417,10 +417,10 @@ const readHeaderCell = (cell) => {
     return cellData;
 };
 const readTableData = (dataOption, dom = undefined, columnSettings, defaultType, defaultFormat) => {
-    const decodeDOM = document.createElement("textarea");
+    const decodeDOM = dom ? document.createElement("textarea") : undefined;
     const decode = function (input) {
         decodeDOM.innerHTML = input;
-        return decodeDOM.value;
+        return decodeDOM.value.replace(/\n|\r/g, ' ');
     };
     const data = {
         data: [],
