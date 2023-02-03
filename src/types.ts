@@ -87,12 +87,15 @@ interface LabelsConfiguration {
      * default: 'Search...'
      * Sets the placeholder of the search input.
      */
-    placeholder: string;
+    placeholder: string;    
     /**
-     * default: '{select} entries per page'
+    * default: value of placeholder
+    * Sets the aria label of the search input.
+    */
+    searchAriaLabel?: string;
+    /**
+     * default: 'entries per page'
      * Sets the per-page dropdown's label
-     *
-     * {select} - the per-page dropdown (required)
      */
     perPage: string;
     /**
@@ -235,7 +238,7 @@ interface DataTableConfiguration {
      * labels: {
      *
             placeholder: "Search...",
-            perPage: "{select} entries per page",
+            perPage: "entries per page",
             noRows: "No entries to found",
             info: "Showing {start} to {end} of {rows} entries",
         }
