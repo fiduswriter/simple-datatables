@@ -87,7 +87,7 @@ interface LabelsConfiguration {
      * default: 'Search...'
      * Sets the placeholder of the search input.
      */
-    placeholder: string;    
+    placeholder: string;
     /**
     * default: value of placeholder
     * Sets the aria label of the search input.
