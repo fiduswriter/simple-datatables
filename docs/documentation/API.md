@@ -57,12 +57,11 @@ The data of the table, containing two parts: `headings` and `data` (contents of 
 
 * `data` (any, required): The headers data in it's original format.
 
-* `type` (string, optional): "node" in case of the data field is an array of DiffDOM nodes.
-
 * `text` (string, ptional): In case the browser's automatic conversion of the data field to a string to display in a browser is not working correctly, this field can be sued to control what is being rendered.
 
+* `type` (string, optional): "html" in case of the data field is an array of DiffDOM nodes. "string" in case of a plaintext string.
 
-**Content cells** are also obejcts with the same fields as **header fields** and additionally with this field:
+**Content cells** are also objects with the same `data` and `text` fields that **header fields** has and additionally with this field:
 
 * `order` (string or integer, optional): Used for sorting in case and is useful if the `data` field cannot be used for sorting.
 

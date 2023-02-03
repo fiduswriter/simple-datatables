@@ -390,8 +390,54 @@ const readDataCell = (cell, columnSettings) => {
     }
     return cellData;
 };
+const readDOMDataCell = (cell, columnSettings) => {
+    let cellData;
+    switch (columnSettings.type) {
+        case "string":
+            cellData = {
+                data: cell.innerText
+            };
+            break;
+        case "date": {
+            const data = cell.innerText;
+            cellData = {
+                data,
+                order: parseDate(data, columnSettings.format)
+            };
+            break;
+        }
+        case "number":
+            cellData = {
+                data: parseInt(cell.innerText, 10),
+                text: cell.innerText
+            };
+            break;
+        case "boolean": {
+            const data = !["false", "0", "null", "undefined"].includes(cell.innerText.toLowerCase().trim());
+            cellData = {
+                data,
+                order: data ? 1 : 0,
+                text: data ? "1" : "0"
+            };
+            break;
+        }
+        default: { // "html", "other"
+            const node = g(cell);
+            cellData = {
+                data: node.childNodes || [],
+                text: cell.innerText,
+                order: cell.innerText
+            };
+            break;
+        }
+    }
+    return cellData;
+};
 const readHeaderCell = (cell) => {
-    if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
+    if (cell instanceof Object &&
+        cell.constructor === Object &&
+        cell.hasOwnProperty("data") &&
+        (typeof cell.text === "string" || typeof cell.data === "string")) {
         return cell;
     }
     const cellData = {
@@ -416,12 +462,25 @@ const readHeaderCell = (cell) => {
     }
     return cellData;
 };
+const readDOMHeaderCell = (cell) => {
+    const node = g(cell);
+    let cellData;
+    if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+        cellData = {
+            data: node.childNodes,
+            type: "html",
+            text: objToText(node)
+        };
+    }
+    else {
+        cellData = {
+            data: cell.innerText,
+            type: "string"
+        };
+    }
+    return cellData;
+};
 const readTableData = (dataOption, dom = undefined, columnSettings, defaultType, defaultFormat) => {
-    const decodeDOM = dom ? document.createElement("textarea") : undefined;
-    const decode = function (input) {
-        decodeDOM.innerHTML = input;
-        return decodeDOM.value.replace(/\n|\r/g, ' ');
-    };
     const data = {
         data: [],
         headings: []
@@ -431,7 +490,7 @@ const readTableData = (dataOption, dom = undefined, columnSettings, defaultType,
     }
     else if (dom?.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
-            const heading = readHeaderCell(decode(th.innerHTML));
+            const heading = readDOMHeaderCell(th);
             if (!columnSettings[index]) {
                 columnSettings[index] = {
                     type: defaultType,
@@ -480,7 +539,15 @@ const readTableData = (dataOption, dom = undefined, columnSettings, defaultType,
         data.data = dataOption.data.map((row) => row.map((cell, index) => readDataCell(cell, columnSettings[index])));
     }
     else if (dom?.tBodies?.length) {
-        data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map((cell, index) => readDataCell(cell.dataset.content || decode(cell.innerHTML), columnSettings[index])));
+        data.data = Array.from(dom.tBodies[0].rows).map(row => Array.from(row.cells).map((cell, index) => {
+            const cellData = cell.dataset.content ?
+                readDataCell(cell.dataset.content, columnSettings[index]) :
+                readDOMDataCell(cell, columnSettings[index]);
+            if (cell.dataset.order) {
+                cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order);
+            }
+            return cellData;
+        }));
     }
     if (data.data.length && data.data[0].length !== data.headings.length) {
         throw new Error("Data heading length mismatch.");

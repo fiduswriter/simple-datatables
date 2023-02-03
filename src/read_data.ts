@@ -1,4 +1,4 @@
-import {stringToObj} from "diff-dom"
+import {stringToObj, nodeToObj} from "diff-dom"
 import {parseDate} from "./date"
 import {objToText} from "./helpers"
 import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, nodeType, columnSettingsType} from "./types"
@@ -57,9 +57,59 @@ export const readDataCell = (cell: inputCellType, columnSettings : columnSetting
     return cellData
 }
 
+const readDOMDataCell = (cell: HTMLElement, columnSettings : columnSettingsType) : cellType => {
+    let cellData : cellType
+    switch (columnSettings.type) {
+    case "string":
+        cellData = {
+            data: cell.innerText
+        }
+        break
+    case "date": {
+        const data = cell.innerText
+        cellData = {
+            data,
+            order: parseDate(data, columnSettings.format)
+        }
+        break
+    }
+    case "number":
+        cellData = {
+            data: parseInt(cell.innerText, 10),
+            text: cell.innerText
+        }
+        break
+    case "boolean": {
+        const data = !["false", "0", "null", "undefined"].includes(cell.innerText.toLowerCase().trim())
+        cellData = {
+            data,
+            order: data ? 1 : 0,
+            text: data ? "1" : "0"
+        }
+        break
+    }
+    default: { // "html", "other"
+        const node = nodeToObj(cell)
+        cellData = {
+            data: node.childNodes || [],
+            text: cell.innerText,
+            order: cell.innerText
+        }
+        break
+    }
+    }
+
+    return cellData
+}
+
 
 export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
-    if (cell instanceof Object && cell.constructor === Object && cell.hasOwnProperty("data") && (typeof cell.text === "string" || typeof cell.data === "string")) {
+    if (
+        cell instanceof Object &&
+        cell.constructor === Object &&
+        cell.hasOwnProperty("data") &&
+        (typeof cell.text === "string" || typeof cell.data === "string")
+    ) {
         return cell
     }
     const cellData : headerCellType = {
@@ -84,12 +134,26 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
     return cellData
 }
 
-export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings, defaultType, defaultFormat) => {
-    const decodeDOM = dom ? document.createElement("textarea") : undefined
-    const decode = function(input: string) {
-        decodeDOM.innerHTML = input
-        return decodeDOM.value.replace(/\n|\r/g, " ")
+export const readDOMHeaderCell = (cell: HTMLElement) : headerCellType => {
+    const node = nodeToObj(cell)
+    let cellData
+    if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
+        cellData = {
+            data: node.childNodes,
+            type: "html",
+            text: objToText(node)
+        }
+    } else {
+        cellData = {
+            data: cell.innerText,
+            type: "string"
+        }
     }
+    return cellData
+
+}
+
+export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings, defaultType, defaultFormat) => {
 
     const data = {
         data: [],
@@ -99,7 +163,7 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         data.headings = dataOption.headings.map((heading: inputHeaderCellType) => readHeaderCell(heading))
     } else if (dom?.tHead) {
         data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
-            const heading = readHeaderCell(decode(th.innerHTML))
+            const heading = readDOMHeaderCell(th)
             if (!columnSettings[index]) {
                 columnSettings[index] = {
                     type: defaultType,
@@ -147,7 +211,16 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(
             row => Array.from(row.cells).map(
-                (cell, index) => readDataCell(cell.dataset.content || decode(cell.innerHTML), columnSettings[index])
+                (cell, index) => {
+                    const cellData = cell.dataset.content ?
+                        readDataCell(cell.dataset.content, columnSettings[index]) :
+                        readDOMDataCell(cell, columnSettings[index])
+                    if (cell.dataset.order) {
+                        cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
+                    }
+                    return cellData
+
+                }
             )
         )
     }

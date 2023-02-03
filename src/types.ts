@@ -30,7 +30,7 @@ type inputCellType = cellType | string | number | boolean;
 
 interface headerCellType {
     data: string | number | boolean | elementNodeType[] | object;
-    type?: "html";
+    type?: ("html" | "string");
     text?: string;
 }
 
