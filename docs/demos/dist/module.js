@@ -1079,7 +1079,7 @@ const layoutTemplate = options => `<div class='${options.classes.top}'>
     ""}
     ${options.searchable ?
     `<div class='${options.classes.search}'>
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='text'>
+            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='text' aria-label='${options.labels.searchAriaLabel || options.labels.placeholder}'>
         </div>` :
     ""}
 </div>
