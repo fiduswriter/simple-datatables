@@ -33,13 +33,13 @@ The strings wrapped in curly braces represent variables that are inserted.
     </tr>
   	<tr>
           <td><code>searchTitle</code></td>
-          <td>Sets the title of the search input.</td>
+          <td>Sets the title of the search input</td>
           <td>None</td>
     </tr>
   	<tr>
           <td><code>perPage</code></td>
           <td>Sets the per-page dropdown's label</td>
-          <td><code>{select}</code> - the per-page dropdown (<code class="danger">required</code>)</td>
+          <td>None</td>
     </tr>
   	<tr>
           <td><code>noRows</code></td>
