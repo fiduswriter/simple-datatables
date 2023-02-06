@@ -130,7 +130,7 @@ export class DataTable {
             onResize: () => this._onResize()
         }
 
-        this._dd = new DiffDOM()
+        this._dd = new DiffDOM({valueDiffing: false})
 
         this.initialized = false
         this._events = {}

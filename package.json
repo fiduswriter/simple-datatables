@@ -74,6 +74,6 @@
   },
   "dependencies": {
     "dayjs": "^1.11.7",
-    "diff-dom": "5.0.2"
+    "diff-dom": "5.0.3"
   }
 }
