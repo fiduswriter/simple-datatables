@@ -50,8 +50,6 @@ export class DataTable {
 
     initialized: boolean
 
-    _input: HTMLInputElement
-
     _label: HTMLElement
 
     lastPage: number
@@ -76,7 +74,7 @@ export class DataTable {
 
     _searchData: number[]
 
-    _searchQuery: string
+    _searchQueries: {query: string, columns: (number[] | undefined)}[]
 
     _tableAttributes: { [key: string]: string}
 
@@ -141,6 +139,7 @@ export class DataTable {
         this.onFirstPage = true
         this.hasHeadings = false
         this.hasRows = false
+        this._searchQueries = []
 
         this.init()
     }
@@ -272,7 +271,7 @@ export class DataTable {
         let newVirtualDOM = dataToVirtualDOM(
             this._tableAttributes,
             this.data.headings,
-            (this.options.paging || this._searchQuery) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
+            (this.options.paging || this._searchQueries.length) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
                 this.pages[this._currentPage - 1] :
                 this.data.data.map((row, index) => ({
                     row,
@@ -291,7 +290,6 @@ export class DataTable {
                 newVirtualDOM = renderedTableVirtualDOM
             }
         }
-
         const diff = this._dd.diff(this._virtualDOM, newVirtualDOM)
         this._dd.apply(this.dom, diff)
         this._virtualDOM = newVirtualDOM
@@ -328,7 +326,7 @@ export class DataTable {
             f = current * this.options.perPage
             t = f + this.pages[current].length
             f = f + 1
-            items = this._searchQuery ? this._searchData.length : this.data.data.length
+            items = this._searchQueries.length ? this._searchData.length : this.data.data.length
         }
 
         if (this._label && this.options.labels.info.length) {
@@ -475,10 +473,29 @@ export class DataTable {
 
         // Search input
         if (this.options.searchable) {
-            this._input = this.wrapperDOM.querySelector(`.${this.options.classes.input}`)
-            if (this._input) {
-                this._input.addEventListener("keyup", () => this.search(this._input.value), false)
-            }
+            this.wrapperDOM.addEventListener("keyup", (event: KeyboardEvent) => {
+                const target = event.target
+                if (!(target instanceof HTMLInputElement) || !target.matches(`.${this.options.classes.input}`)) {
+                    return
+                }
+                event.preventDefault()
+                const searches : {query: string, columns: (number[] | undefined)}[] = (Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]).filter(
+                    el => el.value.length
+                ).map(
+                    el => el.dataset.columns ?
+                        {query: el.value,
+                            columns: (JSON.parse(el.dataset.columns) as number[])} :
+                        {query: el.value,
+                            columns: undefined}
+                )
+                if (searches.length === 1) {
+                    const search = searches[0]
+                    this.search(search.query, search.columns)
+                } else {
+                    this.multiSearch(searches)
+                }
+
+            })
         }
 
         // Pager(s) / sorting
@@ -642,7 +659,7 @@ export class DataTable {
             index
         }))
 
-        if (this._searchQuery) {
+        if (this._searchQueries.length) {
             rows = []
 
             this._searchData.forEach((index: number) => rows.push({index,
@@ -691,28 +708,53 @@ export class DataTable {
     }
 
     /**
-     * Perform a search of the data set
+     * Perform a simple search of the data set
      */
-    search(query: string) {
-        if (!this.hasRows) return false
-
-        this._currentPage = 1
-        this._searchQuery = query
-        this._searchData = []
+    search(query: string, columns: (number[] | undefined ) = undefined) {
 
         if (!query.length) {
+            this._currentPage = 1
+            this._searchQueries = []
+            this._searchData = []
             this.update()
-            this.emit("datatable.search", query, this._searchData)
+            this.emit("datatable.search", "", [])
             this.wrapperDOM.classList.remove("search-results")
             return false
         }
 
-        const queryWords : (string | false)[]= this.columns.settings.map(
-            column => {
-                if (column.hidden || !column.searchable) {
+        this.multiSearch([
+            {query,
+                columns: columns ? columns : undefined}
+        ])
+
+        this.emit("datatable.search", query, this._searchData)
+
+    }
+
+    /**
+     * Perform a search of the data set seraching for up to multiple strings in various columns
+     */
+    multiSearch(queries : {query: string, columns: (number[] | undefined)}[]) {
+        if (!this.hasRows) return false
+
+        this._currentPage = 1
+        this._searchQueries = queries
+        this._searchData = []
+
+        queries = queries.filter(query => query.query.length)
+
+        if (!queries.length) {
+            this.update()
+            this.emit("datatable.multisearch", queries, this._searchData)
+            this.wrapperDOM.classList.remove("search-results")
+            return false
+        }
+        const queryWords = queries.map(query => this.columns.settings.map(
+            (column, index) => {
+                if (column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
                     return false
                 }
-                let columnQuery = query
+                let columnQuery = query.query
                 const sensitivity = column.sensitivity || this.options.sensitivity
                 if (["base", "accent"].includes(sensitivity)) {
                     columnQuery = columnQuery.toLowerCase()
@@ -727,33 +769,38 @@ export class DataTable {
                 return columnQuery
             }
         )
-
+        )
         this.data.data.forEach((row: cellType[], idx: number) => {
-            for (let i=0; i<row.length; i++) {
-                const query = queryWords[i]
-                if (query) {
-                    const cell = row[i]
-                    let content = (cell.text || String(cell.data)).trim()
-                    if (content.length) {
-                        const column = this.columns.settings[i]
-                        const sensitivity = column.sensitivity || this.options.sensitivity
-                        if (["base", "accent"].includes(sensitivity)) {
-                            content = content.toLowerCase()
-                        }
-                        if (["base", "case"].includes(sensitivity)) {
-                            content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-                        }
-                        const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
-                        if (ignorePunctuation) {
-                            content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
-                        }
-                        if (query.split(" ").find(queryWord => content.includes(queryWord))) {
-                            this._searchData.push(idx)
-                            break
-                        }
+            const searchRow = row.map((cell, i) => {
+                let content = (cell.text || String(cell.data)).trim()
+                if (content.length) {
+                    const column = this.columns.settings[i]
+                    const sensitivity = column.sensitivity || this.options.sensitivity
+                    if (["base", "accent"].includes(sensitivity)) {
+                        content = content.toLowerCase()
+                    }
+                    if (["base", "case"].includes(sensitivity)) {
+                        content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+                    }
+                    const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
+                    if (ignorePunctuation) {
+                        content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
                     }
                 }
+                return content
+            })
+            if (
+                queryWords.every(
+                    queries => queries.find(
+                        (query, index) => query ?
+                            query.split(" ").find(queryWord => searchRow[index].includes(queryWord)) :
+                            false
+                    )
+                )
+            ) {
+                this._searchData.push(idx)
             }
+
         })
 
         this.wrapperDOM.classList.add("search-results")
@@ -765,7 +812,7 @@ export class DataTable {
             this.setMessage(this.options.labels.noResults)
         }
 
-        this.emit("datatable.search", query, this._searchData)
+        this.emit("datatable.multisearch", queries, this._searchData)
     }
 
     /**
@@ -839,8 +886,12 @@ export class DataTable {
      */
     refresh() {
         if (this.options.searchable) {
-            this._input.value = ""
-            this._searchQuery = ""
+            (Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]).forEach(
+                el => {
+                    el.value = ""
+                }
+            )
+            this._searchQueries = []
         }
         this._currentPage = 1
         this.onFirstPage = true
@@ -907,35 +958,45 @@ export class DataTable {
         this.totalPages = 0
         this._renderPagers()
 
-        let newVirtualDOM = structuredClone(this._virtualDOM)
+        let newVirtualDOM : elementNodeType = {
+            nodeName: "TABLE",
+            attributes: {
+                class: this.options.classes.table
+            },
+            childNodes: [
+                {
+                    nodeName: "THEAD",
+                    childNodes: [
+                        headingsToVirtualHeaderRowDOM(
+                            this.data.headings, this.columns.settings, this.columns._state, this.options, {})
+                    ]
+                },
+                {
+                    nodeName: "TBODY",
+                    childNodes: [
+                        {
+                            nodeName: "TR",
+                            childNodes: [
+                                {
+                                    nodeName: "TD",
+                                    attributes: {
+                                        class: this.options.classes.empty,
+                                        colspan: String(colspan)
+                                    },
+                                    childNodes: [
+                                        {
+                                            nodeName: "#text",
+                                            data: message
+                                        }
+                                    ]
+                                }
+                            ]
+                        }
+                    ]
+                }
 
-        let tbody : elementNodeType = newVirtualDOM.childNodes?.find((node: elementNodeType) => node.nodeName === "TBODY") as elementNodeType
-
-        if (!tbody) {
-            tbody = {nodeName: "TBODY"}
-            newVirtualDOM.childNodes = [tbody]
+            ]
         }
-
-        tbody.childNodes = [
-            {
-                nodeName: "TR",
-                childNodes: [
-                    {
-                        nodeName: "TD",
-                        attributes: {
-                            class: this.options.classes.empty,
-                            colspan: String(colspan)
-                        },
-                        childNodes: [
-                            {
-                                nodeName: "#text",
-                                data: message
-                            }
-                        ]
-                    }
-                ]
-            }
-        ]
 
         if (this.options.tableRender) {
             const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, newVirtualDOM, "message")

@@ -299,8 +299,8 @@ export class Columns {
 
         this._state.sort = {column: index,
             dir}
-        if (this.dt._searchQuery) {
-            this.dt.search(this.dt._searchQuery)
+        if (this.dt._searchQueries.length) {
+            this.dt.multiSearch(this.dt._searchQueries)
             this.dt.emit("datatable.sort", index, dir)
         } else if (!init) {
             this.dt._currentPage = 1
