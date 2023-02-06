@@ -1079,7 +1079,7 @@ const layoutTemplate = (options, table) => `<div class='${options.classes.top}'>
     ""}
     ${options.searchable ?
     `<div class='${options.classes.search}'>
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search'${table.id ? ` aria-controls="${table.id}"` : ''}>
+            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' title='${options.labels.searchTitle}'${table.id ? ` aria-controls="${table.id}"` : ""}>
         </div>` :
     ""}
 </div>
@@ -1138,6 +1138,7 @@ const defaultConfig$1 = {
     // Customise the display text
     labels: {
         placeholder: "Search...",
+        searchTitle: "Search within table",
         perPage: "entries per page",
         noRows: "No entries found",
         noResults: "No results match your search query",

@@ -89,6 +89,11 @@ interface LabelsConfiguration {
      */
     placeholder: string;
     /**
+     * default: 'Search within table'
+     * Sets the title of the search input.
+     */
+    searchTitle: string;
+    /**
      * default: 'entries per page'
      * Sets the per-page dropdown's label
      */
@@ -233,6 +238,7 @@ interface DataTableConfiguration {
      * labels: {
      *
             placeholder: "Search...",
+            searchTitle: "Search within table",
             perPage: "entries per page",
             noRows: "No entries to found",
             info: "Showing {start} to {end} of {rows} entries",
