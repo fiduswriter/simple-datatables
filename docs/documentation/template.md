@@ -17,7 +17,7 @@
     ${
     options.searchable ?
         `<div class='${options.classes.search}'>
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search'${table.id ? ` aria-controls="${table.id}"` : ""}${options.labels.searchTitle ? ` title="${options.labels.searchTitle}"` : ""}>
+            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' title='${options.labels.searchTitle}'${table.id ? ` aria-controls="${table.id}"` : ""}>
         </div>` :
         ""
 }
