@@ -1,5 +1,5 @@
 // Template for custom layouts
-export const layoutTemplate = (options, table) => `<div class='${options.classes.top}'>
+export const layoutTemplate = (options, dom) => `<div class='${options.classes.top}'>
     ${
     options.paging && options.perPageSelect ?
         `<div class='${options.classes.dropdown}'>
@@ -12,7 +12,7 @@ export const layoutTemplate = (options, table) => `<div class='${options.classes
     ${
     options.searchable ?
         `<div class='${options.classes.search}'>
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' title='${options.labels.searchTitle}'${table.id ? ` aria-controls="${table.id}"` : ""}>
+            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' title='${options.labels.searchTitle}'${dom.id ? ` aria-controls="${dom.id}"` : ""}>
         </div>` :
         ""
 }

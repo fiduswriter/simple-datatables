@@ -1,5 +1,9 @@
 ### Upgrading
 
+## From 7.0.x to 7.1.x
+
+* The [search()](search()) methods allows to specify which columns are to be searched. And the [multiSearch()](multiSearch()) method allows specifying multiple simultaneous searches.
+
 ## From 6.0.x to 7.0.x
 
 * Attributes and class names of the main table are no longer removed.

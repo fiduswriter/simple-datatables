@@ -112,6 +112,7 @@ let datatable = new DataTable("#myTable", {
         // Append a button to the seventh column
         {
             select: 6,
+            type: 'string',
             render: function(data, td, rowIndex, cellIndex) {
                 return `${data}<button type='button' data-row='${rowIndex}'>Select</button>`;
             }

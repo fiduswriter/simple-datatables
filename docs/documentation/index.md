@@ -17,6 +17,7 @@
 * [datatable.sort](Events#datatablesort)
 * [datatable.perpage](Events#datatableperpage)
 * [datatable.search](Events#datatablesearch)
+* [datatable.multisearch](Events#datatablesearch)
 * [datatable.selectrow](Events#datatableselectrow)
 
 #### Options
@@ -78,3 +79,5 @@
 * [destroy()](destroy())
 * [init()](init())
 * [print()](print())
+* [search()](search())
+* [multiSearch()](multiSearch())

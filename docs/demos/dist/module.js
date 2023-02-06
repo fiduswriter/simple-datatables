@@ -1069,7 +1069,7 @@ class Columns {
 }
 
 // Template for custom layouts
-const layoutTemplate = (options, table) => `<div class='${options.classes.top}'>
+const layoutTemplate = (options, dom) => `<div class='${options.classes.top}'>
     ${options.paging && options.perPageSelect ?
     `<div class='${options.classes.dropdown}'>
             <label>
@@ -1079,7 +1079,7 @@ const layoutTemplate = (options, table) => `<div class='${options.classes.top}'>
     ""}
     ${options.searchable ?
     `<div class='${options.classes.search}'>
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' title='${options.labels.searchTitle}'${table.id ? ` aria-controls="${table.id}"` : ""}>
+            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' title='${options.labels.searchTitle}'${dom.id ? ` aria-controls="${dom.id}"` : ""}>
         </div>` :
     ""}
 </div>
@@ -1615,13 +1615,13 @@ class DataTable {
                 }
                 event.preventDefault();
                 const searches = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)).filter(el => el.value.length).map(el => el.dataset.columns ?
-                    { query: el.value,
+                    { term: el.value,
                         columns: JSON.parse(el.dataset.columns) } :
-                    { query: el.value,
+                    { term: el.value,
                         columns: undefined });
                 if (searches.length === 1) {
                     const search = searches[0];
-                    this.search(search.query, search.columns);
+                    this.search(search.term, search.columns);
                 }
                 else {
                     this.multiSearch(searches);
@@ -1817,8 +1817,8 @@ class DataTable {
     /**
      * Perform a simple search of the data set
      */
-    search(query, columns = undefined) {
-        if (!query.length) {
+    search(term, columns = undefined) {
+        if (!term.length) {
             this._currentPage = 1;
             this._searchQueries = [];
             this._searchData = [];
@@ -1828,10 +1828,10 @@ class DataTable {
             return false;
         }
         this.multiSearch([
-            { query,
+            { term,
                 columns: columns ? columns : undefined }
         ]);
-        this.emit("datatable.search", query, this._searchData);
+        this.emit("datatable.search", term, this._searchData);
     }
     /**
      * Perform a search of the data set seraching for up to multiple strings in various columns
@@ -1842,7 +1842,7 @@ class DataTable {
         this._currentPage = 1;
         this._searchQueries = queries;
         this._searchData = [];
-        queries = queries.filter(query => query.query.length);
+        queries = queries.filter(query => query.term.length);
         if (!queries.length) {
             this.update();
             this.emit("datatable.multisearch", queries, this._searchData);
@@ -1853,7 +1853,7 @@ class DataTable {
             if (column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
                 return false;
             }
-            let columnQuery = query.query;
+            let columnQuery = query.term;
             const sensitivity = column.sensitivity || this.options.sensitivity;
             if (["base", "accent"].includes(sensitivity)) {
                 columnQuery = columnQuery.toLowerCase();

@@ -74,7 +74,7 @@ export class DataTable {
 
     _searchData: number[]
 
-    _searchQueries: {query: string, columns: (number[] | undefined)}[]
+    _searchQueries: {term: string, columns: (number[] | undefined)}[]
 
     _tableAttributes: { [key: string]: string}
 
@@ -479,18 +479,18 @@ export class DataTable {
                     return
                 }
                 event.preventDefault()
-                const searches : {query: string, columns: (number[] | undefined)}[] = (Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]).filter(
+                const searches : {term: string, columns: (number[] | undefined)}[] = (Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]).filter(
                     el => el.value.length
                 ).map(
                     el => el.dataset.columns ?
-                        {query: el.value,
+                        {term: el.value,
                             columns: (JSON.parse(el.dataset.columns) as number[])} :
-                        {query: el.value,
+                        {term: el.value,
                             columns: undefined}
                 )
                 if (searches.length === 1) {
                     const search = searches[0]
-                    this.search(search.query, search.columns)
+                    this.search(search.term, search.columns)
                 } else {
                     this.multiSearch(searches)
                 }
@@ -710,9 +710,9 @@ export class DataTable {
     /**
      * Perform a simple search of the data set
      */
-    search(query: string, columns: (number[] | undefined ) = undefined) {
+    search(term: string, columns: (number[] | undefined ) = undefined) {
 
-        if (!query.length) {
+        if (!term.length) {
             this._currentPage = 1
             this._searchQueries = []
             this._searchData = []
@@ -723,25 +723,25 @@ export class DataTable {
         }
 
         this.multiSearch([
-            {query,
+            {term,
                 columns: columns ? columns : undefined}
         ])
 
-        this.emit("datatable.search", query, this._searchData)
+        this.emit("datatable.search", term, this._searchData)
 
     }
 
     /**
      * Perform a search of the data set seraching for up to multiple strings in various columns
      */
-    multiSearch(queries : {query: string, columns: (number[] | undefined)}[]) {
+    multiSearch(queries : {term: string, columns: (number[] | undefined)}[]) {
         if (!this.hasRows) return false
 
         this._currentPage = 1
         this._searchQueries = queries
         this._searchData = []
 
-        queries = queries.filter(query => query.query.length)
+        queries = queries.filter(query => query.term.length)
 
         if (!queries.length) {
             this.update()
@@ -754,7 +754,7 @@ export class DataTable {
                 if (column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
                     return false
                 }
-                let columnQuery = query.query
+                let columnQuery = query.term
                 const sensitivity = column.sensitivity || this.options.sensitivity
                 if (["base", "accent"].includes(sensitivity)) {
                     columnQuery = columnQuery.toLowerCase()
