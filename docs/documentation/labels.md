@@ -7,7 +7,7 @@ Customise the displayed labels. (v1.0.6 and above)
 ```javascript
 labels: {
     placeholder: "Search...",
-    perPage: "{select} entries per page",
+    perPage: "entries per page",
     noRows: "No entries to found",
     info: "Showing {start} to {end} of {rows} entries",
     noResults: "No results match your search query",
@@ -59,7 +59,7 @@ The strings wrapped in curly braces represent variables that are inserted.
 ```javascript
 labels: {
     placeholder: "Search employees...",
-    perPage: "Show {select} employees per page",
+    perPage: "employees per page",
     noRows: "No employees to display",
     info: "Showing {start} to {end} of {rows} employees (Page {page} of {pages} pages)",
 },
