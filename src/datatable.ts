@@ -180,7 +180,7 @@ export class DataTable {
             class: `${this.options.classes.wrapper} ${this.options.classes.loading}`
         })
 
-        this.wrapperDOM.innerHTML = this.options.template(this.options)
+        this.wrapperDOM.innerHTML = this.options.template(this.options, this.dom)
 
         const selector = this.wrapperDOM.querySelector(`select.${this.options.classes.selector}`)
 

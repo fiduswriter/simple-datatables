@@ -1069,7 +1069,7 @@ class Columns {
 }
 
 // Template for custom layouts
-const layoutTemplate = options => `<div class='${options.classes.top}'>
+const layoutTemplate = (options, table) => `<div class='${options.classes.top}'>
     ${options.paging && options.perPageSelect ?
     `<div class='${options.classes.dropdown}'>
             <label>
@@ -1079,11 +1079,7 @@ const layoutTemplate = options => `<div class='${options.classes.top}'>
     ""}
     ${options.searchable ?
     `<div class='${options.classes.search}'>
-<<<<<<< HEAD
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search'>
-=======
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='text' aria-label='${options.labels.searchAriaLabel || options.labels.placeholder}'>
->>>>>>> 2ec389d2eba52f0134615041006899c77606d266
+            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search'${table.id ? ` aria-controls="${table.id}"` : ''}>
         </div>` :
     ""}
 </div>
@@ -1377,7 +1373,7 @@ class DataTable {
         this.wrapperDOM = createElement("div", {
             class: `${this.options.classes.wrapper} ${this.options.classes.loading}`
         });
-        this.wrapperDOM.innerHTML = this.options.template(this.options);
+        this.wrapperDOM.innerHTML = this.options.template(this.options, this.dom);
         const selector = this.wrapperDOM.querySelector(`select.${this.options.classes.selector}`);
         // Per Page Select
         if (selector && this.options.paging && this.options.perPageSelect) {
@@ -1617,7 +1613,11 @@ class DataTable {
                     return;
                 }
                 event.preventDefault();
-                const searches = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)).filter(el => el.value.length).map(el => el.dataset.columns ? { query: el.value, columns: JSON.parse(el.dataset.columns) } : { query: el.value, columns: undefined });
+                const searches = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)).filter(el => el.value.length).map(el => el.dataset.columns ?
+                    { query: el.value,
+                        columns: JSON.parse(el.dataset.columns) } :
+                    { query: el.value,
+                        columns: undefined });
                 if (searches.length === 1) {
                     const search = searches[0];
                     this.search(search.query, search.columns);
@@ -1822,11 +1822,14 @@ class DataTable {
             this._searchQueries = [];
             this._searchData = [];
             this.update();
-            this.emit("datatable.search", '', []);
+            this.emit("datatable.search", "", []);
             this.wrapperDOM.classList.remove("search-results");
             return false;
         }
-        this.multiSearch([{ query, columns: columns ? columns : undefined }]);
+        this.multiSearch([
+            { query,
+                columns: columns ? columns : undefined }
+        ]);
         this.emit("datatable.search", query, this._searchData);
     }
     /**
@@ -1845,7 +1848,6 @@ class DataTable {
             this.wrapperDOM.classList.remove("search-results");
             return false;
         }
-        console.log({ queries });
         const queryWords = queries.map(query => this.columns.settings.map((column, index) => {
             if (column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
                 return false;
@@ -1864,29 +1866,6 @@ class DataTable {
             }
             return columnQuery;
         }));
-        // const queryWords : (false | (string | false)[])[] = this.columns.settings.map(
-        //     (column, index) => {
-        //         if (column.hidden || !column.searchable) {
-        //             return false
-        //         }
-        //         //let columnQueries = queries.filter(query => (!query.columns || query.columns.includes(index))).map(query => query.query)
-        //         let columnQueries = queries.map(query => (!query.columns || query.columns.includes(index)) ? query.query : false)
-        //         //.map(query => query.columns && !query.columns.includes(index) ? false : query.query).filter(query => query)
-        //         const sensitivity = column.sensitivity || this.options.sensitivity
-        //         if (["base", "accent"].includes(sensitivity)) {
-        //             columnQueries = columnQueries.map(query => query ? query.toLowerCase() : false)
-        //         }
-        //         if (["base", "case"].includes(sensitivity)) {
-        //             columnQueries = columnQueries.map(query => query ? query.normalize("NFD").replace(/\p{Diacritic}/gu, "") : false)
-        //         }
-        //         const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
-        //         if (ignorePunctuation) {
-        //             columnQueries = columnQueries.map(query => query ? query.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "") : false)
-        //         }
-        //         return columnQueries
-        //     }
-        // )
-        console.log({ queryWords });
         this.data.data.forEach((row, idx) => {
             const searchRow = row.map((cell, i) => {
                 let content = (cell.text || String(cell.data)).trim();
@@ -1911,33 +1890,6 @@ class DataTable {
                 false))) {
                 this._searchData.push(idx);
             }
-            // for (let i=0; i<row.length; i++) {
-            //     const queries = queryWords[i]
-            //     if (queries) {
-            //         const cell = row[i]
-            //         let content = (cell.text || String(cell.data)).trim()
-            //         if (content.length) {
-            //             const column = this.columns.settings[i]
-            //             const sensitivity = column.sensitivity || this.options.sensitivity
-            //             if (["base", "accent"].includes(sensitivity)) {
-            //                 content = content.toLowerCase()
-            //             }
-            //             if (["base", "case"].includes(sensitivity)) {
-            //                 content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "")
-            //             }
-            //             const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
-            //             if (ignorePunctuation) {
-            //                 content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
-            //             }
-            //             if (
-            //                 queries.length && queries.every(query => query ? query.split(" ").find(queryWord => content.includes(queryWord)) : true)
-            //             ) {
-            //                 this._searchData.push(idx)
-            //                 break
-            //             }
-            //         }
-            //     }
-            // }
         });
         this.wrapperDOM.classList.add("search-results");
         if (this._searchData.length) {

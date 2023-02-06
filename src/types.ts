@@ -240,7 +240,7 @@ interface DataTableConfiguration {
      *
      * Docs : https://fiduswriter.github.io/simple-datatables/documentation/labels
      */
-    template: (DataTableConfiguration) => string;
+    template: (DataTableConfiguration, HTMLTableElement) => string;
     /**
      * Allows for custom arranging of the DOM elements in the top and bottom containers. There are for 4 variables you can utilize:
      *
