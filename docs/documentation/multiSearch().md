@@ -6,7 +6,7 @@ Filter the table based on multiple queries.
 
 ```javascript
 /**
- * @param  {{term: str, columns: number[] }[]} queries Queries including search term and columns (optional)
+ * @param  { { term: String, columns=: Number[] }[] } queries Queries including search term and columns (optional)
  * @return {void}
  */
 datatable.multiSearch(queries);
