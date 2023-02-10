@@ -89,7 +89,7 @@ const readDOMDataCell = (cell: HTMLElement, columnSettings : columnSettingsType)
         break
     }
     default: { // "html", "other"
-        const node = nodeToObj(cell)
+        const node = nodeToObj(cell, {valueDiffing: false})
         cellData = {
             data: node.childNodes || [],
             text: cell.innerText,
@@ -135,7 +135,7 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
 }
 
 export const readDOMHeaderCell = (cell: HTMLElement) : headerCellType => {
-    const node = nodeToObj(cell)
+    const node = nodeToObj(cell, {valueDiffing: false})
     let cellData
     if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
         cellData = {

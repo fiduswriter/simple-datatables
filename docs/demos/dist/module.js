@@ -422,7 +422,7 @@ const readDOMDataCell = (cell, columnSettings) => {
             break;
         }
         default: { // "html", "other"
-            const node = g(cell);
+            const node = g(cell, { valueDiffing: false });
             cellData = {
                 data: node.childNodes || [],
                 text: cell.innerText,
@@ -463,7 +463,7 @@ const readHeaderCell = (cell) => {
     return cellData;
 };
 const readDOMHeaderCell = (cell) => {
-    const node = g(cell);
+    const node = g(cell, { valueDiffing: false });
     let cellData;
     if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
         cellData = {
@@ -1358,7 +1358,7 @@ class DataTable {
         if (this.initialized || this.dom.classList.contains(this.options.classes.table)) {
             return false;
         }
-        this._virtualDOM = g(this.dom);
+        this._virtualDOM = g(this.dom, { valueDiffing: false });
         this._tableAttributes = { ...this._virtualDOM.attributes };
         this.rows = new Rows(this);
         this.columns = new Columns(this);

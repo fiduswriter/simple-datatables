@@ -152,7 +152,7 @@ export class DataTable {
             return false
         }
 
-        this._virtualDOM = nodeToObj(this.dom)
+        this._virtualDOM = nodeToObj(this.dom, {valueDiffing: false})
 
         this._tableAttributes = {...this._virtualDOM.attributes}
 
