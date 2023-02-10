@@ -99,8 +99,11 @@ export class Columns {
     /**
      * Check column(s) visibility
      */
-    visible(columns: number | number[]) {
+    visible(columns: number | number[] | undefined) {
 
+        if (columns === undefined) {
+            columns = [...Array(this.dt.data.headings.length).keys()]
+        }
         if (Array.isArray(columns)) {
             return columns.map(index => !this.settings[index]?.hidden)
         }
