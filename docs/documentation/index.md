@@ -32,7 +32,6 @@
 * [header](header)
 * [hiddenHeader](hiddenHeader)
 * [labels](labels)
-* [layout](layout)
 * [lastText](lastText)
 * [nextPrev](nextPrev)
 * [nextText](nextText)
@@ -46,6 +45,7 @@
 * [truncatePager](truncatePager)
 * [rowNavigation](rowNavigation)
 * [tabIndex](tabIndex)
+* [template](template)
 
 
 #### Properties
