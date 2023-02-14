@@ -75,7 +75,7 @@
 * [refresh()](refresh())
 * [page()](page())
 * [insert()](insert())
-* [setMessage()](setmessage())
+* [setMessage()](setMessage())
 * [destroy()](destroy())
 * [init()](init())
 * [print()](print())
