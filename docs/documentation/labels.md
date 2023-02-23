@@ -9,7 +9,7 @@ labels: {
     placeholder: "Search...",
     searchTitle: "Search within table",
     perPage: "entries per page",
-    noRows: "No entries to found",
+    noRows: "No entries found",
     info: "Showing {start} to {end} of {rows} entries",
     noResults: "No results match your search query",
 }
