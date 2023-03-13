@@ -2544,7 +2544,7 @@ const defaultConfig = {
         reallyClose: "Do you really want to close?",
         save: "Save"
     },
-    closeModal: (editor) => confirm(editor.options.labels.reallyClose),
+    closeModal: editor => confirm(editor.options.labels.reallyClose),
     // edit inline instead of using a modal lay-over for editing content
     inline: true,
     // include hidden columns in the editor
