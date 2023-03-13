@@ -51,11 +51,13 @@ Fires when user selects a row - either by mouse click on a row or using `Space`/
 Two arguments are available: `row` which returns the `<tr>` element that was selected and `event` which returns the event that caused the selection. You can run `event.preventDefault()` like this:
 
 ```javascript
-dataTable.on('datatable.selectrow', function(row, event) {
+dataTable.on("datatable.selectrow", (rowIndex, event) => {
     event.preventDefault();
-    row.classList.add('selected');
+    ...
 });
 ```
+
+See the [row navigation demo](../demos/14-row-navigation/index.html) for a more complete example.
 
 ### `datatable.sort`
 Fires when the table is sorted.
