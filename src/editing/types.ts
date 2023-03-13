@@ -40,11 +40,17 @@ interface EditorOptions {
         separator?: string,
     },
     labels?: {
+        closeX?: string,
         editCell?: string,
         editRow?: string,
         removeRow?: string,
-        reallyRemove?: string
+        reallyClose?: string,
+        reallyRemove?: string,
+        save?: string
     }
+
+    closeModal?: (editor: Editor) => boolean,
+
     // include hidden columns in the editor
     hiddenColumns?: boolean,
 

@@ -26,11 +26,16 @@ export const defaultConfig = {
     },
 
     labels: {
+        closeX: "x",
         editCell: "Edit Cell",
         editRow: "Edit Row",
         removeRow: "Remove Row",
-        reallyRemove: "Are you sure?"
+        reallyRemove: "Are you sure?",
+        reallyClose: "Do you really want to close?",
+        save: "Save"
     },
+
+    closeModal: editor => confirm(editor.options.labels.reallyClose),
 
     // edit inline instead of using a modal lay-over for editing content
     inline: true,

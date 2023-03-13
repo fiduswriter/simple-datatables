@@ -2536,11 +2536,15 @@ const defaultConfig = {
         separator: "datatable-editor-separator"
     },
     labels: {
+        closeX: "x",
         editCell: "Edit Cell",
         editRow: "Edit Row",
         removeRow: "Remove Row",
-        reallyRemove: "Are you sure?"
+        reallyRemove: "Are you sure?",
+        reallyClose: "Do you really want to close?",
+        save: "Save"
     },
+    closeModal: (editor) => confirm(editor.options.labels.reallyClose),
     // edit inline instead of using a modal lay-over for editing content
     inline: true,
     // include hidden columns in the editor
@@ -2769,7 +2773,9 @@ class Editor {
     keydown(event) {
         if (this.modalDOM) {
             if (event.key === "Escape") { // close button
-                this.closeModal();
+                if (this.options.closeModal(this)) {
+                    this.closeModal();
+                }
             }
             else if (event.key === "Enter") { // save button
                 // Save
@@ -2838,8 +2844,8 @@ class Editor {
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
-            "<h4>Editing cell</h4>",
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            `<h4>${this.options.labels.editCell}</h4>`,
+            `<button class='${this.options.classes.close}' type='button' data-editor-close>${this.options.labels.closeX}</button>`,
             " </div>",
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
@@ -2848,7 +2854,7 @@ class Editor {
             `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
             "</div>",
             `<div class='${this.options.classes.row}'>`,
-            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
             "</div>",
             "</form>",
             "</div>",
@@ -2870,9 +2876,14 @@ class Editor {
                 return;
             }
             if (target.hasAttribute("data-editor-close")) { // close button
+                event.preventDefault();
+                if (!this.options.closeModal(this)) {
+                    return;
+                }
                 this.closeModal();
             }
             else if (target.hasAttribute("data-editor-save")) { // save button
+                event.preventDefault();
                 // Save
                 this.saveCell(input.value);
             }
@@ -2964,13 +2975,13 @@ class Editor {
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
-            "<h4>Editing row</h4>",
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            `<h4>${this.options.labels.editRow}</h4>`,
+            `<button class='${this.options.classes.close}' type='button' data-editor-close>${this.options.labels.closeX}</button>`,
             " </div>",
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
             `<div class='${this.options.classes.row}'>`,
-            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
             "</div>",
             "</form>",
             "</div>",
@@ -3017,7 +3028,9 @@ class Editor {
                 return;
             }
             if (target.hasAttribute("data-editor-close")) { // close button
-                this.closeModal();
+                if (this.options.closeModal(this)) {
+                    this.closeModal();
+                }
             }
             else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
@@ -3135,21 +3148,16 @@ class Editor {
      */
     dismiss(event) {
         const target = event.target;
-        if (!(target instanceof Element)) {
+        if (!(target instanceof Element) || this.wrapperDOM.contains(target)) {
             return;
         }
         let valid = true;
         if (this.options.contextMenu) {
-            valid = !this.wrapperDOM.contains(target);
             if (this.editing) {
-                valid = !this.wrapperDOM.contains(target) && !(target.matches(`input.${this.options.classes.input}[type=text]`));
+                valid = !(target.matches(`input.${this.options.classes.input}[type=text]`));
             }
         }
         if (valid) {
-            if (this.editingCell) {
-                // Revert
-                this.saveCell(this.data.content);
-            }
             this.closeMenu();
         }
     }

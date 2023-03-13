@@ -232,7 +232,9 @@ export class Editor {
     keydown(event: KeyboardEvent) {
         if (this.modalDOM) {
             if (event.key === "Escape") { // close button
-                this.closeModal()
+                if (this.options.closeModal(this)) {
+                    this.closeModal()
+                }
             } else if (event.key === "Enter") { // save button
                 // Save
                 if (this.editingCell) {
@@ -300,8 +302,8 @@ export class Editor {
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
-            "<h4>Editing cell</h4>",
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            `<h4>${this.options.labels.editCell}</h4>`,
+            `<button class='${this.options.classes.close}' type='button' data-editor-close>${this.options.labels.closeX}</button>`,
             " </div>",
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
@@ -310,7 +312,7 @@ export class Editor {
             `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
             "</div>",
             `<div class='${this.options.classes.row}'>`,
-            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
             "</div>",
             "</form>",
             "</div>",
@@ -332,8 +334,13 @@ export class Editor {
                 return
             }
             if (target.hasAttribute("data-editor-close")) { // close button
+                event.preventDefault()
+                if (!this.options.closeModal(this)) {
+                    return
+                }
                 this.closeModal()
             } else if (target.hasAttribute("data-editor-save")) { // save button
+                event.preventDefault()
                 // Save
                 this.saveCell(input.value)
             }
@@ -421,13 +428,13 @@ export class Editor {
         const template = [
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
-            "<h4>Editing row</h4>",
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>×</button>`,
+            `<h4>${this.options.labels.editRow}</h4>`,
+            `<button class='${this.options.classes.close}' type='button' data-editor-close>${this.options.labels.closeX}</button>`,
             " </div>",
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
             `<div class='${this.options.classes.row}'>`,
-            `<button class='${this.options.classes.save}' type='button' data-editor-save>Save</button>`,
+            `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
             "</div>",
             "</form>",
             "</div>",
@@ -475,7 +482,9 @@ export class Editor {
                 return
             }
             if (target.hasAttribute("data-editor-close")) { // close button
-                this.closeModal()
+                if (this.options.closeModal(this)) {
+                    this.closeModal()
+                }
             } else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
                 this.saveRow(inputs.map((input: HTMLInputElement) => input.value.trim()), this.data.row)
@@ -591,21 +600,16 @@ export class Editor {
      */
     dismiss(event: Event) {
         const target = event.target
-        if (!(target instanceof Element)) {
+        if (!(target instanceof Element) || this.wrapperDOM.contains(target)) {
             return
         }
         let valid = true
         if (this.options.contextMenu) {
-            valid = !this.wrapperDOM.contains(target)
             if (this.editing) {
-                valid = !this.wrapperDOM.contains(target) && !(target.matches(`input.${this.options.classes.input}[type=text]`))
+                valid = !(target.matches(`input.${this.options.classes.input}[type=text]`))
             }
         }
         if (valid) {
-            if (this.editingCell) {
-                // Revert
-                this.saveCell(this.data.content)
-            }
             this.closeMenu()
         }
     }
