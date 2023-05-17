@@ -1108,6 +1108,7 @@ const defaultConfig$1 = {
     sensitivity: "base",
     ignorePunctuation: true,
     destroyable: true,
+    isSplitQueryWord: true,
     // data
     data: {},
     type: "html",
@@ -1890,7 +1891,7 @@ class DataTable {
                 return content;
             });
             if (queryWords.every(queries => queries.find((query, index) => query ?
-                query.split(" ").find(queryWord => searchRow[index].includes(queryWord)) :
+                (this.options.isSplitQueryWord ? query.split(" ") : [query]).find(queryWord => searchRow[index].includes(queryWord)) :
                 false))) {
                 this._searchData.push(idx);
             }
