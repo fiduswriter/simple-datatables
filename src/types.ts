@@ -323,6 +323,7 @@ interface DataTableConfiguration {
     sensitivity: string,
     ignorePunctuation: boolean;
     isSplitQueryWord: boolean;
+    searchQuerySeparator: string;
     // for sorting
     /**
      * Default: true

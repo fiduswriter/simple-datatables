@@ -15,6 +15,7 @@ export const defaultConfig: DataTableConfiguration = {
     ignorePunctuation: true,
     destroyable: true,
     isSplitQueryWord: true,
+    searchQuerySeparator: ' ',
 
     // data
     data: {},

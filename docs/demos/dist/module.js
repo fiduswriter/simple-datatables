@@ -1108,6 +1108,7 @@ const defaultConfig$1 = {
     sensitivity: "base",
     ignorePunctuation: true,
     destroyable: true,
+    searchQuerySeparator: ' ',
     // data
     data: {},
     type: "html",
@@ -1890,7 +1891,7 @@ class DataTable {
                 return content;
             });
             if (queryWords.every(queries => queries.find((query, index) => query ?
-                query.split(" ").find(queryWord => searchRow[index].includes(queryWord)) :
+                query.split(this.options.searchQuerySeparator).find(queryWord => searchRow[index].includes(queryWord)) :
                 false))) {
                 this._searchData.push(idx);
             }
