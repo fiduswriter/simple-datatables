@@ -22,7 +22,8 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
                 columns[selector] = {
                     type: data.type || defaultType,
                     sortable: true,
-                    searchable: true
+                    searchable: true,
+                    isSplitQueryWord: true
                 }
             }
             const column = columns[selector]
@@ -95,6 +96,10 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
                     sort = {column: selector,
                         dir: data.sort}
                 }
+            }
+
+            if (typeof data.isSplitQueryWord !== "undefined") {
+                column.isSplitQueryWord = data.isSplitQueryWord;
             }
 
         })
