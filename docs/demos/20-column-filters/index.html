@@ -743,7 +743,8 @@
                 columns: [
                     {
                         select: 2,
-                        sortSequence: ["desc", "asc"]
+                        sortSequence: ["desc", "asc"],
+                        isSplitQueryWord: true
                     },
                     {
                         select: 3,
@@ -753,6 +754,10 @@
                         select: 4,
                         cellClass: "green",
                         headerClass: "red"
+                    },
+                    {
+                        select: 0,
+                        isSplitQueryWord: false
                     }
                 ],
                 tableRender: (_data, table, type) => {
