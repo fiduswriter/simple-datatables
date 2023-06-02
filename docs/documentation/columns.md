@@ -25,6 +25,10 @@ When set to `true` the column(s) will not be visible and will be excluded from s
 
 Default: `true` (boolean). Influences how sorting and searching is done. Specifying `ignorePunctuation` as part of the table's configuration will define a default for all columns.
 
+#### `isSplitQueryWord`
+
+Default: `true` (boolean). Influences searching and whether multiple words are searched for as a single string or each word is searched for individually. Specifying `isSplitQueryWord` as part of the table's configuration will define a default for all columns.
+
 #### `locale`
 
 Default: `"en-US"` (string). Set a locale such as `en-UK` or `de` for the column. Influences how string sorting is done. Allows even for specification of specific subvariants such as `de-DE-u-co-phonebk`. Specifying `locale` as part of the table's configuration will define a default for all columns.
@@ -37,6 +41,10 @@ as part of the table's configuration will define a default for all columns.
 #### `searchable`
 
 When set to `false` the column(s) cannot be searched.
+
+#### `searchQuerySeparator`
+
+Default: `" "`. Influences searching in combination with `isSplitQueryWord`. Specifying `searchQuerySeparator` as part of the table's configuration will define a default for all columns.
 
 #### `select`
 

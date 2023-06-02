@@ -221,12 +221,12 @@ interface DataTableConfiguration {
      */
     header: boolean;
     /**
-     * Default :true
+     * Default: true
      * Enable or disable the table header.
      */
     hiddenHeader: boolean;
     /**
-     * Default:false
+     * Default: false
      * Whether to hide the table header.
      */
     labels: LabelsConfiguration;
@@ -322,6 +322,7 @@ interface DataTableConfiguration {
     searchable: boolean;
     sensitivity: string,
     ignorePunctuation: boolean;
+    isSplitQueryWord: boolean;
     searchQuerySeparator: string;
     // for sorting
     /**
@@ -375,7 +376,7 @@ interface columnSettingsType {
     sensitivity?: string,
     ignorePunctuation?: boolean,
     isSplitQueryWord?: boolean,
-
+    searchQuerySeparator?: string;
     //
     headerClass?: string,
     cellClass?: string,

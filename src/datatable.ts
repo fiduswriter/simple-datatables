@@ -793,7 +793,7 @@ export class DataTable {
                 queryWords.every(
                     queries => queries.find(
                         (query, index) => query ?
-                        (this.columns.settings[index].isSplitQueryWord ? query.split(this.options.searchQuerySeparator) : [query]).find(queryWord => searchRow[index].includes(queryWord.trim())) :
+                            (this.columns.settings[index].isSplitQueryWord ? query.split(this.columns.settings[index].searchQuerySeparator) : [query]).find(queryWord => searchRow[index].includes(queryWord.trim())) :
                             false
                     )
                 )
