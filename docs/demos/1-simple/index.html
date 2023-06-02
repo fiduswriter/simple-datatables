@@ -741,13 +741,14 @@
         <script type="module">
             import {DataTable} from "../dist/module.js"
             window.dt = new DataTable("table", {
-                searchQuerySeparator: ",",
+                searchQuerySeparator: " ",
                 ignorePunctuation: false,
                 perPageSelect: [5, 10, 15, ["All", -1]],
                 columns: [
                     {
                         select: 2,
-                        sortSequence: ["desc", "asc"]
+                        sortSequence: ["desc", "asc"],
+                        isSplitQueryWord: false
                     },
                     {
                         select: 3,
@@ -757,6 +758,10 @@
                         select: 4,
                         cellClass: "green",
                         headerClass: "red"
+                    },
+                    {
+                        select: 0,
+                        isSplitQueryWord: true
                     }
                 ]
 })

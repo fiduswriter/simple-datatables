@@ -169,7 +169,8 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                     type: defaultType,
                     format: defaultFormat,
                     searchable: true,
-                    sortable: true
+                    sortable: true,
+                    isSplitQueryWord: true
                 }
             }
             const settings = columnSettings[index]

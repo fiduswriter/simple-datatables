@@ -496,7 +496,8 @@ const readTableData = (dataOption, dom = undefined, columnSettings, defaultType,
                     type: defaultType,
                     format: defaultFormat,
                     searchable: true,
-                    sortable: true
+                    sortable: true,
+                    isSplitQueryWord: true
                 };
             }
             const settings = columnSettings[index];
@@ -668,7 +669,8 @@ const readColumnSettings = (columnOptions = [], defaultType, defaultFormat) => {
                 columns[selector] = {
                     type: data.type || defaultType,
                     sortable: true,
-                    searchable: true
+                    searchable: true,
+                    isSplitQueryWord: true
                 };
             }
             const column = columns[selector];
@@ -732,6 +734,10 @@ const readColumnSettings = (columnOptions = [], defaultType, defaultFormat) => {
                     sort = { column: selector,
                         dir: data.sort };
                 }
+            }
+            console.log(data);
+            if (typeof data.isSplitQueryWord !== "undefined") {
+                column.isSplitQueryWord = data.isSplitQueryWord;
             }
         });
     });
@@ -1890,8 +1896,9 @@ class DataTable {
                 }
                 return content;
             });
+            console.log(this.columns.settings);
             if (queryWords.every(queries => queries.find((query, index) => query ?
-                query.split(this.options.searchQuerySeparator).find(queryWord => searchRow[index].includes(queryWord)) :
+                (this.columns.settings[index].isSplitQueryWord ? query.split(this.options.searchQuerySeparator) : [query]).find(queryWord => searchRow[index].includes(queryWord)) :
                 false))) {
                 this._searchData.push(idx);
             }

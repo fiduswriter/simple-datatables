@@ -322,7 +322,6 @@ interface DataTableConfiguration {
     searchable: boolean;
     sensitivity: string,
     ignorePunctuation: boolean;
-    isSplitQueryWord: boolean;
     searchQuerySeparator: string;
     // for sorting
     /**
@@ -375,6 +374,8 @@ interface columnSettingsType {
     searchable?: boolean,
     sensitivity?: string,
     ignorePunctuation?: boolean,
+    isSplitQueryWord?: boolean,
+
     //
     headerClass?: string,
     cellClass?: string,
