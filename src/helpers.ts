@@ -72,7 +72,7 @@ export const columnToVisibleIndex = function(columnIndex: number, columns: colum
     let visibleIndex = columnIndex
     let counter = 0
     while (counter < columnIndex) {
-        const columnSettings = columns[columnIndex]
+        const columnSettings = columns[counter]
         if (columnSettings.hidden) {
             visibleIndex -= 1
         }

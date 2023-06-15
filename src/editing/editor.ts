@@ -259,7 +259,11 @@ export class Editor {
                 }
             } else if (event.key === "Escape") {
                 // Escape key reverts
-                this.saveCell(this.data.content)
+                if (this.editingCell) {
+                    this.saveCell(this.data.content)
+                } else if (this.editingRow) {
+                    this.saveRow(null, this.data.row)
+                }
             }
         }
     }
@@ -501,49 +505,56 @@ export class Editor {
     saveRow(data: string[], row: cellType[]) {
         // Store the old data for the emitter
         const oldData = row.map((cell: cellType) => cell.text ?? String(cell.data))
-        this.dt.data.data[this.data.rowIndex] = this.dt.data.data[this.data.rowIndex].map((oldCell, colIndex) => {
-            const columnSetting = this.dt.columns.settings[colIndex]
-            if (columnSetting.hidden || this.options.excludeColumns.includes(colIndex)) {
-                return oldCell
-            }
-            const type = this.dt.columns.settings[colIndex].type || this.dt.options.type
-            const value = data[columnToVisibleIndex(colIndex, this.dt.columns.settings)]
-            const stringValue = value.trim()
-            let cell
-            if (type === "number") {
-                cell = {data: parseFloat(stringValue)}
-            } else if (type === "boolean") {
-                if (["", "false", "0"].includes(stringValue)) {
-                    cell = {data: false,
-                        text: "false",
-                        order: 0}
-                } else {
-                    cell = {data: true,
-                        text: "true",
-                        order: 1}
+        if (data) {
+            this.dt.data.data[this.data.rowIndex] = this.dt.data.data[this.data.rowIndex].map((oldCell, colIndex) => {
+                const columnSetting = this.dt.columns.settings[colIndex]
+                if (columnSetting.hidden || this.options.excludeColumns.includes(colIndex)) {
+                    return oldCell
                 }
-            } else if (type === "html") {
-                cell = {data: [
-                    {nodeName: "#text",
-                        data: value}
-                ],
-                text: value,
-                order: value}
-            } else if (type === "string") {
-                cell = {data: value}
-            } else if (type === "date") {
-                const format = this.dt.columns.settings[colIndex].format || this.dt.options.format
-                cell = {data: value,
-                    order: parseDate(String(value), format)}
-            } else {
-                cell = {data: value}
-            }
-            return cell
-        })
+                const type = this.dt.columns.settings[colIndex].type || this.dt.options.type
+                const value = data[columnToVisibleIndex(colIndex, this.dt.columns.settings)]
+                const stringValue = value.trim()
+                let cell
+                if (type === "number") {
+                    cell = {data: parseFloat(stringValue)}
+                } else if (type === "boolean") {
+                    if (["", "false", "0"].includes(stringValue)) {
+                        cell = {data: false,
+                            text: "false",
+                            order: 0}
+                    } else {
+                        cell = {data: true,
+                            text: "true",
+                            order: 1}
+                    }
+                } else if (type === "html") {
+                    cell = {data: [
+                        {nodeName: "#text",
+                            data: value}
+                    ],
+                    text: value,
+                    order: value}
+                } else if (type === "string") {
+                    cell = {data: value}
+                } else if (type === "date") {
+                    const format = this.dt.columns.settings[colIndex].format || this.dt.options.format
+                    cell = {data: value,
+                        order: parseDate(String(value), format)}
+                } else {
+                    cell = {data: value}
+                }
+                return cell
+            })
+        }
+
+        const updatedRow = this.dt.data.data[this.data.rowIndex]
+        const newData = updatedRow.map(cell => cell.text ?? String(cell.data))
+
         this.data = {}
         this.dt.update(true)
         this.closeModal()
-        this.dt.emit("editable.save.row", data, oldData, row)
+        this.editing = false
+        this.dt.emit("editable.save.row", newData, oldData, row)
     }
 
     /**
