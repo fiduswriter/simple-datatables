@@ -22,7 +22,7 @@
 
 * The `columns` option allows for the specification of a specific class for the header cell or body cell using `headerClass` and `cellClass`.
 
-* The `columns` option allows for the selection of several new values for `type`. You can now chose between:
+* The `columns` option allows for the selection of several new values for `type`. You can now choose between:
 
     * `html` (default)
     * `string`
@@ -39,13 +39,13 @@
 
 ## From 5.0.x to 6.0.x:
 
-Version 6.0 is the biggest update to simple-datatables since version 1.0. I do not expect similar changes in the the next few years.
+Version 6.0 is the biggest update to simple-datatables since version 1.0. I do not expect similar changes in the next few years.
 
 * The source of truth used to be the `<tr>`-elements that simple-datatables would collect from the initial table or new `<tr>`-elements that it would create later on based upon configuration. Exporting data or searching through the data would involve looking through these elements and their contents. In version 6, the source of truth is the data that can be found in [`datatable.data`](data). To access the data, look at `dataTable.data.data` (row data) and `dataTable.data.headings` (heading data).
 
-* If an initial table DOM is provided it is converted to the internal format first. If data is provided in some other way, it is directly stored in the internal data storage without going through the DOM first. The table DOM is then rendered and later on rerendered based on that data using [diffDOM](https://github.com/fiduswriter/diffDOM).
+* If an initial table DOM is provided it is converted to the internal format first. If data is provided in some other way, it is directly stored in the internal data storage without going through the DOM first. The table DOM is then rendered and later on re-rendered based on that data using [diffDOM](https://github.com/fiduswriter/diffDOM).
 
-* Incoming data is no longer converted to strings by default. Up to version 5, a side-effect of the data internal data storage being run in the form of HTML elements was that any datatype that was not a string was automatically converted to be a string. This is no longer the case.
+* Incoming data is no longer converted to strings by default. Up to version 5, a side effect of the data internal data storage being run in the form of HTML elements was that any datatype that was not a string was automatically converted to be a string. This is no longer the case.
 In the internal data storage, numbers, boolean values, etc. are kept in their original format and will only be converted to strings when
 shown in the DOM. For formats where it's unclear how it should be rendered as a string, a separate string (`text`) can be provided.
 
@@ -66,7 +66,7 @@ DataTable("#table", {
       render: (data, cell, row) => data + "<button data-row='" + row.dataIndex + "'>Buy Now</button>"
     }
   ]
-}
+})
 ```
 
 Do now:
@@ -81,7 +81,7 @@ DataTable("#table", {
       render: (data, td, dataIndex, cellIndex) => data + "<button data-row='" + dataIndex + "'>Buy Now</button>"
     }
   ]
-}
+})
 ```
 
 And instead of:
@@ -146,7 +146,7 @@ do now:
 document.querySelector('.datatable-wrapper')
 ```
 
-**Note:** [Class names are now configurable.](classes) So if you rely on the old class names for some reason, you can configurable simple-datatables to use the old class names.
+**Note:** [Class names are now configurable.](classes) So if you rely on the old class names for some reason, you can configure simple-datatables to use the old class names.
 
 
 * The `dataIndex` property on `<tr>`s is now called `data-index` and is always a string.
