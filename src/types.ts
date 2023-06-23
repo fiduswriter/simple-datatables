@@ -54,7 +54,7 @@ export type DeepPartial<T> = T extends Function ? T : (T extends object ? { [P i
 
 interface ColumnOption{
     /**An integer or array of integers representing the column(s) to be manipulated. */
-    select : number;
+    select : number | number[];
     /**Automatically sort the selected column. Can only be applied if a single column is selected. */
     sort? : "asc" | "desc";
     /**When set to false the column(s) cannot be sorted. */
@@ -62,10 +62,10 @@ interface ColumnOption{
     /**When set to true the column(s) will not be visible and will be excluded from search results. */
     hidden?:boolean;
     /**
-     * A string reperesenting the type of data in the column(s) cells. Choose from the following options:
+     * A string representing the type of data in the column(s) cells. Choose from the following options:
 
     string - lexical ordering (default)
-    number - any string with currency symbols, . or , thousand seperators, %, etc
+    number - any string with currency symbols, . or , thousand separators, %, etc
     date - a valid datetime string
      */
     type?:string;
@@ -80,6 +80,10 @@ interface ColumnOption{
      * A filter to be used instead of sorting for the selected column(s).
      */
     filter?: (string | number | boolean | ((arg: (string | number | boolean)) => boolean))[];
+    /** CSS classes to apply to the header cell. */
+    headerClass?: string;
+    /** CSS classes to apply to the body cell. */
+    cellClass?: string;
 }
 
 interface LabelsConfiguration {

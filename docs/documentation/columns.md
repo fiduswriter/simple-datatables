@@ -8,6 +8,10 @@ Controls various aspects of individual or groups of columns. Should be an array 
 Default: `"false"` Options: `["false", "upper", "lower"]`. Influences how string sorting is done and whether upper or lower case letters are sorted first. If `"false"` is selected, will use the chosen `locale`'s default sorting order. Specifying `caseFirst`
 as part of the table's configuration will define a default for all columns.
 
+#### `cellClass`
+
+Allows to specify the CSS classes to apply to the body cell.
+
 #### `filter`
 
 Instead of ordering the row, clicking on the header will filter it. Specify an array of items to filter for. The array can also contain functions that will be executed on the data item of the cell to determine whether to include it in the filtered content.
@@ -16,6 +20,10 @@ Instead of ordering the row, clicking on the header will filter it. Specify an a
 
 A string representing the `datetime` format when using the `date` type. Specifying `format`
 as part of the table's configuration will define a default for all columns.
+
+#### `headerClass`
+
+Allows to specify the CSS classes to apply to the header cell.
 
 #### `hidden`
 
