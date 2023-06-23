@@ -1,6 +1,6 @@
 ### `perPageSelect`
-#### Default: `[5, 10, 15, 20, 25]`
 #### Type: `array`
+#### Default: `[5, 10, 15, 20, 25]`
 
 Sets the per page options in the dropdown. Must be an array of integers or arrays in the format [label (string), value (int)].
 

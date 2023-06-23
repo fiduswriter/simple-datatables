@@ -4,12 +4,12 @@
 ### Default
 ```javascript
 {
-        active: "active" // will be "datatable-active" in version 7
+        active: "datatable-active",
         bottom: "datatable-bottom",
         container: "datatable-container",
         cursor: "datatable-cursor",
         dropdown: "datatable-dropdown",
-        ellipsis: "ellipsis" // will be "datatable-ellipsis" in version 7
+        ellipsis: "datatable-ellipsis",
         empty: "datatable-empty",
         headercontainer: "datatable-headercontainer",
         info: "datatable-info",
