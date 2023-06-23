@@ -5,7 +5,7 @@ Controls various aspects of individual or groups of columns. Should be an array 
 
 #### `caseFirst`
 
-Default: `"false"` Options: `["false", "upper", "lower"]`. Influences how string sorting is done and wehther upper or lower case letters are sorted first. If `"false"` is selected, will use the chosen `locale`'s default sorting order. Specifying `caseFirst`
+Default: `"false"` Options: `["false", "upper", "lower"]`. Influences how string sorting is done and whether upper or lower case letters are sorted first. If `"false"` is selected, will use the chosen `locale`'s default sorting order. Specifying `caseFirst`
 as part of the table's configuration will define a default for all columns.
 
 #### `filter`
@@ -89,7 +89,7 @@ Specifying `type` as part of the table's configuration will define a default for
 #### `render`
 
 A callback to customise the rendering of the column(s) cell content. The function takes 4 parameters.
-You can either return a string representing the cells content, you can modify the provided td in the format used by (diffDOM)[https://github.com/fiduswriter/diffDOM] or you can return a new td in that same format.
+You can either return a string representing the cells content, you can modify the provided td in the format used by [diffDOM](https://github.com/fiduswriter/diffDOM) or you can return a new td in that same format.
 
 ```javascript
  =>

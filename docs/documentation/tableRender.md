@@ -1,6 +1,6 @@
 ### `tableRender`
-#### Default: `false`
 #### Type: `boolean` \ `function(data, table, type)`
+#### Default: `false`
 
 
 If specified, declares a callback to customise the rendering of all tables. The function can take 3 parameters:

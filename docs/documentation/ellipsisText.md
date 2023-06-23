@@ -1,5 +1,5 @@
 ### `firstText`
 #### Type: `string`
-#### defaut: `'…'`
+#### Default: `'…'`
 
 Set the content of the ellipsis used in the pager.

@@ -2,4 +2,4 @@
 #### Type: `boolean`
 #### Default: `true`
 
-Whether or not paging is enabled for the table
+Whether paging is enabled for the table.

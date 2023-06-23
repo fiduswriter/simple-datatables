@@ -22,7 +22,7 @@ let dataTable = new DataTable("#myTable");
 
 ```
 
-You can also pass the options object as the second paramater:
+You can also pass the options object as the second parameter:
 
 ```javascript
 let dataTable = new DataTable("#myTable", {
@@ -54,5 +54,5 @@ the cell is being processed:
 will be processed.
 
 * `data-order`: If this attribute is present on a cell, the value of this attribute will be used for ordering the row in case
-of sorting. Any other sort order will be overridden. IF the field only xcontains numeric characters, the field will first
+of sorting. Any other sort order will be overridden. IF the field only contains numeric characters, the field will first
 be converted to a number.
