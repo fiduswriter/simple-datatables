@@ -8,7 +8,7 @@ Customise the displayed labels. (v1.0.6 and above)
 labels: {
     placeholder: "Search...",
     searchTitle: "Search within table",
-    perPage: "entries per page",
+    perPage: "{select} entries per page",
     noRows: "No entries found",
     info: "Showing {start} to {end} of {rows} entries",
     noResults: "No results match your search query",

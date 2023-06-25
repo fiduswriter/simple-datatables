@@ -1153,7 +1153,7 @@ const defaultConfig$1 = {
     labels: {
         placeholder: "Search...",
         searchTitle: "Search within table",
-        perPage: "entries per page",
+        perPage: "{select} entries per page",
         noRows: "No entries found",
         noResults: "No results match your search query",
         info: "Showing {start} to {end} of {rows} entries" //
