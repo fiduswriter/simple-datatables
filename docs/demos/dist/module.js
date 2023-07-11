@@ -3413,7 +3413,7 @@ class DataTable {
         }
         // Search input
         if (this.options.searchable) {
-            this.wrapperDOM.addEventListener("keyup", (event) => {
+            this.wrapperDOM.addEventListener("input", (event) => {
                 const target = event.target;
                 if (!(target instanceof HTMLInputElement) || !target.matches(`.${this.options.classes.input}`)) {
                     return;

@@ -479,7 +479,7 @@ export class DataTable {
 
         // Search input
         if (this.options.searchable) {
-            this.wrapperDOM.addEventListener("keyup", (event: KeyboardEvent) => {
+            this.wrapperDOM.addEventListener("input", (event: InputEvent) => {
                 const target = event.target
                 if (!(target instanceof HTMLInputElement) || !target.matches(`.${this.options.classes.input}`)) {
                     return
