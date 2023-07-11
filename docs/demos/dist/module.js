@@ -3351,9 +3351,7 @@ class DataTable {
         container.parentElement.insertBefore(this.headerDOM, container);
         let tableVirtualDOM = {
             nodeName: "TABLE",
-            attributes: {
-                class: this.options.classes.table
-            },
+            attributes: this._tableAttributes,
             childNodes: [
                 {
                     nodeName: "THEAD",
@@ -3363,6 +3361,7 @@ class DataTable {
                 }
             ]
         };
+        tableVirtualDOM.attributes.class = tableVirtualDOM.attributes.class ? `${tableVirtualDOM.attributes.class} ${this.options.classes.table}` : this.options.classes.table;
         if (this.options.tableRender) {
             const renderedTableVirtualDOM = this.options.tableRender(this.data, tableVirtualDOM, "header");
             if (renderedTableVirtualDOM) {
@@ -3823,9 +3822,7 @@ class DataTable {
         this._renderPagers();
         let newVirtualDOM = {
             nodeName: "TABLE",
-            attributes: {
-                class: this.options.classes.table
-            },
+            attributes: this._tableAttributes,
             childNodes: [
                 {
                     nodeName: "THEAD",
@@ -3858,6 +3855,7 @@ class DataTable {
                 }
             ]
         };
+        newVirtualDOM.attributes.class = newVirtualDOM.attributes.class ? `${newVirtualDOM.attributes.class} ${this.options.classes.table}` : this.options.classes.table;
         if (this.options.tableRender) {
             const renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, "message");
             if (renderedTableVirtualDOM) {
