@@ -2748,7 +2748,7 @@ class Columns {
             this.dt.emit("datatable.sorting", index, dir);
         }
         if (!dir) {
-            const currentDir = this._state.sort ? this._state.sort?.dir : false;
+            const currentDir = this._state.sort && this._state.sort.column === index ? this._state.sort?.dir : false;
             const sortSequence = column?.sortSequence || ["asc", "desc"];
             if (!currentDir) {
                 dir = sortSequence.length ? sortSequence[0] : "asc";
@@ -2756,7 +2756,7 @@ class Columns {
             else {
                 const currentDirIndex = sortSequence.indexOf(currentDir);
                 if (currentDirIndex === -1) {
-                    dir = "asc";
+                    dir = sortSequence[0] || "asc";
                 }
                 else if (currentDirIndex === sortSequence.length - 1) {
                     dir = sortSequence[0];
