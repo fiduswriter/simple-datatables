@@ -34,7 +34,7 @@ export const defaultConfig = {
         reallyRemove: "Are you sure?",
         reallyCancel: "Do you really want to cancel?",
         save: "Save",
-        cancel: "Cancel",
+        cancel: "Cancel"
     },
 
     cancelModal: editor => confirm(editor.options.labels.reallyCancel),
