@@ -27,6 +27,7 @@ interface EditorOptions {
         menu?: string,
         save?: string,
         block?: string,
+        cancel?: string,
         close?: string,
         inner?: string,
         input?: string,
@@ -40,16 +41,17 @@ interface EditorOptions {
         separator?: string,
     },
     labels?: {
+        cancel?: string,
         closeX?: string,
         editCell?: string,
         editRow?: string,
         removeRow?: string,
-        reallyClose?: string,
+        reallyCancel?: string,
         reallyRemove?: string,
         save?: string
     }
 
-    closeModal?: (editor: Editor) => boolean,
+    cancelModal?: (editor: Editor) => boolean,
 
     // include hidden columns in the editor
     hiddenColumns?: boolean,

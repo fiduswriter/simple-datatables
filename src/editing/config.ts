@@ -12,6 +12,7 @@ export const defaultConfig = {
         menu: "datatable-editor-menu",
         save: "datatable-editor-save",
         block: "datatable-editor-block",
+        cancel: "datatable-editor-cancel",
         close: "datatable-editor-close",
         inner: "datatable-editor-inner",
         input: "datatable-editor-input",
@@ -31,11 +32,12 @@ export const defaultConfig = {
         editRow: "Edit Row",
         removeRow: "Remove Row",
         reallyRemove: "Are you sure?",
-        reallyClose: "Do you really want to close?",
-        save: "Save"
+        reallyCancel: "Do you really want to cancel?",
+        save: "Save",
+        cancel: "Cancel",
     },
 
-    closeModal: editor => confirm(editor.options.labels.reallyClose),
+    cancelModal: editor => confirm(editor.options.labels.reallyCancel),
 
     // edit inline instead of using a modal lay-over for editing content
     inline: true,

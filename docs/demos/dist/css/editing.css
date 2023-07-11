@@ -102,16 +102,19 @@
   width: 75%;
 }
 
+.datatable-editor-save, .datatable-editor-cancel {
+    padding: 6px 12px;
+    font-size: inherit;
+    font-family: inherit;
+    font-weight: inherit;
+    cursor: pointer;
+    border-radius: 3px;
+}
+
 .datatable-editor-save {
   background-color: #27ae60;
   border: 1px solid #27ae60;
-  padding: 6px 12px;
-  font-size: inherit;
-  font-family: inherit;
-  font-weight: inherit;
   color: #fff;
-  cursor: pointer;
-  border-radius: 3px;
 }
 
 .datatable-editor-save:hover {

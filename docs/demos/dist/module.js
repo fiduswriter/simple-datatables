@@ -3253,7 +3253,6 @@ class DataTable {
             }
         }
         const diff = this._dd.diff(this._virtualDOM, newVirtualDOM);
-        console.log({ diff, newVirtualDOM });
         this._dd.apply(this.dom, diff);
         this._virtualDOM = newVirtualDOM;
     }
@@ -4321,6 +4320,7 @@ const defaultConfig = {
         menu: "datatable-editor-menu",
         save: "datatable-editor-save",
         block: "datatable-editor-block",
+        cancel: "datatable-editor-cancel",
         close: "datatable-editor-close",
         inner: "datatable-editor-inner",
         input: "datatable-editor-input",
@@ -4339,10 +4339,11 @@ const defaultConfig = {
         editRow: "Edit Row",
         removeRow: "Remove Row",
         reallyRemove: "Are you sure?",
-        reallyClose: "Do you really want to close?",
-        save: "Save"
+        reallyCancel: "Do you really want to cancel?",
+        save: "Save",
+        cancel: "Cancel",
     },
-    closeModal: editor => confirm(editor.options.labels.reallyClose),
+    cancelModal: editor => confirm(editor.options.labels.reallyCancel),
     // edit inline instead of using a modal lay-over for editing content
     inline: true,
     // include hidden columns in the editor
@@ -4468,10 +4469,10 @@ class Editor {
             }
             this.wrapperDOM.appendChild(this.menuDOM);
             this.containerDOM.appendChild(this.wrapperDOM);
-            this.update();
+            this.updateMenu();
         }
         this.data = {};
-        this.closed = true;
+        this.menuOpen = false;
         this.editing = false;
         this.editingRow = false;
         this.editingCell = false;
@@ -4487,23 +4488,23 @@ class Editor {
      */
     bindEvents() {
         this.events = {
-            context: this.context.bind(this),
-            update: this.update.bind(this),
-            dismiss: this.dismiss.bind(this),
             keydown: this.keydown.bind(this),
             click: this.click.bind(this)
         };
         // listen for click / double-click
         this.dt.dom.addEventListener(this.options.clickEvent, this.events.click);
-        // listen for click everywhere except the menu
-        document.addEventListener("click", this.events.dismiss);
         // listen for right-click
         document.addEventListener("keydown", this.events.keydown);
         if (this.options.contextMenu) {
+            this.events.context = this.context.bind(this);
+            this.events.updateMenu = this.updateMenu.bind(this);
+            this.events.dismissMenu = this.dismissMenu.bind(this);
+            this.events.reset = debounce(() => this.events.updateMenu(), 50);
             // listen for right-click
             this.dt.dom.addEventListener("contextmenu", this.events.context);
-            // reset
-            this.events.reset = debounce(() => this.events.update(), 50);
+            // listen for click everywhere except the menu
+            document.addEventListener("click", this.events.dismissMenu);
+            // Reset contextmenu on browser window changes
             window.addEventListener("resize", this.events.reset);
             window.addEventListener("scroll", this.events.reset);
         }
@@ -4520,7 +4521,7 @@ class Editor {
         }
         this.event = event;
         const cell = target.closest("tbody td");
-        if (this.options.contextMenu && !this.disabled && cell) {
+        if (!this.disabled && cell) {
             event.preventDefault();
             // get the mouse position
             let x = event.pageX;
@@ -4536,7 +4537,7 @@ class Editor {
             this.wrapperDOM.style.top = `${y}px`;
             this.wrapperDOM.style.left = `${x}px`;
             this.openMenu();
-            this.update();
+            this.updateMenu();
         }
     }
     /**
@@ -4571,7 +4572,7 @@ class Editor {
     keydown(event) {
         if (this.modalDOM) {
             if (event.key === "Escape") { // close button
-                if (this.options.closeModal(this)) {
+                if (this.options.cancelModal(this)) {
                     this.closeModal();
                 }
             }
@@ -4648,7 +4649,7 @@ class Editor {
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
             `<h4>${this.options.labels.editCell}</h4>`,
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>${this.options.labels.closeX}</button>`,
+            `<button class='${this.options.classes.close}' type='button' data-editor-cancel>${this.options.labels.closeX}</button>`,
             " </div>",
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
@@ -4657,6 +4658,7 @@ class Editor {
             `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
             "</div>",
             `<div class='${this.options.classes.row}'>`,
+            `<button class='${this.options.classes.cancel}' type='button' data-editor-cancel>${this.options.labels.cancel}</button>`,
             `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
             "</div>",
             "</form>",
@@ -4678,12 +4680,11 @@ class Editor {
             if (!(target instanceof Element)) {
                 return;
             }
-            if (target.hasAttribute("data-editor-close")) { // close button
+            if (target.hasAttribute("data-editor-cancel")) { // cancel button
                 event.preventDefault();
-                if (!this.options.closeModal(this)) {
-                    return;
+                if (this.options.cancelModal(this)) {
+                    this.closeModal();
                 }
-                this.closeModal();
             }
             else if (target.hasAttribute("data-editor-save")) { // save button
                 event.preventDefault();
@@ -4779,11 +4780,12 @@ class Editor {
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
             `<h4>${this.options.labels.editRow}</h4>`,
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>${this.options.labels.closeX}</button>`,
+            `<button class='${this.options.classes.close}' type='button' data-editor-cancel>${this.options.labels.closeX}</button>`,
             " </div>",
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
             `<div class='${this.options.classes.row}'>`,
+            `<button class='${this.options.classes.cancel}' type='button' data-editor-cancel>${this.options.labels.cancel}</button>`,
             `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
             "</div>",
             "</form>",
@@ -4830,8 +4832,8 @@ class Editor {
             if (!(target instanceof Element)) {
                 return;
             }
-            if (target.hasAttribute("data-editor-close")) { // close button
-                if (this.options.closeModal(this)) {
+            if (target.hasAttribute("data-editor-cancel")) { // cancel button
+                if (this.options.cancelModal(this)) {
                     this.closeModal();
                 }
             }
@@ -4940,7 +4942,7 @@ class Editor {
      * Update context menu position
      * @return {Void}
      */
-    update() {
+    updateMenu() {
         const scrollX = window.scrollX || window.pageXOffset;
         const scrollY = window.scrollY || window.pageYOffset;
         this.rect = this.wrapperDOM.getBoundingClientRect();
@@ -4954,16 +4956,14 @@ class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    dismiss(event) {
+    dismissMenu(event) {
         const target = event.target;
         if (!(target instanceof Element) || this.wrapperDOM.contains(target)) {
             return;
         }
         let valid = true;
-        if (this.options.contextMenu) {
-            if (this.editing) {
-                valid = !(target.matches(`input.${this.options.classes.input}[type=text]`));
-            }
+        if (this.editing) {
+            valid = !(target.matches(`input.${this.options.classes.input}[type=text]`));
         }
         if (valid) {
             this.closeMenu();
@@ -4980,19 +4980,17 @@ class Editor {
                 this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`);
             this.saveCell(input.value);
         }
-        if (this.options.contextMenu) {
-            document.body.appendChild(this.containerDOM);
-            this.closed = false;
-            this.dt.emit("editable.context.open");
-        }
+        document.body.appendChild(this.containerDOM);
+        this.menuOpen = true;
+        this.dt.emit("editable.context.open");
     }
     /**
      * Close the context menu
      * @return {Void}
      */
     closeMenu() {
-        if (this.options.contextMenu && !this.closed) {
-            this.closed = true;
+        if (this.menuOpen) {
+            this.menuOpen = false;
             document.body.removeChild(this.containerDOM);
             this.dt.emit("editable.context.close");
         }
@@ -5004,7 +5002,7 @@ class Editor {
     destroy() {
         this.dt.dom.removeEventListener(this.options.clickEvent, this.events.click);
         this.dt.dom.removeEventListener("contextmenu", this.events.context);
-        document.removeEventListener("click", this.events.dismiss);
+        document.removeEventListener("click", this.events.dismissMenu);
         document.removeEventListener("keydown", this.events.keydown);
         window.removeEventListener("resize", this.events.reset);
         window.removeEventListener("scroll", this.events.reset);

@@ -27,7 +27,7 @@ import {menuItemType, dataType, EditorOptions} from "./types"
  * @param {Object} options User config
  */
 export class Editor {
-    closed: boolean
+    menuOpen: boolean
 
     containerDOM: HTMLElement
 
@@ -124,10 +124,10 @@ export class Editor {
             }
             this.wrapperDOM.appendChild(this.menuDOM)
             this.containerDOM.appendChild(this.wrapperDOM)
-            this.update()
+            this.updateMenu()
         }
         this.data = {}
-        this.closed = true
+        this.menuOpen = false
         this.editing = false
         this.editingRow = false
         this.editingCell = false
@@ -144,24 +144,25 @@ export class Editor {
      */
     bindEvents() {
         this.events = {
-            context: this.context.bind(this),
-            update: this.update.bind(this),
-            dismiss: this.dismiss.bind(this),
             keydown: this.keydown.bind(this),
             click: this.click.bind(this)
         }
         // listen for click / double-click
         this.dt.dom.addEventListener(this.options.clickEvent, this.events.click)
-        // listen for click everywhere except the menu
-        document.addEventListener("click", this.events.dismiss)
         // listen for right-click
         document.addEventListener("keydown", this.events.keydown)
-        if (this.options.contextMenu) {
-            // listen for right-click
 
+        if (this.options.contextMenu) {
+            this.events.context = this.context.bind(this)
+            this.events.updateMenu = this.updateMenu.bind(this)
+            this.events.dismissMenu = this.dismissMenu.bind(this)
+            this.events.reset = debounce(() => this.events.updateMenu(), 50)
+
+            // listen for right-click
             this.dt.dom.addEventListener("contextmenu", this.events.context)
-            // reset
-            this.events.reset = debounce(() => this.events.update(), 50)
+            // listen for click everywhere except the menu
+            document.addEventListener("click", this.events.dismissMenu)
+            // Reset contextmenu on browser window changes
             window.addEventListener("resize", this.events.reset)
             window.addEventListener("scroll", this.events.reset)
         }
@@ -180,7 +181,7 @@ export class Editor {
         this.event = event
 
         const cell = target.closest("tbody td")
-        if (this.options.contextMenu && !this.disabled && cell) {
+        if (!this.disabled && cell) {
             event.preventDefault()
             // get the mouse position
             let x = event.pageX
@@ -196,7 +197,7 @@ export class Editor {
             this.wrapperDOM.style.top = `${y}px`
             this.wrapperDOM.style.left = `${x}px`
             this.openMenu()
-            this.update()
+            this.updateMenu()
         }
     }
 
@@ -232,7 +233,7 @@ export class Editor {
     keydown(event: KeyboardEvent) {
         if (this.modalDOM) {
             if (event.key === "Escape") { // close button
-                if (this.options.closeModal(this)) {
+                if (this.options.cancelModal(this)) {
                     this.closeModal()
                 }
             } else if (event.key === "Enter") { // save button
@@ -307,7 +308,7 @@ export class Editor {
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
             `<h4>${this.options.labels.editCell}</h4>`,
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>${this.options.labels.closeX}</button>`,
+            `<button class='${this.options.classes.close}' type='button' data-editor-cancel>${this.options.labels.closeX}</button>`,
             " </div>",
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
@@ -316,6 +317,7 @@ export class Editor {
             `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
             "</div>",
             `<div class='${this.options.classes.row}'>`,
+            `<button class='${this.options.classes.cancel}' type='button' data-editor-cancel>${this.options.labels.cancel}</button>`,
             `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
             "</div>",
             "</form>",
@@ -337,12 +339,11 @@ export class Editor {
             if (!(target instanceof Element)) {
                 return
             }
-            if (target.hasAttribute("data-editor-close")) { // close button
+            if (target.hasAttribute("data-editor-cancel")) { // cancel button
                 event.preventDefault()
-                if (!this.options.closeModal(this)) {
-                    return
+                if (this.options.cancelModal(this)) {
+                    this.closeModal()
                 }
-                this.closeModal()
             } else if (target.hasAttribute("data-editor-save")) { // save button
                 event.preventDefault()
                 // Save
@@ -433,11 +434,12 @@ export class Editor {
             `<div class='${this.options.classes.inner}'>`,
             `<div class='${this.options.classes.header}'>`,
             `<h4>${this.options.labels.editRow}</h4>`,
-            `<button class='${this.options.classes.close}' type='button' data-editor-close>${this.options.labels.closeX}</button>`,
+            `<button class='${this.options.classes.close}' type='button' data-editor-cancel>${this.options.labels.closeX}</button>`,
             " </div>",
             `<div class='${this.options.classes.block}'>`,
             `<form class='${this.options.classes.form}'>`,
             `<div class='${this.options.classes.row}'>`,
+            `<button class='${this.options.classes.cancel}' type='button' data-editor-cancel>${this.options.labels.cancel}</button>`,
             `<button class='${this.options.classes.save}' type='button' data-editor-save>${this.options.labels.save}</button>`,
             "</div>",
             "</form>",
@@ -485,8 +487,8 @@ export class Editor {
             if (!(target instanceof Element)) {
                 return
             }
-            if (target.hasAttribute("data-editor-close")) { // close button
-                if (this.options.closeModal(this)) {
+            if (target.hasAttribute("data-editor-cancel")) { // cancel button
+                if (this.options.cancelModal(this)) {
                     this.closeModal()
                 }
             } else if (target.hasAttribute("data-editor-save")) { // save button
@@ -594,7 +596,7 @@ export class Editor {
      * Update context menu position
      * @return {Void}
      */
-    update() {
+    updateMenu() {
         const scrollX = window.scrollX || window.pageXOffset
         const scrollY = window.scrollY || window.pageYOffset
         this.rect = this.wrapperDOM.getBoundingClientRect()
@@ -609,16 +611,14 @@ export class Editor {
      * @param  {Object} event Event
      * @return {Void}
      */
-    dismiss(event: Event) {
+    dismissMenu(event: Event) {
         const target = event.target
         if (!(target instanceof Element) || this.wrapperDOM.contains(target)) {
             return
         }
         let valid = true
-        if (this.options.contextMenu) {
-            if (this.editing) {
-                valid = !(target.matches(`input.${this.options.classes.input}[type=text]`))
-            }
+        if (this.editing) {
+            valid = !(target.matches(`input.${this.options.classes.input}[type=text]`))
         }
         if (valid) {
             this.closeMenu()
@@ -637,11 +637,9 @@ export class Editor {
 
             this.saveCell(input.value)
         }
-        if (this.options.contextMenu) {
-            document.body.appendChild(this.containerDOM)
-            this.closed = false
-            this.dt.emit("editable.context.open")
-        }
+        document.body.appendChild(this.containerDOM)
+        this.menuOpen = true
+        this.dt.emit("editable.context.open")
     }
 
     /**
@@ -649,8 +647,8 @@ export class Editor {
      * @return {Void}
      */
     closeMenu() {
-        if (this.options.contextMenu && !this.closed) {
-            this.closed = true
+        if (this.menuOpen) {
+            this.menuOpen = false
             document.body.removeChild(this.containerDOM)
             this.dt.emit("editable.context.close")
         }
@@ -663,7 +661,7 @@ export class Editor {
     destroy() {
         this.dt.dom.removeEventListener(this.options.clickEvent, this.events.click)
         this.dt.dom.removeEventListener("contextmenu", this.events.context)
-        document.removeEventListener("click", this.events.dismiss)
+        document.removeEventListener("click", this.events.dismissMenu)
         document.removeEventListener("keydown", this.events.keydown)
         window.removeEventListener("resize", this.events.reset)
         window.removeEventListener("scroll", this.events.reset)
