@@ -100,6 +100,11 @@ export class DataTable {
             dom.appendChild(this.dom)
         }
 
+        const diffDomOptions = {
+            ...defaultConfig.diffDomOptions,
+            ...options.diffDomOptions
+        }
+
         const labels = {
             ...defaultConfig.labels,
             ...options.labels
@@ -114,6 +119,7 @@ export class DataTable {
         this.options = {
             ...defaultConfig,
             ...options,
+            diffDomOptions,
             labels,
             classes
         }
@@ -130,7 +136,7 @@ export class DataTable {
             onResize: () => this._onResize()
         }
 
-        this._dd = new DiffDOM({valueDiffing: false})
+        this._dd = new DiffDOM(this.options.diffDomOptions || {})
 
         this.initialized = false
         this._events = {}
@@ -152,7 +158,7 @@ export class DataTable {
             return false
         }
 
-        this._virtualDOM = nodeToObj(this.dom, {valueDiffing: false})
+        this._virtualDOM = nodeToObj(this.dom, this.options.diffDomOptions || {})
 
         this._tableAttributes = {...this._virtualDOM.attributes}
 

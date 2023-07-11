@@ -9,6 +9,7 @@ export const defaultConfig: DataTableConfiguration = {
     locale: "en",
     numeric: true,
     caseFirst: "false",
+
     // for searching
     searchable: true,
     sensitivity: "base",
@@ -54,6 +55,9 @@ export const defaultConfig: DataTableConfiguration = {
     pagerRender: false,
     rowRender: false,
     tableRender: false,
+    diffDomOptions: {
+        valueDiffing: false
+    },
 
     // Customise the display text
     labels: {

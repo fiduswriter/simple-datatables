@@ -28,6 +28,7 @@ let dataTable = new DataTable(myTable, options);
 * [pagerRender](pagerRender)
 * [rowRender](rowRender)
 * [tableRender](tableRender)
+* [diffDomOptions](diffDomOptions)
 ### Pagination
 * [paging](paging)
 * [perPage](perPage)

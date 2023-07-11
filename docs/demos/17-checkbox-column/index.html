@@ -9,6 +9,11 @@
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
+        <style>
+        span.checkbox {
+            cursor: pointer;
+        }
+        </style>
     </head>
     <body>
         <h1>Checkbox column</h1>
@@ -39,15 +44,28 @@
                         columns: [
                             {
                                 select: 0,
-                                render: (value, _td, _rowIndex, _cellIndex) => `<input type="checkbox" ${value=== "true" ? "checked": ""}>`
+                                render: (value, _td, _rowIndex, _cellIndex) => `<span class="checkbox">${value ? "☑" : "☐"}</span>`
                             }
                         ]
                     })
-                    datatable.dom.addEventListener("click", e => {
-                        if (e.target.matches("input[type=checkbox]")) {
-                            const name = e.target.parentElement.parentElement.dataset.name
-                            const checked = e.target.checked
-                            alert(`${name} has been ${checked ? "checked" : "unchecked"}.`)
+                    datatable.dom.addEventListener("click", event => {
+                        if (event.target.matches("span.checkbox")) {
+                            event.preventDefault()
+                            event.stopPropagation()
+                            const name = event.target.parentElement.parentElement.dataset.name
+                            const index = parseInt(event.target.parentElement.parentElement.dataset.index, 10)
+                            const cell = datatable.data.data[index][0]
+                            const checked = cell.data
+                            if (checked) {
+                                cell.data = false
+                            } else {
+                                cell.data = true
+                            }
+                            datatable.update()
+                            setTimeout( // set a timeout so that rednered checkbiox is rendered first.
+                                () => alert(`${name} has been ${checked ? "unchecked" : "checked"}.`),
+                                0
+                            )
                         }
                     })
                 }

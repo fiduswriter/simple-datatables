@@ -350,6 +350,11 @@ interface DataTableConfiguration {
      * Default: false
      * Method to call to modify table rendering output.
      */
+    diffDomOptions: object;
+    /**
+     * Default: { valueDiffing: false }
+     * Options to parse on to diffDOM.
+     */
     truncatePager: boolean;
     /**
      * Default: true

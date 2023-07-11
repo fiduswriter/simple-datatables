@@ -21,31 +21,8 @@
 * [datatable.selectrow](Events#datatableselectrow)
 
 #### Options
-* [classes](classes)
-* [columns](columns)
-* [data](data)
-* [firstLast](firstLast)
-* [firstText](firstText)
-* [fixedColumns](fixedColumns)
-* [fixedHeight](fixedHeight)
-* [footer](footer)
-* [header](header)
-* [hiddenHeader](hiddenHeader)
-* [labels](labels)
-* [lastText](lastText)
-* [nextPrev](nextPrev)
-* [nextText](nextText)
-* [paging](paging)
-* [perPage](perPage)
-* [perPageSelect](perPageSelect)
-* [prevText](prevText)
-* [scrollY](scrollY)
-* [searchable](searchable)
-* [sortable](sortable)
-* [truncatePager](truncatePager)
-* [rowNavigation](rowNavigation)
-* [tabIndex](tabIndex)
-* [template](template)
+
+See [Options](Options)
 
 
 #### Properties

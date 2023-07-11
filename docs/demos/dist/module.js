@@ -2935,6 +2935,9 @@ const defaultConfig$1 = {
     pagerRender: false,
     rowRender: false,
     tableRender: false,
+    diffDomOptions: {
+        valueDiffing: false
+    },
     // Customise the display text
     labels: {
         placeholder: "Search...",
@@ -3113,6 +3116,10 @@ class DataTable {
             this.dom = document.createElement("table");
             dom.appendChild(this.dom);
         }
+        const diffDomOptions = {
+            ...defaultConfig$1.diffDomOptions,
+            ...options.diffDomOptions
+        };
         const labels = {
             ...defaultConfig$1.labels,
             ...options.labels
@@ -3125,6 +3132,7 @@ class DataTable {
         this.options = {
             ...defaultConfig$1,
             ...options,
+            diffDomOptions,
             labels,
             classes
         };
@@ -3138,7 +3146,7 @@ class DataTable {
         this._listeners = {
             onResize: () => this._onResize()
         };
-        this._dd = new DiffDOM({ valueDiffing: false });
+        this._dd = new DiffDOM(this.options.diffDomOptions || {});
         this.initialized = false;
         this._events = {};
         this._currentPage = 0;
@@ -3155,7 +3163,7 @@ class DataTable {
         if (this.initialized || this.dom.classList.contains(this.options.classes.table)) {
             return false;
         }
-        this._virtualDOM = nodeToObj(this.dom, { valueDiffing: false });
+        this._virtualDOM = nodeToObj(this.dom, this.options.diffDomOptions || {});
         this._tableAttributes = { ...this._virtualDOM.attributes };
         this.rows = new Rows(this);
         this.columns = new Columns(this);
@@ -4341,7 +4349,7 @@ const defaultConfig = {
         reallyRemove: "Are you sure?",
         reallyCancel: "Do you really want to cancel?",
         save: "Save",
-        cancel: "Cancel",
+        cancel: "Cancel"
     },
     cancelModal: editor => confirm(editor.options.labels.reallyCancel),
     // edit inline instead of using a modal lay-over for editing content
