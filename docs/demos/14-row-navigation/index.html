@@ -4,7 +4,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Simple</title>
+        <title>Row navigation</title>
         <style>
             tr.selected {
                 background-color: red;
@@ -752,11 +752,9 @@
                     table.destroy()
                 }
 
-                let selectedRows = []
-
                 const options = {
-                    rowRender: (_row, tr, index) => {
-                        if (!selectedRows.includes(index)) {
+                    rowRender: (row, tr, _index) => {
+                        if (!row.selected) {
                             return
                         }
                         if (!tr.attributes) {
@@ -777,15 +775,23 @@
                 }
                 table = new DataTable("table", options)
 
+                // Mark all rows as unselected
+                table.data.data.forEach(data => {
+        data.selected = false
+    })
+
                 table.on("datatable.selectrow", (rowIndex, event) => {
                     event.preventDefault()
-                    if (selectedRows.includes(rowIndex)) {
-                        selectedRows = selectedRows.filter(row => row !== rowIndex)
+                    const row = table.data.data[rowIndex]
+                    if (row.selected) {
+                        row.selected = false
                     } else {
                         if (!multiSelect) {
-                            selectedRows.pop()
+                            table.data.data.forEach(data => {
+                                data.selected = false
+                            })
                         }
-                        selectedRows.push(rowIndex)
+                        row.selected = true
                     }
                     table.update()
                 })
