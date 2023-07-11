@@ -277,7 +277,7 @@ export class DataTable {
         let newVirtualDOM = dataToVirtualDOM(
             this._tableAttributes,
             this.data.headings,
-            (this.options.paging || this._searchQueries.length) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
+            (this.options.paging || this._searchQueries.length || this.columns._state.filters.length) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
                 this.pages[this._currentPage - 1] :
                 this.data.data.map((row, index) => ({
                     row,
