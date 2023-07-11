@@ -1901,9 +1901,6 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnsState, {
         if (style.length) {
             attributes.style = style;
         }
-        if (column.headerClass) {
-            attributes.class = column.headerClass;
-        }
         const headerNodes = heading.type === "html" ?
             heading.data :
             [

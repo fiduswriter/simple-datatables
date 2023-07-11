@@ -62,9 +62,7 @@ export const headingsToVirtualHeaderRowDOM = (
             if (style.length) {
                 attributes.style = style
             }
-            if (column.headerClass) {
-                attributes.class = column.headerClass
-            }
+
             const headerNodes : elementNodeType[] = heading.type === "html" ?
                 heading.data as elementNodeType[] :
                 [
