@@ -506,7 +506,7 @@ export class DataTable {
         // Pager(s) / sorting
         this.wrapperDOM.addEventListener("click", (event: Event) => {
             const target = event.target as Element
-            const hyperlink = target.closest("a")
+            const hyperlink = target.closest("a, button")
             if (!hyperlink) {
                 return
             }
@@ -530,6 +530,7 @@ export class DataTable {
                 event.preventDefault()
             }
         }, false)
+
         if (this.options.rowNavigation) {
             this.dom.addEventListener("keydown", (event: KeyboardEvent) => {
                 if (event.key === "ArrowUp") {

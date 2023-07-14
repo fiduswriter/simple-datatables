@@ -40,7 +40,7 @@ const truncate = (paginationListItems: elementNodeType[], currentPage: number, p
                     },
                     childNodes: [
                         {
-                            nodeName: "A",
+                            nodeName: "BUTTON",
                             attributes: {
                                 class: classes.paginationListItemLink
                             },
@@ -76,10 +76,11 @@ const paginationListItem = (page: number, label: string, options: DataTableConfi
     },
     childNodes: [
         {
-            nodeName: "A",
+            nodeName: "BUTTON",
             attributes: {
                 "data-page": String(page),
-                class: options.classes.paginationListItemLink
+                class: options.classes.paginationListItemLink,
+                "aria-label": options.labels.pageTitle.replace("{page}", String(page))
             },
             childNodes: [
                 {

@@ -8,6 +8,7 @@ Customise the displayed labels. (v1.0.6 and above)
 labels: {
     placeholder: "Search...",
     searchTitle: "Search within table",
+    pageTitle: "Page {page}",
     perPage: "entries per page",
     noRows: "No entries found",
     info: "Showing {start} to {end} of {rows} entries",
@@ -35,6 +36,13 @@ The strings wrapped in curly braces represent variables that are inserted.
           <td><code>searchTitle</code></td>
           <td>Sets the title of the search input</td>
           <td>None</td>
+    </tr>
+    <tr>
+          <td><code>pageTitle</code></td>
+          <td>Sets the title of the page (as used in the page navigator)</td>
+          <td>
+            <code>{page}</code> - The current page number<br />
+          </td>
     </tr>
   	<tr>
           <td><code>perPage</code></td>

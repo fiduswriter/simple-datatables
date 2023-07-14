@@ -1921,9 +1921,8 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnsState, {
                     headerNodes :
                     [
                         {
-                            nodeName: "a",
+                            nodeName: "BUTTON",
                             attributes: {
-                                href: "#",
                                 class: column.filter ? classes.filter : classes.sorter
                             },
                             childNodes: headerNodes
@@ -2940,6 +2939,7 @@ const defaultConfig$1 = {
         placeholder: "Search...",
         searchTitle: "Search within table",
         perPage: "entries per page",
+        pageTitle: "Page {page}",
         noRows: "No entries found",
         noResults: "No results match your search query",
         info: "Showing {start} to {end} of {rows} entries" //
@@ -3018,7 +3018,7 @@ const truncate = (paginationListItems, currentPage, pagesLength, options) => {
                     },
                     childNodes: [
                         {
-                            nodeName: "A",
+                            nodeName: "BUTTON",
                             attributes: {
                                 class: classes.paginationListItemLink
                             },
@@ -3050,10 +3050,11 @@ const paginationListItem = (page, label, options, state = {}) => ({
     },
     childNodes: [
         {
-            nodeName: "A",
+            nodeName: "BUTTON",
             attributes: {
                 "data-page": String(page),
-                class: options.classes.paginationListItemLink
+                class: options.classes.paginationListItemLink,
+                "aria-label": options.labels.pageTitle.replace("{page}", String(page))
             },
             childNodes: [
                 {
@@ -3435,7 +3436,7 @@ class DataTable {
         // Pager(s) / sorting
         this.wrapperDOM.addEventListener("click", (event) => {
             const target = event.target;
-            const hyperlink = target.closest("a");
+            const hyperlink = target.closest("a, button");
             if (!hyperlink) {
                 return;
             }

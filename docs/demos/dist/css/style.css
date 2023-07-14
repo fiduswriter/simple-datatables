@@ -52,7 +52,8 @@
     visibility: hidden;
 }
 
-.datatable-pagination a {
+.datatable-pagination a,
+.datatable-pagination button {
 	border: 1px solid transparent;
 	float: left;
 	margin-left: 2px;
@@ -63,13 +64,17 @@
     cursor: pointer;
 }
 
-.datatable-pagination a:hover {
+.datatable-pagination a:hover,
+.datatable-pagination button:hover {
 	background-color: #d9d9d9;
 }
 
 .datatable-pagination .datatable-active a,
 .datatable-pagination .datatable-active a:focus,
-.datatable-pagination .datatable-active a:hover {
+.datatable-pagination .datatable-active a:hover,
+.datatable-pagination .datatable-active button,
+.datatable-pagination .datatable-active button:focus,
+.datatable-pagination .datatable-active button:hover {
 	background-color: #d9d9d9;
 	cursor: default;
 }
@@ -77,19 +82,27 @@
 .datatable-pagination .datatable-ellipsis a,
 .datatable-pagination .datatable-disabled a,
 .datatable-pagination .datatable-disabled a:focus,
-.datatable-pagination .datatable-disabled a:hover {
+.datatable-pagination .datatable-disabled a:hover,
+.datatable-pagination .datatable-ellipsis button,
+.datatable-pagination .datatable-disabled button,
+.datatable-pagination .datatable-disabled button:focus,
+.datatable-pagination .datatable-disabled button:hover {
     pointer-events: none;
     cursor: default;
 }
 
 .datatable-pagination .datatable-disabled a,
 .datatable-pagination .datatable-disabled a:focus,
-.datatable-pagination .datatable-disabled a:hover {
+.datatable-pagination .datatable-disabled a:hover,
+.datatable-pagination .datatable-disabled button,
+.datatable-pagination .datatable-disabled button:focus,
+.datatable-pagination .datatable-disabled button:hover {
 	cursor: not-allowed;
 	opacity: 0.4;
 }
 
-.datatable-pagination .datatable-pagination a {
+.datatable-pagination .datatable-pagination a,
+.datatable-pagination .datatable-pagination button {
 	font-weight: bold;
 }
 
@@ -131,6 +144,17 @@
 .datatable-table th a {
 	text-decoration: none;
 	color: inherit;
+}
+
+.datatable-table th button,
+.datatable-pagination-list button {
+    color: inherit;
+    border: 0;
+    background-color: inherit;
+    cursor: pointer;
+    text-align: inherit;
+    font-weight: inherit;
+    font-size: inherit;
 }
 
 .datatable-sorter, .datatable-filter {

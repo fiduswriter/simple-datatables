@@ -87,31 +87,39 @@ interface ColumnOption{
 }
 
 interface LabelsConfiguration {
+    placeholder: string;
     /**
      * default: 'Search...'
      * Sets the placeholder of the search input.
      */
-    placeholder: string;
+    searchTitle: string;
     /**
      * default: 'Search within table'
      * Sets the title of the search input.
      */
-    searchTitle: string;
+    perPage: string;
     /**
      * default: 'entries per page'
      * Sets the per-page dropdown's label
      */
-    perPage: string;
+    pageTitle: string;
+    /**
+     * default: 'Page {page}'
+     * Displays current range as used in aria-labeel
+     *
+     * {page} - The current page number
+     */
+    noRows: string;
     /**
      * default: 'No entries found'
      * The message displayed when there are no search results
      */
-    noRows: string;
+    noResults: string;
     /**
      * default: 'No results match your search query'
      * The message displayed when there are no search results
      */
-    noResults: string;
+    info: string;
     /**
      * default: 'Showing {start} to {end} of {rows} entries'
      * Displays current range, page number, etc
@@ -122,7 +130,6 @@ interface LabelsConfiguration {
      * {pages} - Total pages
      * {rows} - Total rows
      */
-    info: string;
 }
 
 interface ClassConfiguration {

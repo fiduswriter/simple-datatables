@@ -64,6 +64,7 @@ export const defaultConfig: DataTableConfiguration = {
         placeholder: "Search...", // The search input placeholder
         searchTitle: "Search within table", // The search input title
         perPage: "entries per page", // per-page dropdown label
+        pageTitle: "Page {page}", // page label used in Aria-label
         noRows: "No entries found", // Message shown when there are no records to show
         noResults: "No results match your search query", // Message shown when there are no search results
         info: "Showing {start} to {end} of {rows} entries" //
