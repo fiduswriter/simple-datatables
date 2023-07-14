@@ -55,12 +55,28 @@ export type DeepPartial<T> = T extends Function ? T : (T extends object ? { [P i
 interface ColumnOption{
     /**An integer or array of integers representing the column(s) to be manipulated. */
     select : number | number[];
+
     /**Automatically sort the selected column. Can only be applied if a single column is selected. */
     sort? : "asc" | "desc";
+
     /**When set to false the column(s) cannot be sorted. */
     sortable? : boolean;
+
+    /** An array of "asc" and "desc" describing the order sort will be executed as the user clicks on the column header. Note that each can only be mentioned up to one time. */
+    sortSequence?: ("asc" | "desc")[],
+
+    /** Default: true (boolean). Influences how string sorting is done. If true multiple numbers will be seen as just one so that "file 1.jpg" will come before "file 100.jpg". */
+    numeric?: boolean,
+
+    /**
+     * Default: "false" Options: ["false", "upper", "lower"]. Influences how string sorting is done and whether upper or lower case letters are sorted first.
+     * If "false" is selected, will use the chosen locale’s default sorting order.
+     */
+    caseFirst?: string,
+
     /**When set to true the column(s) will not be visible and will be excluded from search results. */
     hidden?:boolean;
+
     /**
      * A string representing the type of data in the column(s) cells. Choose from the following options:
 
@@ -69,21 +85,49 @@ interface ColumnOption{
     date - a valid datetime string
      */
     type?:string;
+
     /**A string representing the datetime format when using the date type. */
     format?:string;
+
     /**
      * A callback to customise the rendering of the column(s) cell content. The function takes 3 parameters and should return the formatted cell content.
      *
      */
     render?:renderType;
+
     /**
      * A filter to be used instead of sorting for the selected column(s).
      */
     filter?: (string | number | boolean | ((arg: (string | number | boolean)) => boolean))[];
+
     /** CSS classes to apply to the header cell. */
     headerClass?: string;
+
     /** CSS classes to apply to the body cell. */
     cellClass?: string;
+
+    /**
+     * Default: "base". Options: ["base", "accent", "case", "variant"].
+     * Influences how searching is done. "base" and "accent" will ignore case differences. "base" and "case" will ignore differences in accent symbols
+     * */
+    sensitivity: string,
+
+    /** Default: true (boolean). Influences how sorting and searching is done. */
+    ignorePunctuation: boolean;
+
+    /**
+     * Default: true (boolean). Influences searching and whether multiple words are searched for as a single string or each word is searched for individually.
+     */
+    isSplitQueryWord: boolean;
+
+    /** Default: " ". Influences searching in combination with isSplitQueryWord. */
+    searchQuerySeparator: string;
+
+    /**
+     * Default: "en-US" (string). Set a locale such as en-UK or de for the column.
+     * Influences how string sorting is done. Allows even for specification of specific subvariants such as de-DE-u-co-phonebk.
+     */
+    locale?: string,
 }
 
 interface LabelsConfiguration {
