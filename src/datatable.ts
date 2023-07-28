@@ -772,7 +772,15 @@ export class DataTable {
                 if (ignorePunctuation) {
                     columnQuery = columnQuery.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
                 }
-                return columnQuery
+                const isSplitQueryWord = column.isSplitQueryWord
+                const searchQuerySeparator = column.searchQuerySeparator
+                let columnQueryArr = []
+                if (isSplitQueryWord) {
+                    columnQueryArr = columnQuery.split(searchQuerySeparator)
+                } else {
+                    columnQueryArr.push(columnQuery)
+                } 
+                return columnQueryArr.filter(queryWord => queryWord)
             }
         )
         )
@@ -799,7 +807,7 @@ export class DataTable {
                 queryWords.every(
                     queries => queries.find(
                         (query, index) => query ?
-                            (this.columns.settings[index].isSplitQueryWord ? query.split(this.columns.settings[index].searchQuerySeparator) : [query]).find(queryWord => searchRow[index].includes(queryWord.trim())) :
+                            query.find(queryWord => searchRow[index].includes(queryWord)) :
                             false
                     )
                 )
