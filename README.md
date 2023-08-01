@@ -36,7 +36,7 @@ LGPL
 * Customisable layout
 * Customisable labels
 * Customise column rendering
-* Export to common formats like `csv`, `txt` `json`, and `sql`
+* Export to common formats like `csv`, `txt`, `json`, and `sql`
 * Import `csv` and `json` data
 * Control column visibility
 * Reorder or swap columns
