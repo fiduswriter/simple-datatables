@@ -110,18 +110,18 @@ interface ColumnOption{
      * Default: "base". Options: ["base", "accent", "case", "variant"].
      * Influences how searching is done. "base" and "accent" will ignore case differences. "base" and "case" will ignore differences in accent symbols
      * */
-    sensitivity: string,
+    sensitivity?: string,
 
     /** Default: true (boolean). Influences how sorting and searching is done. */
-    ignorePunctuation: boolean;
+    ignorePunctuation?: boolean;
 
     /**
      * Default: true (boolean). Influences searching and whether multiple words are searched for as a single string or each word is searched for individually.
      */
-    isSplitQueryWord: boolean;
+    isSplitQueryWord?: boolean;
 
     /** Default: " ". Influences searching in combination with isSplitQueryWord. */
-    searchQuerySeparator: string;
+    searchQuerySeparator?: string;
 
     /**
      * Default: "en-US" (string). Set a locale such as en-UK or de for the column.
