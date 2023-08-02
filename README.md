@@ -107,3 +107,18 @@ const dataTable = new simpleDatatables.DataTable("#myTable", {
 	...
 })
 ```
+
+---
+
+## How to contribute?
+
+1. Fork the repository
+2. Create a sub-branch
+3. Clone the sub-branch to your local system
+4. Install [NodeJS](https://nodejs.org/en)https://nodejs.org/en
+5. Open the project in [Visual Studio Code](https://code.visualstudio.com/)
+6. Open the Terminal
+7. Run `npm install` in the Terminal
+8. Start making changes and contributing to the project 🙂
+9. If you want to test your changes, then run `npm run build` in the Terminal to build the files
+10. Once finished, then create a Pull Request on GitHub for the changes
