@@ -31,7 +31,7 @@ Returns a reference to the currently displayed pagers.
 ### options
 #### type `Object`
 
-Returns the current configuration options.
+Returns the current configuration options.  See [Options](Options)
 
 ---
 
