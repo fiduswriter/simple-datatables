@@ -8,11 +8,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: browser-actions/setup-chrome@v1
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 18
       - run: npm install
-      - run: CHROME_BIN=$(which chrome) npm test
+      - uses: jamesmortensen/chromedriver-matcher-action@v1
+      - run: npm test
