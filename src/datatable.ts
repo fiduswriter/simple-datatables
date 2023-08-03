@@ -506,7 +506,7 @@ export class DataTable {
                 }
                 event.preventDefault()
 
-                if (target?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.matches(`.${this.options.classes.filterButton}`)) {
+                if (target.closest(`.${this.options.classes.filterButton}`)) {
                     if (target.type === "checkbox") {
                         for (const i in this.columns.dt.data.headings) {
                             if (i !== null) {
