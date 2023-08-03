@@ -270,23 +270,25 @@ export class DataTable {
             this.columns.sort(this.columns._state.sort.column, this.columns._state.sort.dir, true)
         }
 
-        let filterButtonHTML = ""
-        for (const i in this.columns.dt.data.headings) {
-            if (i !== null) {
-                const randomNumber = Math.floor(Math.random() * 1000000000)
-                filterButtonHTML += `
-                    <li>
-                        <div onclick="event.stopPropagation();this.querySelector('input').toggleAttribute('checked');">
-                            <input type="checkbox" value="${this.columns.dt.data.headings[i].data}" id="Column_${i}_${randomNumber}" checked="">
-                            <label for="Column_${i}_${randomNumber}" onclick="event.stopPropagation();">
-                                ${this.columns.dt.data.headings[i].data}
-                            </label>
-                        </div>
-                    </li>           
-                `
+        if (this.options.columnFilterButton) {
+            let filterButtonHTML = ""
+            for (const i in this.columns.dt.data.headings) {
+                if (i !== null) {
+                    const randomNumber = Math.floor(Math.random() * 1000000000)
+                    filterButtonHTML += `
+                        <li>
+                            <div onclick="event.stopPropagation();this.querySelector('input').toggleAttribute('checked');">
+                                <input type="checkbox" value="${this.columns.dt.data.headings[i].data}" id="Column_${i}_${randomNumber}" checked="">
+                                <label for="Column_${i}_${randomNumber}" onclick="event.stopPropagation();">
+                                    ${this.columns.dt.data.headings[i].data}
+                                </label>
+                            </div>
+                        </li>           
+                    `
+                }
             }
+            this.wrapperDOM.querySelector(".datatable-filter-columns").innerHTML = filterButtonHTML
         }
-        this.wrapperDOM.querySelector(".datatable-filter-columns").innerHTML = filterButtonHTML
 
 
         this.update(true)
