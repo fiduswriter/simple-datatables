@@ -566,6 +566,16 @@ export class DataTable {
             })
         }
 
+        if (this.options.columnFilterButton) {
+            window.addEventListener("click", (event: Event) => {
+                const target = event.target
+                if (!(target as HTMLInputElement).closest(`.${this.options.classes.filterButton}`)) {
+                    // Close the Column Filter Button dropdown if the user clicks outside of it
+                    this.wrapperDOM.querySelector(".datatable-filter-button-dropdown").classList.remove("show")
+                }
+            })
+        }
+
         // Pager(s) / sorting and Column Filter Button
         this.wrapperDOM.addEventListener("click", (event: Event) => {
             const target = event.target as Element

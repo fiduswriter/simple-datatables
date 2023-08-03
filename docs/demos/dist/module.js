@@ -3504,7 +3504,7 @@ class DataTable {
                     return;
                 }
                 event.preventDefault();
-                if (target?.parentElement?.parentElement?.parentElement?.parentElement?.parentElement?.matches(`.${this.options.classes.filterButton}`)) {
+                if (target.closest(`.${this.options.classes.filterButton}`)) {
                     if (target.type === "checkbox") {
                         for (const i in this.columns.dt.data.headings) {
                             if (i !== null) {
@@ -3558,6 +3558,15 @@ class DataTable {
                     else {
                         this.multiSearch(searches);
                     }
+                }
+            });
+        }
+        if (this.options.columnFilterButton) {
+            window.addEventListener("click", (event) => {
+                const target = event.target;
+                if (!target.closest(`.${this.options.classes.filterButton}`)) {
+                    // Close the Column Filter Button dropdown if the user clicks outside of it
+                    this.wrapperDOM.querySelector(".datatable-filter-button-dropdown").classList.remove("show");
                 }
             });
         }
