@@ -17,7 +17,7 @@ const options = new chrome.Options()
 if (process.env.CI) { // eslint-disable-line no-process-env
     // We are running on CI
     wait = 300
-    options.headless().setChromeBinaryPath("/usr/bin/google-chrome-stable")
+    options.headless()
 }
 const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
 const manage = driver.manage()
