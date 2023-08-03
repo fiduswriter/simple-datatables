@@ -116,7 +116,7 @@ const dataTable = new simpleDatatables.DataTable("#myTable", {
 2. Create a sub-branch
 3. Clone the sub-branch to your local system
 4. Install [NodeJS](https://nodejs.org/en)https://nodejs.org/en
-5. Open the project in [Visual Studio Code](https://code.visualstudio.com/)
+5. Open the project in a code editor (for example [Visual Studio Code](https://code.visualstudio.com/) or [Pulsar Edit](https://pulsar-edit.dev/) 
 6. Open the Terminal
 7. Run `npm install` in the Terminal
 8. Start making changes and contributing to the project 🙂
