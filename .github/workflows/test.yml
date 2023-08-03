@@ -15,5 +15,6 @@ jobs:
           node-version: 18
       - run: npm install
       - uses: jamesmortensen/chromedriver-matcher-action@v1
+      - run: rm /usr/bin/google-chrome-stable
       - run: ln -s $(which google-chrome) /usr/bin/google-chrome-stable
       - run: npm test
