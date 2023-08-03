@@ -3419,11 +3419,22 @@ class DataTable {
                     return;
                 }
                 event.preventDefault();
-                const searches = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)).filter(el => el.value.length).map(el => el.dataset.columns ?
-                    { term: el.value,
-                        columns: JSON.parse(el.dataset.columns) } :
-                    { term: el.value,
-                        columns: undefined });
+                let searches = [];
+                let searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`));
+                searchFields.filter(el => el.value.length).forEach(el => {
+                    const terms = el.dataset.and && this.options.isSplitQueryWord ? el.value.split(this.options.searchQuerySeparator) : [el.value];
+                    terms.forEach(term => {
+                        if (el.dataset.columns) {
+                            searches.push({
+                                term,
+                                columns: JSON.parse(el.dataset.columns)
+                            });
+                        }
+                        else {
+                            searches.push({ term, columns: undefined });
+                        }
+                    });
+                });
                 if (searches.length === 1) {
                     const search = searches[0];
                     this.search(search.term, search.columns);
@@ -3670,7 +3681,9 @@ class DataTable {
             if (ignorePunctuation) {
                 columnQuery = columnQuery.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "");
             }
-            return columnQuery;
+            const isSplitQueryWord = column.isSplitQueryWord || this.options.isSplitQueryWord;
+            const searchQuerySeparator = column.searchQuerySeparator || this.options.searchQuerySeparator;
+            return (isSplitQueryWord ? columnQuery.split(searchQuerySeparator) : [columnQuery]).map(queryWord => queryWord.trim()).filter(queryWord => queryWord);
         }));
         this.data.data.forEach((row, idx) => {
             const searchRow = row.map((cell, i) => {
@@ -3692,7 +3705,7 @@ class DataTable {
                 return content;
             });
             if (queryWords.every(queries => queries.find((query, index) => query ?
-                (this.columns.settings[index].isSplitQueryWord ? query.split(this.columns.settings[index].searchQuerySeparator) : [query]).find(queryWord => searchRow[index].includes(queryWord.trim())) :
+                query.find(queryWord => searchRow[index].includes(queryWord)) :
                 false))) {
                 this._searchData.push(idx);
             }
