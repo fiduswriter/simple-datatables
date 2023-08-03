@@ -1,5 +1,16 @@
 ### Upgrading
 
+## From 7.1.x to ...
+
+* `dataTable.multiSearch()` takes slightly different arguments. Before, search terms were being split up internally. Now you have to do it beforehand. So instead of `{term: string, columns: (none | number[])}` it now takes: `{terms: string[], columns: (none | number[])}`
+* The option `isSplitQueryWord` has been removed both columns and the dataTable. Instead, use a zero length `searchQuerySeparator` to signal that queries are not to be split.
+
+* The option `searchQuerySeparator` has been removed from columns as this feature was not used. You may want to use the new `searchItemSeparator` instead. Overriding `searchQuerySeparator` for individual search boxes can be done by adding a `data-query-separator` attribute to the search input.
+
+* And searches; Have not been workign correctly since version 5. Specify the option `searchAnd` to the dataTable to make all searches require all search words to occur for a row to be shown.
+
+* The pagination links/buttons are no longer `<a>`-elements but instead `<button>`-elements. This could have styling implications for you.
+
 ## From 7.0.x to 7.1.x
 
 * The [search()](search()) methods allows to specify which columns are to be searched. And the [multiSearch()](multiSearch()) method allows specifying multiple simultaneous searches.

@@ -45,6 +45,7 @@ let dataTable = new DataTable(myTable, options);
 ### Searching
 * [searchable](searchable)
 * [sensitivity](columns#sensitivity)
+* [searchQuerySeparator](searchQuerySeparator)
 ### Sorting
 * [sortable](sortable)
 * [locale](columns#locale)

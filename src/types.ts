@@ -115,13 +115,8 @@ interface ColumnOption{
     /** Default: true (boolean). Influences how sorting and searching is done. */
     ignorePunctuation?: boolean;
 
-    /**
-     * Default: true (boolean). Influences searching and whether multiple words are searched for as a single string or each word is searched for individually.
-     */
-    isSplitQueryWord?: boolean;
-
-    /** Default: " ". Influences searching in combination with isSplitQueryWord. */
-    searchQuerySeparator?: string;
+    /** Default: " ". Influences searching. When performing search, the cell content is split up using this separator.*/
+    searchItemSeparator?: string;
 
     /**
      * Default: "en-US" (string). Set a locale such as en-UK or de for the column.
@@ -377,8 +372,9 @@ interface DataTableConfiguration {
     searchable: boolean;
     sensitivity: string,
     ignorePunctuation: boolean;
-    isSplitQueryWord: boolean;
+    searchItemSeparator: string;
     searchQuerySeparator: string;
+    searchAnd: boolean;
     // for sorting
     /**
      * Default: true
@@ -435,8 +431,7 @@ interface columnSettingsType {
     searchable?: boolean,
     sensitivity?: string,
     ignorePunctuation?: boolean,
-    isSplitQueryWord?: boolean,
-    searchQuerySeparator?: string;
+    searchItemSeparator?: string;
     //
     headerClass?: string,
     cellClass?: string,
