@@ -115,10 +115,11 @@ const dataTable = new simpleDatatables.DataTable("#myTable", {
 1. Fork the repository
 2. Create a sub-branch
 3. Clone the sub-branch to your local system
-4. Install [NodeJS](https://nodejs.org/en)https://nodejs.org/en
-5. Open the project in a code editor (for example [Visual Studio Code](https://code.visualstudio.com/) or [Pulsar Edit](https://pulsar-edit.dev/) 
+4. Install [NodeJS](https://nodejs.org/en)
+5. Open the project in a code editor (for example [Visual Studio Code](https://code.visualstudio.com/) or [Pulsar Edit](https://pulsar-edit.dev/))
 6. Open the Terminal
 7. Run `npm install` in the Terminal
 8. Start making changes and contributing to the project 🙂
-9. If you want to test your changes, then run `npm run build` in the Terminal to build the files
-10. Once finished, then create a Pull Request on GitHub for the changes
+9. You can run `npm run test_server` to test your code. This runs on port 3000 (http://localhost:3000/)
+10. You can also run `npm run build` in the Terminal to build the final files
+11. Once finished, then commit/push your code and create a Pull Request on GitHub for the changes
