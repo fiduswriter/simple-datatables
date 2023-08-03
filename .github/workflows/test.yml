@@ -15,4 +15,4 @@ jobs:
         with:
           node-version: 18
       - run: npm install
-      - run: CHROMIUM_BIN=$(which chrome) npm test
+      - run: CHROME_BIN=$(which chrome) npm test
