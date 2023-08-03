@@ -15,8 +15,9 @@ export const defaultConfig: DataTableConfiguration = {
     sensitivity: "base",
     ignorePunctuation: true,
     destroyable: true,
-    isSplitQueryWord: true,
+    searchItemSeparator: "", // If specified, splits the content of cells up using this separator before performing search.
     searchQuerySeparator: " ",
+    searchAnd: false,
 
     // data
     data: {},

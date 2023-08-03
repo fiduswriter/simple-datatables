@@ -67,7 +67,7 @@
     "rollup": "^3.9.1",
     "rollup-plugin-dts": "^5.1.1",
     "rollup-plugin-polyfill-node": "^0.11.0",
-    "selenium-webdriver": "^4.7.1",
+    "selenium-webdriver": "^4.11.1",
     "shx": "^0.3.4",
     "tslib": "^2.4.1",
     "typescript": "^4.9.4"

@@ -51,14 +51,14 @@
                 </tr>
                 <tr>
                     <td>Kylie Bishop</td>
-                    <td>3147</td>
+                    <td>3147;5018</td>
                     <td>Norman</td>
                     <td>2005/09/08</td>
                     <td>63%</td>
                 </tr>
                 <tr>
                     <td>Willow Gilliam</td>
-                    <td>3497</td>
+                    <td>3497;4067</td>
                     <td>Amqui</td>
                     <td>2009/29/11</td>
                     <td>30%</td>
@@ -72,7 +72,7 @@
                 </tr>
                 <tr>
                     <td>Elliott Snyder</td>
-                    <td>3925</td>
+                    <td>3925;4050</td>
                     <td>Enines</td>
                     <td>2006/03/08</td>
                     <td>57%</td>
@@ -177,7 +177,7 @@
                 </tr>
                 <tr>
                     <td>Brennan Brooks</td>
-                    <td>9011</td>
+                    <td>9011;7563</td>
                     <td>Olmué</td>
                     <td>2000/18/04</td>
                     <td>2%</td>
@@ -352,7 +352,7 @@
                 </tr>
                 <tr>
                     <td>Paki Santos</td>
-                    <td>4424</td>
+                    <td>4424;4054</td>
                     <td>Cache Creek</td>
                     <td>2001/18/11</td>
                     <td>82%</td>
@@ -694,7 +694,7 @@
                     <td>47%</td>
                 </tr>
                 <tr>
-                    <td>Kelly Cameron</td>
+                    <td>Blossom Cameron</td>
                     <td>4836</td>
                     <td>Fontaine-Valmont</td>
                     <td>1999/02/07</td>
@@ -744,6 +744,11 @@
                 perPageSelect: [5, 10, 15, ["All", -1]],
                 columns: [
                     {
+                        select: 1,
+                        searchItemSeparator: ";",
+                        ignorePunctuation: false
+                    },
+                    {
                         select: 2,
                         sortSequence: ["desc", "asc"]
                     },
@@ -776,5 +781,14 @@
 })
 
         </script>
+        <p>
+            Try to search for "blossom 2014" in the two boxes.
+            The OR-search will give you results that contain "2014" OR "Blossom",
+            while the AND-search will only return results including both "2014" and "Blossom".
+        </p>
+        <p>
+            The search item separator for the extensuion column is ";" so that searching for "3147;5018" will return
+            no results, but searching for "3147" or "5018" will return the row that contaisn that value.
+        </p>
     </body>
 </html>

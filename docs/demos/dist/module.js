@@ -2276,8 +2276,7 @@ const readTableData = (dataOption, dom = undefined, columnSettings, defaultType,
                     type: defaultType,
                     format: defaultFormat,
                     searchable: true,
-                    sortable: true,
-                    isSplitQueryWord: true
+                    sortable: true
                 };
             }
             const settings = columnSettings[index];
@@ -2449,9 +2448,7 @@ const readColumnSettings = (columnOptions = [], defaultType, defaultFormat) => {
                 columns[selector] = {
                     type: data.type || defaultType,
                     sortable: true,
-                    searchable: true,
-                    isSplitQueryWord: true,
-                    searchQuerySeparator: " "
+                    searchable: true
                 };
             }
             const column = columns[selector];
@@ -2493,7 +2490,7 @@ const readColumnSettings = (columnOptions = [], defaultType, defaultFormat) => {
                 }
             }
             if (column.searchable || column.sortable) {
-                if (data.ignorePunctuation) {
+                if (typeof data.ignorePunctuation !== "undefined") {
                     column.ignorePunctuation = data.ignorePunctuation;
                 }
             }
@@ -2516,11 +2513,8 @@ const readColumnSettings = (columnOptions = [], defaultType, defaultFormat) => {
                         dir: data.sort };
                 }
             }
-            if (typeof data.isSplitQueryWord !== "undefined") {
-                column.isSplitQueryWord = data.isSplitQueryWord;
-            }
-            if (typeof data.searchQuerySeparator !== "undefined") {
-                column.searchQuerySeparator = data.searchQuerySeparator;
+            if (typeof data.searchItemSeparator !== "undefined") {
+                column.searchItemSeparator = data.searchItemSeparator;
             }
         });
     });
@@ -2529,9 +2523,7 @@ const readColumnSettings = (columnOptions = [], defaultType, defaultFormat) => {
         { type: defaultType,
             format: defaultType === "date" ? defaultFormat : undefined,
             sortable: true,
-            searchable: true,
-            isSplitQueryWord: true,
-            searchQuerySeparator: " " });
+            searchable: true });
     const widths = []; // Width are determined later on by measuring on screen.
     return [
         columns, { filters,
@@ -2899,8 +2891,9 @@ const defaultConfig$1 = {
     sensitivity: "base",
     ignorePunctuation: true,
     destroyable: true,
-    isSplitQueryWord: true,
+    searchItemSeparator: "",
     searchQuerySeparator: " ",
+    searchAnd: false,
     // data
     data: {},
     type: "html",
@@ -3419,25 +3412,42 @@ class DataTable {
                     return;
                 }
                 event.preventDefault();
-                let searches = [];
-                let searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`));
+                const searches = [];
+                const searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`));
                 searchFields.filter(el => el.value.length).forEach(el => {
-                    const terms = el.dataset.and && this.options.isSplitQueryWord ? el.value.split(this.options.searchQuerySeparator) : [el.value];
-                    terms.forEach(term => {
+                    const andSearch = el.dataset.and || this.options.searchAnd;
+                    const querySeparator = el.dataset.querySeparator || this.options.searchQuerySeparator;
+                    const terms = querySeparator ? el.value.split(this.options.searchQuerySeparator) : [el.value];
+                    if (andSearch) {
+                        terms.forEach(term => {
+                            if (el.dataset.columns) {
+                                searches.push({
+                                    terms: [term],
+                                    columns: JSON.parse(el.dataset.columns)
+                                });
+                            }
+                            else {
+                                searches.push({ terms: [term],
+                                    columns: undefined });
+                            }
+                        });
+                    }
+                    else {
                         if (el.dataset.columns) {
                             searches.push({
-                                term,
+                                terms,
                                 columns: JSON.parse(el.dataset.columns)
                             });
                         }
                         else {
-                            searches.push({ term, columns: undefined });
+                            searches.push({ terms,
+                                columns: undefined });
                         }
-                    });
+                    }
                 });
-                if (searches.length === 1) {
+                if (searches.length === 1 && searches[0].terms.length === 1) {
                     const search = searches[0];
-                    this.search(search.term, search.columns);
+                    this.search(search.terms[0], search.columns);
                 }
                 else {
                     this.multiSearch(searches);
@@ -3644,7 +3654,7 @@ class DataTable {
             return false;
         }
         this.multiSearch([
-            { term,
+            { terms: [term],
                 columns: columns ? columns : undefined }
         ]);
         this.emit("datatable.search", term, this._searchData);
@@ -3652,13 +3662,17 @@ class DataTable {
     /**
      * Perform a search of the data set seraching for up to multiple strings in various columns
      */
-    multiSearch(queries) {
+    multiSearch(rawQueries) {
         if (!this.hasRows)
             return false;
         this._currentPage = 1;
-        this._searchQueries = queries;
         this._searchData = [];
-        queries = queries.filter(query => query.term.length);
+        // Remove empty queries
+        const queries = rawQueries.map(query => ({
+            columns: query.columns,
+            terms: query.terms.map(term => term.trim()).filter(term => term)
+        })).filter(query => query.terms.length);
+        this._searchQueries = queries;
         if (!queries.length) {
             this.update();
             this.emit("datatable.multisearch", queries, this._searchData);
@@ -3669,27 +3683,25 @@ class DataTable {
             if (column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
                 return false;
             }
-            let columnQuery = query.term;
+            let columnQueries = query.terms;
             const sensitivity = column.sensitivity || this.options.sensitivity;
             if (["base", "accent"].includes(sensitivity)) {
-                columnQuery = columnQuery.toLowerCase();
+                columnQueries = columnQueries.map(query => query.toLowerCase());
             }
             if (["base", "case"].includes(sensitivity)) {
-                columnQuery = columnQuery.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+                columnQueries = columnQueries.map(query => query.normalize("NFD").replace(/\p{Diacritic}/gu, ""));
             }
-            const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation;
+            const ignorePunctuation = column.ignorePunctuation ?? this.options.ignorePunctuation;
             if (ignorePunctuation) {
-                columnQuery = columnQuery.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "");
+                columnQueries = columnQueries.map(query => query.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, ""));
             }
-            const isSplitQueryWord = column.isSplitQueryWord || this.options.isSplitQueryWord;
-            const searchQuerySeparator = column.searchQuerySeparator || this.options.searchQuerySeparator;
-            return (isSplitQueryWord ? columnQuery.split(searchQuerySeparator) : [columnQuery]).map(queryWord => queryWord.trim()).filter(queryWord => queryWord);
+            return columnQueries;
         }));
         this.data.data.forEach((row, idx) => {
             const searchRow = row.map((cell, i) => {
                 let content = (cell.text || String(cell.data)).trim();
+                const column = this.columns.settings[i];
                 if (content.length) {
-                    const column = this.columns.settings[i];
                     const sensitivity = column.sensitivity || this.options.sensitivity;
                     if (["base", "accent"].includes(sensitivity)) {
                         content = content.toLowerCase();
@@ -3697,15 +3709,16 @@ class DataTable {
                     if (["base", "case"].includes(sensitivity)) {
                         content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "");
                     }
-                    const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation;
+                    const ignorePunctuation = column.ignorePunctuation ?? this.options.ignorePunctuation;
                     if (ignorePunctuation) {
                         content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "");
                     }
                 }
-                return content;
+                const searchItemSeparator = column.searchItemSeparator || this.options.searchItemSeparator;
+                return searchItemSeparator ? content.split(searchItemSeparator) : [content];
             });
             if (queryWords.every(queries => queries.find((query, index) => query ?
-                query.find(queryWord => searchRow[index].includes(queryWord)) :
+                query.find(queryWord => searchRow[index].find(searchItem => searchItem.includes(queryWord))) :
                 false))) {
                 this._searchData.push(idx);
             }

@@ -74,7 +74,7 @@ export class DataTable {
 
     _searchData: number[]
 
-    _searchQueries: {term: string, columns: (number[] | undefined)}[]
+    _searchQueries: {terms: string[], columns: (number[] | undefined)}[]
 
     _tableAttributes: { [key: string]: string}
 
@@ -485,29 +485,44 @@ export class DataTable {
                 }
                 event.preventDefault()
 
-                const searches: { term: string, columns: (number[] | undefined) }[] = []
+                const searches: { terms: string[], columns: (number[] | undefined) }[] = []
                 const searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]
                 searchFields.filter(
                     el => el.value.length
                 ).forEach(
                     el => {
-                        const terms = el.dataset.and && this.options.isSplitQueryWord ? el.value.split(this.options.searchQuerySeparator) : [el.value]
-                        terms.forEach(term => {
+                        const andSearch = el.dataset.and || this.options.searchAnd
+                        const querySeparator = el.dataset.querySeparator || this.options.searchQuerySeparator
+                        const terms = querySeparator ? el.value.split(this.options.searchQuerySeparator) : [el.value]
+                        if (andSearch) {
+                            terms.forEach(term => {
+                                if (el.dataset.columns) {
+                                    searches.push({
+                                        terms: [term],
+                                        columns: (JSON.parse(el.dataset.columns) as number[])
+                                    })
+                                } else {
+                                    searches.push({terms: [term],
+                                        columns: undefined})
+                                }
+                            })
+                        } else {
                             if (el.dataset.columns) {
                                 searches.push({
-                                    term,
+                                    terms,
                                     columns: (JSON.parse(el.dataset.columns) as number[])
                                 })
                             } else {
-                                searches.push({term,
+                                searches.push({terms,
                                     columns: undefined})
                             }
-                        })
+                        }
+
                     }
                 )
-                if (searches.length === 1) {
+                if (searches.length === 1 && searches[0].terms.length === 1) {
                     const search = searches[0]
-                    this.search(search.term, search.columns)
+                    this.search(search.terms[0], search.columns)
                 } else {
                     this.multiSearch(searches)
                 }
@@ -741,7 +756,7 @@ export class DataTable {
         }
 
         this.multiSearch([
-            {term,
+            {terms: [term],
                 columns: columns ? columns : undefined}
         ])
 
@@ -752,14 +767,19 @@ export class DataTable {
     /**
      * Perform a search of the data set seraching for up to multiple strings in various columns
      */
-    multiSearch(queries : {term: string, columns: (number[] | undefined)}[]) {
+    multiSearch(rawQueries : {terms: string[], columns: (number[] | undefined)}[]) {
         if (!this.hasRows) return false
 
         this._currentPage = 1
-        this._searchQueries = queries
         this._searchData = []
+        // Remove empty queries
+        const queries = rawQueries.map(query => ({
+            columns: query.columns,
+            terms: query.terms.map(term => term.trim()).filter(term => term)
+        })).filter(query => query.terms.length
+        )
 
-        queries = queries.filter(query => query.term.length)
+        this._searchQueries = queries
 
         if (!queries.length) {
             this.update()
@@ -772,28 +792,26 @@ export class DataTable {
                 if (column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
                     return false
                 }
-                let columnQuery = query.term
+                let columnQueries = query.terms
                 const sensitivity = column.sensitivity || this.options.sensitivity
                 if (["base", "accent"].includes(sensitivity)) {
-                    columnQuery = columnQuery.toLowerCase()
+                    columnQueries = columnQueries.map(query => query.toLowerCase())
                 }
                 if (["base", "case"].includes(sensitivity)) {
-                    columnQuery = columnQuery.normalize("NFD").replace(/\p{Diacritic}/gu, "")
+                    columnQueries = columnQueries.map(query => query.normalize("NFD").replace(/\p{Diacritic}/gu, ""))
                 }
-                const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
+                const ignorePunctuation = column.ignorePunctuation ?? this.options.ignorePunctuation
                 if (ignorePunctuation) {
-                    columnQuery = columnQuery.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
+                    columnQueries = columnQueries.map(query => query.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, ""))
                 }
-                const isSplitQueryWord = column.isSplitQueryWord || this.options.isSplitQueryWord
-                const searchQuerySeparator = column.searchQuerySeparator || this.options.searchQuerySeparator
-                return (isSplitQueryWord ? columnQuery.split(searchQuerySeparator) : [columnQuery]).map(queryWord => queryWord.trim()).filter(queryWord => queryWord)
+                return columnQueries
             }
         ))
         this.data.data.forEach((row: cellType[], idx: number) => {
             const searchRow = row.map((cell, i) => {
                 let content = (cell.text || String(cell.data)).trim()
+                const column = this.columns.settings[i]
                 if (content.length) {
-                    const column = this.columns.settings[i]
                     const sensitivity = column.sensitivity || this.options.sensitivity
                     if (["base", "accent"].includes(sensitivity)) {
                         content = content.toLowerCase()
@@ -801,18 +819,19 @@ export class DataTable {
                     if (["base", "case"].includes(sensitivity)) {
                         content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "")
                     }
-                    const ignorePunctuation = column.ignorePunctuation || this.options.ignorePunctuation
+                    const ignorePunctuation = column.ignorePunctuation ?? this.options.ignorePunctuation
                     if (ignorePunctuation) {
                         content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
                     }
                 }
-                return content
+                const searchItemSeparator = column.searchItemSeparator || this.options.searchItemSeparator
+                return searchItemSeparator ? content.split(searchItemSeparator) : [content]
             })
             if (
                 queryWords.every(
                     queries => queries.find(
                         (query, index) => query ?
-                            query.find(queryWord => searchRow[index].includes(queryWord)) :
+                            query.find(queryWord => searchRow[index].find(searchItem => searchItem.includes(queryWord))) :
                             false
                     )
                 )

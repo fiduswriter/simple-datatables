@@ -22,9 +22,7 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
                 columns[selector] = {
                     type: data.type || defaultType,
                     sortable: true,
-                    searchable: true,
-                    isSplitQueryWord: true,
-                    searchQuerySeparator: " "
+                    searchable: true
                 }
             }
             const column = columns[selector]
@@ -72,7 +70,7 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
             }
 
             if (column.searchable || column.sortable) {
-                if (data.ignorePunctuation) {
+                if (typeof data.ignorePunctuation !== "undefined") {
                     column.ignorePunctuation = data.ignorePunctuation
                 }
             }
@@ -99,12 +97,8 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
                 }
             }
 
-            if (typeof data.isSplitQueryWord !== "undefined") {
-                column.isSplitQueryWord = data.isSplitQueryWord
-            }
-
-            if (typeof data.searchQuerySeparator !== "undefined") {
-                column.searchQuerySeparator = data.searchQuerySeparator
+            if (typeof data.searchItemSeparator !== "undefined") {
+                column.searchItemSeparator = data.searchItemSeparator
             }
 
         })
@@ -117,9 +111,7 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
         {type: defaultType,
             format: defaultType === "date" ? defaultFormat : undefined,
             sortable: true,
-            searchable: true,
-            isSplitQueryWord: true,
-            searchQuerySeparator: " "})
+            searchable: true})
 
     const widths = [] // Width are determined later on by measuring on screen.
 

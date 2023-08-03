@@ -35,6 +35,6 @@
 
 Allows for custom arranging of the DOM elements in the top and bottom containers. Be aware that several of the class names are used to position specific parts of the table, such as the pager (`options.classes.pagination`), the table itself (`options.classes.container`) and the pagination selector (`options.classes.selector`). There can be several pagers.
 
-There can be multiple search fields and you can influence how they operate by adding `data-column` and `data-and` attributes to them. `data-column` is to be a JSON array of column indices that the search is to operate on.  The `data-and` attribute will change the search from an OR-search to an AND-search.
+There can be multiple search fields and you can influence how they operate by adding `data-column`, `data-query-separator` and `data-and` attributes to them. `data-column` is to be a JSON array of column indices that the search is to operate on. The `data-query-separator` will be used to split the search value for individual search items. The `data-and` attribute will change the search from an OR-search to an AND-search. Default values can be specified as `searchQuerySeparator` and `searchAnd` options.
 
 For example: `<input class='${options.classes.input}' placeholder='AND search for columns 1 and 4' type='search' data-and="true" data-columns="[1,4]" >`
