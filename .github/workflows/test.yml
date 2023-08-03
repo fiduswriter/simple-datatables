@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - run: sudo apt update && sudo apt install -y google-chrome-stable
       - uses: actions/checkout@v3
       - name: Use Node.js
         uses: actions/setup-node@v3
@@ -15,6 +16,4 @@ jobs:
           node-version: 18
       - run: npm install
       - uses: jamesmortensen/chromedriver-matcher-action@v1
-      - run: rm /usr/bin/google-chrome-stable
-      - run: ln -s $(which google-chrome) /usr/bin/google-chrome-stable
       - run: npm test
