@@ -19,7 +19,7 @@
 }
 
 .datatable-top > nav:last-child,
-.datatable-top > div:last-child,
+.datatable-top > div:not(first-child),
 .datatable-bottom > nav:last-child,
 .datatable-bottom > div:last-child {
 	float: right;
@@ -230,4 +230,39 @@ table.datatable-table:focus tr.datatable-cursor > td:first-child {
 table.datatable-table:focus {
 	outline: solid 1px black;
     outline-offset: -1px;
+}
+
+
+.datatable-filter-button {
+	position: relative;
+	display: inline-block;
+}
+  
+.datatable-filter-button ul {
+	display: none;
+	position: absolute;
+	background-color: #f1f1f1;
+	min-width: 180px;
+	box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+	z-index: 1;
+    margin: 0 0 0 -190px;
+    text-align: left;
+    list-style: none;
+    background-clip: padding-box;
+	padding-bottom: 1rem;
+}
+
+.datatable-filter-button ul li {
+    display: block;
+    width: 100%;
+    clear: both;
+    font-weight: 400;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+}
+  
+.datatable-filter-button ul.show {
+	display: block !important;
 }

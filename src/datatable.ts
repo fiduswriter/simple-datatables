@@ -270,6 +270,27 @@ export class DataTable {
             this.columns.sort(this.columns._state.sort.column, this.columns._state.sort.dir, true)
         }
 
+        if (this.options.columnFilterButton) {
+            let filterButtonHTML = ""
+            for (const i in this.columns.dt.data.headings) {
+                if (i !== null) {
+                    const randomNumber = Math.floor(Math.random() * 1000000000)
+                    filterButtonHTML += `
+                        <li>
+                            <div onclick="event.stopPropagation();this.querySelector('input').toggleAttribute('checked');">
+                                <input type="checkbox" value="${this.columns.dt.data.headings[i].data}" id="Column_${i}_${randomNumber}" checked="">
+                                <label for="Column_${i}_${randomNumber}" onclick="event.stopPropagation();">
+                                    ${this.columns.dt.data.headings[i].data}
+                                </label>
+                            </div>
+                        </li>           
+                    `
+                }
+            }
+            this.wrapperDOM.querySelector(".datatable-filter-columns").innerHTML = filterButtonHTML
+        }
+
+
         this.update(true)
     }
 
@@ -476,66 +497,104 @@ export class DataTable {
             }
         }
 
-        // Search input
-        if (this.options.searchable) {
+        // Search input and Column Filter Button
+        if (this.options.searchable || this.options.columnFilterButton) {
             this.wrapperDOM.addEventListener("input", (event: InputEvent) => {
                 const target = event.target
-                if (!(target instanceof HTMLInputElement) || !target.matches(`.${this.options.classes.input}`)) {
+                if (!(target instanceof HTMLInputElement)) {
                     return
                 }
                 event.preventDefault()
 
-                const searches: { terms: string[], columns: (number[] | undefined) }[] = []
-                const searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]
-                searchFields.filter(
-                    el => el.value.length
-                ).forEach(
-                    el => {
-                        const andSearch = el.dataset.and || this.options.searchAnd
-                        const querySeparator = el.dataset.querySeparator || this.options.searchQuerySeparator
-                        const terms = querySeparator ? el.value.split(this.options.searchQuerySeparator) : [el.value]
-                        if (andSearch) {
-                            terms.forEach(term => {
+                if (target.closest(`.${this.options.classes.filterButton}`)) {
+                    if (target.type === "checkbox") {
+                        for (const i in this.columns.dt.data.headings) {
+                            if (i !== null) {
+                                const CheckBox = this.wrapperDOM.querySelector(`.datatable-filter-columns input[value="${this.columns.dt.data.headings[i].data}"]`)
+                                if ((CheckBox as HTMLInputElement).checked)
+                                    this.columns.show([Number(i)])
+                                else
+                                    this.columns.hide([Number(i)])
+                            }
+                        }
+                    }
+                }
+
+                if (target.matches(`.${this.options.classes.input}`)) {
+                    const searches: { terms: string[], columns: (number[] | undefined) }[] = []
+                    const searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]
+                    searchFields.filter(
+                        el => el.value.length
+                    ).forEach(
+                        el => {
+                            const andSearch = el.dataset.and || this.options.searchAnd
+                            const querySeparator = el.dataset.querySeparator || this.options.searchQuerySeparator
+                            const terms = querySeparator ? el.value.split(this.options.searchQuerySeparator) : [el.value]
+                            if (andSearch) {
+                                terms.forEach(term => {
+                                    if (el.dataset.columns) {
+                                        searches.push({
+                                            terms: [term],
+                                            columns: (JSON.parse(el.dataset.columns) as number[])
+                                        })
+                                    } else {
+                                        searches.push({terms: [term],
+                                            columns: undefined})
+                                    }
+                                })
+                            } else {
                                 if (el.dataset.columns) {
                                     searches.push({
-                                        terms: [term],
+                                        terms,
                                         columns: (JSON.parse(el.dataset.columns) as number[])
                                     })
                                 } else {
-                                    searches.push({terms: [term],
+                                    searches.push({terms,
                                         columns: undefined})
                                 }
-                            })
-                        } else {
-                            if (el.dataset.columns) {
-                                searches.push({
-                                    terms,
-                                    columns: (JSON.parse(el.dataset.columns) as number[])
-                                })
-                            } else {
-                                searches.push({terms,
-                                    columns: undefined})
                             }
+
                         }
-
+                    )
+                    if (searches.length === 1 && searches[0].terms.length === 1) {
+                        const search = searches[0]
+                        this.search(search.terms[0], search.columns)
+                    } else {
+                        this.multiSearch(searches)
                     }
-                )
-                if (searches.length === 1 && searches[0].terms.length === 1) {
-                    const search = searches[0]
-                    this.search(search.terms[0], search.columns)
-                } else {
-                    this.multiSearch(searches)
                 }
-
             })
         }
 
-        // Pager(s) / sorting
+        if (this.options.columnFilterButton) {
+            window.addEventListener("click", (event: Event) => {
+                const target = event.target
+                if (!(target as HTMLInputElement).closest(`.${this.options.classes.filterButton}`)) {
+                    // Close the Column Filter Button dropdown if the user clicks outside of it
+                    this.wrapperDOM.querySelector(".datatable-filter-button-dropdown").classList.remove("show")
+                }
+            })
+        }
+
+        // Pager(s) / sorting and Column Filter Button
         this.wrapperDOM.addEventListener("click", (event: Event) => {
             const target = event.target as Element
             const hyperlink = target.closest("a, button")
             if (!hyperlink) {
                 return
+            }
+
+            if (this.options.columnFilterButton) {
+                event.preventDefault()
+                if (target.matches(".datatable-filter-columns-reset")) {
+                    for (const i in this.columns.dt.data.headings) {
+                        if (i !== null) {
+                            const CheckBox = this.wrapperDOM.querySelector(`.datatable-filter-columns input[value="${this.columns.dt.data.headings[i].data}"]`);
+                            (CheckBox as HTMLInputElement).checked = true
+                            this.columns.show([Number(i)])
+                        }
+                    }
+                }
             }
 
             if (hyperlink.hasAttribute("data-page")) {
