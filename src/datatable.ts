@@ -476,62 +476,60 @@ export class DataTable {
             }
         }
 
-        // Search input and Column Filter Button
+        // Search input
         if (this.options.searchable) {
             this.wrapperDOM.addEventListener("input", (event: InputEvent) => {
                 const target = event.target
-                if (!(target instanceof HTMLInputElement)) {
+                if (!(target instanceof HTMLInputElement) || !target.matches(`.${this.options.classes.input}`)) {
                     return
                 }
+                event.preventDefault()
 
-                if (target.matches(`.${this.options.classes.input}`)) {
-                    event.preventDefault()
-                    const searches: { terms: string[], columns: (number[] | undefined) }[] = []
-                    const searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]
-                    searchFields.filter(
-                        el => el.value.length
-                    ).forEach(
-                        el => {
-                            const andSearch = el.dataset.and || this.options.searchAnd
-                            const querySeparator = el.dataset.querySeparator || this.options.searchQuerySeparator
-                            const terms = querySeparator ? el.value.split(this.options.searchQuerySeparator) : [el.value]
-                            if (andSearch) {
-                                terms.forEach(term => {
-                                    if (el.dataset.columns) {
-                                        searches.push({
-                                            terms: [term],
-                                            columns: (JSON.parse(el.dataset.columns) as number[])
-                                        })
-                                    } else {
-                                        searches.push({terms: [term],
-                                            columns: undefined})
-                                    }
-                                })
-                            } else {
+                const searches: { terms: string[], columns: (number[] | undefined) }[] = []
+                const searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]
+                searchFields.filter(
+                    el => el.value.length
+                ).forEach(
+                    el => {
+                        const andSearch = el.dataset.and || this.options.searchAnd
+                        const querySeparator = el.dataset.querySeparator || this.options.searchQuerySeparator
+                        const terms = querySeparator ? el.value.split(this.options.searchQuerySeparator) : [el.value]
+                        if (andSearch) {
+                            terms.forEach(term => {
                                 if (el.dataset.columns) {
                                     searches.push({
-                                        terms,
+                                        terms: [term],
                                         columns: (JSON.parse(el.dataset.columns) as number[])
                                     })
                                 } else {
-                                    searches.push({terms,
+                                    searches.push({terms: [term],
                                         columns: undefined})
                                 }
+                            })
+                        } else {
+                            if (el.dataset.columns) {
+                                searches.push({
+                                    terms,
+                                    columns: (JSON.parse(el.dataset.columns) as number[])
+                                })
+                            } else {
+                                searches.push({terms,
+                                    columns: undefined})
                             }
-
                         }
-                    )
-                    if (searches.length === 1 && searches[0].terms.length === 1) {
-                        const search = searches[0]
-                        this.search(search.terms[0], search.columns)
-                    } else {
-                        this.multiSearch(searches)
+
                     }
+                )
+                if (searches.length === 1 && searches[0].terms.length === 1) {
+                    const search = searches[0]
+                    this.search(search.terms[0], search.columns)
+                } else {
+                    this.multiSearch(searches)
                 }
             })
         }
 
-        // Pager(s) / sorting and Column Filter Button
+        // Pager(s) / sorting
         this.wrapperDOM.addEventListener("click", (event: Event) => {
             const target = event.target as Element
             const hyperlink = target.closest("a, button")
