@@ -1,6 +1,6 @@
 ### Upgrading
 
-## From 7.1.x to ...
+## From 7.1.x to 8.0.x
 
 * `dataTable.multiSearch()` takes slightly different arguments. Before, search terms were being split up internally. Now you have to do it beforehand. So instead of `{term: string, columns: (none | number[])}` it now takes: `{terms: string[], columns: (none | number[])}`
 * The option `isSplitQueryWord` has been removed both columns and the dataTable. Instead, use a zero length `searchQuerySeparator` to signal that queries are not to be split.
