@@ -51,8 +51,6 @@ export const defaultConfig: DataTableConfiguration = {
     rowNavigation: false,
     tabIndex: false,
 
-    columnFilterButton: false,
-
     // for overriding rendering
     pagerRender: false,
     rowRender: false,
@@ -65,7 +63,6 @@ export const defaultConfig: DataTableConfiguration = {
     labels: {
         placeholder: "Search...", // The search input placeholder
         searchTitle: "Search within table", // The search input title
-        filterButton: "Filter columns within the table", // The filter button title
         perPage: "entries per page", // per-page dropdown label
         pageTitle: "Page {page}", // page label used in Aria-label
         noRows: "No entries found", // Message shown when there are no records to show
@@ -100,7 +97,6 @@ export const defaultConfig: DataTableConfiguration = {
         paginationListItem: "datatable-pagination-list-item",
         paginationListItemLink: "datatable-pagination-list-item-link",
         search: "datatable-search",
-        filterButton: "datatable-filter-button",
         selector: "datatable-selector",
         sorter: "datatable-sorter",
         table: "datatable-table",

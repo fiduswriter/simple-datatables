@@ -7,6 +7,7 @@
         <title>Column Filter Button</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
+        <link rel="stylesheet" href="../dist/css/column_filter.css">
         <style>
             body {
                 background-color: #cccccccb;
@@ -27,7 +28,7 @@
         <div id="tbl-machines"></div>
 
     <script type="module">
-        import {DataTable} from "../dist/module.js"
+        import {DataTable, addColumnFilter} from "../dist/module.js"
         const machineTypeIcons = [
             {
                 name: "Scaler",
@@ -101,14 +102,26 @@
 }
 
 
-        new DataTable("#tbl-machines", {
+        const dataTable = new DataTable("#tbl-machines", {
             data: generateTable(),
             searchable: true,
-            columnFilterButton: true,
             sortable: true,
             perPage: 15,
-            perPageSelect: [5, 10, 15, 20, 25, 50, 100, 250, 500, 1000]
+            perPageSelect: [5, 10, 15, 20, 25, 50, 100, 250, 500, 1000],
+            columns: [
+                {
+                    select: [0, 3],
+                    hidden: true
+                }
+            ]
         })
+        window.dataTable = dataTable
+        window.columnFilter = addColumnFilter(
+            dataTable,
+            {
+                hiddenColumns: [3]
+            }
+        )
     </script>
     </body>
 </html>

@@ -136,11 +136,6 @@ interface LabelsConfiguration {
      * default: 'Search within table'
      * Sets the title of the search input.
      */
-    filterButton: string;
-    /**
-     * default: 'Filter columns within the table'
-     * Sets the title of the filter button.
-     */
     perPage: string;
     /**
      * default: 'entries per page'
@@ -199,7 +194,6 @@ interface ClassConfiguration {
     paginationListItem: string;
     paginationListItemLink: string;
     search: string;
-    filterButton: string;
     selector: string;
     sorter: string;
     table: string;
@@ -393,8 +387,6 @@ interface DataTableConfiguration {
     numeric: boolean;
     caseFirst: string;
 
-    columnFilterButton: boolean;
-
     tabIndex: false | number;
     /**
      * Default: false
@@ -441,7 +433,6 @@ interface columnSettingsType {
     ignorePunctuation?: boolean,
     searchItemSeparator?: string;
     //
-    columnFilterButton?: boolean,
     headerClass?: string,
     cellClass?: string,
     hidden?: boolean,
