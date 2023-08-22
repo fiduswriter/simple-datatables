@@ -526,7 +526,6 @@ export class DataTable {
                 } else {
                     this.multiSearch(searches)
                 }
-
             })
         }
 

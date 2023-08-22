@@ -19,7 +19,7 @@
 }
 
 .datatable-top > nav:last-child,
-.datatable-top > div:last-child,
+.datatable-top > div:not(first-child),
 .datatable-bottom > nav:last-child,
 .datatable-bottom > div:last-child {
 	float: right;

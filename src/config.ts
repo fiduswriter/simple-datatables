@@ -51,7 +51,6 @@ export const defaultConfig: DataTableConfiguration = {
     rowNavigation: false,
     tabIndex: false,
 
-
     // for overriding rendering
     pagerRender: false,
     rowRender: false,
