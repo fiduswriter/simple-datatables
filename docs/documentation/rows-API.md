@@ -23,7 +23,7 @@ datatable.rows.add(newRow);
 
 ```
 
-**Note:** if you want to add multiple rows simultaneously, do this instead:
+**Note:** Only one row can be added at a time. If you want to add multiple rows simultaneously, do this instead:
 
 ```javascript
 let newRows = [
