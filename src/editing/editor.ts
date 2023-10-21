@@ -515,7 +515,7 @@ export class Editor {
                 }
                 const type = this.dt.columns.settings[colIndex].type || this.dt.options.type
                 const value = data[columnToVisibleIndex(colIndex, this.dt.columns.settings)]
-                const stringValue = value.trim()
+                const stringValue = (value || "").trim()
                 let cell
                 if (type === "number") {
                     cell = {data: parseFloat(stringValue)}
