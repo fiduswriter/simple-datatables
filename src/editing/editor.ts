@@ -461,14 +461,15 @@ export class Editor {
         // Add the inputs for each cell
         row.forEach((cell: cellType, i: number) => {
             const columnSettings = this.dt.columns.settings[i]
-            if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns)) && !this.options.excludeColumns.includes(i)) {
+            if ((!columnSettings.hidden || (columnSettings.hidden && this.options.hiddenColumns))) {
                 const label = this.dt.data.headings[i].text || String(this.dt.data.headings[i].data)
+                const disabled = this.options.excludeColumns.includes(i)
                 form.insertBefore(createElement("div", {
                     class: this.options.classes.row,
                     html: [
                         `<div class='${this.options.classes.row}'>`,
                         `<label class='${this.options.classes.label}'>${escapeText(label)}</label>`,
-                        `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
+                        `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text' ${disabled ? "disabled" : ""}>`,
                         "</div>"
                     ].join("")
                 }), form.lastElementChild)
@@ -699,20 +700,20 @@ export class Editor {
             tr.childNodes.forEach((cell: elementNodeType, i: number) => {
                 const index = visibleToColumnIndex(i, this.dt.columns.settings)
                 const dataCell = row[index]
-                if (!this.options.excludeColumns.includes(index)) {
-                    const cell = tr.childNodes[i]
-                    cell.childNodes = [
-                        {
-                            nodeName: "INPUT",
-                            attributes: {
-                                type: "text",
-                                value: escapeText(dataCell.text || String(dataCell.data) || ""),
-                                class: this.options.classes.input
-                            }
+                cell.childNodes = [
+                    {
+                        nodeName: "INPUT",
+                        attributes: {
+                            type: "text",
+                            value: escapeText(dataCell.text || String(dataCell.data) || ""),
+                            class: this.options.classes.input,
                         }
-                    ]
+                    }
+                ]
+                if (this.options.excludeColumns.includes(index)) {
+                    (cell.childNodes[0] as elementNodeType).attributes.disabled = "";
                 }
-            })
+           })
 
         }
         return tr
