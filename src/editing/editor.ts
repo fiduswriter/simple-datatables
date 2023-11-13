@@ -242,11 +242,9 @@ export class Editor {
                     const input = (this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
                     this.saveCell(input.value)
                 } else {
-                    const inputs = (Array.from(this.modalDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[])
-                    this.saveRow(inputs.map(input => input.value.trim()), this.data.row)
+                    const values = (Array.from(this.modalDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[]).map(input => input.value.trim())
+                    this.saveRow(values, this.data.row)
                 }
-
-
             }
         } else if (this.editing && this.data) {
             if (event.key === "Enter") {
@@ -255,8 +253,8 @@ export class Editor {
                     const input = (this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
                     this.saveCell(input.value)
                 } else if (this.editingRow) {
-                    const inputs = (Array.from(this.dt.wrapperDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[])
-                    this.saveRow(inputs.map(input => input.value.trim()), this.data.row)
+                    const values = (Array.from(this.dt.wrapperDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[]).map(input => input.value.trim())
+                    this.saveRow(values, this.data.row)
                 }
             } else if (event.key === "Escape") {
                 // Escape key reverts
@@ -478,8 +476,6 @@ export class Editor {
         this.openModal()
         // Grab the inputs
         const inputs = Array.from(form.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[]
-        // Remove save button
-        inputs.pop()
 
         // Close / save
         modalDOM.addEventListener("click", (event: MouseEvent) => {
@@ -493,7 +489,8 @@ export class Editor {
                 }
             } else if (target.hasAttribute("data-editor-save")) { // save button
                 // Save
-                this.saveRow(inputs.map((input: HTMLInputElement) => input.value.trim()), this.data.row)
+                const values = inputs.map((input: HTMLInputElement) => input.value.trim())
+                this.saveRow(values, this.data.row)
             }
         })
     }
@@ -508,19 +505,18 @@ export class Editor {
         // Store the old data for the emitter
         const oldData = row.map((cell: cellType) => cell.text ?? String(cell.data))
         if (data) {
-            this.dt.data.data[this.data.rowIndex] = this.dt.data.data[this.data.rowIndex].map((oldCell, colIndex) => {
-                const columnSetting = this.dt.columns.settings[colIndex]
-                if (columnSetting.hidden || this.options.excludeColumns.includes(colIndex)) {
-                    return oldCell
+            let valueCounter = 0
+            this.dt.data.data[this.data.rowIndex] = row.map((oldItem, colIndex) => {
+                if (this.options.excludeColumns.includes(colIndex) || this.dt.columns.settings[colIndex].hidden) {
+                    return oldItem
                 }
                 const type = this.dt.columns.settings[colIndex].type || this.dt.options.type
-                const value = data[columnToVisibleIndex(colIndex, this.dt.columns.settings)]
-                const stringValue = value.trim()
+                const value = data[valueCounter++]
                 let cell
                 if (type === "number") {
-                    cell = {data: parseFloat(stringValue)}
+                    cell = {data: parseFloat(value)}
                 } else if (type === "boolean") {
-                    if (["", "false", "0"].includes(stringValue)) {
+                    if (["", "false", "0"].includes(value)) {
                         cell = {data: false,
                             text: "false",
                             order: 0}
@@ -530,12 +526,14 @@ export class Editor {
                             order: 1}
                     }
                 } else if (type === "html") {
-                    cell = {data: [
-                        {nodeName: "#text",
-                            data: value}
-                    ],
-                    text: value,
-                    order: value}
+                    cell = {
+                        data: [
+                            {nodeName: "#text",
+                                data: value}
+                        ],
+                        text: value,
+                        order: value
+                    }
                 } else if (type === "string") {
                     cell = {data: value}
                 } else if (type === "date") {
@@ -546,6 +544,7 @@ export class Editor {
                     cell = {data: value}
                 }
                 return cell
+
             })
         }
 
