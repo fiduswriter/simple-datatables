@@ -123,7 +123,7 @@ Returns the current page number.
 ### totalPages
 #### type `Integer`
 
-Returns then number of pages.
+Returns the number of pages.
 
 ---
 
