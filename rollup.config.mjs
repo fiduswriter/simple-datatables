@@ -1,11 +1,8 @@
 import commonjs from '@rollup/plugin-commonjs'
-import nodePolyfills from 'rollup-plugin-polyfill-node'
+import dts from 'rollup-plugin-dts'
 import resolve from '@rollup/plugin-node-resolve'
-import babel from '@rollup/plugin-babel'
-import { DEFAULT_EXTENSIONS } from '@babel/core';
 import terser from '@rollup/plugin-terser'
 import typescript from "@rollup/plugin-typescript"
-import dts from 'rollup-plugin-dts'
 
 export default [
     {

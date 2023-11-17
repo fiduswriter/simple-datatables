@@ -72,7 +72,7 @@ interface ColumnOption{
      * Default: "false" Options: ["false", "upper", "lower"]. Influences how string sorting is done and whether upper or lower case letters are sorted first.
      * If "false" is selected, will use the chosen locale’s default sorting order.
      */
-    caseFirst?: string,
+    caseFirst?: "false" | "upper" | "lower",
 
     /**When set to true the column(s) will not be visible and will be excluded from search results. */
     hidden?:boolean;
@@ -385,7 +385,7 @@ interface DataTableConfiguration {
     sortable: boolean;
     locale: string;
     numeric: boolean;
-    caseFirst: string;
+    caseFirst: "false" | "upper" | "lower";
 
     tabIndex: false | number;
     /**
@@ -426,7 +426,7 @@ interface columnSettingsType {
     sortable?: boolean,
     locale?: string,
     numeric?: boolean,
-    caseFirst?: string,
+    caseFirst?: "false" | "upper" | "lower",
     // for searching
     searchable?: boolean,
     sensitivity?: string,
