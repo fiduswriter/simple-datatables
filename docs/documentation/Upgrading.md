@@ -232,6 +232,36 @@ new DataTable(t, {
 })
 ```
 
+* `dataTable.rows.add()` can no longer be used to add multiple rows. Use `dataTable.insert()` instead.
+
+Instead of:
+
+```js
+...
+let newRows = [
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ...
+];
+dataTable.rows.add(newRows);
+```
+
+do now:
+
+```js
+...
+let newRows = [
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ["column1", "column2", "column3", "column4", ...],
+    ...
+];
+dataTable.insert({data: newRows});
+```
+
 ## From 4.0.x to 5.0:
 
 * To get to the dom of the body table, look at `dataTable.dom` rather than `dataTable.table`.

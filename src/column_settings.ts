@@ -18,7 +18,11 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
         const columnSelectors = Array.isArray(data.select) ? data.select : [data.select]
 
         columnSelectors.forEach((selector: number) => {
-            if (!columns[selector]) {
+            if (columns[selector]) {
+                if (data.type) {
+                    columns[selector].type = data.type
+                }
+            } else {
                 columns[selector] = {
                     type: data.type || defaultType,
                     sortable: true,

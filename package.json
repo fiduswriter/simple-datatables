@@ -7,6 +7,7 @@
   "jsdelivr": "dist/umd/simple-datatables.js",
   "unpkg": "dist/umd/simple-datatables.js",
   "module": "dist/module.js",
+  "style": "dist/style.css",
   "scripts": {
     "test": "mocha",
     "test_server": "node test/server.mjs",
