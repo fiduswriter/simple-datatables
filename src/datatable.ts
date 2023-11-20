@@ -76,7 +76,11 @@ export class DataTable {
 
     _searchQueries: {terms: string[], columns: (number[] | undefined)}[]
 
-    _tableAttributes: { [key: string]: string}
+    _tableAttributes: {[key: string]: string}
+
+    _tableFooters: elementNodeType[]
+
+    _tableCaptions: elementNodeType[]
 
     totalPages: number
 
@@ -87,7 +91,6 @@ export class DataTable {
     wrapperDOM: HTMLElement
 
     constructor(table: HTMLTableElement | string, options: DataTableOptions = {}) {
-
 
         const dom = typeof table === "string" ?
             document.querySelector(table) :
@@ -161,6 +164,19 @@ export class DataTable {
         this._virtualDOM = nodeToObj(this.dom, this.options.diffDomOptions || {})
 
         this._tableAttributes = {...this._virtualDOM.attributes}
+        this._tableFooters = this._virtualDOM.childNodes.filter(node => node.nodeName === "TFOOT")
+        this._tableCaptions = this._virtualDOM.childNodes.filter(node => node.nodeName === "CAPTION")
+        if (this.options.caption !== undefined) {
+            this._tableCaptions.push({
+                nodeName: "CAPTION",
+                childNodes: [
+                    {
+                        nodeName: "#text",
+                        data: this.options.caption
+                    }
+                ]
+            })
+        }
 
         this.rows = new Rows(this)
         this.columns = new Columns(this)
@@ -234,10 +250,8 @@ export class DataTable {
         // Store the table dimensions
         this._rect = this.dom.getBoundingClientRect()
 
-        // // Fix height
+        // Fix height
         this._fixHeight()
-        //
-
 
         // Class names
         if (!this.options.header) {
@@ -287,7 +301,9 @@ export class DataTable {
             this.columns._state,
             this.rows.cursor,
             this.options,
-            renderOptions
+            renderOptions,
+            this._tableFooters,
+            this._tableCaptions
         )
 
         if (this.options.tableRender) {
@@ -957,7 +973,9 @@ export class DataTable {
             {
                 noColumnWidths: true,
                 unhideHeader: true
-            }
+            },
+            this._tableFooters,
+            this._tableCaptions
         )
 
         if (this.options.tableRender) {

@@ -111,7 +111,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
     noColumnWidths,
     unhideHeader,
     renderHeader
-}: renderOptions) => {
+}: renderOptions, footers: elementNodeType[], captions: elementNodeType[]) => {
     const table: elementNodeType = {
         nodeName: "TABLE",
         attributes: {...tableAttributes},
@@ -244,8 +244,10 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
             }
             table.childNodes.push(tfoot)
         }
-
     }
+
+    footers.forEach(foot => table.childNodes.push(foot))
+    captions.forEach(caption => table.childNodes.push(caption))
 
     if (tabIndex !== false) {
         table.attributes.tabindex = String(tabIndex)

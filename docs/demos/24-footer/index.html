@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+        <title>Custom Footer</title>
+
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+    </head>
+    <body>
+        <h1>Custom Footer</h1>
+        <table class="table" id="custom-footer-table">
+            <thead>
+                <tr>
+                    <th>Athlete</th>
+                    <th>Nation</th>
+                    <th data-type="number" style="background-color: #ffd700;">Gold</th>
+                    <th data-type="number" style="background-color: #c0c0c0;">Silver</th>
+                    <th data-type="number" style="background-color: #cc9966;">Bronze</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Michael Phelps</td>
+                    <td>United States</td>
+                    <td>23</td>
+                    <td>3</td>
+                    <td>2</td>
+                </tr>
+                <tr>
+                    <td>Larisa Latynina</td>
+                    <td>Soviet Union</td>
+                    <td>9</td>
+                    <td>5</td>
+                    <td>4</td>
+                </tr>
+                <tr>
+                    <td>Paavo Nurmi</td>
+                    <td>Finland</td>
+                    <td>9</td>
+                    <td>3</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>Mark Spitz</td>
+                    <td>United States</td>
+                    <td>9</td>
+                    <td>1</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>Carl Lewis</td>
+                    <td>United States</td>
+                    <td>9</td>
+                    <td>1</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>Marit Bjørgen</td>
+                    <td>Norway</td>
+                    <td>8</td>
+                    <td>4</td>
+                    <td>3</td>
+                </tr>
+                <tr>
+                    <td>Ole Einar Bjørndalen</td>
+                    <td>Norway</td>
+                    <td>8</td>
+                    <td>4</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>Bjørn Dæhlie</td>
+                    <td>Norway</td>
+                    <td>8</td>
+                    <td>4</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>Birgit Fischer</td>
+                    <td>Germany</td>
+                    <td>8</td>
+                    <td>4</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>Sawao Kato</td>
+                    <td>Japan</td>
+                    <td>8</td>
+                    <td>3</td>
+                    <td>1</td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2">This is a table footer.</td>
+                </tr>
+            </tfoot>
+            <tfoot style="font-weight: bold">
+                <tr>
+                    <td colspan="2">Total</td>
+                    <td>99</td>
+                    <td>32</td>
+                    <td>12</td>
+                </tr>
+            </tfoot>
+            <caption>This is a table caption.</caption>
+        </table>
+
+        <script type="module">
+            import {DataTable} from "../dist/module.js"
+            window.dt = new DataTable("table", {
+                perPage: 5,
+                perPageSelect: [5, 10, 15, ["All", -1]]
+    // A caption can also be specified this way:
+    // caption: 'This is another table caption.'
+})
+        </script>
+    </body>
+</html>

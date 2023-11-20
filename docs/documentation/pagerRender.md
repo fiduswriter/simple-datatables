@@ -1,6 +1,6 @@
 ### `rowRender`
-#### Default: `false`
 #### Type: `boolean` \ `function(data, ul)`
+#### Default: `false`
 
 
 If specified, declares a callback to customise the rendering of all pagers. The function can take 2 parameters:
