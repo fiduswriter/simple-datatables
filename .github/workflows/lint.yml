@@ -1,17 +1,19 @@
-name: simple-datatables CI
+name: Check lints
 
-on: [push]
+on: [pull_request, push]
 
 jobs:
-  build:
-
+  lint:
     runs-on: ubuntu-latest
-
     steps:
-      - uses: actions/checkout@v3
-      - name: Use Node.js
-        uses: actions/setup-node@v3
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 18
-      - run: npm install
-      - run: npm run lint
+          cache: 'npm'
+      - name: Install dependencies
+        run: npm ci
+      - name: Lints
+        run: npm run lint
