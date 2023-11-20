@@ -1949,7 +1949,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnsState, {
         if (column.hidden) {
             return;
         }
-        const attributes = {};
+        const attributes = heading.attributes ? { ...heading.attributes } : {};
         if (column.sortable && sortable && (!scrollY.length || unhideHeader)) {
             if (column.filter) {
                 attributes["data-filterable"] = "true";
@@ -1959,7 +1959,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnsState, {
             }
         }
         if (column.headerClass) {
-            attributes.class = column.headerClass;
+            attributes.class = attributes.class ? `${attributes.class} ${column.headerClass}` : column.headerClass;
         }
         if (columnsState.sort && columnsState.sort.column === index) {
             const directionClass = columnsState.sort.dir === "asc" ? classes.ascending : classes.descending;
@@ -1969,15 +1969,13 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnsState, {
         else if (columnsState.filters[index]) {
             attributes.class = attributes.class ? `${attributes.class} ${classes.filterActive}` : classes.filterActive;
         }
-        let style = "";
         if (columnsState.widths[index] && !noColumnWidths) {
-            style += `width: ${columnsState.widths[index]}%;`;
+            const style = `width: ${columnsState.widths[index]}%;`;
+            attributes.style = attributes.style ? `${attributes.style} ${style}` : style;
         }
         if (scrollY.length && !unhideHeader) {
-            style += "padding-bottom: 0;padding-top: 0;border: 0;";
-        }
-        if (style.length) {
-            attributes.style = style;
+            const style = "padding-bottom: 0;padding-top: 0;border: 0;";
+            attributes.style = attributes.style ? `${attributes.style} ${style}` : style;
         }
         const headerNodes = heading.type === "html" ?
             heading.data :
@@ -1992,8 +1990,10 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnsState, {
             attributes,
             childNodes: ((hiddenHeader || scrollY.length) && !unhideHeader) ?
                 [
-                    { nodeName: "#text",
-                        data: "" }
+                    {
+                        nodeName: "#text",
+                        data: ""
+                    }
                 ] :
                 !column.sortable || !sortable ?
                     headerNodes :
@@ -2032,30 +2032,30 @@ const dataToVirtualDOM = (tableAttributes, headings, rows, columnSettings, colum
                             if (column.hidden) {
                                 return;
                             }
-                            const td = column.type === "html" ?
-                                {
-                                    nodeName: "TD",
-                                    childNodes: cell.data
-                                } :
-                                {
-                                    nodeName: "TD",
-                                    childNodes: [
-                                        {
-                                            nodeName: "#text",
-                                            data: cell.text ?? String(cell.data)
-                                        }
-                                    ]
-                                };
+                            const td = {
+                                nodeName: "TD",
+                                attributes: cell.attributes ? { ...cell.attributes } : {},
+                                childNodes: column.type === "html" ? cell.data : [
+                                    {
+                                        nodeName: "#text",
+                                        data: cell.text ?? String(cell.data)
+                                    }
+                                ]
+                            };
                             if (!header && !footer && columnsState.widths[cIndex] && !noColumnWidths) {
-                                td.attributes = {
-                                    style: `width: ${columnsState.widths[cIndex]}%;`
-                                };
+                                if (!td.attributes.style) {
+                                    td.attributes.style = "";
+                                }
+                                td.attributes.style += `width: ${columnsState.widths[cIndex]}%;`;
                             }
                             if (column.cellClass) {
-                                if (!td.attributes) {
-                                    td.attributes = {};
+                                if (!td.attributes.class) {
+                                    td.attributes.class = "";
                                 }
-                                td.attributes.class = column.cellClass;
+                                else {
+                                    td.attributes.class += " ";
+                                }
+                                td.attributes.class += column.cellClass;
                             }
                             if (column.render) {
                                 const renderedCell = column.render(cell.data, td, index, cIndex);
@@ -2117,7 +2117,9 @@ const dataToVirtualDOM = (tableAttributes, headings, rows, columnSettings, colum
                 childNodes: [headerRow]
             };
             if ((scrollY.length || hiddenHeader) && !unhideHeader) {
-                thead.attributes = { style: "height: 0px;" };
+                thead.attributes = {
+                    style: "height: 0px;"
+                };
             }
             table.childNodes.unshift(thead);
         }
@@ -2274,8 +2276,8 @@ const readDOMDataCell = (cell, columnSettings) => {
             const data = !["false", "0", "null", "undefined"].includes(cell.innerText.toLowerCase().trim());
             cellData = {
                 data,
-                order: data ? 1 : 0,
-                text: data ? "1" : "0"
+                text: data ? "1" : "0",
+                order: data ? 1 : 0
             };
             break;
         }
@@ -2287,6 +2289,13 @@ const readDOMDataCell = (cell, columnSettings) => {
                 order: cell.innerText
             };
             break;
+        }
+    }
+    // Save cell attributes to reference when rendering
+    cellData.attributes = {};
+    if (cell.attributes) {
+        for (const attr of cell.attributes) {
+            cellData.attributes[attr.name] = attr.value;
         }
     }
     return cellData;
@@ -2336,6 +2345,8 @@ const readDOMHeaderCell = (cell) => {
             type: "string"
         };
     }
+    // Save header cell attributes to reference when rendering
+    cellData.attributes = node.attributes;
     return cellData;
 };
 const readTableData = (dataOption, dom = undefined, columnSettings, defaultType, defaultFormat) => {
@@ -3249,8 +3260,8 @@ class DataTable {
         }
         this._virtualDOM = nodeToObj(this.dom, this.options.diffDomOptions || {});
         this._tableAttributes = { ...this._virtualDOM.attributes };
-        this._tableFooters = this._virtualDOM.childNodes.filter(node => node.nodeName === 'TFOOT');
-        this._tableCaptions = this._virtualDOM.childNodes.filter(node => node.nodeName === 'CAPTION');
+        this._tableFooters = this._virtualDOM.childNodes.filter(node => node.nodeName === "TFOOT");
+        this._tableCaptions = this._virtualDOM.childNodes.filter(node => node.nodeName === "CAPTION");
         if (this.options.caption !== undefined) {
             this._tableCaptions.push({
                 nodeName: "CAPTION",
@@ -3344,12 +3355,15 @@ class DataTable {
         this.update(true);
     }
     _renderTable(renderOptions = {}) {
-        let newVirtualDOM = dataToVirtualDOM(this._tableAttributes, this.data.headings, (this.options.paging || this._searchQueries.length || this.columns._state.filters.length) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
-            this.pages[this._currentPage - 1] :
-            this.data.data.map((row, index) => ({
-                row,
-                index
-            })), this.columns.settings, this.columns._state, this.rows.cursor, this.options, renderOptions, this._tableFooters, this._tableCaptions);
+        let rows;
+        const isPaged = (this.options.paging || this._searchQueries.length || this.columns._state.filters.length) && this._currentPage && this.pages.length && !renderOptions.noPaging;
+        if (isPaged) {
+            rows = this.pages[this._currentPage - 1];
+        }
+        else {
+            rows = this.data.data.map((row, index) => ({ row, index }));
+        }
+        let newVirtualDOM = dataToVirtualDOM(this._tableAttributes, this.data.headings, rows, this.columns.settings, this.columns._state, this.rows.cursor, this.options, renderOptions, this._tableFooters, this._tableCaptions);
         if (this.options.tableRender) {
             const renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, "main");
             if (renderedTableVirtualDOM) {
@@ -3723,7 +3737,7 @@ class DataTable {
         if (this.options.paging && this.options.perPage > 0) {
             // Check for hidden columns
             this.pages = rows
-                .map((row, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .map((_row, i) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
                 .filter((page) => page);
         }
         else {

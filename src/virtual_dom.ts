@@ -1,6 +1,6 @@
 import {stringToObj} from "diff-dom"
 
-import {cellType, columnsStateType, columnSettingsType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions} from "./types"
+import {cellType, columnsStateType, columnSettingsType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions, rowType} from "./types"
 
 
 export const headingsToVirtualHeaderRowDOM = (
@@ -33,7 +33,7 @@ export const headingsToVirtualHeaderRowDOM = (
             if (column.hidden) {
                 return
             }
-            const attributes : { [key: string]: string} = {}
+            const attributes : { [key: string]: string } = heading.attributes ? {...heading.attributes} : {}
             if (column.sortable && sortable && (!scrollY.length || unhideHeader)) {
                 if (column.filter) {
                     attributes["data-filterable"] = "true"
@@ -41,8 +41,9 @@ export const headingsToVirtualHeaderRowDOM = (
                     attributes["data-sortable"] = "true"
                 }
             }
+
             if (column.headerClass) {
-                attributes.class = column.headerClass
+                attributes.class = attributes.class ? `${attributes.class} ${column.headerClass}` : column.headerClass
             }
             if (columnsState.sort && columnsState.sort.column === index) {
                 const directionClass = columnsState.sort.dir === "asc" ? classes.ascending : classes.descending
@@ -51,16 +52,14 @@ export const headingsToVirtualHeaderRowDOM = (
             } else if (columnsState.filters[index]) {
                 attributes.class = attributes.class ? `${attributes.class} ${classes.filterActive}` : classes.filterActive
             }
-            let style = ""
+
             if (columnsState.widths[index] && !noColumnWidths) {
-                style += `width: ${columnsState.widths[index]}%;`
+                const style = `width: ${columnsState.widths[index]}%;`
+                attributes.style = attributes.style ? `${attributes.style} ${style}` : style
             }
             if (scrollY.length && !unhideHeader) {
-                style += "padding-bottom: 0;padding-top: 0;border: 0;"
-            }
-
-            if (style.length) {
-                attributes.style = style
+                const style = "padding-bottom: 0;padding-top: 0;border: 0;"
+                attributes.style = attributes.style ? `${attributes.style} ${style}` : style
             }
 
             const headerNodes : elementNodeType[] = heading.type === "html" ?
@@ -77,8 +76,10 @@ export const headingsToVirtualHeaderRowDOM = (
                 childNodes:
                     ((hiddenHeader || scrollY.length) && !unhideHeader) ?
                         [
-                            {nodeName: "#text",
-                                data: ""}
+                            {
+                                nodeName: "#text",
+                                data: ""
+                            }
                         ] :
                         !column.sortable || !sortable ?
                             headerNodes :
@@ -96,7 +97,7 @@ export const headingsToVirtualHeaderRowDOM = (
     ).filter((column: (elementNodeType | void)) => column)
 })
 
-export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, headings: headerCellType[], rows: {row: cellType[], index: number}[], columnSettings: columnSettingsType[], columnsState: columnsStateType, rowCursor: (number | false), {
+export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, headings: headerCellType[], rows: rowType[], columnSettings: columnSettingsType[], columnsState: columnsStateType, rowCursor: (number | false), {
     classes,
     hiddenHeader,
     header,
@@ -119,10 +120,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
             {
                 nodeName: "TBODY",
                 childNodes: rows.map(
-                    ({
-                        row,
-                        index
-                    }: {row: cellType[], index: number}) => {
+                    ({row, index}) => {
                         const tr: elementNodeType = {
                             nodeName: "TR",
                             attributes: {
@@ -139,30 +137,31 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                     if (column.hidden) {
                                         return
                                     }
-                                    const td : elementNodeType = column.type === "html" ?
-                                        {
-                                            nodeName: "TD",
-                                            childNodes: cell.data
-                                        } as elementNodeType:
-                                        {
-                                            nodeName: "TD",
-                                            childNodes: [
+                                    const td: elementNodeType = {
+                                        nodeName: "TD",
+                                        attributes: cell.attributes ? {...cell.attributes} : {},
+                                        childNodes: column.type === "html" ?
+                                            cell.data :
+                                            [
                                                 {
                                                     nodeName: "#text",
                                                     data: cell.text ?? String(cell.data)
                                                 }
                                             ]
-                                        } as elementNodeType
+                                    } as elementNodeType
                                     if (!header && !footer && columnsState.widths[cIndex] && !noColumnWidths) {
-                                        td.attributes = {
-                                            style: `width: ${columnsState.widths[cIndex]}%;`
+                                        if (!td.attributes.style) {
+                                            td.attributes.style = ""
                                         }
+                                        td.attributes.style += `width: ${columnsState.widths[cIndex]}%;`
                                     }
                                     if (column.cellClass) {
-                                        if (!td.attributes) {
-                                            td.attributes = {}
+                                        if (!td.attributes.class) {
+                                            td.attributes.class = ""
+                                        } else {
+                                            td.attributes.class += " "
                                         }
-                                        td.attributes.class = column.cellClass
+                                        td.attributes.class += column.cellClass
                                     }
                                     if (column.render) {
                                         const renderedCell : (string | elementNodeType | void) = column.render(cell.data, td, index, cIndex)
@@ -187,7 +186,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                 }
                             ).filter((column: (elementNodeType | void)) => column)
                         }
-                        if (index===rowCursor) {
+                        if (index === rowCursor) {
                             tr.attributes.class = classes.cursor
                         }
                         if (rowRender) {
@@ -229,7 +228,9 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                 childNodes: [headerRow]
             }
             if ((scrollY.length || hiddenHeader) && !unhideHeader) {
-                thead.attributes = {style: "height: 0px;"}
+                thead.attributes = {
+                    style: "height: 0px;"
+                }
             }
             table.childNodes.unshift(thead)
         }

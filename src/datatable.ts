@@ -12,6 +12,7 @@ import {
     inputCellType,
     elementNodeType,
     renderOptions,
+    rowType,
     TableDataType
 } from "./types"
 import {DiffDOM, nodeToObj} from "diff-dom"
@@ -66,7 +67,7 @@ export class DataTable {
 
     _virtualPagerDOM: elementNodeType
 
-    pages: {row: cellType[], index: number}[][]
+    pages: rowType[][]
 
     _rect: {width: number, height: number}
 
@@ -287,16 +288,20 @@ export class DataTable {
         this.update(true)
     }
 
-    _renderTable(renderOptions: renderOptions ={}) {
+    _renderTable(renderOptions: renderOptions = {}) {
+        let rows: rowType[]
+        const isPaged = (this.options.paging || this._searchQueries.length || this.columns._state.filters.length) && this._currentPage && this.pages.length && !renderOptions.noPaging
+        if (isPaged) {
+            rows = this.pages[this._currentPage - 1]
+        } else {
+            rows = this.data.data.map((row, index) => ({row,
+                index}))
+        }
+
         let newVirtualDOM = dataToVirtualDOM(
             this._tableAttributes,
             this.data.headings,
-            (this.options.paging || this._searchQueries.length || this.columns._state.filters.length) && this._currentPage && this.pages.length && !renderOptions.noPaging ?
-                this.pages[this._currentPage - 1] :
-                this.data.data.map((row, index) => ({
-                    row,
-                    index
-                })),
+            rows,
             this.columns.settings,
             this.columns._state,
             this.rows.cursor,
@@ -702,7 +707,7 @@ export class DataTable {
     }
 
     _paginate() {
-        let rows = this.data.data.map((row, index) => ({
+        let rows: rowType[] = this.data.data.map((row, index) => ({
             row,
             index
         }))
@@ -730,7 +735,7 @@ export class DataTable {
         if (this.options.paging && this.options.perPage > 0) {
             // Check for hidden columns
             this.pages = rows
-                .map((row: {row: cellType[], index: number}, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
+                .map((_row, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
                 .filter((page: {row: cellType[], index: number}[]) => page)
         } else {
             this.pages = [rows]

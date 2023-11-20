@@ -24,6 +24,7 @@ interface cellType {
     data: string | number | boolean | elementNodeType[] | object;
     text?: string;
     order?: string | number;
+    attributes?: { [key: string]: string };
 }
 
 type inputCellType = cellType | string | number | boolean;
@@ -32,6 +33,7 @@ interface headerCellType {
     data: string | number | boolean | elementNodeType[] | object;
     type?: ("html" | "string");
     text?: string;
+    attributes?: { [key: string]: string };
 }
 
 type inputHeaderCellType = headerCellType | string | number | boolean;
@@ -48,6 +50,11 @@ interface TableDataType{
 }
 
 type renderType = ((cellData: (string | number | boolean | object | elementNodeType[]), td: object, rowIndex: number, cellIndex: number) => elementNodeType | string | void);
+
+interface rowType {
+    row: cellType[];
+    index: number;
+}
 
 export type DeepPartial<T> = T extends Function ? T : (T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T); // eslint-disable-line @typescript-eslint/ban-types
 // Source https://gist.github.com/navix/6c25c15e0a2d3cd0e5bce999e0086fc9
@@ -479,6 +486,7 @@ export {
     renderOptions,
     renderType,
     rowRenderType,
+    rowType,
     columnSettingsType,
     TableDataType,
     textNodeType
