@@ -29,9 +29,8 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: 18
-                  cache: 'npm'
             - name: Build JS bundle
-              run: npm ci
+              run: npm install
             - name: Build site
               uses: actions/jekyll-build-pages@v1
               with:
