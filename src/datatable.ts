@@ -164,8 +164,8 @@ export class DataTable {
         this._virtualDOM = nodeToObj(this.dom, this.options.diffDomOptions || {})
 
         this._tableAttributes = {...this._virtualDOM.attributes}
-        this._tableFooters = this._virtualDOM.childNodes.filter(node => node.nodeName === 'TFOOT');
-        this._tableCaptions = this._virtualDOM.childNodes.filter(node => node.nodeName === 'CAPTION');
+        this._tableFooters = this._virtualDOM.childNodes?.filter(node => node.nodeName === 'TFOOT') ?? [];
+        this._tableCaptions = this._virtualDOM.childNodes?.filter(node => node.nodeName === 'CAPTION') ?? [];
         if (this.options.caption !== undefined) {
             this._tableCaptions.push({
                 nodeName: "CAPTION",
