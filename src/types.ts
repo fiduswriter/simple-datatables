@@ -210,6 +210,13 @@ type tableRenderType = ((data: object, table: elementNodeType, type: string) => 
 
 
 interface DataTableConfiguration {
+    /**
+     * Display a table caption with [<caption>](https://developer.mozilla.org/en-US/docs/Web/HTML/Element/caption).
+     * No caption is displayed by default.
+     *
+     * Docs: https://fiduswriter.github.io/simple-datatables/documentation/caption
+     */
+    caption: string | undefined;
     classes: ClassConfiguration;
     columns: ColumnOption[];
     /**Controls various aspects of individual or groups of columns. Should be an array of objects with the following properties:
@@ -294,13 +301,13 @@ interface DataTableConfiguration {
             info: "Showing {start} to {end} of {rows} entries",
         }
      *
-     * Docs : https://fiduswriter.github.io/simple-datatables/documentation/labels
+     * Docs: https://fiduswriter.github.io/simple-datatables/documentation/labels
      */
     template: (DataTableConfiguration, HTMLTableElement) => string;
     /**
      * Allows for custom arranging of the DOM elements in the top and bottom containers. There are for 4 variables you can utilize:
      *
-     * Docs :https://fiduswriter.github.io/simple-datatables/documentation/layout
+     * Docs: https://fiduswriter.github.io/simple-datatables/documentation/layout
      */
     lastText: string;
     /**

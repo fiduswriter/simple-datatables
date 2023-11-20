@@ -2009,7 +2009,7 @@ const headingsToVirtualHeaderRowDOM = (headings, columnSettings, columnsState, {
         };
     }).filter((column) => column)
 });
-const dataToVirtualDOM = (tableAttributes, headings, rows, columnSettings, columnsState, rowCursor, { classes, hiddenHeader, header, footer, format, sortable, scrollY, type, rowRender, tabIndex }, { noColumnWidths, unhideHeader, renderHeader }) => {
+const dataToVirtualDOM = (tableAttributes, headings, rows, columnSettings, columnsState, rowCursor, { classes, hiddenHeader, header, footer, format, sortable, scrollY, type, rowRender, tabIndex }, { noColumnWidths, unhideHeader, renderHeader }, footers, captions) => {
     const table = {
         nodeName: "TABLE",
         attributes: { ...tableAttributes },
@@ -2133,6 +2133,8 @@ const dataToVirtualDOM = (tableAttributes, headings, rows, columnSettings, colum
             table.childNodes.push(tfoot);
         }
     }
+    footers.forEach(foot => table.childNodes.push(foot));
+    captions.forEach(caption => table.childNodes.push(caption));
     if (tabIndex !== false) {
         table.attributes.tabindex = String(tabIndex);
     }
@@ -2999,6 +3001,7 @@ const defaultConfig$2 = {
     footer: false,
     header: true,
     hiddenHeader: false,
+    caption: undefined,
     rowNavigation: false,
     tabIndex: false,
     // for overriding rendering
@@ -3237,6 +3240,20 @@ class DataTable {
         }
         this._virtualDOM = nodeToObj(this.dom, this.options.diffDomOptions || {});
         this._tableAttributes = { ...this._virtualDOM.attributes };
+        this._tableFooters = this._virtualDOM.childNodes.filter(node => node.nodeName === 'TFOOT');
+        this._tableCaptions = this._virtualDOM.childNodes.filter(node => node.nodeName === 'CAPTION');
+        debugger;
+        if (this.options.caption !== undefined) {
+            this._tableCaptions.push({
+                nodeName: "CAPTION",
+                childNodes: [
+                    {
+                        nodeName: "#text",
+                        data: this.options.caption
+                    }
+                ]
+            });
+        }
         this.rows = new Rows(this);
         this.columns = new Columns(this);
         this.data = readTableData(this.options.data, this.dom, this.columns.settings, this.options.type, this.options.format);
@@ -3291,9 +3308,8 @@ class DataTable {
         this.containerDOM.appendChild(this.dom);
         // Store the table dimensions
         this._rect = this.dom.getBoundingClientRect();
-        // // Fix height
+        // Fix height
         this._fixHeight();
-        //
         // Class names
         if (!this.options.header) {
             this.wrapperDOM.classList.add("no-header");
@@ -3325,7 +3341,7 @@ class DataTable {
             this.data.data.map((row, index) => ({
                 row,
                 index
-            })), this.columns.settings, this.columns._state, this.rows.cursor, this.options, renderOptions);
+            })), this.columns.settings, this.columns._state, this.rows.cursor, this.options, renderOptions, this._tableFooters, this._tableCaptions);
         if (this.options.tableRender) {
             const renderedTableVirtualDOM = this.options.tableRender(this.data, newVirtualDOM, "main");
             if (renderedTableVirtualDOM) {
@@ -3900,7 +3916,7 @@ class DataTable {
         this.options, {
             noColumnWidths: true,
             unhideHeader: true
-        });
+        }, this._tableFooters, this._tableCaptions);
         if (this.options.tableRender) {
             const renderedTableVirtualDOM = this.options.tableRender(this.data, newTableVirtualDOM, "print");
             if (renderedTableVirtualDOM) {

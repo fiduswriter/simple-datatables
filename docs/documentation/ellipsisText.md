@@ -1,4 +1,4 @@
-### `firstText`
+### `ellipsisText`
 #### Type: `string`
 #### Default: `'…'`
 

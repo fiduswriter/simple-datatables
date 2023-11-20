@@ -1,3 +1,4 @@
+### `columns`
 #### Type: `array`
 #### Default: `undefined`
 

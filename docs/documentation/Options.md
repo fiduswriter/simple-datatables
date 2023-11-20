@@ -15,6 +15,7 @@ let dataTable = new DataTable(myTable, options);
 * [type](columns#type)
 * [format](columns#format)
 ### Appearance
+* [caption](caption)
 * [classes](classes)
 * [columns](columns)
 * [fixedColumns](fixedColumns)

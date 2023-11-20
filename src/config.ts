@@ -47,6 +47,7 @@ export const defaultConfig: DataTableConfiguration = {
     footer: false,
     header: true,
     hiddenHeader: false,
+    caption: undefined,
 
     rowNavigation: false,
     tabIndex: false,
