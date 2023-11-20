@@ -2623,6 +2623,15 @@ class Columns {
     init() {
         [this.settings, this._state] = readColumnSettings(this.dt.options.columns, this.dt.options.type, this.dt.options.format);
     }
+    get(column) {
+        if (column < 0 || column >= this.size()) {
+            return null;
+        }
+        return { ...this.settings[column] };
+    }
+    size() {
+        return this.settings.length;
+    }
     /**
      * Swap two columns
      */
