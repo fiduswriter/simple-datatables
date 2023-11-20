@@ -1,4 +1,4 @@
-### `rowRender`
+### `pagerRender`
 #### Type: `boolean` \ `function(data, ul)`
 #### Default: `false`
 

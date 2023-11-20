@@ -83,8 +83,8 @@ const readDOMDataCell = (cell: HTMLElement, columnSettings : columnSettingsType)
         const data = !["false", "0", "null", "undefined"].includes(cell.innerText.toLowerCase().trim())
         cellData = {
             data,
-            order: data ? 1 : 0,
-            text: data ? "1" : "0"
+            text: data ? "1" : "0",
+            order: data ? 1 : 0
         }
         break
     }
@@ -97,6 +97,14 @@ const readDOMDataCell = (cell: HTMLElement, columnSettings : columnSettingsType)
         }
         break
     }
+    }
+
+    // Save cell attributes to reference when rendering
+    cellData.attributes = {}
+    if (cell.attributes) {
+        for (const attr of cell.attributes) {
+            cellData.attributes[attr.name] = attr.value
+        }
     }
 
     return cellData
@@ -136,7 +144,7 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
 
 export const readDOMHeaderCell = (cell: HTMLElement) : headerCellType => {
     const node = nodeToObj(cell, {valueDiffing: false})
-    let cellData
+    let cellData: headerCellType
     if (node.childNodes && (node.childNodes.length !== 1 || node.childNodes[0].nodeName !== "#text")) {
         cellData = {
             data: node.childNodes,
@@ -149,6 +157,10 @@ export const readDOMHeaderCell = (cell: HTMLElement) : headerCellType => {
             type: "string"
         }
     }
+
+    // Save header cell attributes to reference when rendering
+    cellData.attributes = node.attributes
+
     return cellData
 
 }
