@@ -4,7 +4,7 @@ import {objToText} from "./helpers"
 import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, nodeType, columnSettingsType} from "./types"
 
 export const readDataCell = (cell: inputCellType, columnSettings : columnSettingsType) : cellType => {
-    if (cell?.constructor === Object && Object.prototype.hasOwnProperty.call(cell, "data") && !Object.keys(cell).find(key => !(["text", "order", "data"].includes(key)))) {
+    if (cell?.constructor === Object && Object.prototype.hasOwnProperty.call(cell, "data") && !Object.keys(cell).find(key => !(["text", "order", "data", "attributes"].includes(key)))) {
         return (cell as cellType)
     }
     const cellData : cellType = {

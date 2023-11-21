@@ -31,7 +31,7 @@
                     if (!data || !data.length) {
                         return
                     }
-                    new window.simpleDatatables.DataTable("#demo-table", {
+                    window.datatable = new window.simpleDatatables.DataTable("#demo-table", {
                         data: {
                             headings: Object.keys(data[0]),
                             data: data.map(item => Object.values(item))
