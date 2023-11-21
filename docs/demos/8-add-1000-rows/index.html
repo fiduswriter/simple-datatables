@@ -3,46 +3,40 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Add 1000 Rows</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Add 1000 rows - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
         <style>
-            .btn.success,
-            .bttn.success {
-                background-color: #27ae60;
-                box-shadow: inset 0 -3px #1e8449;
-            }
-
-            .btn.danger,
-            .bttn.danger {
-                background-color: #c0392b;
-                box-shadow: inset 0 -3px #962d22;
-            }
-
-            .btn.primary,
-            .bttn.primary {
-                background-color: #3498db;
-                box-shadow: inset 0 -3px #217dbb;
+            #add {
+                margin: 0 10px;
             }
         </style>
     </head>
     <body>
-        <h1>Add 1000 Rows</h1>
-        <table></table>
-        <button class="btn btn-primary" id="add">Add 1000 Rows</button>
-        <!-- CDN -->
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Add 1000 rows</h2>
+        <button id="add">Add 1000 Rows</button>
+
+        <table id="demo-table"></table>
+
         <script src="../dist/umd.js"></script>
-        <!-- Custom Code -->
         <script>
-            const datatable = new window.simpleDatatables.DataTable("table", {
-                perPageSelect: [10, 20, 30, 40, 50, 100, 200, 300, 400, 500, 1000],
+            const datatable = new window.simpleDatatables.DataTable("#demo-table", {
+                perPageSelect: [10, 100, 1000, 10000, ["All", -1]],
                 perPage: 10,
                 columns: [
                     {
-                    // select the fourth column ...
+                        // select the fourth column ...
                         select: 3,
                         // ... let the instance know we have datetimes in it ...
                         type: "date",
@@ -51,7 +45,7 @@
                         // ... sort it ...
                         sort: "desc"
                     }
-    ],
+                ],
                 data: {
                     "headings": ["Name", "Ext.", "City", "Start Date", "Completion"],
                     "data": [

@@ -3,20 +3,29 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Filters</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Filters - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
     </head>
     <body>
-        <h1>Filters</h1>
-        <!-- CDN -->
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Filters</h2>
+
+        <!-- The table in this demo is generated programmatically. See below for more details. -->
+
         <script src="../dist/umd.js"></script>
-        <!-- Custom Code -->
         <script>
-            const t = document.createElement("table")
+            const table = document.createElement("table")
             const data = {
                 "headings": ["Name", "Job", "Company", "Ext.", "Start Date", "Email", "Phone No."],
                 "data": [
@@ -35,8 +44,8 @@
                     ["Caleb X. Finch", "Assistant", "Elit Associates", "3629", "09/19/2016", "condimentum@eleifend.com", "056 1551 7431"]
                 ]
             }
-            document.body.appendChild(t)
-            window.dt = new window.simpleDatatables.DataTable(t, {
+            document.body.appendChild(table)
+            window.dt = new window.simpleDatatables.DataTable(table, {
                 data,
                 columns: [
                     {

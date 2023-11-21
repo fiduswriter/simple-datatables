@@ -3,20 +3,29 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Updating</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Updating - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
     </head>
     <body>
-        <h1>Updating</h1>
-        Replace <i>first</i>
-        match in a specified column. <br>
-        &nbsp; <div id="update-div">
-            <label for="columns">Column</label>
-            <select id="columns"></select>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Updating</h2>
+        <p>
+            Replace <i>first</i> match in a specified column.
+        </p>
+        <div id="update-div">
+            <label for="column">Column</label>
+            <select id="column"></select>
             <label for="find">Find</label>
             <input id="find">
             <label for="replace">Replace</label>
@@ -24,11 +33,10 @@
             <button id="update">Update</button>
         </div>
         <br>
-        <!-- CDN -->
+
         <script src="../dist/umd.js"></script>
-        <!-- Custom Code -->
         <script>
-            const t = document.createElement("table")
+            const table = document.createElement("table")
             const data = {
                 "headings": ["Name", "Job", "Company", "Ext.", "Start Date", "Email", "Phone No."],
                 "data": [
@@ -47,21 +55,21 @@
                     ["Caleb X. Finch", "Assistant", "Elit Associates", "3629", "09/19/2016", "condimentum@eleifend.com", "056 1551 7431"]
                 ]
             }
-            document.body.appendChild(t)
-            window.dt = new window.simpleDatatables.DataTable(t, {
+            document.body.appendChild(table)
+            window.dt = new window.simpleDatatables.DataTable(table, {
                 data,
                 columns: [
-        {
+                    {
                         select: 4,
                         type: "date",
                         format: "MM/DD/YYYY"
                     }
-    ]
+                ]
             })
-            const sel = document.getElementById("columns")
+            const sel = document.getElementById("column")
             data.headings.forEach((heading, index) => {
                 const opt = document.createElement("option")
-                opt.text = `${heading} - column[${index}]`
+                opt.text = `${index} - ${heading}`
                 opt.value = `${index}`
                 sel.options.add(opt)
             })
@@ -71,19 +79,19 @@
                     alert("Nothing to find")
                     return
                 }
-                const col = document.getElementById("columns").selectedIndex
+                const colIndex = document.getElementById("column").selectedIndex
                 // find first row where string occurs in column
                 const rows = window.dt.rows
                 const {
                     index,
                     cols
-                } = rows.findRow(col, find)
+                } = rows.findRow(colIndex, find)
                 if (index < 0) {
-                    alert(`Could not find "${find}" within column ${col}`)
+                    alert(`Could not find "${find}" within column ${colIndex}`)
                     return
                 }
                 // replace row data
-                cols[col] = document.getElementById("replace").value.trim()
+                cols[colIndex] = document.getElementById("replace").value.trim()
                 // update row in data table
                 rows.updateRow(index, cols)
             })

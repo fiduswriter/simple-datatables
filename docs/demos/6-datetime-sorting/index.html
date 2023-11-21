@@ -3,16 +3,25 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Datetime Sorting</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Datetime sorting - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
     </head>
     <body>
-        <h1>Datetime Sorting</h1>
-        <table>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Datetime sorting</h2>
+
+        <table id="demo-table">
             <thead>
                 <tr>
                     <th data-type="date" data-format="ISO_8601">ISO 8601</th>
@@ -929,14 +938,13 @@
                 </tr>
             </tbody>
         </table>
-        <!-- CDN -->
+
         <script src="../dist/umd.js"></script>
-        <!-- Custom Code -->
         <script>
-            new window.simpleDatatables.DataTable("table", {
+            new window.simpleDatatables.DataTable("#demo-table", {
                 // The other columns are defined directly in the HTML
                 columns: [
-        {
+                    {
                         select: 2,
                         type: "date",
                         format: "RFC_2822"
@@ -953,7 +961,7 @@
                         type: "date",
                         format: "MM-DD-YY"
                     }
-    ]
+                ]
             })
         </script>
     </body>

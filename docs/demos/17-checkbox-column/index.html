@@ -3,22 +3,31 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Checkbox column</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Checkbox column - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
         <style>
-        span.checkbox {
-            cursor: pointer;
-        }
+            span.checkbox {
+                cursor: pointer;
+            }
         </style>
     </head>
     <body>
-        <h1>Checkbox column</h1>
-        <table class="table"></table>
-        <!-- Custom Code -->
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Checkbox column</h2>
+
+        <table id="demo-table"></table>
+
         <script type="module">
             import {
                 DataTable
@@ -28,7 +37,7 @@
                 response => response.json()
             ).then(
                 data => {
-                    const datatable = new DataTable("table", {
+                    const datatable = new DataTable("#demo-table", {
                         type: "string",
                         data: {
                             headings: ["Checked"].concat(Object.keys(data[0])),
@@ -44,6 +53,7 @@
                         columns: [
                             {
                                 select: 0,
+                                sortable: false,
                                 render: (value, _td, _rowIndex, _cellIndex) => `<span class="checkbox">${value ? "☑" : "☐"}</span>`
                             }
                         ]
@@ -56,14 +66,12 @@
                             const index = parseInt(event.target.parentElement.parentElement.dataset.index, 10)
                             const cell = datatable.data.data[index][0]
                             const checked = cell.data
-                            if (checked) {
-                                cell.data = false
-                            } else {
-                                cell.data = true
-                            }
+                            cell.data = !checked
                             datatable.update()
-                            setTimeout( // set a timeout so that rednered checkbiox is rendered first.
-                                () => alert(`${name} has been ${checked ? "unchecked" : "checked"}.`),
+
+                            // Timeout used for the checkbox to have time to update and show as checked. It is not required.
+                            setTimeout(
+                                () => alert(`"${name}" has been ${checked ? "unchecked" : "checked"}.`),
                                 0
                             )
                         }

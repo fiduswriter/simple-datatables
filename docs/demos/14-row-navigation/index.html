@@ -3,30 +3,53 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Row navigation</title>
-        <style>
-            tr.selected {
-                background-color: red;
-            }
-        </style>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Row navigation - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
+        <style>
+            tr {
+                cursor: pointer;
+            }
+
+            tr.selected {
+                background-color: #ffff72;
+            }
+        </style>
     </head>
     <body>
-        <h1>Row navigation</h1>
-        <p>Select the table below either by clicking on it or by using the TAB-key. Then use the up/down arrow-keys to navigate the table. Either click on a row or hit Enter/Space after navigating to select it.</p>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Row navigation</h2>
+        <p>
+            Select the table below either by clicking on it or by using the TAB-key. Then use the up/down arrow-keys to
+            navigate the table. Either click on a row or hit Enter/Space after navigating to select it.
+        </p>
+        <br>
+
         <div>
-            <input type="checkbox" class="multi-select" checked="true">
-            <b>Multi select:</b> Whether to allow selection of more than one row.
+            <input type="checkbox" id="multi-select" checked>
+            <label for="multi-select">
+                <strong>Multi select:</strong> Whether to allow selection of more than one row.
+            </label>
         </div>
         <div>
-            <input type="checkbox" class="row-navigation" checked="true">
-            <b>Row navigation:</b> Whether to allow keyboard row navigation.
+            <input type="checkbox" id="row-navigation" checked>
+            <label for="row-navigation">
+                <strong>Row navigation:</strong> Whether to allow keyboard row navigation.
+            </label>
         </div>
-        <table class="table">
+        <br>
+
+        <table id="demo-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -743,9 +766,9 @@
             import {
                 DataTable
             } from "../dist/module.js"
-            let multiSelect = true,
-                rowNavigation = true,
-                table = false
+            let multiSelect = true
+            let rowNavigation = true
+            let table = null
 
             const resetTable = function() {
                 if (table) {
@@ -761,10 +784,9 @@
                             tr.attributes = {}
                         }
                         if (!tr.attributes.class) {
-                            tr.attributes.class = "selected"
-                        } else {
-                            tr.attributes.class += " selected"
+                            tr.attributes.class = ""
                         }
+                        tr.attributes.class += " selected"
                         return tr
 
                     }
@@ -773,12 +795,13 @@
                     options.rowNavigation = true
                     options.tabIndex = 1
                 }
-                table = new DataTable("table", options)
+
+                table = new DataTable("#demo-table", options)
 
                 // Mark all rows as unselected
                 table.data.data.forEach(data => {
-        data.selected = false
-    })
+                    data.selected = false
+                })
 
                 table.on("datatable.selectrow", (rowIndex, event) => {
                     event.preventDefault()
@@ -796,18 +819,20 @@
                     table.update()
                 })
             }
+
+            // Row navigation makes no sense on mobile, so we deactivate it and hide the checkbox.
             const isMobile = window.matchMedia("(any-pointer:coarse)").matches
             if (isMobile) {
-                // Row navigation makes no sense on mobile, so we deactivate it and hide the checkbox.
                 rowNavigation = false
-                document.querySelector("input.row-navigation").style.display = "none"
+                document.getElementById("row-navigation").style.display = "none"
             }
+
             resetTable()
-            document.querySelector("input.multi-select").addEventListener("input", _event => {
+            document.getElementById("multi-select").addEventListener("input", _event => {
                 multiSelect = !multiSelect
                 resetTable()
             })
-            document.querySelector("input.row-navigation").addEventListener("input", _event => {
+            document.getElementById("row-navigation").addEventListener("input", _event => {
                 rowNavigation = !rowNavigation
                 resetTable()
             })

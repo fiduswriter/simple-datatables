@@ -3,26 +3,25 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
         <title>Column filters</title>
-
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
-
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
-        <style>
-            .red {
-                background-color: red;
-            }
-            .green {
-                background-color: green;
-            }
-        </style>
     </head>
     <body>
-        <h1>Column filters</h1>
-        <table class="table">
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Column filters</h2>
+
+        <table id="demo-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -738,8 +737,8 @@
 
         <script type="module">
             import {DataTable} from "../dist/module.js"
-            window.dt = new DataTable("table", {
-                perPageSelect: [5, 10, 15, ["All", -1]],
+            window.dt = new DataTable("#demo-table", {
+                perPageSelect: [10, 50, ["All", -1]],
                 columns: [
                     {
                         select: 2,
@@ -748,11 +747,6 @@
                     {
                         select: 3,
                         sortSequence: ["desc"]
-                    },
-                    {
-                        select: 4,
-                        cellClass: "green",
-                        headerClass: "red"
                     }
                 ],
                 tableRender: (_data, table, type) => {
@@ -779,8 +773,7 @@
                     tHead.childNodes.push(filterHeaders)
                     return table
                 }
-})
-
+            })
         </script>
     </body>
 </html>
