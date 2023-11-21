@@ -1,6 +1,13 @@
 * { margin: 0; padding: 0; box-sizing: border-box; font-family: Roboto, Arial, Helvetica, sans-serif; }
 html, body { overflow-x: hidden; overflow-y: auto; }
-body { margin: 5vw; }
+body { margin: 2vw 5vw; }
+header { display: flex; align-items: baseline; gap: 1rem; }
+header h1 a { color: #16378d; }
+nav { display: flex; flex-direction: column; }
+a { text-decoration: none; color: #0031e6; }
+a:hover, a:focus { color: #00198b; }
+h2 { margin: 1rem 0; }
+button:not(.datatable-sorter):not(.datatable-filter) { cursor: pointer; padding: 0.5em; }
 
-h1 { margin: 1rem 0 2rem; }
-tbody button { background: blue; color: white; border: none; border-radius: 4px; padding: .25rem .5rem; margin: 0 0 0 .25rem; }
+tbody button { background: #565656; color: white; border: none; border-radius: 4px; padding: .25rem .5rem; margin: 0 0 0 .25rem; }
+tbody button:hover, tbody button:focus { background: #3b3b3b; }

@@ -3,29 +3,38 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Column Manipulation</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Column manipulation - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
     </head>
     <body>
-        <h1>Column Manipulation</h1>
-        <table class="table"></table>
-        <!-- Custom Code -->
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Column manipulation</h2>
+
+        <table id="demo-table"></table>
+
         <script type="module">
             import {
                 DataTable
             } from "../dist/module.js"
             const columnData = [
                 {
-                // Select the first column ...
+                    // Select the first column ...
                     select: 0,
                     // ...add a random number (age) to the cells
                     render: data => `${data} (${(Math.floor(Math.random() * (70-18))+18)})`
                 }, {
-                // select the fourth column ...
+                    // select the fourth column ...
                     select: 3,
                     // ... let the instance know we have datetimes in it ...
                     type: "date",
@@ -48,7 +57,7 @@
                 response => response.json()
             ).then(
                 data => {
-                    const datatable = new DataTable("table", {
+                    const datatable = new DataTable("#demo-table", {
                         data: {
                             headings: Object.keys(data[0]),
                             data: data.map(item => Object.values(item))

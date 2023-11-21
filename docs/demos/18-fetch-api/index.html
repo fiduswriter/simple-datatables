@@ -3,35 +3,41 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Fetch API</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Fetch API - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
     </head>
     <body>
-        <h1>Fetch API</h1>
-        <table class="table"></table>
-        <!-- CDN -->
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Fetch API</h2>
+
+        <table id="demo-table"></table>
+
         <script src="../dist/umd.js"></script>
-        <!-- Custom Code -->
         <script>
-            fetch("demo.json").then(
-                response => response.json()
-            ).then(
-                data => {
-                    if (!data.length) {
+            fetch("data.json")
+                .then(response => response.json())
+                .then(data => {
+                    if (!data || !data.length) {
                         return
                     }
-                    new window.simpleDatatables.DataTable(".table", {
+                    new window.simpleDatatables.DataTable("#demo-table", {
                         data: {
                             headings: Object.keys(data[0]),
                             data: data.map(item => Object.values(item))
                         }
                     })
-                }
-            )
+                })
         </script>
     </body>
 </html>

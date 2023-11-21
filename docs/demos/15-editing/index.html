@@ -3,8 +3,8 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Editing</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Editing - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <link rel="stylesheet" href="../dist/css/editing.css">
@@ -12,12 +12,26 @@
         <link rel="stylesheet" href="../demo.css">
     </head>
     <body>
-        <h1>Editing</h1>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Editing</h2>
+        <p>Double-click a cell to edit it.</p>
+        <br>
         <div>
-            <input type="checkbox" class="modal">
-            <b>Modal:</b> Whether to use modal for data editing
+            <input type="checkbox" id="modal" class="modal">
+            <label for="modal">
+                <strong>Modal:</strong> Show a modal instead of the inline editor
+            </label>
         </div>
-        <table class="table">
+        <br>
+
+        <table id="demo-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -730,14 +744,15 @@
                 </tr>
             </tbody>
         </table>
+
         <script type="module">
             import {
                 DataTable,
                 makeEditable
             } from "../dist/module.js"
-            let editor = false,
-    inline = true,
-    table = false
+            let editor = false
+            let inline = true
+            let table = false
 
             const resetTable = function() {
                 if (editor) {
@@ -746,7 +761,7 @@
                 if (table) {
                     table.destroy()
                 }
-                table = new DataTable("table", {
+                window.table = table = new DataTable("#demo-table", {
                     columns: [
                         {
                             select: 3,
@@ -755,7 +770,6 @@
                         }
                     ]
                 })
-                window.table = table
                 editor = makeEditable(table, {
                     contextMenu: true,
                     hiddenColumns: true,
@@ -789,7 +803,7 @@
                 })
             }
             resetTable()
-            document.querySelector("input.modal").addEventListener("input", _event => {
+            document.getElementById("modal").addEventListener("input", _event => {
                 inline = !inline
                 resetTable()
             })

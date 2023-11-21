@@ -3,16 +3,27 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Simple</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Hide column - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
     </head>
     <body>
-        <h1>Simple</h1>
-        <table class="table">
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Hide column</h2>
+        <p>Example on how to hide the column "Name".</p>
+        <br>
+
+        <table id="demo-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -725,13 +736,14 @@
                 </tr>
             </tbody>
         </table>
+
         <script type="module">
             import {
                 DataTable
             } from "../dist/module.js"
-            new DataTable("table", {
+            new DataTable("#demo-table", {
                 columns: [
-        {
+                    {
                         select: 0,
                         hidden: true,
                         render: (data, cell, row) => {
@@ -739,7 +751,7 @@
                             return data // Will not be shown as column is hidden.
                         }
                     }
-    ],
+                ],
                 searchable: false,
                 fixedHeight: false,
                 layout: {

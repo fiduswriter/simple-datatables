@@ -3,16 +3,29 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>CDN</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>CDN - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
     </head>
     <body>
-        <h1>CDN</h1>
-        <table class="table">
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>CDN</h2>
+        <p>
+            Serve the library files via a CDN. This example uses <a href="https://jsdelivr.com" target="_blank">jsdelivr.com</a>
+        </p>
+        <br>
+
+        <table id="demo-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -725,11 +738,10 @@
                 </tr>
             </tbody>
         </table>
-        <!-- CDN -->
+
         <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest"></script>
-        <!-- Custom Code -->
         <script>
-            new window.simpleDatatables.DataTable("table")
+            new window.simpleDatatables.DataTable("#demo-table")
         </script>
     </body>
 </html>
