@@ -3,163 +3,168 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="data:image/png;base64,iVBORw0KGgo=">
-        <title>Init/ Destroy - Import/ Export</title>
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Init/destroy and import/export - simple-datatables</title>
         <!-- DataTable Styles -->
         <link rel="stylesheet" href="../dist/css/style.css">
         <!-- Demo Styles -->
         <link rel="stylesheet" href="../demo.css">
         <style>
-            .btn.success,
-            .bttn.success {
-                background-color: #27ae60;
-                box-shadow: inset 0 -3px #1e8449;
+            .controls {
+                padding: 0 10px;
             }
 
-            .btn.danger,
-            .bttn.danger {
-                background-color: #c0392b;
-                box-shadow: inset 0 -3px #962d22;
+            button {
+                border-radius: 6px;
+                color: white;
+                border: none;
             }
 
-            .btn.primary,
-            .bttn.primary {
-                background-color: #3498db;
-                box-shadow: inset 0 -3px #217dbb;
+            .success {
+                background-color: #1f8f4e;
+            }
+            .success:hover,
+            .success:focus {
+                background-color: #156537;
+            }
+
+            .danger {
+                background-color: #982d22;
+            }
+            .danger:hover,
+            .danger:focus {
+                background-color: #5e1a12;
+            }
+
+            .primary {
+                background-color: #2d84be;
+            }
+            .primary:hover,
+            .primary:focus {
+                background-color: #206491;
+            }
+
+            #hide.hidden {
+                display: none;
+            }
+            #hide label {
+                padding-left: 0.25em;
             }
         </style>
     </head>
     <body>
-        <h1>Init/ Destroy - Import/ Export</h1>
-        <div class="container">
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-block">
-                            <div class="form-group">
-                                <button type="button" class="bttn success main" id="init">Init</button>
-                                <button type="button" class="bttn danger main" id="destroy">Destroy</button>
-                            </div>
-                        </div>
-                    </div>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Init/destroy and import/export</h2>
+        <div class="controls">
+            <button id="init" type="button" class="success main">Init</button>
+            <button id="destroy" type="button" class="danger main">Destroy</button>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    <th>Customer</th>
+                    <th>Version</th>
+                    <th data-type="date" data-format="DD.MM.YYYY">Planned upgrade</th>
+                    <th>DB-Info</th>
+                    <th>Website info</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td></td>
+                    <td>
+                        Test one <br>CCode: 33123
+                    </td>
+                    <td>7.1.5</td>
+                    <td>26.11.2018</td>
+                    <td>
+                        Server: s1 <br>DB: db1
+                    </td>
+                    <td>
+                        Websitename: Red <br>Node: 10
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        Test two <br>CCode: 12353
+                    </td>
+                    <td>7.1.5.2</td>
+                    <td>26.11.2019</td>
+                    <td>
+                        Server: s1 <br>DB: db2
+                    </td>
+                    <td>
+                        Websitename: Green <br>Node: 6
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        Test three <br>CCode: 33522
+                    </td>
+                    <td>7.1.6</td>
+                    <td>01.01.2020</td>
+                    <td>
+                        Server: s2 <br>DB: db1
+                    </td>
+                    <td>
+                        Websitename: Orange <br>Node: 5
+                    </td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>
+                        Test four <br>CCode: 25512
+                    </td>
+                    <td>7.1.7</td>
+                    <td>26.03.2021</td>
+                    <td>
+                        Server: s1 <br>DB: db3
+                    </td>
+                    <td>
+                        Websitename: Blue <br>Node: 10
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div id="hide">
+            <strong>Column Visibility</strong>
+            <div class="form-group" id="columns"></div>
+
+            <br>
+
+            <strong>Import / Export Data</strong>
+            <div class="card-block">
+                <div class="form-group">
+                    <textarea name="" id="" cols="30" rows="2" placeholder="Paste your CSV or JSON string here..."></textarea>
                 </div>
-            </div>
-            <div class="row">
-                <div class="col-12">
-                    <div class="card">
-                        <div class="card-block">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Select</th>
-                                        <th>Customer</th>
-                                        <th>Version</th>
-                                        <th data-type="date" data-format="DD.MM.YYYY">Planned upgrade</th>
-                                        <th>DB-Info</th>
-                                        <th>Website info</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td></td>
-                                        <td>
-                                            Test one <br>CCode: 33123
-                                        </td>
-                                        <td>7.1.5</td>
-                                        <td>26.11.2018</td>
-                                        <td>
-                                            Server: s1 <br>DB: db1
-                                        </td>
-                                        <td>
-                                            Websitename: Red <br>Node: 10
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td>
-                                            Test two <br>CCode: 12353
-                                        </td>
-                                        <td>7.1.5.2</td>
-                                        <td>26.11.2019</td>
-                                        <td>
-                                            Server: s1 <br>DB: db2
-                                        </td>
-                                        <td>
-                                            Websitename: Green <br>Node: 6
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td>
-                                            Test three <br>CCode: 33522
-                                        </td>
-                                        <td>7.1.6</td>
-                                        <td>01.01.2020</td>
-                                        <td>
-                                            Server: s2 <br>DB: db1
-                                        </td>
-                                        <td>
-                                            Websitename: Orange <br>Node: 5
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td>
-                                            Test four <br>CCode: 25512
-                                        </td>
-                                        <td>7.1.7</td>
-                                        <td>26.03.2021</td>
-                                        <td>
-                                            Server: s1 <br>DB: db3
-                                        </td>
-                                        <td>
-                                            Websitename: Blue <br>Node: 10
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <button type="button" class="primary import" data-type="csv">Import CSV</button>
+                    <button type="button" class="primary import" data-type="json">Import JSON</button>
+                    <button type="button" class="success export" data-type="csv">Export CSV</button>
+                    <button type="button" class="success export" data-type="sql">Export SQL</button>
+                    <button type="button" class="success export" data-type="json">Export JSON</button>
                 </div>
-            </div>
-            <div id="hide">
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header"> Column Visibility </div>
-                            <div class="card-block">
-                                <div class="form-group" id="columns"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="row">
-                    <div class="col-12">
-                        <div class="card">
-                            <div class="card-header"> Import / Export Data </div>
-                            <div class="card-block">
-                                <div class="form-group">
-                                    <textarea name="" id="" cols="30" rows="2" placeholder="Paste your csv or json string here..."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <button type="button" class="bttn primary import" data-type="csv">Import CSV</button>
-                                    <button type="button" class="bttn primary import" data-type="json">Import JSON</button>
-                                    <button type="button" class="bttn success export" data-type="csv">Export CSV</button>
-                                    <button type="button" class="bttn success export" data-type="sql">Export SQL</button>
-                                    <button type="button" class="bttn success export" data-type="json">Export JSON</button>
-                                </div>
-                                <div class="form-group">
-                                    <small>
-                                        NOTE: The csv column delimiters and line delimiters are set to <code>","</code>
-                                        and <code>"\n"</code> respectively.
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                <div class="form-group">
+                    <small>
+                        Note: The csv column delimiters and line delimiters are set to <code>","</code>
+                        and <code>"\n"</code> respectively.
+                    </small>
                 </div>
             </div>
         </div>
+
         <!-- Custom Code -->
         <script type="module">
             import {DataTable, convertJSON, convertCSV, exportCSV, exportSQL, exportJSON} from "../dist/module.js"
@@ -179,11 +184,11 @@
                 }
                 return dom
             }
-            const checkboxes = document.getElementById("columns"),
-                table = document.getElementsByTagName("table")[0],
-                textarea = document.getElementsByTagName("textarea")[0]
-            const hidden = [],
-    visible = []
+            const checkboxes = document.getElementById("columns")
+            const table = document.getElementsByTagName("table")[0]
+            const textarea = document.getElementsByTagName("textarea")[0]
+            const hidden = []
+            const visible = []
             let inputs = []
             const datatable = new DataTable(table, {
                 perPage: 5,
@@ -297,10 +302,10 @@
                         textarea.parentNode.classList.add("error")
                         return false
                     }
-                    if (type==="csv") {
+                    if (type === "csv") {
                         const convertedData = convertCSV(data)
                         datatable.insert(convertedData)
-                    } else if (type==="json") {
+                    } else if (type === "json") {
                         const convertedData = convertJSON(data)
                         datatable.insert(convertedData)
                     }

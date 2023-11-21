@@ -4,7 +4,7 @@ A lightweight, extendable, JavaScript HTML table library written in TypeScript a
 
 ## Examples / Demos
 
-See the demos [here](https://fiduswriter.github.io/simple-datatables/demos/).
+See the demos [here](https://fiduswriter.github.io/simple-datatables/demos/) and the documentation [here](https://fiduswriter.github.io/simple-datatables/documentation/).
 
 ### Upgrading
 
