@@ -1058,6 +1058,9 @@ export class DataTable {
             ]
         }
 
+        this._tableFooters.forEach(footer => newVirtualDOM.childNodes.push(footer))
+        this._tableCaptions.forEach(caption => newVirtualDOM.childNodes.push(caption))
+
         newVirtualDOM.attributes.class = newVirtualDOM.attributes.class ? `${newVirtualDOM.attributes.class} ${this.options.classes.table}` : this.options.classes.table
 
         if (this.options.tableRender) {

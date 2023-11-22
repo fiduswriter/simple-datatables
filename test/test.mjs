@@ -22,9 +22,10 @@ if (process.env.CI) { // eslint-disable-line no-process-env
 const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
 const manage = driver.manage()
 manage.window().maximize()
+const baseUrl = `http://localhost:${port}/`
 let demoUrls
 server.listen(port)
-await driver.get(`http://localhost:${port}`).then(
+await driver.get(baseUrl).then(
     () => driver.findElements(webdriver.By.css("a"))
 ).then(
     nodes => Promise.all(nodes.map(node => node.getAttribute("href")))
@@ -71,6 +72,54 @@ describe("Demos work", function() {
     ).then(
         log => assert.deepEqual(log, [])
     ))
+})
+
+describe("Integration tests pass", function() {
+    this.timeout(5000)
+
+    it("initializes the datatable", async () => {
+        await driver.get(`${baseUrl}1-simple/`)
+        const wrapper = await driver.findElement(webdriver.By.className("datatable-wrapper"))
+        const container = await wrapper.findElement(webdriver.By.className("datatable-container"))
+        const table = await container.findElement(webdriver.By.tagName("table"))
+        const tableClass = await table.getAttribute("class")
+        assert.equal(tableClass, "datatable-table", "table is missing class 'datatable-table'")
+
+        await wrapper.findElement(webdriver.By.className("datatable-top"))
+        await wrapper.findElement(webdriver.By.className("datatable-bottom"))
+    })
+
+    it("shows table footer", async () => {
+        await driver.get(`${baseUrl}24-footer`)
+        const table = await driver.findElement(webdriver.By.tagName("table"))
+        const tfoot = table.findElement(webdriver.By.tagName("tfoot"))
+        const tfootText = await tfoot.getText()
+        assert.equal(tfootText, "This is a table footer.")
+    })
+
+    it("shows table caption", async () => {
+        await driver.get(`${baseUrl}24-footer`)
+        const table = await driver.findElement(webdriver.By.tagName("table"))
+        const caption = table.findElement(webdriver.By.tagName("caption"))
+        const captionText = await caption.getText()
+        assert.equal(captionText, "This is a table caption.")
+    })
+
+    it("shows table footer when empty", async () => {
+        await driver.get(`${baseUrl}tests/empty-table-with-footer.html`)
+        const table = await driver.findElement(webdriver.By.tagName("table"))
+        const tfoot = table.findElement(webdriver.By.tagName("tfoot"))
+        const tfootText = await tfoot.getText()
+        assert.equal(tfootText, "This is a table footer.")
+    })
+
+    it("shows table caption when empty", async () => {
+        await driver.get(`${baseUrl}tests/empty-table-with-footer.html`)
+        const table = await driver.findElement(webdriver.By.tagName("table"))
+        const caption = table.findElement(webdriver.By.tagName("caption"))
+        const captionText = await caption.getText()
+        assert.equal(captionText, "This is a table caption.")
+    })
 })
 
 after(() => {
