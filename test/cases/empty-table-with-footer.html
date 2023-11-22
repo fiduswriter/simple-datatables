@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <title>empty-table-with-footer</title>
+    </head>
+    <body>
+        <table>
+            <caption>This is a table caption.</caption>
+            <thead>
+                <tr>
+                    <th>Header 1</th>
+                    <th>Header 2</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- No data! -->
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="2">
+                        This is a table footer.
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <script src="../dist/umd.js"></script>
+        <script>
+        window.dt = new window.simpleDatatables.DataTable("table")
+    </script>
+    </body>
+</html>

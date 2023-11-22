@@ -4,6 +4,7 @@ import express from "express"
 const app = express()
 
 app.use(express.static("docs/demos"))
+app.use("/tests", express.static("test/cases"))
 app.get("/documentation", (_req, res) => res.send("It's me, the documentation page!"))
 app.use("/favicon.ico", express.static("docs/favicon.ico"))
 app.use("/favicon.svg", express.static("docs/favicon.svg"))
