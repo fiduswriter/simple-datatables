@@ -1,11 +1,13 @@
 import {
+    cellToText,
     isObject
 } from "../helpers"
 import {DataTable} from "../datatable"
 import {
+    cellDataType,
     cellType,
-    headerCellType,
-    elementNodeType
+    dataRowType,
+    headerCellType
 } from "../types"
 /**
  * Export table to JSON
@@ -44,30 +46,36 @@ export const exportJSON = function(dt: DataTable, userOptions: jsonUserOptions =
 
     const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings[index]?.hidden
 
-    let rows : (string | number | boolean | object | undefined | null)[][] = []
     // Selection or whole table
+    let selectedRows: dataRowType[]
     if (options.selection) {
         // Page number
         if (Array.isArray(options.selection)) {
             // Array of page numbers
+            selectedRows = []
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
+                selectedRows = selectedRows.concat(dt.pages[options.selection[i] - 1].map(row => row.row))
             }
         } else {
-            rows = rows.concat(dt.pages[options.selection - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
+            selectedRows = dt.pages[options.selection - 1].map(row => row.row)
         }
     } else {
-        rows = rows.concat(dt.data.data.map((row: cellType[]) => row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
+        selectedRows = dt.data.data
     }
+
+    const rows: cellDataType[][] = selectedRows.map((row: dataRowType) => {
+        const shownCells = row.cells.filter((_cell: cellType, index: number) => columnShown(index))
+        return shownCells.map((cell: cellType) => cellToText(cell))
+    })
 
     const headers = dt.data.headings.filter((_heading: headerCellType, index: number) => columnShown(index)).map((header: headerCellType) => header.text ?? String(header.data))
 
     // Only proceed if we have data
     if (rows.length) {
-        const arr: (void | { [key: string]: (string | number | boolean | undefined | null | elementNodeType[])})[] = []
-        rows.forEach((row: (string | number | boolean | object | undefined | null)[], x: number) => {
+        const arr: (void | { [key: string]: cellDataType})[] = []
+        rows.forEach((row: cellDataType[], x: number) => {
             arr[x] = arr[x] || {}
-            row.forEach((cell: (string | number | boolean | object | undefined | null), i: number) => {
+            row.forEach((cell: cellDataType, i: number) => {
                 arr[x][headers[i]] = cell
             })
         })

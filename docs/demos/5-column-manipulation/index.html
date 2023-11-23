@@ -81,7 +81,7 @@
                     datatable.dom.addEventListener("click", e => {
                         if (e.target.nodeName === "BUTTON" && e.target.hasAttribute("data-id")) {
                             const index = parseInt(e.target.getAttribute("data-id"), 10)
-                            const row = datatable.data.data[index]
+                            const row = datatable.data.data[index].cells
                             let message = [
                                 "This is row ",
                                 (e.target.closest("tr").rowIndex + 1), " of ",

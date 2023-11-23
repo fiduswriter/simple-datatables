@@ -20,8 +20,10 @@ type nodeType = elementNodeType | textNodeType
 
 // Definitions for table cells and other table relevant data
 
+type cellDataType = string | number | boolean | nodeType | object;
+
 interface cellType {
-    data: string | number | boolean | elementNodeType[] | object;
+    data: cellDataType;
     text?: string;
     order?: string | number;
     attributes?: { [key: string]: string };
@@ -29,8 +31,13 @@ interface cellType {
 
 type inputCellType = cellType | string | number | boolean;
 
+interface inputRowType {
+    attributes?: { [key: string]: string };
+    cells: inputCellType[];
+}
+
 interface headerCellType {
-    data: string | number | boolean | elementNodeType[] | object;
+    data: cellDataType;
     type?: ("html" | "string");
     text?: string;
     attributes?: { [key: string]: string };
@@ -38,21 +45,25 @@ interface headerCellType {
 
 type inputHeaderCellType = headerCellType | string | number | boolean;
 
-
-interface DataOption{
-    headings?: string[];
-    data?: inputCellType[][] ;
+interface dataRowType {
+    attributes?: { [key: string]: string };
+    cells: cellType[];
 }
 
-interface TableDataType{
+interface DataOption {
+    headings?: string[];
+    data?: (inputRowType | inputCellType[])[];
+}
+
+interface TableDataType {
     headings: headerCellType[];
-    data: cellType[][] ;
+    data: dataRowType[];
 }
 
 type renderType = ((cellData: (string | number | boolean | object | elementNodeType[]), td: object, rowIndex: number, cellIndex: number) => elementNodeType | string | void);
 
 interface rowType {
-    row: cellType[];
+    row: dataRowType;
     index: number;
 }
 
@@ -210,10 +221,11 @@ interface ClassConfiguration {
 
 type pagerRenderType = ((data: [onFirstPage: boolean, onLastPage: boolean, currentPage: number, totalPages: number], pager: elementNodeType) => elementNodeType | void);
 
-type rowRenderType = ((row: object, tr: object, index: number) => elementNodeType | void);
+type rowRenderType = ((row: dataRowType, tr: elementNodeType, index: number) => elementNodeType | void);
 
-type tableRenderType = ((data: object, table: elementNodeType, type: string) => elementNodeType | void);
-// Type can be 'main', 'print', 'header' or 'message'
+type renderTypeEnum = "main" | "print" | "header" | "message"
+
+type tableRenderType = ((data: object, table: elementNodeType, type: renderTypeEnum) => elementNodeType | void);
 
 
 interface DataTableConfiguration {
@@ -472,15 +484,18 @@ interface columnsStateType {
 
 
 export {
+    cellDataType,
     cellType,
     columnsStateType,
     DataOption,
     DataTableConfiguration,
     DataTableOptions,
+    dataRowType,
     filterStateType,
     headerCellType,
     inputCellType,
     inputHeaderCellType,
+    inputRowType,
     elementNodeType,
     nodeType,
     renderOptions,

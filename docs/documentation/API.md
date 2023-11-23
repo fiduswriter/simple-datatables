@@ -35,7 +35,6 @@ Returns the current configuration options.  See [Options](Options)
 
 ---
 
-
 ### initialized
 #### type `Boolean`
 
@@ -50,16 +49,22 @@ The data of the table, containing two parts: `headings` and `data` (contents of 
 
 * `headings`: An array of **header cells**.
 
-* `data`: An array of rows of data. Each row consists of an array of **content cells**.
+* `data`: An array of rows of data. Each row consists of an array of **row cells**.
 
 
 **Header cells** are objects with these fields:
 
 * `data` (any, required): The headers data in it's original format.
 
-* `text` (string, ptional): In case the browser's automatic conversion of the data field to a string to display in a browser is not working correctly, this field can be sued to control what is being rendered.
+* `text` (string, optional): In case the browser's automatic conversion of the data field to a string to display in a browser is not working correctly, this field can be sued to control what is being rendered.
 
 * `type` (string, optional): "html" in case of the data field is an array of DiffDOM nodes. "string" in case of a plaintext string.
+
+**Row cells** are objects with these fields:
+
+* `attributes` (any, optional): The row attributes. Use like `{ "class": "my-class", "style": "background-color: pink;" }`. 
+
+* `cells` (any[], required): The list of cells in this row. See "Content cells" for more details.
 
 **Content cells** are also objects with the same `data` and `text` fields that **header fields** has and additionally with this field:
 

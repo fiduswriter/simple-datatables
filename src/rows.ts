@@ -1,6 +1,7 @@
 import {readDataCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {cellType, inputCellType} from "./types"
+import {cellType, dataRowType, inputCellType} from "./types"
+import {cellToText} from "./helpers"
 /**
  * Rows API
  */
@@ -35,16 +36,18 @@ export class Rows {
      * Add new row
      */
     add(data: cellType[]) {
-        const row = data.map((cell: cellType, index: number) => {
-            const columnSettings = this.dt.columns.settings[index]
-            return readDataCell(cell, columnSettings)
-        })
-        this.dt.data.data.push(row)
-
-        // We may have added data to an empty table
-        if ( this.dt.data.data.length ) {
-            this.dt.hasRows = true
+        if (!Array.isArray(data) || data.length < 1) {
+            return
         }
+
+        const row: dataRowType = {
+            cells: data.map((cell: cellType, index: number) => {
+                const columnSettings = this.dt.columns.settings[index]
+                return readDataCell(cell, columnSettings)
+            })
+        }
+        this.dt.data.data.push(row)
+        this.dt.hasRows = true
         this.dt.update(true)
     }
 
@@ -53,7 +56,7 @@ export class Rows {
      */
     remove(select: number | number[]) {
         if (Array.isArray(select)) {
-            this.dt.data.data = this.dt.data.data.filter((_row: cellType[], index: number) => !select.includes(index))
+            this.dt.data.data = this.dt.data.data.filter((_row: dataRowType, index: number) => !select.includes(index))
             // We may have emptied the table
             if ( !this.dt.data.data.length ) {
                 this.dt.hasRows = false
@@ -72,7 +75,11 @@ export class Rows {
         // returns row index of first case-insensitive string match
         // inside the td innerText at specific column index
         return this.dt.data.data.findIndex(
-            (row: cellType[]) => (row[columnIndex].text ?? String(row[columnIndex].data)).toLowerCase().includes(String(value).toLowerCase())
+            (row: dataRowType) => {
+                const cell = row.cells[columnIndex]
+                const cellText = cellToText(cell)
+                return cellText.toLowerCase().includes(String(value).toLowerCase())
+            }
         )
     }
 
@@ -93,7 +100,7 @@ export class Rows {
         // get the row from data
         const row = this.dt.data.data[index]
         // return innerHTML of each td
-        const cols = row.map((cell: cellType) => cell.data)
+        const cols = row.cells.map((cell: cellType) => cell.data)
         // return everything
         return {
             index,
@@ -106,10 +113,12 @@ export class Rows {
      * Update a row with new data
      */
     updateRow(select: number, data: inputCellType[]) {
-        const row = data.map((cell: inputCellType, index: number) => {
-            const columnSettings = this.dt.columns.settings[index]
-            return readDataCell(cell, columnSettings)
-        })
+        const row: dataRowType = {
+            cells: data.map((cell: inputCellType, index: number) => {
+                const columnSettings = this.dt.columns.settings[index]
+                return readDataCell(cell, columnSettings)
+            })
+        }
         this.dt.data.data.splice(select, 1, row)
         this.dt.update(true)
     }

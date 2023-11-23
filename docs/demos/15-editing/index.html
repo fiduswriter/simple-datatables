@@ -773,17 +773,17 @@
                 editor = makeEditable(table, {
                     contextMenu: true,
                     hiddenColumns: true,
-                    excludeColumns: [1],
+                    excludeColumns: [1], // make the "Ext." column non-editable
                     inline,
                     menuItems: [
                         {
-                            text: "<span class = 'mdi mdi-lead-pencil'> </span> Edit Cell",
+                            text: "<span class='mdi mdi-lead-pencil'></span> Edit Cell",
                             action: (editor, _event) => {
                                 const td = editor.event.target.closest("td")
                                 return editor.editCell(td)
                             }
                         }, {
-                            text: "<span class = 'mdi mdi-lead-pencil'> </span> Edit Row",
+                            text: "<span class='mdi mdi-lead-pencil'></span> Edit Row",
                             action: (editor, _event) => {
                                 const tr = editor.event.target.closest("tr")
                                 return editor.editRow(tr)
@@ -791,7 +791,7 @@
                         }, {
                             separator: true
                         }, {
-                            text: "<span class = 'mdi mdi-delete'> </span> Remove",
+                            text: "<span class='mdi mdi-delete'></span> Remove",
                             action: (editor, _event) => {
                                 if (confirm("Are you sure?")) {
                                     const tr = editor.event.target.closest("tr")

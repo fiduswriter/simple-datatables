@@ -20,8 +20,10 @@ if (process.env.CI) { // eslint-disable-line no-process-env
     options.headless()
 }
 const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
-const manage = driver.manage()
-manage.window().maximize()
+driver.manage().window().setRect({width: 1920,
+    height: 1080,
+    x: 0,
+    y: 0})
 const baseUrl = `http://localhost:${port}/`
 let demoUrls
 server.listen(port)
@@ -60,7 +62,7 @@ const clickAllSortableHeaders = function(driver, counter=0) {
 describe("Demos work", function() {
     this.timeout(5000)
     forEach(demoUrls).it("loads %s without JS errors", url => driver.get(url).then(
-        () => manage.logs().get("browser")
+        () => driver.manage().logs().get("browser")
     ).then(
         log => assert.deepEqual(log, [])
     ))
@@ -68,7 +70,7 @@ describe("Demos work", function() {
     forEach(demoUrls).it("can click on all sort headers of %s without JS errors", url => driver.get(url).then(
         () => clickAllSortableHeaders(driver)
     ).then(
-        () => manage.logs().get("browser")
+        () => driver.manage().logs().get("browser")
     ).then(
         log => assert.deepEqual(log, [])
     ))
@@ -119,6 +121,26 @@ describe("Integration tests pass", function() {
         const caption = table.findElement(webdriver.By.tagName("caption"))
         const captionText = await caption.getText()
         assert.equal(captionText, "This is a table caption.")
+    })
+
+    /**
+     * Assert that the rendered table has all the attributes defined.
+     */
+    const assertCellAttrs = async function(tableId) {
+        await driver.findElement(webdriver.By.xpath(`//table[@id='${tableId}' and contains(@class, 'my-table') and @style='white-space: nowrap;']`))
+        await driver.findElement(webdriver.By.xpath(`//table[@id='${tableId}']/thead/tr/th[@class='red']`))
+        await driver.findElement(webdriver.By.xpath(`//table[@id='${tableId}']/tbody/tr[@class='yellow']`))
+        await driver.findElement(webdriver.By.xpath(`//table[@id='${tableId}']/tbody/tr[@class='yellow']/td[@class='red']`))
+    }
+
+    it("preserves cell attributes (DOM)", async () => {
+        await driver.get(`${baseUrl}tests/cell-attributes-dom.html`)
+        await assertCellAttrs("cell-attributes-dom-table")
+    })
+
+    it("preserves cell attributes (JS)", async () => {
+        await driver.get(`${baseUrl}tests/cell-attributes-js.html`)
+        await assertCellAttrs("cell-attributes-js-table")
     })
 })
 

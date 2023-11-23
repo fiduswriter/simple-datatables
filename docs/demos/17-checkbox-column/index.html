@@ -47,7 +47,7 @@
                             if (!tr.attributes) {
                                 tr.attributes = {}
                             }
-                            tr.attributes["data-name"] = rowValue[1].data
+                            tr.attributes["data-name"] = rowValue.cells[1].data
                             return tr
                         },
                         columns: [
@@ -64,7 +64,8 @@
                             event.stopPropagation()
                             const name = event.target.parentElement.parentElement.dataset.name
                             const index = parseInt(event.target.parentElement.parentElement.dataset.index, 10)
-                            const cell = datatable.data.data[index][0]
+                            const row = datatable.data.data[index]
+                            const cell = row.cells[0]
                             const checked = cell.data
                             cell.data = !checked
                             datatable.update()

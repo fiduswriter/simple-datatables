@@ -13,6 +13,9 @@
             .red {
                 background-color: #ffafba;
             }
+            .yellow {
+                background-color: #fff8af;
+            }
         </style>
     </head>
     <body>
@@ -36,11 +39,16 @@
                 .then(response => response.json())
                 .then(data => {
                     window.datatable1 = new window.simpleDatatables.DataTable("#demo-table1", {
-                        data
+                        data,
+                        tableRender: (_data, table, _type) => {
+                            table.attributes.class += " my-table"
+                            table.attributes.style = "white-space: nowrap;"
+                        }
                     })
                 })
         </script>
-        <table id="demo-table2">
+
+        <table id="demo-table2" class="my-table" style="white-space: nowrap;">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -51,7 +59,7 @@
                 </tr>
             </thead>
             <tbody>
-                <tr>
+                <tr class="yellow">
                     <td>Unity Pugh</td>
                     <td class="red">9958</td>
                     <td>Curicó</td>

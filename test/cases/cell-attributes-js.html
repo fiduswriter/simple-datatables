@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <title>cell-attributes-js</title>
+    </head>
+    <body>
+        <table id="cell-attributes-js-table"></table>
+
+        <script src="../dist/umd.js"></script>
+        <script>
+            const data = {
+                "headings": [
+                    {
+                        "data": "ID"
+                    },
+                    {
+                        "data": "Drink",
+                        "attributes": {
+                            "class": "red"
+                        }
+                    },
+                    {
+                        "data": "Caffeinated"
+                    }
+                ],
+                "data": [
+                    {
+                        "attributes": {
+                            "class": "yellow"
+                        },
+                        "cells": [
+                            "1",
+                            {
+                                "data": [
+                                    {
+                                        "nodeName": "#text",
+                                        "data": "latte"
+                                    }
+                                ],
+                                "text": "latte",
+                                "order": "latte",
+                                "attributes": {
+                                    "class": "red"
+                                }
+                            },
+                            "false"
+                        ]
+                    },
+                    [
+                        "2",
+                        "herbal tea",
+                        "false"
+                    ],
+                    [
+                        "3",
+                        "green tea",
+                        "true"
+                    ]
+                ]
+            }
+            window.dt = new window.simpleDatatables.DataTable("table", {
+                data,
+                tableRender: (_data, table, _type) => {
+                    table.attributes.class += " my-table"
+                    table.attributes.style = "white-space: nowrap;"
+                }
+            })
+        </script>
+    </body>
+</html>

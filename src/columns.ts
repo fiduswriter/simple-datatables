@@ -1,7 +1,17 @@
 import {readDataCell, readHeaderCell} from "./read_data"
 import {DataTable} from "./datatable"
-import {cellType, columnsStateType, headerCellType, inputCellType, inputHeaderCellType, elementNodeType, columnSettingsType} from "./types"
+import {
+    cellType,
+    columnSettingsType,
+    columnsStateType,
+    dataRowType,
+    elementNodeType,
+    headerCellType,
+    inputCellType,
+    inputHeaderCellType
+} from "./types"
 import {readColumnSettings} from "./column_settings"
+import {cellToText} from "./helpers"
 
 
 export class Columns {
@@ -55,8 +65,8 @@ export class Columns {
     order(columns: number[]) {
 
         this.dt.data.headings = columns.map((index: number) => this.dt.data.headings[index])
-        this.dt.data.data = this.dt.data.data.map(
-            (row: cellType[]) => columns.map((index: number) => row[index])
+        this.dt.data.data.forEach(
+            (row: dataRowType) => (row.cells = columns.map((index: number) => row.cells[index]))
         )
         this.settings = columns.map(
             (index: number) => this.settings[index]
@@ -128,9 +138,9 @@ export class Columns {
     add(data: {data: inputCellType[], heading: inputHeaderCellType} & columnSettingsType) {
         const newColumnSelector = this.dt.data.headings.length
         this.dt.data.headings = this.dt.data.headings.concat([readHeaderCell(data.heading)])
-        this.dt.data.data = this.dt.data.data.map(
-            (row: cellType[], index: number) => row.concat([readDataCell(data.data[index], data)])
-        )
+        this.dt.data.data.forEach((row: dataRowType, index: number) => {
+            row.cells = row.cells.concat([readDataCell(data.data[index], data)])
+        })
         this.settings[newColumnSelector] = {
             type: data.type || "string",
             sortable: true,
@@ -205,8 +215,8 @@ export class Columns {
     remove(columns: number[]) {
         if (Array.isArray(columns)) {
             this.dt.data.headings = this.dt.data.headings.filter((_heading: headerCellType, index: number) => !columns.includes(index))
-            this.dt.data.data = this.dt.data.data.map(
-                (row: cellType[]) => row.filter((_cell: cellType, index: number) => !columns.includes(index))
+            this.dt.data.data.forEach(
+                (row: dataRowType) => (row.cells = row.cells.filter((_cell: cellType, index: number) => !columns.includes(index)))
             )
             this.dt.update(true)
         } else {
@@ -292,9 +302,11 @@ export class Columns {
             }) :
             false
 
-        this.dt.data.data.sort((row1: cellType[], row2: cellType[]) => {
-            let order1 = row1[index].order || row1[index].data,
-                order2 = row2[index].order || row2[index].data
+        this.dt.data.data.sort((row1: dataRowType, row2: dataRowType) => {
+            const cell1 = row1.cells[index]
+            const cell2 = row2.cells[index]
+            let order1 = cell1.order ?? cellToText(cell1)
+            let order2 = cell2.order ?? cellToText(cell2)
             if (dir === "desc") {
                 const temp = order1
                 order1 = order2

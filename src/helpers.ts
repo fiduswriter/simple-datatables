@@ -1,4 +1,11 @@
-import {elementNodeType, columnSettingsType, textNodeType} from "./types"
+import {
+    cellDataType,
+    cellType,
+    columnSettingsType,
+    inputCellType,
+    nodeType,
+    textNodeType
+} from "./types"
 
 /**
  * Check is item is object
@@ -35,14 +42,26 @@ export const createElement = (nodeName: string, attrs?: { [key: string]: string}
     return dom
 }
 
-export const objToText = (obj: (elementNodeType| textNodeType)) => {
+export const objToText = (obj: nodeType) => {
     if (["#text", "#comment"].includes(obj.nodeName)) {
         return (obj as textNodeType).data
     }
     if (obj.childNodes) {
-        return obj.childNodes.map((childNode: (elementNodeType | textNodeType)) => objToText(childNode)).join("")
+        return obj.childNodes.map((childNode: nodeType) => objToText(childNode)).join("")
     }
     return ""
+}
+
+export const cellToText = (obj: inputCellType | cellDataType | null | undefined): string => {
+    if (obj === null || obj === undefined) {
+        return ""
+    } else if (obj.hasOwnProperty("text") || obj.hasOwnProperty("data")) {
+        const cell = obj as cellType
+        return cell.text ?? cellToText(cell.data)
+    } else if (obj.hasOwnProperty("nodeName")) {
+        return objToText(obj as nodeType)
+    }
+    return String(obj)
 }
 
 
@@ -79,4 +98,19 @@ export const columnToVisibleIndex = function(columnIndex: number, columns: colum
         counter++
     }
     return visibleIndex
+}
+
+/**
+ * Converts a [NamedNodeMap](https://developer.mozilla.org/en-US/docs/Web/API/NamedNodeMap) into a normal object.
+ *
+ * @param map The `NamedNodeMap` to convert
+ */
+export const namedNodeMapToObject = function(map: NamedNodeMap) {
+    const obj = {}
+    if (map) {
+        for (const attr of map) {
+            obj[attr.name] = attr.value
+        }
+    }
+    return obj
 }

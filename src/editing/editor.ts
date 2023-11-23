@@ -1,8 +1,9 @@
 import {
+    cellToText,
+    columnToVisibleIndex,
     createElement,
     escapeText,
-    visibleToColumnIndex,
-    columnToVisibleIndex
+    visibleToColumnIndex
 } from "../helpers"
 import {
     cellType,
@@ -280,13 +281,13 @@ export class Editor {
         }
         const rowIndex = parseInt(td.parentElement.dataset.index, 10)
         const row = this.dt.data.data[rowIndex]
-        const cell = row[columnIndex]
+        const cell = row.cells[columnIndex]
 
         this.data = {
             cell,
             rowIndex,
             columnIndex,
-            content: cell.text || String(cell.data)
+            content: cellToText(cell)
         }
         this.editing = true
         this.editingCell = true
@@ -312,7 +313,7 @@ export class Editor {
             `<form class='${this.options.classes.form}'>`,
             `<div class='${this.options.classes.row}'>`,
             `<label class='${this.options.classes.label}'>${escapeText(label)}</label>`,
-            `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
+            `<input class='${this.options.classes.input}' value='${escapeText(cellToText(cell))}' type='text'>`,
             "</div>",
             `<div class='${this.options.classes.row}'>`,
             `<button class='${this.options.classes.cancel}' type='button' data-editor-cancel>${this.options.labels.cancel}</button>`,
@@ -391,7 +392,8 @@ export class Editor {
             cell = {data: value}
         }
         // Set the cell content
-        this.dt.data.data[this.data.rowIndex][this.data.columnIndex] = cell
+        const row = this.dt.data.data[this.data.rowIndex]
+        row.cells[this.data.columnIndex] = cell
         this.closeModal()
         const rowIndex = this.data.rowIndex
         const columnIndex = this.data.columnIndex
@@ -412,7 +414,7 @@ export class Editor {
         const rowIndex = parseInt(tr.dataset.index, 10)
         const row = this.dt.data.data[rowIndex]
         this.data = {
-            row,
+            row: row.cells,
             rowIndex
         }
         this.editing = true
@@ -466,7 +468,7 @@ export class Editor {
                     html: [
                         `<div class='${this.options.classes.row}'>`,
                         `<label class='${this.options.classes.label}'>${escapeText(label)}</label>`,
-                        `<input class='${this.options.classes.input}' value='${escapeText(cell.text || String(cell.data) || "")}' type='text'>`,
+                        `<input class='${this.options.classes.input}' value='${escapeText(cellToText(cell))}' type='text'>`,
                         "</div>"
                     ].join("")
                 }), form.lastElementChild)
@@ -503,10 +505,12 @@ export class Editor {
      */
     saveRow(data: string[], row: cellType[]) {
         // Store the old data for the emitter
-        const oldData = row.map((cell: cellType) => cell.text ?? String(cell.data))
+        const oldData = row.map((cell: cellType) => cellToText(cell))
+        const updatedRow = this.dt.data.data[this.data.rowIndex]
+
         if (data) {
             let valueCounter = 0
-            this.dt.data.data[this.data.rowIndex] = row.map((oldItem, colIndex) => {
+            updatedRow.cells = row.map((oldItem, colIndex) => {
                 if (this.options.excludeColumns.includes(colIndex) || this.dt.columns.settings[colIndex].hidden) {
                     return oldItem
                 }
@@ -548,8 +552,7 @@ export class Editor {
             })
         }
 
-        const updatedRow = this.dt.data.data[this.data.rowIndex]
-        const newData = updatedRow.map(cell => cell.text ?? String(cell.data))
+        const newData = updatedRow.cells.map(cell => cellToText(cell))
 
         this.data = {}
         this.dt.update(true)

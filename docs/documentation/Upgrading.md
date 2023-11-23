@@ -1,21 +1,72 @@
-### Upgrading
+## Upgrading
 
-## From 7.1.x to 8.0.x
+### From 8.0.x to 9.0.x
+
+* The type of [`datatable.data.data`](API#data) (the list of rows) has changed from `object[]` to `{ attributes: object, cells: object[] }[]`. To access the content cells it is now necessary to access the `cells` attribute present in each row. Instead of:
+```js
+const dt = new DataTable(myTable, {
+    data: {
+        headings: ["Name"],
+        data: [
+            ["John Doe"],
+        ]
+    }
+})
+
+const names = dt.data.data.map(row => row[0].text)
+```
+
+Do:
+
+```js
+new DataTable(myTable, {
+    data: {
+        headings: ["Name"],
+        data: [
+            {
+                cells: ["John Doe"],
+
+                // It is now possible to add custom attributes to the row, with:
+                // attributes: {
+                //     class: "my-row",
+                //     style: "background-color: pink"
+                // },
+            }
+        ]
+    }
+})
+
+const names = dt.data.data.map(row => row.cells[0].text)
+```
+* The first argument for [rowRender](rowRender) has changed from `object[]` to `{ attributes: object, cells: object[] }`. It is now possible to customize the row attributes, like class and style by updating the `attributes` key. The content cells are now behind the `cells` attribute. 
+Please make the following changes in your code:
+```js
+rowRender: (row, tr, index) => {
+    // old, in 8.0.x:
+    const firstCell = row[0]
+    
+    // new, in 9.0.x:
+    const firstCell = row.cells[0]
+    row.attributes.class = "my-row"
+}
+```
+
+### From 7.1.x to 8.0.x
 
 * `dataTable.multiSearch()` takes slightly different arguments. Before, search terms were being split up internally. Now you have to do it beforehand. So instead of `{term: string, columns: (none | number[])}` it now takes: `{terms: string[], columns: (none | number[])}`
 * The option `isSplitQueryWord` has been removed both columns and the dataTable. Instead, use a zero length `searchQuerySeparator` to signal that queries are not to be split.
 
 * The option `searchQuerySeparator` has been removed from columns as this feature was not used. You may want to use the new `searchItemSeparator` instead. Overriding `searchQuerySeparator` for individual search boxes can be done by adding a `data-query-separator` attribute to the search input.
 
-* And searches; Have not been workign correctly since version 5. Specify the option `searchAnd` to the dataTable to make all searches require all search words to occur for a row to be shown.
+* And searches; Have not been working correctly since version 5. Specify the option `searchAnd` to the dataTable to make all searches require all search words to occur for a row to be shown.
 
 * The pagination links/buttons are no longer `<a>`-elements but instead `<button>`-elements. This could have styling implications for you.
 
-## From 7.0.x to 7.1.x
+### From 7.0.x to 7.1.x
 
 * The [search()](search()) methods allows to specify which columns are to be searched. And the [multiSearch()](multiSearch()) method allows specifying multiple simultaneous searches.
 
-## From 6.0.x to 7.0.x
+### From 6.0.x to 7.0.x
 
 * Attributes and class names of the main table are no longer removed.
 
@@ -48,7 +99,7 @@
 
 * The `dataConvert` configuration option has been dropped, as it's faster to manipulate the values in `datatable.data.data` and then run `datatable.update()` to render the table again.
 
-## From 5.0.x to 6.0.x:
+### From 5.0.x to 6.0.x:
 
 Version 6.0 is the biggest update to simple-datatables since version 1.0. I do not expect similar changes in the next few years.
 
@@ -262,7 +313,7 @@ let newRows = [
 dataTable.insert({data: newRows});
 ```
 
-## From 4.0.x to 5.0:
+### From 4.0.x to 5.0:
 
 * To get to the dom of the body table, look at `dataTable.dom` rather than `dataTable.table`.
 
@@ -361,6 +412,6 @@ dataTable.on("datatable.selectrow", function(row, event) {
 ```
 
 
-## From 3.x to 4.0:
+### From 3.x to 4.0:
 
 * Note that `rows` and `columns` are just properties on the datatable instance in 4.x rather than methods as they were in 3.x. Exchange any instance of `datatable.rows()` with `datatable.rows` and `datatable.columns()` with `datatable.columns`.
