@@ -3,6 +3,8 @@
 node_modules/
 tests/qunit.css
 package-lock.json
+pnpm-lock.yaml
+yarn.lock
 .DS_Store
 .idea/
 .python-version

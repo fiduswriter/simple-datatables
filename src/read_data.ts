@@ -1,7 +1,17 @@
-import {stringToObj, nodeToObj} from "diff-dom"
+import {nodeToObj, stringToObj} from "diff-dom"
 import {parseDate} from "./date"
-import {objToText} from "./helpers"
-import {cellType, DataOption, headerCellType, inputCellType, inputHeaderCellType, nodeType, columnSettingsType} from "./types"
+import {namedNodeMapToObject, objToText} from "./helpers"
+import {
+    cellType,
+    columnSettingsType,
+    DataOption,
+    dataRowType,
+    headerCellType,
+    inputCellType,
+    inputHeaderCellType,
+    inputRowType,
+    nodeType
+} from "./types"
 
 export const readDataCell = (cell: inputCellType, columnSettings : columnSettingsType) : cellType => {
     if (cell?.constructor === Object && Object.prototype.hasOwnProperty.call(cell, "data") && !Object.keys(cell).find(key => !(["text", "order", "data", "attributes"].includes(key)))) {
@@ -100,12 +110,7 @@ const readDOMDataCell = (cell: HTMLElement, columnSettings : columnSettingsType)
     }
 
     // Save cell attributes to reference when rendering
-    cellData.attributes = {}
-    if (cell.attributes) {
-        for (const attr of cell.attributes) {
-            cellData.attributes[attr.name] = attr.value
-        }
-    }
+    cellData.attributes = namedNodeMapToObject(cell.attributes)
 
     return cellData
 }
@@ -168,8 +173,8 @@ export const readDOMHeaderCell = (cell: HTMLElement) : headerCellType => {
 export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | undefined)=undefined, columnSettings, defaultType, defaultFormat) => {
 
     const data = {
-        data: [],
-        headings: []
+        data: [] as dataRowType[],
+        headings: [] as headerCellType[]
     }
     if (dataOption.headings) {
         data.headings = dataOption.headings.map((heading: inputHeaderCellType) => readHeaderCell(heading))
@@ -203,7 +208,9 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
             return heading
         })
     } else if (dataOption.data?.length) {
-        data.headings = dataOption.data[0].map((_cell: inputCellType) => readHeaderCell(""))
+        const firstRow = dataOption.data[0]
+        const firstRowCells = Array.isArray(firstRow) ? firstRow : firstRow.cells
+        data.headings = firstRowCells.map((_cell: inputCellType) => readHeaderCell(""))
     } else if (dom?.tBodies.length) {
         data.headings = Array.from(dom.tBodies[0].rows[0].cells).map((_cell: HTMLElement) => readHeaderCell(""))
     }
@@ -219,25 +226,42 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         }
     }
     if (dataOption.data) {
-        data.data = dataOption.data.map((row: inputCellType[]) => row.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings[index])))
+        data.data = dataOption.data.map((row: inputRowType | inputCellType[]) => {
+            let attributes: { [key: string]: string }
+            let cells: inputCellType[]
+            if (Array.isArray(row)) {
+                attributes = {}
+                cells = row
+            } else {
+                attributes = row.attributes
+                cells = row.cells
+            }
+            return {
+                attributes,
+                cells: cells.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings[index]))
+            } as dataRowType
+        })
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(
-            row => Array.from(row.cells).map(
-                (cell, index) => {
-                    const cellData = cell.dataset.content ?
-                        readDataCell(cell.dataset.content, columnSettings[index]) :
-                        readDOMDataCell(cell, columnSettings[index])
-                    if (cell.dataset.order) {
-                        cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
-                    }
-                    return cellData
+            row => ({
+                attributes: namedNodeMapToObject(row.attributes),
+                cells: Array.from(row.cells).map(
+                    (cell, index) => {
+                        const cellData = cell.dataset.content ?
+                            readDataCell(cell.dataset.content, columnSettings[index]) :
+                            readDOMDataCell(cell, columnSettings[index])
+                        if (cell.dataset.order) {
+                            cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
+                        }
+                        return cellData
 
-                }
-            )
+                    }
+                )
+            } as dataRowType)
         )
     }
 
-    if (data.data.length && data.data[0].length !== data.headings.length) {
+    if (data.data.length && data.data[0].cells.length !== data.headings.length) {
         throw new Error(
             "Data heading length mismatch."
         )

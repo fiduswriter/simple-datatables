@@ -1,15 +1,18 @@
 import {
-    isObject,
+    cellToText,
     createElement,
+    isObject,
     visibleToColumnIndex
 } from "./helpers"
 import {
     cellType,
     DataTableConfiguration,
     DataTableOptions,
+    dataRowType,
     filterStateType,
     headerCellType,
     inputCellType,
+    inputRowType,
     elementNodeType,
     renderOptions,
     rowType,
@@ -585,8 +588,8 @@ export class DataTable {
                 if (event.key === "ArrowUp") {
                     event.preventDefault()
                     event.stopPropagation()
-                    let lastRow
-                    this.pages[this._currentPage-1].find((row: {row: cellType[], index: number}) => {
+                    let lastRow: rowType
+                    this.pages[this._currentPage-1].find((row: rowType) => {
                         if (row.index===this.rows.cursor) {
                             return true
                         }
@@ -602,7 +605,7 @@ export class DataTable {
                     event.preventDefault()
                     event.stopPropagation()
                     let foundRow: boolean
-                    const nextRow = this.pages[this._currentPage-1].find((row: {row: cellType[], index: number}) => {
+                    const nextRow = this.pages[this._currentPage-1].find((row: rowType) => {
                         if (foundRow) {
                             return true
                         }
@@ -626,7 +629,7 @@ export class DataTable {
                     return
                 }
                 if (this.dom.matches(":focus")) {
-                    const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(target))
+                    const row = Array.from(this.dom.querySelectorAll("tbody > tr")).find(row => row.contains(target))
                     if (row && row instanceof HTMLElement) {
                         this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
                     }
@@ -639,7 +642,7 @@ export class DataTable {
                 if (!(target instanceof Element)) {
                     return
                 }
-                const row = Array.from(this.dom.querySelectorAll("body tr")).find(row => row.contains(target))
+                const row = Array.from(this.dom.querySelectorAll("tbody > tr")).find(row => row.contains(target))
                 if (row && row instanceof HTMLElement) {
                     this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
                 }
@@ -728,7 +731,10 @@ export class DataTable {
                         return
                     }
                     rows = rows.filter(
-                        (row: {index: number, row: cellType[]}) => typeof filterState === "function" ? filterState(row.row[column].data) : (row.row[column].text ?? row.row[column].data) === filterState
+                        (row: {index: number, row: dataRowType}) => {
+                            const cell = row.row.cells[column]
+                            return typeof filterState === "function" ? filterState(cell.data) : cellToText(cell) === filterState
+                        }
                     )
                 }
             )
@@ -738,7 +744,7 @@ export class DataTable {
             // Check for hidden columns
             this.pages = rows
                 .map((_row, i: number) => i % this.options.perPage === 0 ? rows.slice(i, i + this.options.perPage) : null)
-                .filter((page: {row: cellType[], index: number}[]) => page)
+                .filter((page: {row: dataRowType, index: number}[]) => page)
         } else {
             this.pages = [rows]
         }
@@ -829,9 +835,9 @@ export class DataTable {
                 return columnQueries
             }
         ))
-        this.data.data.forEach((row: cellType[], idx: number) => {
-            const searchRow = row.map((cell, i) => {
-                let content = (cell.text || String(cell.data)).trim()
+        this.data.data.forEach((row: dataRowType, idx: number) => {
+            const searchRow = row.cells.map((cell, i) => {
+                let content = cellToText(cell).trim()
                 const column = this.columns.settings[i]
                 if (content.length) {
                     const sensitivity = column.sensitivity || this.options.sensitivity
@@ -902,8 +908,8 @@ export class DataTable {
      * Add new row data
      */
     insert(data: (
-        {headings?: string[], data?: inputCellType[][]} | { [key: string]: inputCellType}[])) {
-        let rows: cellType[][] = []
+        {headings?: string[], data?: (inputRowType | inputCellType[])[]} | { [key: string]: inputCellType}[])) {
+        let rows: dataRowType[] = []
         if (Array.isArray(data)) {
             const headings = this.data.headings.map((heading: headerCellType) => heading.text ?? String(heading.data))
             data.forEach((row, rIndex) => {
@@ -920,17 +926,33 @@ export class DataTable {
                         this.data.headings.push(readHeaderCell(heading))
                     }
                 })
-                rows.push(r)
+                rows.push({
+                    cells: r
+                })
             })
         } else if (isObject(data)) {
             if (data.headings && !this.hasHeadings && !this.hasRows) {
                 this.data = readTableData(data, undefined, this.columns.settings, this.options.type, this.options.format)
             } else if (data.data && Array.isArray(data.data)) {
-                rows = data.data.map(row => row.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings[index])))
+                rows = data.data.map(row => {
+                    let attributes: { [key: string]: string }
+                    let cells: inputCellType[]
+                    if (Array.isArray(row)) {
+                        attributes = {}
+                        cells = row
+                    } else {
+                        attributes = row.attributes
+                        cells = row.cells
+                    }
+                    return {
+                        attributes,
+                        cells: cells.map((cell, index) => readDataCell(cell as inputCellType, this.columns.settings[index]))
+                    } as dataRowType
+                })
             }
         }
         if (rows.length) {
-            rows.forEach((row: cellType[]) => this.data.data.push(row))
+            rows.forEach((row: dataRowType) => this.data.data.push(row))
         }
         this.hasHeadings = Boolean(this.data.headings.length)
 

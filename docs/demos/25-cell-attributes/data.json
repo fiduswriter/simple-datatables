@@ -14,45 +14,50 @@
         "data": "Profit"
     }],
     "data": [
-        [{
-            "data": [{
-                "nodeName": "#text",
-                "data": "1"
-            }],
-            "text": "1",
-            "order": "1"
-        }, {
-            "data": [{
-                "nodeName": "#text",
-                "data": "latte"
-            }],
-            "text": "latte",
-            "order": "latte",
+        {
             "attributes": {
-                "class": "red"
-            }
-        }, {
-            "data": [{
-                "nodeName": "#text",
-                "data": "false"
-            }],
-            "text": "false",
-            "order": "false"
-        }, {
-            "data": [{
-                "nodeName": "#text",
-                "data": "4"
-            }],
-            "text": "4",
-            "order": "4"
-        }, {
-            "data": [{
-                "nodeName": "#text",
-                "data": "0"
-            }],
-            "text": "0",
-            "order": "0"
-        }],
+                "class": "yellow"
+            },
+            "cells": [{
+                "data": [{
+                    "nodeName": "#text",
+                    "data": "1"
+                }],
+                "text": "1",
+                "order": "1"
+            }, {
+                "data": [{
+                    "nodeName": "#text",
+                    "data": "latte"
+                }],
+                "text": "latte",
+                "order": "latte",
+                "attributes": {
+                    "class": "red"
+                }
+            }, {
+                "data": [{
+                    "nodeName": "#text",
+                    "data": "false"
+                }],
+                "text": "false",
+                "order": "false"
+            }, {
+                "data": [{
+                    "nodeName": "#text",
+                    "data": "4"
+                }],
+                "text": "4",
+                "order": "4"
+            }, {
+                "data": [{
+                    "nodeName": "#text",
+                    "data": "0"
+                }],
+                "text": "0",
+                "order": "0"
+            }]
+        },
         [{
             "data": [{
                 "nodeName": "#text",

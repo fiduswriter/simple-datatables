@@ -1,9 +1,12 @@
 import {
+    cellToText,
     isObject
 } from "../helpers"
 import {DataTable} from "../datatable"
 import {
+    cellDataType,
     cellType,
+    dataRowType,
     headerCellType
 } from "../types"
 /**
@@ -41,32 +44,39 @@ export const exportTXT = function(dt: DataTable, userOptions : txtUserOptions = 
 
     const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings[index]?.hidden
 
-    let rows : (string | number | boolean | object | undefined | null)[][] = []
     const headers = dt.data.headings.filter((_heading: headerCellType, index: number) => columnShown(index)).map((header: headerCellType) => header.text ?? header.data)
-    // Include headings
-    rows[0] = headers
 
     // Selection or whole table
+    let selectedRows: dataRowType[]
     if (options.selection) {
         // Page number
         if (Array.isArray(options.selection)) {
             // Array of page numbers
+            selectedRows = []
             for (let i = 0; i < options.selection.length; i++) {
-                rows = rows.concat(dt.pages[options.selection[i] - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
+                selectedRows = selectedRows.concat(dt.pages[options.selection[i] - 1].map(row => row.row))
             }
         } else {
-            rows = rows.concat(dt.pages[options.selection - 1].map((row: {row: cellType[], index: number}) => row.row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
+            selectedRows = dt.pages[options.selection - 1].map(row => row.row)
         }
     } else {
-        rows = rows.concat(dt.data.data.map((row: cellType[]) => row.filter((_cell: cellType, index: number) => columnShown(index)).map((cell: cellType) => cell.data)))
+        selectedRows = dt.data.data
     }
+
+    let rows : cellDataType[][] = []
+    // Include headings
+    rows[0] = headers
+    rows = rows.concat(selectedRows.map((row: dataRowType) => {
+        const shownCells = row.cells.filter((_cell: cellType, index: number) => columnShown(index))
+        return shownCells.map((cell: cellType) => cellToText(cell))
+    }))
 
     // Only proceed if we have data
     if (rows.length) {
         let str = ""
 
         rows.forEach(row => {
-            row.forEach((cell: (string | number | boolean | object | undefined | null)) => {
+            row.forEach((cell: cellDataType) => {
                 if (typeof cell === "string") {
                     cell = cell.trim()
                     cell = cell.replace(/\s{2,}/g, " ")

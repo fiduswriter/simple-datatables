@@ -1,6 +1,7 @@
 import {stringToObj} from "diff-dom"
 
 import {cellType, columnsStateType, columnSettingsType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions, rowType} from "./types"
+import {cellToText} from "./helpers"
 
 
 export const headingsToVirtualHeaderRowDOM = (
@@ -124,9 +125,12 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                         const tr: elementNodeType = {
                             nodeName: "TR",
                             attributes: {
-                                "data-index": String(index)
+                                ...row.attributes,
+                                ...{
+                                    "data-index": String(index)
+                                }
                             },
-                            childNodes: row.map(
+                            childNodes: row.cells.map(
                                 (cell: cellType, cIndex: number) => {
                                     const column = columnSettings[cIndex] || ({
                                         type,
@@ -145,7 +149,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                             [
                                                 {
                                                     nodeName: "#text",
-                                                    data: cell.text ?? String(cell.data)
+                                                    data: cellToText(cell)
                                                 }
                                             ]
                                     } as elementNodeType

@@ -151,14 +151,14 @@
             new window.simpleDatatables.DataTable("#drinks", {
                 data,
                 rowRender: (row, tr, _index) => {
-                    if ([true, false].includes(row[3].data)) {
-                        if (!tr.attributes?.class) {
-                            if (!tr.attributes) {
-                                tr.attributes = {}
-                            }
-                            tr.attributes.class = row[3].data === true ? "yes" : "no"
+                    if ([true, false].includes(row.cells[3].data)) {
+                        if (!tr.attributes) {
+                            tr.attributes = {}
+                        }
+                        if (!tr.attributes.class) {
+                            tr.attributes.class = row.cells[3].data === true ? "yes" : "no"
                         } else {
-                            tr.attributes.class += row[3].data === true ? "yes" : "no"
+                            tr.attributes.class += row.cells[3].data === true ? "yes" : "no"
                         }
 
                     }
