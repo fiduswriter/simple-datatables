@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <title>multiple-classes</title>
+    </head>
+    <body>
+        <table></table>
+        <script type="module">
+            import {DataTable} from "../dist/module.js"
+
+            const data = {
+                "headings": [
+                    "Header 1",
+                    "Header 2",
+                    "Header 3"
+                ],
+                "data": []
+            }
+            for (let i = 1; i <= 200; i++) {
+                data.data.push([
+                    `Cell ${i}-1`,
+                    `Cell ${i}-2`,
+                    i % 2 === 0 ? "true" : "false"
+    ])
+            }
+
+            window.dt = new DataTable("table", {
+                classes: {
+                    active: "active1 active2",
+                    ascending: "ascending1 ascending2",
+                    bottom: "bottom1 bottom2",
+                    container: "container1 container2",
+                    cursor: "cursor1 cursor2",
+                    descending: "descending1 descending2",
+                    disabled: "disabled1 disabled2",
+                    dropdown: "dropdown1 dropdown2",
+                    ellipsis: "ellipsis1 ellipsis2",
+                    filter: "filter1 filter2",
+                    filterActive: "filter-active1 filter-active2",
+                    empty: "empty1 empty2",
+                    headercontainer: "headercontainer1 headercontainer2",
+                    hidden: "hidden1 hidden2",
+                    info: "info1 info2",
+                    input: "input1 input2",
+                    loading: "loading1 loading2",
+                    pagination: "pagination1 pagination2",
+                    paginationList: "pagination-list1 pagination-list2",
+                    paginationListItem: "pagination-list-item1 pagination-list-item2",
+                    paginationListItemLink: "pagination-list-item-link1 pagination-list-item-link2",
+                    search: "search1 search2",
+                    selector: "selector1 selector2",
+                    sorter: "sorter1 sorter2",
+                    table: "table1 table2",
+                    top: "top1 top2",
+                    wrapper: "wrapper1 wrapper2"
+                },
+                columns: [
+                    {
+                        select: 0,
+                        sort: "asc",
+                        type: "date"
+                    },
+                    {
+                        select: 2,
+                        filter: ["true", "false"]
+                    }
+                ],
+                data,
+                perPage: 10,
+                scrollY: "100px",
+                rowNavigation: true
+            })
+
+            window.dt.columns.filter(2)
+            window.dt.rows.setCursor(1)
+        </script>
+    </body>
+</html>

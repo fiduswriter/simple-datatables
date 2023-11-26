@@ -27,3 +27,8 @@
 ```
 
 Allows for customizing the classnames used by simple-datatables.
+
+Please note that class names cannot be empty and cannot be reused between different attributes. This is required for simple-datatables to work correctly.
+
+Multiple classes can be provided per attribute. Please make sure that classes are be separated by spaces.
+For example, `dt.options.classes.table = "first second"` will apply classes `first` and `second` to the generated table.

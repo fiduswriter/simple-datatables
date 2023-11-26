@@ -1,5 +1,5 @@
 import {DataTable} from "../datatable"
-import {createElement} from "../helpers"
+import {classNamesToSelector, createElement} from "../helpers"
 
 import {
     defaultConfig
@@ -49,7 +49,8 @@ class ColumnFilter {
             return
         }
 
-        let buttonDOM : (HTMLElement | null) = this.dt.wrapperDOM.querySelector(`.${this.options.classes.button}`)
+        const buttonSelector = classNamesToSelector(this.options.classes.button)
+        let buttonDOM : (HTMLElement | null) = this.dt.wrapperDOM.querySelector(buttonSelector)
         if (!buttonDOM) {
             buttonDOM = createElement(
                 "button",
@@ -59,7 +60,8 @@ class ColumnFilter {
                 }
             )
             // filter button not part of template (could be default template. We add it to search.)
-            const searchWrapper = this.dt.wrapperDOM.querySelector(`.${this.dt.options.classes.search}`)
+            const searchSelector = classNamesToSelector(this.dt.options.classes.search)
+            const searchWrapper = this.dt.wrapperDOM.querySelector(searchSelector)
             if (searchWrapper) {
                 searchWrapper.appendChild(buttonDOM)
             } else {
@@ -170,7 +172,8 @@ class ColumnFilter {
             this.wrapperDOM.style.top = `${y}px`
             this.wrapperDOM.style.left = `${x}px`
         } else if (this.menuDOM.contains(target)) {
-            const li = target.closest(`.${this.options.classes.menu} > li`) as HTMLElement
+            const menuSelector = classNamesToSelector(this.options.classes.menu)
+            const li = target.closest(`${menuSelector} > li`) as HTMLElement
             if (!li) {
                 return
             }

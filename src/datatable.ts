@@ -1,7 +1,10 @@
 import {
     cellToText,
+    classNamesToSelector,
+    containsClass,
     createElement,
     isObject,
+    joinWithSpaces,
     visibleToColumnIndex
 } from "./helpers"
 import {
@@ -161,7 +164,7 @@ export class DataTable {
      * Initialize the instance
      */
     init() {
-        if (this.initialized || this.dom.classList.contains(this.options.classes.table)) {
+        if (this.initialized || containsClass(this.dom, this.options.classes.table)) {
             return false
         }
 
@@ -208,7 +211,8 @@ export class DataTable {
 
         this.wrapperDOM.innerHTML = this.options.template(this.options, this.dom)
 
-        const selector = this.wrapperDOM.querySelector(`select.${this.options.classes.selector}`)
+        const selectorClassSelector = classNamesToSelector(this.options.classes.selector)
+        const selector = this.wrapperDOM.querySelector(`select${selectorClassSelector}`)
 
         // Per Page Select
         if (selector && this.options.paging && this.options.perPageSelect) {
@@ -225,10 +229,12 @@ export class DataTable {
             selector.parentElement.removeChild(selector)
         }
 
-        this.containerDOM = this.wrapperDOM.querySelector(`.${this.options.classes.container}`)
+        const containerSelector = classNamesToSelector(this.options.classes.container)
+        this.containerDOM = this.wrapperDOM.querySelector(containerSelector)
 
         this._pagerDOMs = []
-        Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.pagination}`)).forEach(el => {
+        const paginationSelector = classNamesToSelector(this.options.classes.pagination)
+        Array.from(this.wrapperDOM.querySelectorAll(paginationSelector)).forEach(el => {
             if (!(el instanceof HTMLElement)) {
                 return
             }
@@ -245,7 +251,8 @@ export class DataTable {
         }
 
 
-        this._label = this.wrapperDOM.querySelector(`.${this.options.classes.info}`)
+        const infoSelector = classNamesToSelector(this.options.classes.info)
+        this._label = this.wrapperDOM.querySelector(infoSelector)
 
         // Insert in to DOM tree
         this.dom.parentElement.replaceChild(this.wrapperDOM, this.dom)
@@ -445,7 +452,7 @@ export class DataTable {
 
             ]
         }
-        tableVirtualDOM.attributes.class = tableVirtualDOM.attributes.class ? `${tableVirtualDOM.attributes.class} ${this.options.classes.table}` : this.options.classes.table
+        tableVirtualDOM.attributes.class = joinWithSpaces(tableVirtualDOM.attributes.class, this.options.classes.table)
         if (this.options.tableRender) {
             const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, tableVirtualDOM, "header")
             if (renderedTableVirtualDOM) {
@@ -488,7 +495,8 @@ export class DataTable {
     _bindEvents() {
         // Per page selector
         if (this.options.perPageSelect) {
-            const selector = this.wrapperDOM.querySelector(`select.${this.options.classes.selector}`)
+            const selectorClassSelector = classNamesToSelector(this.options.classes.selector)
+            const selector = this.wrapperDOM.querySelector(selectorClassSelector)
             if (selector && selector instanceof HTMLSelectElement) {
                 // Change per page
                 selector.addEventListener("change", () => {
@@ -505,14 +513,15 @@ export class DataTable {
         // Search input
         if (this.options.searchable) {
             this.wrapperDOM.addEventListener("input", (event: InputEvent) => {
+                const inputSelector = classNamesToSelector(this.options.classes.input)
                 const target = event.target
-                if (!(target instanceof HTMLInputElement) || !target.matches(`.${this.options.classes.input}`)) {
+                if (!(target instanceof HTMLInputElement) || !target.matches(inputSelector)) {
                     return
                 }
                 event.preventDefault()
 
                 const searches: { terms: string[], columns: (number[] | undefined) }[] = []
-                const searchFields = Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]
+                const searchFields: HTMLInputElement[] = Array.from(this.wrapperDOM.querySelectorAll(inputSelector))
                 searchFields.filter(
                     el => el.value.length
                 ).forEach(
@@ -566,16 +575,12 @@ export class DataTable {
             if (hyperlink.hasAttribute("data-page")) {
                 this.page(parseInt(hyperlink.getAttribute("data-page"), 10))
                 event.preventDefault()
-            } else if (
-                hyperlink.classList.contains(this.options.classes.sorter)
-            ) {
+            } else if (containsClass(hyperlink, this.options.classes.sorter)) {
                 const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
                 const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
                 this.columns.sort(columnIndex)
                 event.preventDefault()
-            } else if (
-                hyperlink.classList.contains(this.options.classes.filter)
-            ) {
+            } else if (containsClass(hyperlink, this.options.classes.filter)) {
                 const visibleIndex = Array.from(hyperlink.parentElement.parentElement.children).indexOf(hyperlink.parentElement)
                 const columnIndex = visibleToColumnIndex(visibleIndex, this.columns.settings)
                 this.columns.filter(columnIndex)
@@ -675,7 +680,7 @@ export class DataTable {
         this.dom.innerHTML = this._initialInnerHTML
 
         // Remove the className
-        this.dom.classList.remove(this.options.classes.table)
+        this.options.classes.table?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
 
         // Remove the containers
         if (this.wrapperDOM.parentElement) {
@@ -697,7 +702,7 @@ export class DataTable {
             this.hasRows = Boolean(this.data.data.length)
             this.hasHeadings = Boolean(this.data.headings.length)
         }
-        this.wrapperDOM.classList.remove(this.options.classes.empty)
+        this.options.classes.empty?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
 
         this._paginate()
         this._renderPage()
@@ -968,11 +973,9 @@ export class DataTable {
      */
     refresh() {
         if (this.options.searchable) {
-            (Array.from(this.wrapperDOM.querySelectorAll(`.${this.options.classes.input}`)) as HTMLInputElement[]).forEach(
-                el => {
-                    el.value = ""
-                }
-            )
+            const inputSelector = classNamesToSelector(this.options.classes.input)
+            const inputs: HTMLInputElement[] = Array.from(this.wrapperDOM.querySelectorAll(inputSelector))
+            inputs.forEach(el => (el.value = ""))
             this._searchQueries = []
         }
         this._currentPage = 1
@@ -1034,7 +1037,7 @@ export class DataTable {
         const activeHeadings = this.data.headings.filter((heading: headerCellType, index: number) => !this.columns.settings[index]?.hidden)
         const colspan = activeHeadings.length || 1
 
-        this.wrapperDOM.classList.add(this.options.classes.empty)
+        this.options.classes.empty?.split(" ").forEach(className => this.wrapperDOM.classList.add(className))
 
         if (this._label) {
             this._label.innerHTML = ""
@@ -1083,7 +1086,7 @@ export class DataTable {
         this._tableFooters.forEach(footer => newVirtualDOM.childNodes.push(footer))
         this._tableCaptions.forEach(caption => newVirtualDOM.childNodes.push(caption))
 
-        newVirtualDOM.attributes.class = newVirtualDOM.attributes.class ? `${newVirtualDOM.attributes.class} ${this.options.classes.table}` : this.options.classes.table
+        newVirtualDOM.attributes.class = joinWithSpaces(newVirtualDOM.attributes.class, this.options.classes.table)
 
         if (this.options.tableRender) {
             const renderedTableVirtualDOM : (elementNodeType | void) = this.options.tableRender(this.data, newVirtualDOM, "message")

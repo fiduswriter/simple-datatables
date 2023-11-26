@@ -1,4 +1,5 @@
 import {
+    classNamesToSelector,
     cellToText,
     columnToVisibleIndex,
     createElement,
@@ -80,7 +81,7 @@ export class Editor {
         if (this.initialized) {
             return
         }
-        this.dt.wrapperDOM.classList.add(this.options.classes.editable)
+        this.options.classes.editable?.split(" ").forEach(className => this.dt.wrapperDOM.classList.add(className))
         if (this.options.inline) {
             this.originalRowRender = this.dt.options.rowRender
             this.dt.options.rowRender = (row, tr, index) => {
@@ -213,9 +214,10 @@ export class Editor {
             return
         }
         if (this.editing && this.data && this.editingCell) {
+            const inputSelector = classNamesToSelector(this.options.classes.input)
             const input = this.modalDOM ?
-                (this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement) :
-                (this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+                (this.modalDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement) :
+                (this.dt.wrapperDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement)
             this.saveCell(input.value)
         } else if (!this.editing) {
             const cell = target.closest("tbody td") as HTMLTableCellElement
@@ -232,6 +234,7 @@ export class Editor {
      * @return {Void}
      */
     keydown(event: KeyboardEvent) {
+        const inputSelector = classNamesToSelector(this.options.classes.input)
         if (this.modalDOM) {
             if (event.key === "Escape") { // close button
                 if (this.options.cancelModal(this)) {
@@ -240,10 +243,10 @@ export class Editor {
             } else if (event.key === "Enter") { // save button
                 // Save
                 if (this.editingCell) {
-                    const input = (this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+                    const input = (this.modalDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement)
                     this.saveCell(input.value)
                 } else {
-                    const values = (Array.from(this.modalDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[]).map(input => input.value.trim())
+                    const values = (Array.from(this.modalDOM.querySelectorAll(`input${inputSelector}[type=text]`)) as HTMLInputElement[]).map(input => input.value.trim())
                     this.saveRow(values, this.data.row)
                 }
             }
@@ -251,10 +254,10 @@ export class Editor {
             if (event.key === "Enter") {
                 // Enter key saves
                 if (this.editingCell) {
-                    const input = (this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+                    const input = (this.dt.wrapperDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement)
                     this.saveCell(input.value)
                 } else if (this.editingRow) {
-                    const values = (Array.from(this.dt.wrapperDOM.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[]).map(input => input.value.trim())
+                    const values = (Array.from(this.dt.wrapperDOM.querySelectorAll(`input${inputSelector}[type=text]`)) as HTMLInputElement[]).map(input => input.value.trim())
                     this.saveRow(values, this.data.row)
                 }
             } else if (event.key === "Escape") {
@@ -329,7 +332,8 @@ export class Editor {
         })
         this.modalDOM = modalDOM
         this.openModal()
-        const input = (modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+        const inputSelector = classNamesToSelector(this.options.classes.input)
+        const input = (modalDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement)
         input.focus()
         input.selectionStart = input.selectionEnd = input.value.length
         // Close / save
@@ -477,7 +481,8 @@ export class Editor {
         this.modalDOM = modalDOM
         this.openModal()
         // Grab the inputs
-        const inputs = Array.from(form.querySelectorAll(`input.${this.options.classes.input}[type=text]`)) as HTMLInputElement[]
+        const inputSelector = classNamesToSelector(this.options.classes.input)
+        const inputs = Array.from(form.querySelectorAll(`input${inputSelector}[type=text]`)) as HTMLInputElement[]
 
         // Close / save
         modalDOM.addEventListener("click", (event: MouseEvent) => {
@@ -620,7 +625,8 @@ export class Editor {
         }
         let valid = true
         if (this.editing) {
-            valid = !(target.matches(`input.${this.options.classes.input}[type=text]`))
+            const inputSelector = classNamesToSelector(this.options.classes.input)
+            valid = !(target.matches(`input${inputSelector}[type=text]`))
         }
         if (valid) {
             this.closeMenu()
@@ -633,9 +639,10 @@ export class Editor {
      */
     openMenu() {
         if (this.editing && this.data && this.editingCell) {
+            const inputSelector = classNamesToSelector(this.options.classes.input)
             const input = this.modalDOM ?
-                (this.modalDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement) :
-                (this.dt.wrapperDOM.querySelector(`input.${this.options.classes.input}[type=text]`) as HTMLInputElement)
+                (this.modalDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement) :
+                (this.dt.wrapperDOM.querySelector(`input${inputSelector}[type=text]`) as HTMLInputElement)
 
             this.saveCell(input.value)
         }

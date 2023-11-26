@@ -142,6 +142,41 @@ describe("Integration tests pass", function() {
         await driver.get(`${baseUrl}tests/cell-attributes-js.html`)
         await assertCellAttrs("cell-attributes-js-table")
     })
+
+    it("supports multiple classes", async () => {
+        const classes = [
+            ".active1.active2",
+            ".ascending1.ascending2",
+            ".bottom1.bottom2",
+            ".container1.container2",
+            ".cursor1.cursor2",
+            // ".descending1.descending2",
+            ".disabled1.disabled2",
+            ".dropdown1.dropdown2",
+            ".ellipsis1.ellipsis2",
+            ".filter1.filter2",
+            ".filter-active1.filter-active2",
+            // ".empty1.empty2",
+            ".headercontainer1.headercontainer2",
+            ".hidden1.hidden2",
+            ".info1.info2",
+            ".input1.input2",
+            ".loading1.loading2",
+            ".pagination1.pagination2",
+            ".pagination-list1.pagination-list2",
+            ".pagination-list-item1.pagination-list-item2",
+            ".pagination-list-item-link1.pagination-list-item-link2",
+            ".search1.search2",
+            ".selector1.selector2",
+            ".sorter1.sorter2",
+            ".table1.table2",
+            ".top1.top2",
+            ".wrapper1.wrapper2"
+        ]
+
+        await driver.get(`${baseUrl}tests/multiple-classes.html`)
+        await Promise.all(classes.map(className => driver.findElement(webdriver.By.css(className))))
+    })
 })
 
 after(() => {

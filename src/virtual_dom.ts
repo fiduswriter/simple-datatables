@@ -1,7 +1,7 @@
 import {stringToObj} from "diff-dom"
 
 import {cellType, columnsStateType, columnSettingsType, DataTableOptions, headerCellType, elementNodeType, textNodeType, renderOptions, rowType} from "./types"
-import {cellToText} from "./helpers"
+import {cellToText, joinWithSpaces} from "./helpers"
 
 
 export const headingsToVirtualHeaderRowDOM = (
@@ -44,23 +44,23 @@ export const headingsToVirtualHeaderRowDOM = (
             }
 
             if (column.headerClass) {
-                attributes.class = attributes.class ? `${attributes.class} ${column.headerClass}` : column.headerClass
+                attributes.class = joinWithSpaces(attributes.class, column.headerClass)
             }
             if (columnsState.sort && columnsState.sort.column === index) {
                 const directionClass = columnsState.sort.dir === "asc" ? classes.ascending : classes.descending
-                attributes.class = attributes.class ? `${attributes.class} ${directionClass}` : directionClass
+                attributes.class = joinWithSpaces(attributes.class, directionClass)
                 attributes["aria-sort"] = columnsState.sort.dir === "asc" ? "ascending" : "descending"
             } else if (columnsState.filters[index]) {
-                attributes.class = attributes.class ? `${attributes.class} ${classes.filterActive}` : classes.filterActive
+                attributes.class = joinWithSpaces(attributes.class, classes.filterActive)
             }
 
             if (columnsState.widths[index] && !noColumnWidths) {
                 const style = `width: ${columnsState.widths[index]}%;`
-                attributes.style = attributes.style ? `${attributes.style} ${style}` : style
+                attributes.style = joinWithSpaces(attributes.style, style)
             }
             if (scrollY.length && !unhideHeader) {
                 const style = "padding-bottom: 0;padding-top: 0;border: 0;"
-                attributes.style = attributes.style ? `${attributes.style} ${style}` : style
+                attributes.style = joinWithSpaces(attributes.style, style)
             }
 
             const headerNodes : elementNodeType[] = heading.type === "html" ?
@@ -154,18 +154,10 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                             ]
                                     } as elementNodeType
                                     if (!header && !footer && columnsState.widths[cIndex] && !noColumnWidths) {
-                                        if (!td.attributes.style) {
-                                            td.attributes.style = ""
-                                        }
-                                        td.attributes.style += `width: ${columnsState.widths[cIndex]}%;`
+                                        td.attributes.style = joinWithSpaces(td.attributes.style, `width: ${columnsState.widths[cIndex]}%;`)
                                     }
                                     if (column.cellClass) {
-                                        if (!td.attributes.class) {
-                                            td.attributes.class = ""
-                                        } else {
-                                            td.attributes.class += " "
-                                        }
-                                        td.attributes.class += column.cellClass
+                                        td.attributes.class = joinWithSpaces(td.attributes.class, column.cellClass)
                                     }
                                     if (column.render) {
                                         const renderedCell : (string | elementNodeType | void) = column.render(cell.data, td, index, cIndex)
@@ -191,7 +183,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                             ).filter((column: (elementNodeType | void)) => column)
                         }
                         if (index === rowCursor) {
-                            tr.attributes.class = classes.cursor
+                            tr.attributes.class = joinWithSpaces(tr.attributes.class, classes.cursor)
                         }
                         if (rowRender) {
                             const renderedRow : (elementNodeType | void) = rowRender(row, tr, index)
@@ -217,7 +209,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
         ]
     }
 
-    table.attributes.class = table.attributes.class ? `${table.attributes.class} ${classes.table}` : classes.table
+    table.attributes.class = joinWithSpaces(table.attributes.class, classes.table)
 
     if (header || footer || renderHeader) {
         const headerRow: elementNodeType = headingsToVirtualHeaderRowDOM(headings, columnSettings, columnsState, {classes,
