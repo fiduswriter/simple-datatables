@@ -1,7 +1,8 @@
 import {readDataCell} from "./read_data"
 import {DataTable} from "./datatable"
 import {cellType, dataRowType, inputCellType} from "./types"
-import {cellToText} from "./helpers"
+import {cellToText, classNamesToSelector} from "./helpers"
+
 /**
  * Rows API
  */
@@ -24,7 +25,8 @@ export class Rows {
         this.cursor = index
         this.dt._renderTable()
         if (index !== false && this.dt.options.scrollY) {
-            const cursorDOM = this.dt.dom.querySelector(`tr.${this.dt.options.classes.cursor}`)
+            const cursorSelector = classNamesToSelector(this.dt.options.classes.cursor)
+            const cursorDOM = this.dt.dom.querySelector(`tr${cursorSelector}`)
             if (cursorDOM) {
                 cursorDOM.scrollIntoView({block: "nearest"})
             }

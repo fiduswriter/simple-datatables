@@ -75,7 +75,7 @@ export const defaultConfig: DataTableConfiguration = {
     template: layoutTemplate,
 
     // Customize the class names used by datatable for different parts
-    classes: { // Note: use single class names
+    classes: {
         active: "datatable-active",
         ascending: "datatable-ascending",
         bottom: "datatable-bottom",

@@ -114,3 +114,52 @@ export const namedNodeMapToObject = function(map: NamedNodeMap) {
     }
     return obj
 }
+
+/**
+ * Convert class names to a CSS selector. Multiple classes should be separated by spaces.
+ * Examples:
+ *  - "my-class" -> ".my-class"
+ *  - "my-class second-class" -> ".my-class.second-class"
+ *
+ * @param classNames The class names to convert. Can contain multiple classes separated by spaces.
+ */
+export const classNamesToSelector = (classNames: string) => {
+    if (!classNames) {
+        return null
+    }
+    return classNames.trim().split(" ").map(className => `.${className}`).join("")
+}
+
+/**
+ * Check if the element contains all the classes. Multiple classes should be separated by spaces.
+ *
+ * @param element The element that will be checked
+ * @param classes The classes that must be present in the element. Can contain multiple classes separated by spaces.
+ */
+export const containsClass = (element: Element, classes: string) => {
+    const hasMissingClass = classes?.split(" ").some(className => !element.classList.contains(className))
+    return !hasMissingClass
+}
+
+/**
+ * Join two strings with spaces. Null values are ignored.
+ * Examples:
+ *  - joinWithSpaces("a", "b") -> "a b"
+ *  - joinWithSpaces("a", null) -> "a"
+ *  - joinWithSpaces(null, "b") -> "b"
+ *  - joinWithSpaces("a", "b c") -> "a b c"
+ *
+ * @param first The first string to join
+ * @param second The second string to join
+ */
+export const joinWithSpaces = (first: string | null | undefined, second: string | null | undefined) => {
+    if (first) {
+        if (second) {
+            return `${first} ${second}`
+        }
+        return first
+    } else if (second) {
+        return second
+    }
+    return ""
+}
