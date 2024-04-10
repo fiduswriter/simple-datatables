@@ -126,13 +126,17 @@ columns.hide(3);
 
 // Check visiblilty
 columns.visible(3); // returns false
+```
 
-or;
+or
 
+```javascript
 columns.visible([0, 1, 2, 3]); // returns  [true, true, true, false]
+```
 
-or;
+or
 
+```javascript
 columns.visible(); // returns  [true, true, true, false, true]
 ```
 
