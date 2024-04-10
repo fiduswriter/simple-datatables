@@ -348,6 +348,7 @@ dataTable.data = {
     headings: [],
 };
 dataTable.hasHeadings = false;
+dataTable.hasRows = false;
 dataTable.insert(newHeadingsAndData);
 ```
 
