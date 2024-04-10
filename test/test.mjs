@@ -17,7 +17,7 @@ const options = new chrome.Options()
 if (process.env.CI) { // eslint-disable-line no-process-env
     // We are running on CI
     wait = 300
-    options.headless()
+    options.addArguments("--headless=new")
 }
 const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
 driver.manage().window().setRect({width: 1920,
