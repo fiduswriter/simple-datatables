@@ -79,7 +79,10 @@ export class Columns {
     /**
      * Hide columns
      */
-    hide(columns: number[]) {
+    hide(columns: number | number[]) {
+        if (!Array.isArray(columns)) {
+            columns = [columns]
+        }
         if (!columns.length) {
             return
         }
@@ -99,7 +102,10 @@ export class Columns {
     /**
      * Show columns
      */
-    show(columns: number[]) {
+    show(columns: number | number[]) {
+        if (!Array.isArray(columns)) {
+            columns = [columns]
+        }
         if (!columns.length) {
             return
         }
@@ -212,16 +218,16 @@ export class Columns {
     /**
      * Remove column(s)
      */
-    remove(columns: number[]) {
-        if (Array.isArray(columns)) {
-            this.dt.data.headings = this.dt.data.headings.filter((_heading: headerCellType, index: number) => !columns.includes(index))
-            this.dt.data.data.forEach(
-                (row: dataRowType) => (row.cells = row.cells.filter((_cell: cellType, index: number) => !columns.includes(index)))
-            )
-            this.dt.update(true)
-        } else {
-            return this.remove([columns])
+    remove(columns: number | number[]) {
+        if (!Array.isArray(columns)) {
+            columns = [columns]
         }
+
+        this.dt.data.headings = this.dt.data.headings.filter((_heading: headerCellType, index: number) => !columns.includes(index))
+        this.dt.data.data.forEach(
+            (row: dataRowType) => (row.cells = row.cells.filter((_cell: cellType, index: number) => !columns.includes(index)))
+        )
+        this.dt.update(true)
     }
 
     /**

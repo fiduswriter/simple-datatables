@@ -82,11 +82,10 @@ let columns = datatable.columns;
 columns.remove(3);
 
 // Remove the 1st and 2nd column
-columns.remove([0,1]);
+columns.remove([0, 1]);
 
 // Remove the last column
 columns.remove(datatable.headings.length - 1);
-
 ```
 
 ---
@@ -97,7 +96,7 @@ Hides the selected column(s). The columns will not be visible and will be omitte
 
 ```javascript
 // Hide the first and second columns
-columns.hide([0,1]);
+columns.hide([0, 1]);
 ```
 
 ---
@@ -106,10 +105,9 @@ columns.hide([0,1]);
 
 Shows the selected column(s) (if hidden). The columns will be visible and will be included in search results and exported data.
 
-
 ```javascript
 // Show the first and second columns
-columns.show([0,1]);
+columns.show([0, 1]);
 ```
 
 ---
@@ -127,16 +125,15 @@ let columns = datatable.columns;
 columns.hide(3);
 
 // Check visiblilty
-columns.visible(3) // returns false
+columns.visible(3); // returns false
 
-or
+or;
 
-columns.visible([0,1,2,3]) // returns  [true, true, true, false]
+columns.visible([0, 1, 2, 3]); // returns  [true, true, true, false]
 
-or
+or;
 
-columns.visible() // returns  [true, true, true, false, true]
-
+columns.visible(); // returns  [true, true, true, false, true]
 ```
 
 ---
@@ -159,8 +156,7 @@ Swap th position of two columns. Just pass an array of 2 integers representing t
 let columns = datatable.columns;
 
 // Swap the 1st and 6th columns
-columns.swap([0,5]);
-
+columns.swap([0, 5]);
 ```
 
 ---
@@ -170,14 +166,14 @@ columns.swap([0,5]);
 Order the columns based on the given order. Just pass an array of column indexes in the order you require:
 
 ### Original order
-![Original order](http://i.imgur.com/OK5DoGs.png)
 
+![Original order](http://i.imgur.com/OK5DoGs.png)
 
 ```javascript
 // Reorder the columns
-datatable.columns.order([1,3,4,2,0]);
+datatable.columns.order([1, 3, 4, 2, 0]);
 ```
 
-
 ### Result
+
 ![Original order](http://i.imgur.com/kNGEgpT.png)
