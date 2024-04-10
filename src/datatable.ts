@@ -53,7 +53,7 @@ export class DataTable {
 
     headerDOM: HTMLDivElement
 
-    _initialInnerHTML: string
+    _initialHTML: string
 
     initialized: boolean
 
@@ -102,7 +102,6 @@ export class DataTable {
         const dom = typeof table === "string" ?
             document.querySelector(table) :
             table
-
         if (dom instanceof HTMLTableElement) {
             this.dom = dom
         } else {
@@ -134,7 +133,7 @@ export class DataTable {
             classes
         }
 
-        this._initialInnerHTML = this.options.destroyable ? this.dom.innerHTML : "" // preserve in case of later destruction
+        this._initialHTML = this.options.destroyable ? dom.outerHTML : "" // preserve in case of later destruction
 
         if (this.options.tabIndex) {
             this.dom.tabIndex = this.options.tabIndex
@@ -677,19 +676,19 @@ export class DataTable {
         if (!this.options.destroyable) {
             return
         }
-        this.dom.innerHTML = this._initialInnerHTML
-
-        // Remove the className
-        this.options.classes.table?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
-
-        // Remove the containers
         if (this.wrapperDOM.parentElement) {
-            this.wrapperDOM.parentElement.replaceChild(this.dom, this.wrapperDOM)
+            // Restore the initial HTML
+            const oldDOM = createElement("div")
+            oldDOM.innerHTML = this._initialHTML
+            this.wrapperDOM.parentElement.replaceChild(oldDOM.firstElementChild, this.wrapperDOM)
+        } else {
+            // Remove the className
+            this.options.classes.table?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
         }
 
-        this.initialized = false
-
         window.removeEventListener("resize", this._listeners.onResize)
+
+        this.initialized = false
     }
 
     /**
