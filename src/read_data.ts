@@ -34,7 +34,8 @@ export const readDataCell = (cell: inputCellType, columnSettings : columnSetting
         break
     case "number":
         cellData.text = String(cellData.data as number)
-        cellData.data = parseInt(cellData.data as string, 10)
+        cellData.data = parseFloat(cellData.data as string)
+        cellData.order = cellData.data
         break
     case "html": {
         const node = Array.isArray(cellData.data) ?
@@ -83,12 +84,15 @@ const readDOMDataCell = (cell: HTMLElement, columnSettings : columnSettingsType)
         }
         break
     }
-    case "number":
+    case "number": {
+        const data = parseFloat(cell.innerText)
         cellData = {
-            data: parseInt(cell.innerText, 10),
+            data,
+            order: data,
             text: cell.innerText
         }
         break
+    }
     case "boolean": {
         const data = !["false", "0", "null", "undefined"].includes(cell.innerText.toLowerCase().trim())
         cellData = {

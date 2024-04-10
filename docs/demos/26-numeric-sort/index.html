@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Numeric sort - simple-datatables</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+    </head>
+    <body>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Numeric sort</h2>
+        <table id="demo-table">
+            <thead>
+                <tr>
+                    <th>Number</th>
+                    <th>#</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Minus one point five</td>
+                    <td>-1.5</td>
+                </tr>
+                <tr>
+                    <td>Minus one</td>
+                    <td>-1</td>
+                </tr>
+                <tr>
+                    <td>Minus zero point eight</td>
+                    <td>-0.8</td>
+                </tr>
+                <tr>
+                    <td>Minus zero point five</td>
+                    <td>-0.5</td>
+                </tr>
+                <tr>
+                    <td>Minus zero point two</td>
+                    <td>-0.2</td>
+                </tr>
+                <tr>
+                    <td>Zero</td>
+                    <td>0</td>
+                </tr>
+                <tr>
+                    <td>Zero point five</td>
+                    <td>0.5</td>
+                </tr>
+                <tr>
+                    <td>Zero point eight</td>
+                    <td>0.8</td>
+                </tr>
+                <tr>
+                    <td>One</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>One poiny five</td>
+                    <td>1.5</td>
+                </tr>
+                <tr>
+                    <td>Two</td>
+                    <td>2</td>
+                </tr>
+                <tr>
+                    <td>Three</td>
+                    <td>3</td>
+                </tr>
+                <tr>
+                    <td>Four</td>
+                    <td>4</td>
+                </tr>
+                <tr>
+                    <td>Five</td>
+                    <td>5</td>
+                </tr>
+                <tr>
+                    <td>Six</td>
+                    <td>6</td>
+                </tr>
+                <tr>
+                    <td>Seven</td>
+                    <td>7</td>
+                </tr>
+                <tr>
+                    <td>Eight</td>
+                    <td>8</td>
+                </tr>
+                <tr>
+                    <td>Nine</td>
+                    <td>9</td>
+                </tr>
+                <tr>
+                    <td>Ten</td>
+                    <td>10</td>
+                </tr>
+                <tr>
+                    <td>Eleven</td>
+                    <td>11</td>
+                </tr>
+            </tbody>
+        </table>
+        <script type="module">
+            import {DataTable} from "../dist/module.js"
+            window.dt = new DataTable(
+                "#demo-table",
+                {
+                    columns: [
+                        {select: 1,
+                            type: "number",
+                            sort: "desc"}
+                    ]
+                }
+            )
+        </script>
+    </body>
+</html>
