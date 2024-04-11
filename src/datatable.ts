@@ -915,7 +915,7 @@ export class DataTable {
         {headings?: string[], data?: (inputRowType | inputCellType[])[]} | { [key: string]: inputCellType}[])) {
         let rows: dataRowType[] = []
         if (Array.isArray(data)) {
-            const headings = this.data.headings.map((heading: headerCellType) => heading.text ?? String(heading.data))
+            const headings = this.data.headings.map((heading: headerCellType) => heading.data ? String(heading.data) : heading.text)
             data.forEach((row, rIndex) => {
                 const r: cellType[] = []
                 Object.entries(row).forEach(([heading, cell]) => {

@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Load JSON - simple-datatables</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+    </head>
+    <body>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Load JSON</h2>
+
+        <table id="demo-table"></table>
+
+        <script type="module">
+            import {DataTable} from "../dist/module.js"
+
+            fetch("initial_data.json")
+                .then(response => response.json())
+                .then(data => {
+                    window.dt = new DataTable("#demo-table", {
+                        columns: [
+                            {
+                                // select the fourth column ...
+                                select: 3,
+                                // ... let the instance know we have datetimes in it ...
+                                type: "date",
+                                // ... pass the correct datetime format ...
+                                format: "YYYY/DD/MM",
+                                // ... sort it ...
+                                sort: "desc"
+                            }
+                        ],
+                        data: {
+                            headings: [
+                                {
+                                    text: "Name",
+                                    data: "name"
+                                }, {
+                                    text: "Ext.",
+                                    data: "extension"
+                                }, {
+                                    text: "City",
+                                    data: "city"
+                                }, {
+                                    text: "Start date",
+                                    data: "start_date"
+                                }
+                            ],
+                            data
+                        }
+        })
+
+                    fetch("additional_data.json")
+                        .then(response => response.json())
+                        .then(data => window.dt.insert(data))
+                })
+        </script>
+    </body>
+</html>

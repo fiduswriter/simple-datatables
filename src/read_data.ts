@@ -230,15 +230,25 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         }
     }
     if (dataOption.data) {
+        const headings = data.headings.map((heading: headerCellType) => heading.data ? String(heading.data) : heading.text)
         data.data = dataOption.data.map((row: inputRowType | inputCellType[]) => {
             let attributes: { [key: string]: string }
             let cells: inputCellType[]
             if (Array.isArray(row)) {
                 attributes = {}
                 cells = row
-            } else {
+            } else if (row.hasOwnProperty("cells") && Object.keys(row).every(key => ["cells", "attributes"].includes(key))) {
                 attributes = row.attributes
                 cells = row.cells
+            } else {
+                attributes = {}
+                cells = []
+                Object.entries(row).forEach(([heading, cell]) => {
+                    const index = headings.indexOf(heading)
+                    if (index > -1) {
+                        cells[index] = cell
+                    }
+                })
             }
             return {
                 attributes,
