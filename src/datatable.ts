@@ -676,14 +676,16 @@ export class DataTable {
         if (!this.options.destroyable) {
             return
         }
-        if (this.wrapperDOM.parentElement) {
-            // Restore the initial HTML
-            const oldDOM = createElement("div")
-            oldDOM.innerHTML = this._initialHTML
-            this.wrapperDOM.parentElement.replaceChild(oldDOM.firstElementChild, this.wrapperDOM)
-        } else {
-            // Remove the className
-            this.options.classes.table?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
+        if (this.wrapperDOM) {
+            if (this.wrapperDOM.parentElement) {
+                // Restore the initial HTML
+                const oldDOM = createElement("div")
+                oldDOM.innerHTML = this._initialHTML
+                this.wrapperDOM.parentElement.replaceChild(oldDOM.firstElementChild, this.wrapperDOM)
+            } else {
+                // Remove the className
+                this.options.classes.table?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
+            }
         }
 
         window.removeEventListener("resize", this._listeners.onResize)
