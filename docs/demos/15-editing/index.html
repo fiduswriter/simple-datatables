@@ -801,6 +801,10 @@
                         }
                     ]
                 })
+
+                table.on('editable.save.cell', (newValue, oldValue, row, column) => {
+                    console.log(`cell is saved: newValue=${newValue}, oldValue=${oldValue}, row=${row}, column=${column}`)
+                })
             }
             resetTable()
             document.getElementById("modal").addEventListener("input", _event => {
