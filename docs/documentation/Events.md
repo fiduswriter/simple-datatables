@@ -22,6 +22,17 @@ dataTable.on('datatable.page', function(page) {
 });
 ```
 
+### `datatable.page:before`
+Fires before page change.
+
+A single argument is available which returns the page number:
+
+```javascript
+dataTable.on('datatable.page:before', function(page) {
+    //
+});
+```
+
 ### `datatable.perpage`
 Fires when the perPage option is changed with the dropdown. A single argument returns the per-page value:
 
@@ -31,8 +42,20 @@ dataTable.on('datatable.perpage', function(perpage) {
 });
 ```
 
+### `datatable.perpage:before`
+Fires before the perPage option is changed with the dropdown. A single argument returns the per-page value:
+
+```javascript
+dataTable.on('datatable.perpage:before', function(perpage) {
+    //
+});
+```
+
 ### `datatable.refresh`
 Fires when the `.refresh()` method is called.
+
+### `datatable.refresh:before`
+Fires before the `.refresh()` method is called.
 
 ### `datatable.search`
 Fires on keyup during a search.
@@ -41,6 +64,17 @@ Two arguments are available: `query` which returns the query string entered and 
 
 ```javascript
 dataTable.on('datatable.search', function(query, matched) {
+    //
+});
+```
+
+### `datatable.search:before`
+Fires on keyup before a search.
+
+Two arguments are available: `query` which returns the query string entered and `matched` which returns an array of rows containing the matched string:
+
+```javascript
+dataTable.on('datatable.search:before', function(query, matched) {
     //
 });
 ```
@@ -72,3 +106,6 @@ dataTable.on('datatable.sort', function(column, direction) {
 
 ### `datatable.update`
 Fires when the `.update()` method is called.
+
+### `datatable.update:before`
+Fires before the `.update()` method is called.
