@@ -318,7 +318,7 @@ export class Columns {
                 order1 = order2
                 order2 = temp
             }
-            if (collator) {
+            if (collator && (typeof order1 !== "number") && (typeof order2 !== "number")) {
                 return collator.compare(String(order1), String(order2))
             }
             if (order1 < order2) {
