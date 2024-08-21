@@ -499,6 +499,7 @@ export class DataTable {
             if (selector && selector instanceof HTMLSelectElement) {
                 // Change per page
                 selector.addEventListener("change", () => {
+                    this.emit("datatable.perpage:before", this.options.perPage)
                     this.options.perPage = parseInt(selector.value, 10)
                     this.update()
 
@@ -676,14 +677,16 @@ export class DataTable {
         if (!this.options.destroyable) {
             return
         }
-        if (this.wrapperDOM.parentElement) {
-            // Restore the initial HTML
-            const oldDOM = createElement("div")
-            oldDOM.innerHTML = this._initialHTML
-            this.wrapperDOM.parentElement.replaceChild(oldDOM.firstElementChild, this.wrapperDOM)
-        } else {
-            // Remove the className
-            this.options.classes.table?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
+        if (this.wrapperDOM) {
+            if (this.wrapperDOM.parentElement) {
+                // Restore the initial HTML
+                const oldDOM = createElement("div")
+                oldDOM.innerHTML = this._initialHTML
+                this.wrapperDOM.parentElement.replaceChild(oldDOM.firstElementChild, this.wrapperDOM)
+            } else {
+                // Remove the className
+                this.options.classes.table?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
+            }
         }
 
         window.removeEventListener("resize", this._listeners.onResize)
@@ -696,6 +699,8 @@ export class DataTable {
      * @return {Void}
      */
     update(measureWidths = false) {
+        this.emit("datatable.update:before")
+
         if (measureWidths) {
             this.columns._measureWidths()
             this.hasRows = Boolean(this.data.data.length)
@@ -776,6 +781,7 @@ export class DataTable {
      * Perform a simple search of the data set
      */
     search(term: string, columns: (number[] | undefined ) = undefined) {
+        this.emit("datatable.search:before", term, this._searchData)
 
         if (!term.length) {
             this._currentPage = 1
@@ -810,6 +816,8 @@ export class DataTable {
             terms: query.terms.map(term => term.trim()).filter(term => term)
         })).filter(query => query.terms.length
         )
+
+        this.emit("datatable.multisearch:before", queries, this._searchData)
 
         this._searchQueries = queries
 
@@ -889,6 +897,8 @@ export class DataTable {
      * Change page
      */
     page(page: number, lastRowCursor = false) {
+        this.emit("datatable.page:before", page)
+
         // We don't want to load the current page again.
         if (page === this._currentPage) {
             return false
@@ -971,6 +981,8 @@ export class DataTable {
      * Refresh the instance
      */
     refresh() {
+        this.emit("datatable.refresh:before")
+
         if (this.options.searchable) {
             const inputSelector = classNamesToSelector(this.options.classes.input)
             const inputs: HTMLInputElement[] = Array.from(this.wrapperDOM.querySelectorAll(inputSelector))
