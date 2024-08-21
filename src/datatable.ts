@@ -678,11 +678,14 @@ export class DataTable {
             return
         }
         if (this.wrapperDOM) {
-            if (this.wrapperDOM.parentElement) {
+            const parentElement = this.wrapperDOM.parentElement
+            if (parentElement) {
                 // Restore the initial HTML
                 const oldDOM = createElement("div")
                 oldDOM.innerHTML = this._initialHTML
-                this.wrapperDOM.parentElement.replaceChild(oldDOM.firstElementChild, this.wrapperDOM)
+                const oldTable = oldDOM.firstElementChild as HTMLTableElement
+                parentElement.replaceChild(oldTable, this.wrapperDOM)
+                this.dom = oldTable
             } else {
                 // Remove the className
                 this.options.classes.table?.split(" ").forEach(className => this.wrapperDOM.classList.remove(className))
