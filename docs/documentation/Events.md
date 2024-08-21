@@ -109,3 +109,18 @@ Fires when the `.update()` method is called.
 
 ### `datatable.update:before`
 Fires before the `.update()` method is called.
+
+### `editable.init`
+Fires when the editor is initialized.
+
+### `editable.save.cell`
+Fires when the cell is saved (even when the value is not actually updated). 
+
+### `editable.save.row`
+Fires when the row is saved.
+
+### `editable.context.open`
+Fires when the context menu is opened.
+
+### `editable.context.close`
+Fires when the context menu is closed.
