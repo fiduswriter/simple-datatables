@@ -29,6 +29,7 @@ import {Rows} from "./rows"
 import {Columns} from "./columns"
 import {defaultConfig} from "./config"
 import {createVirtualPagerDOM} from "./virtual_pager_dom"
+import {debounce} from "./editing/helpers"
 
 
 export class DataTable {
@@ -658,16 +659,15 @@ export class DataTable {
     }
 
     /**
-     * execute on resize
+     * execute on resize and debounce to avoid multiple calls
      */
-    _onResize() {
+    _onResize = debounce(() => {
         this._rect = this.containerDOM.getBoundingClientRect()
         if (!this._rect.width) {
-            // No longer shown, likely no longer part of DOM. Give up.
             return
         }
         this.update(true)
-    }
+    }, 100)
 
     /**
      * Destroy the instance
