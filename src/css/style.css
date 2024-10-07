@@ -153,6 +153,7 @@
     background-color: inherit;
     cursor: pointer;
     text-align: inherit;
+    font-family: inherit;
     font-weight: inherit;
     font-size: inherit;
 }
