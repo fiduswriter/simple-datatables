@@ -3,6 +3,7 @@ import {
     cellToText,
     columnToVisibleIndex,
     createElement,
+    debounce,
     escapeText,
     visibleToColumnIndex
 } from "../helpers"
@@ -17,9 +18,7 @@ import {parseDate} from "../date"
 import {
     defaultConfig
 } from "./config"
-import {
-    debounce
-} from "./helpers"
+
 import {menuItemType, dataType, EditorOptions} from "./types"
 
 

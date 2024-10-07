@@ -3,6 +3,7 @@ import {
     classNamesToSelector,
     containsClass,
     createElement,
+    debounce,
     isObject,
     joinWithSpaces,
     visibleToColumnIndex
@@ -29,7 +30,6 @@ import {Rows} from "./rows"
 import {Columns} from "./columns"
 import {defaultConfig} from "./config"
 import {createVirtualPagerDOM} from "./virtual_pager_dom"
-import {debounce} from "./editing/helpers"
 
 
 export class DataTable {
