@@ -134,7 +134,10 @@ interface ColumnOption{
     ignorePunctuation?: boolean;
 
     /** Default: " ". Influences searching. When performing search, the cell content is split up using this separator.*/
-    searchItemSeparator?: string;
+    searchItemSeparator?: string
+
+    /** Default: false. Influences searching. Overrides default search method. */
+    searchMethod?: false | ((query: string[], cell: cellType, row: dataRowType, columnIndex: number, source: string) => boolean);
 
     /**
      * Default: "en-US" (string). Set a locale such as en-UK or de for the column.
@@ -401,6 +404,7 @@ interface DataTableConfiguration {
     searchItemSeparator: string;
     searchQuerySeparator: string;
     searchAnd: boolean;
+    searchMethod: false | ((query: string[], cell: cellType, row: dataRowType, columnIndex: number, source: string) => boolean);
     // for sorting
     /**
      * Default: true
@@ -457,7 +461,8 @@ interface columnSettingsType {
     searchable?: boolean,
     sensitivity?: string,
     ignorePunctuation?: boolean,
-    searchItemSeparator?: string;
+    searchItemSeparator?: string,
+    searchMethod?: false | ((query: string[], cell: cellType, row: dataRowType, columnIndex: number, source: string) => boolean),
     //
     headerClass?: string,
     cellClass?: string,

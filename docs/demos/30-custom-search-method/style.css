@@ -1,0 +1,107 @@
+span.class {
+    display: inline-block;
+    padding: 5px 10px;
+    margin: 3px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: white;
+}
+
+/* Pastel colors for different subjects */
+.math {
+    background-color: #a3d8f4; /* pastel blue */
+    color: #1d4e89;
+}
+
+.history {
+    background-color: #f9c6c9; /* pastel pink */
+    color: #87373f;
+}
+
+.english {
+    background-color: #c6e1bc; /* pastel green */
+    color: #2b5d2e;
+}
+
+.physics {
+    background-color: #f6d8ac; /* pastel yellow */
+    color: #8a5e11;
+}
+
+.chemistry {
+    background-color: #f3bbd3; /* pastel magenta */
+    color: #73234a;
+}
+
+.biology {
+    background-color: #b7e0e5; /* pastel teal */
+    color: #1b5b5e;
+}
+
+.french {
+    background-color: #ecd9f2; /* pastel purple */
+    color: #562e6d;
+}
+
+.german {
+    background-color: #f2d3a1; /* pastel orange */
+    color: #9b6c22;
+}
+
+/* Style for the dropdown and the checkboxes */
+.multiselect {
+    position: relative;
+    width: 200px;
+}
+
+.select-box {
+    position: relative;
+    display: block;
+    border: 1px solid #aaa;
+    padding: 8px;
+    background-color: #fff;
+    cursor: pointer;
+}
+
+.select-box select {
+    width: 100%;
+    border: none;
+    outline: none;
+    background: none;
+    font-size: 16px;
+}
+
+.over-select {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    cursor: pointer;
+}
+
+.checkboxes {
+    display: none;
+    border: 1px solid #aaa;
+    padding: 10px;
+    background-color: #f9f9f9;
+    position: absolute;
+    z-index: 1;
+    width: 100%;
+}
+
+.checkboxes label {
+    display: block;
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.checkboxes input[type="checkbox"] {
+    margin-right: 10px;
+}
+
+/* Additional styling */
+.select-box:hover {
+    background-color: #e9e9e9;
+}

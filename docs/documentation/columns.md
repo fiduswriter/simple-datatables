@@ -51,6 +51,21 @@ When set to `false` the column(s) cannot be searched.
 
 Default: `""`. Influences searching in that cell content will be split with this value by default when searching for content. Specifying `searchItemSeparator` as part of the table's configuration will define a default for all search boxes.
 
+#### `searchMethod`
+
+A custom search method to be used for the column(s). The function should take 5 arguments:
+`terms` (an array of strings representing the search terms),
+`cell` (the cell that is to be checked for the search terms),
+`row` (the data row that the cell is part of),
+`column` (the id of the column of the cell),
+`source` (a unique string given to a particular search interface so that multiple search itnerfaces can be used simultaneously).
+
+It should return `true` if the search string is found in the data, `false` otherwise.
+
+The default is that it simply checks for the presence of a particular search term in the cell content.
+
+Defining a `searchMethod` as part of the table's configuration will define a default for all columns.
+
 #### `select`
 
 An integer or array of integers representing the column(s) to be manipulated.
@@ -100,7 +115,7 @@ You can either return a string representing the cells content, you can modify th
  =>
 render: function(value, td, rowIndex, cellIndex) {
 
-}		
+}
 
 ```
 

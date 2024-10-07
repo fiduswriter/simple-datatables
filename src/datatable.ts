@@ -81,7 +81,7 @@ export class DataTable {
 
     _searchData: number[]
 
-    _searchQueries: {terms: string[], columns: (number[] | undefined)}[]
+    _searchQueries: {source: string, terms: string[], columns: (number[] | undefined)}[]
 
     _tableAttributes: {[key: string]: string}
 
@@ -783,7 +783,7 @@ export class DataTable {
     /**
      * Perform a simple search of the data set
      */
-    search(term: string, columns: (number[] | undefined ) = undefined) {
+    search(term: string, columns: (number[] | undefined ) = undefined, source: string = "search") {
         this.emit("datatable.search:before", term, this._searchData)
 
         if (!term.length) {
@@ -799,29 +799,33 @@ export class DataTable {
         this.multiSearch([
             {terms: [term],
                 columns: columns ? columns : undefined}
-        ])
+        ], source)
 
         this.emit("datatable.search", term, this._searchData)
 
     }
 
     /**
-     * Perform a search of the data set seraching for up to multiple strings in various columns
+     * Perform a search of the data set searching for up to multiple strings in various columns
      */
-    multiSearch(rawQueries : {terms: string[], columns: (number[] | undefined)}[]) {
+    multiSearch(rawQueries: { terms: string[], columns: (number[] | undefined) }[], source: string = "search") {
         if (!this.hasRows) return false
 
         this._currentPage = 1
         this._searchData = []
         // Remove empty queries
-        const queries = rawQueries.map(query => ({
+        let queries = rawQueries.map(query => ({
             columns: query.columns,
-            terms: query.terms.map(term => term.trim()).filter(term => term)
-        })).filter(query => query.terms.length
-        )
+            terms: query.terms.map(term => term.trim()).filter(term => term),
+            source
+        })).filter(query => query.terms.length)
 
         this.emit("datatable.multisearch:before", queries, this._searchData)
 
+        if (source.length) {
+            // Add any existing queries from different source
+            queries = queries.concat(this._searchQueries.filter(query => query.source !== source))
+        }
         this._searchQueries = queries
 
         if (!queries.length) {
@@ -852,8 +856,12 @@ export class DataTable {
         ))
         this.data.data.forEach((row: dataRowType, idx: number) => {
             const searchRow = row.cells.map((cell, i) => {
-                let content = cellToText(cell).trim()
                 const column = this.columns.settings[i]
+                const customSearchMethod = column.searchMethod || this.options.searchMethod
+                if (customSearchMethod) {
+                    return cell
+                }
+                let content = cellToText(cell).trim()
                 if (content.length) {
                     const sensitivity = column.sensitivity || this.options.sensitivity
                     if (["base", "accent"].includes(sensitivity)) {
@@ -872,10 +880,18 @@ export class DataTable {
             })
             if (
                 queryWords.every(
-                    queries => queries.find(
-                        (query, index) => query ?
-                            query.find(queryWord => searchRow[index].find(searchItem => searchItem.includes(queryWord))) :
-                            false
+                    (queryColumn, queryIndex) => queryColumn.find(
+                        (queryColumnWord, index) => {
+                            if (!queryColumnWord) {
+                                return false
+                            }
+                            const column = this.columns.settings[index]
+                            const customSearchMethod = column.searchMethod || this.options.searchMethod
+                            if (customSearchMethod) {
+                                return customSearchMethod(queryColumnWord, (searchRow[index] as cellType), row, index, queries[queryIndex].source)
+                            }
+                            return queryColumnWord.find(queryWord => (searchRow[index] as string[]).find(searchItem => searchItem.includes(queryWord)))
+                        }
                     )
                 )
             ) {

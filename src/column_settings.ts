@@ -79,6 +79,10 @@ export const readColumnSettings = (columnOptions = [], defaultType, defaultForma
                 }
             }
 
+            if (data.searchMethod) {
+                column.searchMethod = data.searchMethod
+            }
+
             if (data.hidden) {
                 column.hidden = true
             }

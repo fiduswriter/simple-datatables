@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>And search - simple-datatables</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+        <link rel="stylesheet" href="style.css">
+        <style>
+
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Custom search method</h2>
+        <p>
+            This demo shows two different kinds of search methods. There is the default search and additionally a special kind of dropdown filter.
+            Search is also applied differently for the column with the classes, which contains more complex html.
+        </p>
+        <p>Example: Search for "Luca", click on "Select classes" and deselect all except "Math" and finally move the "Minimal completion
+            percentage" somewhere between 50-70%. You should now only see two entries as all filters are applied simultaneously.</p>
+
+        <div class="multiselect">
+            <div class="select-box">
+                <select>
+                    <option>Select Classes</option>
+                </select>
+                <div class="over-select"></div>
+            </div>
+
+            <div id="checkboxes" class="checkboxes">
+                <label for="math">
+                    <input type="checkbox" id="math" value="math" checked="checked"> Math
+                </label>
+                <label for="history">
+                    <input type="checkbox" id="history" value="history" checked="checked"> History
+                </label>
+                <label for="english">
+                    <input type="checkbox" id="english" value="english" checked="checked"> English
+                </label>
+                <label for="physics">
+                    <input type="checkbox" id="physics" value="physics" checked="checked"> Physics
+                </label>
+                <label for="chemistry">
+                    <input type="checkbox" id="chemistry" value="chemistry" checked="checked"> Chemistry
+                </label>
+                <label for="biology">
+                    <input type="checkbox" id="biology" value="biology" checked="checked"> Biology
+                </label>
+                <label for="french">
+                    <input type="checkbox" id="french" value="french" checked="checked"> French
+                </label>
+                <label for="german">
+                    <input type="checkbox" id="german" value="german" checked="checked"> German
+                </label>
+            </div>
+        </div>
+
+        <div class="slider-container">
+            <label for="percentage-slider">Minimal Completion Percentage: </label>
+            <input type="range" id="percentage-slider" min="0" max="100" value="0" step="1">
+            <span id="slider-value">0%</span>
+        </div>
+
+        <table id="demo-table">
+            <thead>
+                <tr>
+                    <th data-type="string">Name</th>
+                    <th data-type="html">Classes</th>
+                    <th data-type="string">City</th>
+                    <th data-type="date" data-format="YYYY/DD/MM">Start Date</th>
+                    <th data-type="string">Completion</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Unity Pugh</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Curicó</td>
+                    <td>2005/02/11</td>
+                    <td>37%</td>
+                </tr>
+                <tr>
+                    <td>Theodore Duran</td>
+                    <td>
+                        <span class="class german">German</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Dhanbad</td>
+                    <td>1999/04/07</td>
+                    <td>97%</td>
+                </tr>
+                <tr>
+                    <td>Isla Walton</td>
+                    <td>
+                        <span class="class english">English</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>São Paulo</td>
+                    <td>2002/09/22</td>
+                    <td>82%</td>
+                </tr>
+                <tr>
+                    <td>Oscar Lawrence</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Montpellier</td>
+                    <td>2008/12/18</td>
+                    <td>65%</td>
+                </tr>
+                <tr>
+                    <td>Mia Andrews</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Osaka</td>
+                    <td>2003/03/14</td>
+                    <td>90%</td>
+                </tr>
+                <tr>
+                    <td>Luca Baker</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Chicago</td>
+                    <td>2010/07/30</td>
+                    <td>58%</td>
+                </tr>
+                <tr>
+                    <td>Amelia Hayes</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class biology">Biology</span>
+                    </td>
+                    <td>Stockholm</td>
+                    <td>2011/06/25</td>
+                    <td>75%</td>
+                </tr>
+                <tr>
+                    <td>Noah White</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Toronto</td>
+                    <td>2009/10/08</td>
+                    <td>44%</td>
+                </tr>
+                <tr>
+                    <td>Sophia Clark</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Sydney</td>
+                    <td>2006/05/20</td>
+                    <td>95%</td>
+                </tr>
+                <tr>
+                    <td>Logan Roberts</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Mumbai</td>
+                    <td>2012/11/15</td>
+                    <td>51%</td>
+                </tr>
+                <tr>
+                    <td>Aria Lewis</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Bogotá</td>
+                    <td>2004/04/01</td>
+                    <td>67%</td>
+                </tr>
+                <tr>
+                    <td>Henry Phillips</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Shanghai</td>
+                    <td>2007/03/19</td>
+                    <td>89%</td>
+                </tr>
+                <tr>
+                    <td>Ella Evans</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class german">German</span>
+                    </td>
+                    <td>Lisbon</td>
+                    <td>1998/12/29</td>
+                    <td>72%</td>
+                </tr>
+                <tr>
+                    <td>Jack Turner</td>
+                    <td>
+                        <span class="class english">English</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Mexico City</td>
+                    <td>2013/01/10</td>
+                    <td>59%</td>
+                </tr>
+                <tr>
+                    <td>Emily Russell</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>Vienna</td>
+                    <td>2000/08/16</td>
+                    <td>93%</td>
+                </tr>
+                <tr>
+                    <td>Lucas Griffin</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Delhi</td>
+                    <td>2001/05/30</td>
+                    <td>47%</td>
+                </tr>
+                <tr>
+                    <td>Lily Brooks</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Berlin</td>
+                    <td>2010/09/03</td>
+                    <td>76%</td>
+                </tr>
+                <tr>
+                    <td>Benjamin Kelly</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class german">German</span>
+                    </td>
+                    <td>Warsaw</td>
+                    <td>2002/10/22</td>
+                    <td>64%</td>
+                </tr>
+                <tr>
+                    <td>Grace Foster</td>
+                    <td>
+                        <span class="class english">English</span>
+                        <span class="class biology">Biology</span>
+                    </td>
+                    <td>Johannesburg</td>
+                    <td>2005/07/11</td>
+                    <td>88%</td>
+                </tr>
+                <tr>
+                    <td>James Perez</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Munich</td>
+                    <td>1997/02/03</td>
+                    <td>54%</td>
+                </tr>
+                <tr>
+                    <td>Olivia Parker</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Brisbane</td>
+                    <td>2014/08/19</td>
+                    <td>70%</td>
+                </tr>
+                <tr>
+                    <td>Alexander Morris</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Karachi</td>
+                    <td>2011/12/27</td>
+                    <td>81%</td>
+                </tr>
+                <tr>
+                    <td>Ava Reed</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class german">German</span>
+                    </td>
+                    <td>Lima</td>
+                    <td>2009/06/02</td>
+                    <td>48%</td>
+                </tr>
+                <tr>
+                    <td>Ethan Cooper</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Kyoto</td>
+                    <td>2008/04/16</td>
+                    <td>93%</td>
+                </tr>
+                <tr>
+                    <td>Sophia Bell</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Madrid</td>
+                    <td>2003/07/09</td>
+                    <td>62%</td>
+                </tr>
+                <tr>
+                    <td>Michael Nelson</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Cape Town</td>
+                    <td>1999/05/13</td>
+                    <td>85%</td>
+                </tr>
+                <tr>
+                    <td>Emma Hughes</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Birmingham</td>
+                    <td>2015/09/24</td>
+                    <td>91%</td>
+                </tr>
+                <tr>
+                    <td>Mason Wood</td>
+                    <td>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Amsterdam</td>
+                    <td>2012/11/07</td>
+                    <td>79%</td>
+                </tr>
+                <tr>
+                    <td>Avery Rogers</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class history">History</span>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>Dallas</td>
+                    <td>2004/03/15</td>
+                    <td>45%</td>
+                </tr>
+                <tr>
+                    <td>Lucas Bennett</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class biology">Biology</span>
+                    </td>
+                    <td>Mexico City</td>
+                    <td>2013/06/19</td>
+                    <td>72%</td>
+                </tr>
+                <tr>
+                    <td>Charlotte Cox</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Cairo</td>
+                    <td>2010/10/04</td>
+                    <td>68%</td>
+                </tr>
+                <tr>
+                    <td>Daniel Russell</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Vancouver</td>
+                    <td>2007/01/23</td>
+                    <td>77%</td>
+                </tr>
+                <tr>
+                    <td>Harper Brooks</td>
+                    <td>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>Barcelona</td>
+                    <td>2006/08/11</td>
+                    <td>56%</td>
+                </tr>
+                <tr>
+                    <td>Owen Price</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class german">German</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Santiago</td>
+                    <td>2002/05/18</td>
+                    <td>93%</td>
+                </tr>
+                <tr>
+                    <td>Evelyn Morgan</td>
+                    <td>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Naples</td>
+                    <td>2008/12/12</td>
+                    <td>52%</td>
+                </tr>
+                <tr>
+                    <td>Jacob Rivera</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                    </td>
+                    <td>Los Angeles</td>
+                    <td>2011/03/21</td>
+                    <td>87%</td>
+                </tr>
+                <tr>
+                    <td>Lily Ward</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Helsinki</td>
+                    <td>2003/09/14</td>
+                    <td>71%</td>
+                </tr>
+                <tr>
+                    <td>Samuel Murphy</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class german">German</span>
+                    </td>
+                    <td>Auckland</td>
+                    <td>2012/07/01</td>
+                    <td>62%</td>
+                </tr>
+                <tr>
+                    <td>Chloe Sanders</td>
+                    <td>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>New York</td>
+                    <td>1999/04/18</td>
+                    <td>98%</td>
+                </tr>
+                <tr>
+                    <td>Elijah Rogers</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>Melbourne</td>
+                    <td>2007/11/05</td>
+                    <td>54%</td>
+                </tr>
+                <tr>
+                    <td>Sofia Patterson</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class history">History</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Edinburgh</td>
+                    <td>2013/10/26</td>
+                    <td>64%</td>
+                </tr>
+                <tr>
+                    <td>David Foster</td>
+                    <td>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Rome</td>
+                    <td>2011/06/17</td>
+                    <td>83%</td>
+                </tr>
+                <tr>
+                    <td>Amelia Foster</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Toronto</td>
+                    <td>2009/03/13</td>
+                    <td>49%</td>
+                </tr>
+                <tr>
+                    <td>Aiden Rogers</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Boston</td>
+                    <td>2014/04/22</td>
+                    <td>72%</td>
+                </tr>
+                <tr>
+                    <td>Scarlett Price</td>
+                    <td>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Florence</td>
+                    <td>2006/11/09</td>
+                    <td>81%</td>
+                </tr>
+                <tr>
+                    <td>Joseph Campbell</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class history">History</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Tokyo</td>
+                    <td>2010/02/28</td>
+                    <td>60%</td>
+                </tr>
+                <tr>
+                    <td>Mia Howard</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Brussels</td>
+                    <td>2008/08/13</td>
+                    <td>84%</td>
+                </tr>
+                <tr>
+                    <td>Ryan Rivera</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Paris</td>
+                    <td>2001/12/07</td>
+                    <td>48%</td>
+                </tr>
+                <tr>
+                    <td>Victoria Griffin</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class german">German</span>
+                    </td>
+                    <td>San Francisco</td>
+                    <td>2005/06/02</td>
+                    <td>75%</td>
+                </tr>
+                <tr>
+                    <td>Benjamin Sanders</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class biology">Biology</span>
+                    </td>
+                    <td>Berlin</td>
+                    <td>1997/10/14</td>
+                    <td>66%</td>
+                </tr>
+                <tr>
+                    <td>Leah Murphy</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Seoul</td>
+                    <td>2004/07/27</td>
+                    <td>92%</td>
+                </tr>
+                <tr>
+                    <td>Gabriel Bell</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Buenos Aires</td>
+                    <td>2016/03/19</td>
+                    <td>55%</td>
+                </tr>
+                <tr>
+                    <td>Zoe Evans</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class french">French</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Shanghai</td>
+                    <td>2000/01/30</td>
+                    <td>90%</td>
+                </tr>
+                <tr>
+                    <td>Jackson Reed</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Madrid</td>
+                    <td>2015/09/11</td>
+                    <td>79%</td>
+                </tr>
+                <tr>
+                    <td>Elizabeth Parker</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Lisbon</td>
+                    <td>2007/05/09</td>
+                    <td>85%</td>
+                </tr>
+                <tr>
+                    <td>William Ward</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class history">History</span>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Prague</td>
+                    <td>2003/06/01</td>
+                    <td>58%</td>
+                </tr>
+                <tr>
+                    <td>Sophie Hayes</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class english">English</span>
+                        <span class="class physics">Physics</span>
+                        <span class="class german">German</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Zurich</td>
+                    <td>1998/04/15</td>
+                    <td>67%</td>
+                </tr>
+                <tr>
+                    <td>Liam Fisher</td>
+                    <td>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Dubai</td>
+                    <td>2009/11/30</td>
+                    <td>93%</td>
+                </tr>
+                <tr>
+                    <td>Madison Simmons</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>Hong Kong</td>
+                    <td>2010/01/18</td>
+                    <td>61%</td>
+                </tr>
+                <tr>
+                    <td>Jackson Moore</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Oslo</td>
+                    <td>2014/07/05</td>
+                    <td>73%</td>
+                </tr>
+                <tr>
+                    <td>Aubrey Peterson</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Jakarta</td>
+                    <td>2006/05/25</td>
+                    <td>83%</td>
+                </tr>
+                <tr>
+                    <td>Christopher Morgan</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class math">Math</span>
+                        <span class="class german">German</span>
+                    </td>
+                    <td>Bucharest</td>
+                    <td>2012/10/10</td>
+                    <td>48%</td>
+                </tr>
+                <tr>
+                    <td>Victoria Jenkins</td>
+                    <td>
+                        <span class="class english">English</span>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>Amsterdam</td>
+                    <td>1997/03/21</td>
+                    <td>86%</td>
+                </tr>
+                <tr>
+                    <td>Logan Bryant</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Toronto</td>
+                    <td>2002/09/17</td>
+                    <td>59%</td>
+                </tr>
+                <tr>
+                    <td>Stella Collins</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Munich</td>
+                    <td>2013/06/22</td>
+                    <td>74%</td>
+                </tr>
+                <tr>
+                    <td>Luke Evans</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class german">German</span>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class history">History</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Rio de Janeiro</td>
+                    <td>2001/04/11</td>
+                    <td>92%</td>
+                </tr>
+                <tr>
+                    <td>Natalie Powell</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Copenhagen</td>
+                    <td>2005/08/06</td>
+                    <td>68%</td>
+                </tr>
+                <tr>
+                    <td>Isaac Sanders</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>New Delhi</td>
+                    <td>2008/09/14</td>
+                    <td>45%</td>
+                </tr>
+                <tr>
+                    <td>Penelope Bailey</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Vienna</td>
+                    <td>2003/11/18</td>
+                    <td>81%</td>
+                </tr>
+                <tr>
+                    <td>John Hughes</td>
+                    <td>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Athens</td>
+                    <td>2011/12/24</td>
+                    <td>64%</td>
+                </tr>
+                <tr>
+                    <td>Ava Miller</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Dubai</td>
+                    <td>2014/05/09</td>
+                    <td>79%</td>
+                </tr>
+                <tr>
+                    <td>Lucas Gray</td>
+                    <td>
+                        <span class="class german">German</span>
+                        <span class="class math">Math</span>
+                        <span class="class history">History</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Singapore</td>
+                    <td>1999/01/30</td>
+                    <td>72%</td>
+                </tr>
+                <tr>
+                    <td>Claire Young</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class french">French</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Hanoi</td>
+                    <td>2007/10/03</td>
+                    <td>57%</td>
+                </tr>
+                <tr>
+                    <td>James Mitchell</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class math">Math</span>
+                        <span class="class physics">Physics</span>
+                        <span class="class german">German</span>
+                    </td>
+                    <td>Bangkok</td>
+                    <td>2015/02/18</td>
+                    <td>88%</td>
+                </tr>
+                <tr>
+                    <td>Grace Wright</td>
+                    <td>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Beijing</td>
+                    <td>2010/03/25</td>
+                    <td>67%</td>
+                </tr>
+                <tr>
+                    <td>Owen Lopez</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Kuala Lumpur</td>
+                    <td>2008/12/16</td>
+                    <td>49%</td>
+                </tr>
+                <tr>
+                    <td>Mia Phillips</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class german">German</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Los Angeles</td>
+                    <td>2006/07/29</td>
+                    <td>84%</td>
+                </tr>
+                <tr>
+                    <td>Henry Adams</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Sydney</td>
+                    <td>2013/04/01</td>
+                    <td>94%</td>
+                </tr>
+                <tr>
+                    <td>Wim Glucksman</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class english">English</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Oslo</td>
+                    <td>2009/10/09</td>
+                    <td>75%</td>
+                </tr>
+                <tr>
+                    <td>Amelia Carter</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class english">English</span>
+                        <span class="class history">History</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Vienna</td>
+                    <td>2011/09/12</td>
+                    <td>77%</td>
+                </tr>
+                <tr>
+                    <td>Oliver Foster</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class math">Math</span>
+                        <span class="class german">German</span>
+                        <span class="class french">French</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Frankfurt</td>
+                    <td>2004/11/30</td>
+                    <td>91%</td>
+                </tr>
+                <tr>
+                    <td>Hannah Kelly</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class math">Math</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Stockholm</td>
+                    <td>2016/05/22</td>
+                    <td>64%</td>
+                </tr>
+                <tr>
+                    <td>Wyatt Flores</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Montreal</td>
+                    <td>2010/04/11</td>
+                    <td>53%</td>
+                </tr>
+                <tr>
+                    <td>Lillian Reed</td>
+                    <td>
+                        <span class="class biology">Biology</span>
+                        <span class="class french">French</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Chicago</td>
+                    <td>2012/06/14</td>
+                    <td>70%</td>
+                </tr>
+                <tr>
+                    <td>Caleb Jenkins</td>
+                    <td>
+                        <span class="class german">German</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Mumbai</td>
+                    <td>2005/07/29</td>
+                    <td>87%</td>
+                </tr>
+                <tr>
+                    <td>Abigail Rivera</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Madrid</td>
+                    <td>2011/01/20</td>
+                    <td>72%</td>
+                </tr>
+                <tr>
+                    <td>Jack Russell</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Barcelona</td>
+                    <td>2007/09/03</td>
+                    <td>60%</td>
+                </tr>
+                <tr>
+                    <td>Aria Morris</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class math">Math</span>
+                        <span class="class german">German</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Seoul</td>
+                    <td>2014/12/11</td>
+                    <td>95%</td>
+                </tr>
+                <tr>
+                    <td>Hunter Murphy</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>Cape Town</td>
+                    <td>1999/05/06</td>
+                    <td>47%</td>
+                </tr>
+                <tr>
+                    <td>Ellie Powell</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class math">Math</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class physics">Physics</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Bangkok</td>
+                    <td>2010/09/16</td>
+                    <td>88%</td>
+                </tr>
+                <tr>
+                    <td>Julian Hall</td>
+                    <td>
+                        <span class="class english">English</span>
+                        <span class="class german">German</span>
+                    </td>
+                    <td>Melbourne</td>
+                    <td>2006/03/09</td>
+                    <td>52%</td>
+                </tr>
+                <tr>
+                    <td>Camila Torres</td>
+                    <td>
+                        <span class="class french">French</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>Mexico City</td>
+                    <td>2017/06/14</td>
+                    <td>65%</td>
+                </tr>
+                <tr>
+                    <td>Levi Lee</td>
+                    <td>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>Buenos Aires</td>
+                    <td>2011/10/27</td>
+                    <td>40%</td>
+                </tr>
+                <tr>
+                    <td>Sadie Baker</td>
+                    <td>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class chemistry">Chemistry</span>
+                    </td>
+                    <td>London</td>
+                    <td>2014/02/03</td>
+                    <td>82%</td>
+                </tr>
+                <tr>
+                    <td>Lincoln Gonzalez</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class math">Math</span>
+                        <span class="class history">History</span>
+                    </td>
+                    <td>San Diego</td>
+                    <td>2005/12/08</td>
+                    <td>74%</td>
+                </tr>
+                <tr>
+                    <td>Zoe Perez</td>
+                    <td>
+                        <span class="class german">German</span>
+                        <span class="class french">French</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Brussels</td>
+                    <td>2009/04/16</td>
+                    <td>56%</td>
+                </tr>
+                <tr>
+                    <td>Isaiah Gray</td>
+                    <td>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class english">English</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class french">French</span>
+                        <span class="class physics">Physics</span>
+                    </td>
+                    <td>Tokyo</td>
+                    <td>2000/07/19</td>
+                    <td>93%</td>
+                </tr>
+                <tr>
+                    <td>Gabriella Ramirez</td>
+                    <td>
+                        <span class="class history">History</span>
+                        <span class="class math">Math</span>
+                    </td>
+                    <td>Auckland</td>
+                    <td>2002/01/14</td>
+                    <td>63%</td>
+                </tr>
+                <tr>
+                    <td>Charles Long</td>
+                    <td>
+                        <span class="class english">English</span>
+                        <span class="class biology">Biology</span>
+                        <span class="class french">French</span>
+                    </td>
+                    <td>Moscow</td>
+                    <td>1997/10/24</td>
+                    <td>59%</td>
+                </tr>
+                <tr>
+                    <td>Violet Cooper</td>
+                    <td>
+                        <span class="class physics">Physics</span>
+                        <span class="class chemistry">Chemistry</span>
+                        <span class="class math">Math</span>
+                        <span class="class english">English</span>
+                    </td>
+                    <td>Kuala Lumpur</td>
+                    <td>2004/02/05</td>
+                    <td>80%</td>
+                </tr>
+            </tbody>
+        </table>
+
+
+        <script type="module" src="script.js"></script>
+    </body>
+</html>
