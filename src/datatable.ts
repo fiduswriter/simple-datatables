@@ -667,7 +667,7 @@ export class DataTable {
             return
         }
         this.update(true)
-    }, 100)
+    }, 250)
 
     /**
      * Destroy the instance
