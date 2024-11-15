@@ -366,7 +366,7 @@ interface DataTableConfiguration {
      * Default : 10
      * Sets the maximum number of rows to display on each page.
      */
-    perPageSelect: (number | [string, number])[];
+    perPageSelect: (number | [string, number])[] | false;
     /**
      * Default: [5, 10, 15, 20, 25]
      *
@@ -442,7 +442,7 @@ interface DataTableConfiguration {
 interface DataTableOptions extends DeepPartial<DataTableConfiguration> {
     columns?: ColumnOption[];
     data?: DataOption;
-    perPageSelect?: (number | [string, number])[];
+    perPageSelect?: (number | [string, number])[] | false;
     rowRender?: false | rowRenderType;
     tableRender?: false | tableRenderType;
 }
