@@ -1134,7 +1134,7 @@ export class DataTable {
     /**
      * Add custom event listener
      */
-    on(event: string, callback: () => void) {
+    on(event: string, callback: (...args: any[]) => void) {
         this._events[event] = this._events[event] || []
         this._events[event].push(callback)
     }
@@ -1142,7 +1142,7 @@ export class DataTable {
     /**
      * Remove custom event listener
      */
-    off(event: string, callback: () => void) {
+    off(event: string, callback: (...args: any[]) => void) {
         if (event in this._events === false) return
         this._events[event].splice(this._events[event].indexOf(callback), 1)
     }
