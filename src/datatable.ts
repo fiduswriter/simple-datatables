@@ -626,34 +626,21 @@ export class DataTable {
                         this.page(this._currentPage+1)
                     }
                 } else if (["Enter", " "].includes(event.key)) {
-                    this.emit("datatable.selectrow", this.rows.cursor, event)
-                }
-            })
-            this.dom.addEventListener("mousedown", (event: Event) => {
-                const target = event.target
-                if (!(target instanceof Element)) {
-                    return
-                }
-                if (this.dom.matches(":focus")) {
-                    const row = Array.from(this.dom.querySelectorAll("tbody > tr")).find(row => row.contains(target))
-                    if (row && row instanceof HTMLElement) {
-                        this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
-                    }
-                }
-
-            })
-        } else {
-            this.dom.addEventListener("mousedown", (event: Event) => {
-                const target = event.target
-                if (!(target instanceof Element)) {
-                    return
-                }
-                const row = Array.from(this.dom.querySelectorAll("tbody > tr")).find(row => row.contains(target))
-                if (row && row instanceof HTMLElement) {
-                    this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event)
+                    this.emit("datatable.selectrow", this.rows.cursor, event, true)
                 }
             })
         }
+
+        this.dom.addEventListener("mousedown", (event: Event) => {
+            const target = event.target
+            if (!(target instanceof Element)) {
+                return
+            }
+            const row = Array.from(this.dom.querySelectorAll("tbody > tr")).find(row => row.contains(target))
+            if (row && row instanceof HTMLElement) {
+                this.emit("datatable.selectrow", parseInt(row.dataset.index, 10), event, this.dom.matches(":focus"))
+            }
+        })
 
         window.addEventListener("resize", this._listeners.onResize)
     }

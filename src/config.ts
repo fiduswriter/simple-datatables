@@ -50,6 +50,7 @@ export const defaultConfig: DataTableConfiguration = {
     hiddenHeader: false,
     caption: undefined,
 
+    // for keyboard navigation
     rowNavigation: false,
     tabIndex: false,
 

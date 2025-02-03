@@ -1,8 +1,43 @@
 ## Upgrading
 
-### From 8.0.x to 9.0.x
+### From 9.x.x to 10.x.x
 
--   The type of [`datatable.data.data`](API#data) (the list of rows) has changed from `object[]` to `{ attributes: object, cells: object[] }[]`. To access the content cells it is now necessary to access the `cells` attribute present in each row. Instead of:
+- The `datatable.selectrow` event is now fired even if the table has no focus.
+There is a new third argument `focused` which describes whether or not the element had focus. If you want to ignore
+mouse clicks when the table is not focused in combination with row navigation, you can check for `focused` being `true`:
+
+```js
+dataTable.on("datatable.selectrow", function (row, event, focused) {
+    if (!focused) {
+        return;
+    }
+
+    event.preventDefault();
+    // Do something with the row
+    ...
+});
+```
+
+If you do want to allow for row selection even when the table is not focused, you may also want to add focus to the table when a row is clicked:
+
+```js
+dataTable.on("datatable.selectrow", function (row, event, focused) {
+    if (!focused) {
+        dataTable.dom.focus();
+    }
+
+    event.preventDefault();
+    // Do something with the row
+    ...
+});
+```
+
+
+### From 8.x.x to 9.x.x
+
+-   The type of [`datatable.data.data`](API#data) (the list of rows) has changed from `object[]` to
+`{ attributes: object, cells: object[] }[]`. To access the content cells it is now necessary to access the
+`cells` attribute present in each row. Instead of:
 
 ```js
 const dt = new DataTable(myTable, {

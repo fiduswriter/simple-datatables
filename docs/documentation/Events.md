@@ -82,10 +82,17 @@ dataTable.on('datatable.search:before', function(query, matched) {
 ### `datatable.selectrow`
 Fires when user selects a row - either by mouse click on a row or using `Space`/`Enter` during keyboard based navigation (requires option [[rowNavigation]]).
 
-Two arguments are available: `row` which returns the `<tr>` element that was selected and `event` which returns the event that caused the selection. You can run `event.preventDefault()` like this:
+Three arguments are available:
+
+ * `row` which returns the `<tr>` element that was selected,
+ * `event` which returns the event that caused the selection,
+ * `focused` (true/false) which returns whether the table had focus when the row was selected.
+
+
+ You can run `event.preventDefault()` like this:
 
 ```javascript
-dataTable.on("datatable.selectrow", (rowIndex, event) => {
+dataTable.on("datatable.selectrow", (rowIndex, event, focused) => {
     event.preventDefault();
     ...
 });
@@ -114,7 +121,7 @@ Fires before the `.update()` method is called.
 Fires when the editor is initialized.
 
 ### `editable.save.cell`
-Fires when the cell is saved (even when the value is not actually updated). 
+Fires when the cell is saved (even when the value is not actually updated).
 
 ### `editable.save.row`
 Fires when the row is saved.

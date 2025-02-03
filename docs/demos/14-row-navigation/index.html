@@ -803,8 +803,14 @@
                     data.selected = false
                 })
 
-                table.on("datatable.selectrow", (rowIndex, event) => {
+                table.on("datatable.selectrow", (rowIndex, event, focused) => {
+
+                    if (!focused) {
+                        return
+                    }
+
                     event.preventDefault()
+
                     const row = table.data.data[rowIndex]
                     if (row.selected) {
                         row.selected = false
