@@ -60,7 +60,8 @@ Fires before the `.refresh()` method is called.
 ### `datatable.search`
 Fires on keyup during a search.
 
-Two arguments are available: `query` which returns the query string entered and `matched` which returns an array of rows containing the matched string:
+Two arguments are available: `query` which returns the query string entered and `matched` which returns an array of
+rows containing the matched string:
 
 ```javascript
 dataTable.on('datatable.search', function(query, matched) {
