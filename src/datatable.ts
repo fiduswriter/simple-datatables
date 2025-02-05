@@ -625,7 +625,7 @@ export class DataTable {
                     } else if (!this.onLastPage) {
                         this.page(this._currentPage+1)
                     }
-                } else if (["Enter", " "].includes(event.key)) {
+                } else if (this.options.rowSelectionKeys.includes(event.key)) {
                     this.emit("datatable.selectrow", this.rows.cursor, event, true)
                 }
             })

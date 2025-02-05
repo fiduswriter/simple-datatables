@@ -31,7 +31,7 @@
         <h2>Row navigation</h2>
         <p>
             Select the table below either by clicking on it or by using the TAB-key. Then use the up/down arrow-keys to
-            navigate the table. Either click on a row or hit Enter/Space after navigating to select it.
+            navigate the table. Either click on a row or hit Enter/Space/x after navigating to select it.
         </p>
         <br>
 
@@ -793,6 +793,7 @@
                 }
                 if (rowNavigation) {
                     options.rowNavigation = true
+                    options.rowSelectionKeys = ["Enter", " ", "x"]
                     options.tabIndex = 1
                 }
 

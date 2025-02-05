@@ -52,6 +52,7 @@ export const defaultConfig: DataTableConfiguration = {
 
     // for keyboard navigation
     rowNavigation: false,
+    rowSelectionKeys: ["Enter", " "],
     tabIndex: false,
 
     // for overriding rendering

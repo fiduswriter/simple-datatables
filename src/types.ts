@@ -384,6 +384,11 @@ interface DataTableConfiguration {
      * Default: true
      * Whether to allow row based navigation
      */
+    rowSelectionKeys: string[];
+    /**
+     * Default: ["Enter", " "]
+     * Keys that are monitored for row selection
+     */
     rowRender: false | rowRenderType;
     /**
      * Default: false

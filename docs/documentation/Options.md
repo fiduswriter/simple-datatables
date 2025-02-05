@@ -57,6 +57,7 @@ let dataTable = new DataTable(myTable, options);
 * [ignorePunctuation](columns#ignorePunctuation)
 ### Navigation
 * [rowNavigation](rowNavigation)
+* [rowSelectionKeys](rowSelectionKeys)
 * [tabIndex](tabIndex)
 ### Other
 * [destroyable](destroyable)

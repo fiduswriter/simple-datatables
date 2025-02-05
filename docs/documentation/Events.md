@@ -80,7 +80,8 @@ dataTable.on('datatable.search:before', function(query, matched) {
 ```
 
 ### `datatable.selectrow`
-Fires when user selects a row - either by mouse click on a row or using `Space`/`Enter` during keyboard based navigation (requires option [[rowNavigation]]).
+Fires when user selects a row - either by mouse click on a row or by a key specified by [rowSelectionKeys](rowSelectionKeys) during keyboard based navigation (requires option
+[rowNavigation](rowNavigation)).
 
 Three arguments are available:
 
