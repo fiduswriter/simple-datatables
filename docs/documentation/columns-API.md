@@ -26,7 +26,7 @@ Fetch the number of columns.
 
 ### `sort(column [integer], direction [string])`
 
-Sort the selected column. The `column` parameter should be an integer representing the column. The `direction` parameter is optional.
+Sort the selected column. The `column` parameter should be an integer representing the column, starting with zero for the first column. The `direction` parameter is optional.
 
 ---
 
