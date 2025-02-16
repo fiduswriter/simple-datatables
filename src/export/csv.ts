@@ -44,7 +44,15 @@ export const exportCSV = function(dt: DataTable, userOptions: csvUserOptions = {
         ...userOptions
     }
     const columnShown = (index: number) => !options.skipColumn.includes(index) && !dt.columns.settings[index]?.hidden
-    const headers = dt.data.headings.filter((_heading: headerCellType, index: number) => columnShown(index)).map((header: headerCellType) => header.text ?? header.data)
+    // Handle colspan in headers by adding empty columns
+    const headers = dt.data.headings
+        .filter((_heading: headerCellType, index: number) => columnShown(index))
+        .map((header: headerCellType) => {
+            const colspan = Number(header.attributes?.colspan || 1)
+            const headerText = header.text ?? header.data
+            return [headerText, ...Array(colspan - 1).fill("")]
+        })
+        .flat()
 
     // Selection or whole table
     let selectedRows: dataRowType[]
@@ -69,7 +77,11 @@ export const exportCSV = function(dt: DataTable, userOptions: csvUserOptions = {
     rows[0] = headers
     rows = rows.concat(selectedRows.map((row: dataRowType) => {
         const shownCells = row.cells.filter((_cell: cellType, index: number) => columnShown(index))
-        return shownCells.map((cell: cellType) => cellToText(cell))
+        return shownCells.map((cell: cellType) => {
+            const colspan = Number(cell.attributes?.colspan || 1)
+            const cellText = cellToText(cell)
+            return [cellText, ...Array(colspan - 1).fill("")]
+        }).flat()
     }))
 
     // Only proceed if we have data
