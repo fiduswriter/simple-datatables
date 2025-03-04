@@ -14,7 +14,7 @@ You can then chain the following methods.
 
 ### `get(column [integer])`
 
-Fetch read-only data about the column at index `column`. The `column` parameter should be a non-zero-based integer.
+Fetch read-only data about the column at index `column`. The `column` parameter should be an integer representing the column.
 
 ---
 
@@ -26,7 +26,7 @@ Fetch the number of columns.
 
 ### `sort(column [integer], direction [string])`
 
-Sort the selected column. The `column` parameter should be a non-zero-based integer. The `direction` parameter is optional.
+Sort the selected column. The `column` parameter should be an integer representing the column, starting with zero for the first column. The `direction` parameter is optional.
 
 ---
 
