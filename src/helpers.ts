@@ -19,7 +19,7 @@ export const isJson = (str: string) => {
     let t = !1
     try {
         t = JSON.parse(str)
-    } catch (e) {
+    } catch {
         return !1
     }
     return !(null === t || (!Array.isArray(t) && !isObject(t))) && t

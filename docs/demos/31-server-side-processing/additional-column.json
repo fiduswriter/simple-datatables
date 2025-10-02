@@ -1,0 +1,27 @@
+{
+  "heading": "Performance Score",
+  "data": [
+    "87%",
+    "92%",
+    "78%",
+    "85%",
+    "95%",
+    "88%",
+    "82%",
+    "90%",
+    "76%",
+    "93%",
+    "84%",
+    "89%",
+    "91%",
+    "79%",
+    "86%",
+    "94%",
+    "81%",
+    "83%",
+    "77%",
+    "96%"
+  ],
+  "sortable": true,
+  "render": "(value, td, rowIndex, cellIndex) => { return '<span style=\"color: ' + (parseInt(value) >= 85 ? '#28a745' : '#dc3545') + ';\">' + value + '</span>'; }"
+}

@@ -8,6 +8,12 @@ dataTable.on('datatable.XXXX', function(args) {
 });
 ```
 
+### `datatable.destroy`
+Fires when the table is destroyed.
+
+### `datatable.destroy:before`
+Fires before the table is destroyed.
+
 ### `datatable.init`
 Fires when the table is fully rendered and ready for use.
 

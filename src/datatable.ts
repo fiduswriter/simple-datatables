@@ -664,6 +664,8 @@ export class DataTable {
         if (!this.options.destroyable) {
             return
         }
+        this.emit("datatable.destroy:before")
+
         if (this.wrapperDOM) {
             const parentElement = this.wrapperDOM.parentElement
             if (parentElement) {
@@ -682,6 +684,8 @@ export class DataTable {
         window.removeEventListener("resize", this._listeners.onResize)
 
         this.initialized = false
+
+        this.emit("datatable.destroy")
     }
 
     /**

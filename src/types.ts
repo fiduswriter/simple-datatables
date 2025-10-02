@@ -3,7 +3,7 @@
 interface elementNodeType {
     nodeName: string
     attributes?: { [key: string]: string }
-    childNodes?: nodeType[] // eslint-disable-line no-use-before-define
+    childNodes?: nodeType[]
     checked?: boolean
     value?: string | number
     selected?: boolean
@@ -67,7 +67,7 @@ interface rowType {
     index: number;
 }
 
-export type DeepPartial<T> = T extends Function ? T : (T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T); // eslint-disable-line @typescript-eslint/ban-types
+export type DeepPartial<T> = T extends Function ? T : (T extends object ? { [P in keyof T]?: DeepPartial<T[P]>; } : T);
 // Source https://gist.github.com/navix/6c25c15e0a2d3cd0e5bce999e0086fc9
 
 interface ColumnOption{
