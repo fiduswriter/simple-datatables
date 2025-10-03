@@ -2,6 +2,7 @@ import {nodeToObj, stringToObj} from "diff-dom"
 import {parseDate} from "./date"
 import {namedNodeMapToObject, objToText} from "./helpers"
 import {
+    cellDataType,
     cellType,
     columnSettingsType,
     DataOption,
@@ -15,7 +16,7 @@ import {
 
 export const readDataCell = (cell: inputCellType, columnSettings : columnSettingsType) : cellType => {
     let cellData : cellType
-    let inputData: inputCellType
+    let inputData: cellDataType
     let attributes: { [key: string]: string } | undefined
 
     // Check if cell is already a cellType object with data property
