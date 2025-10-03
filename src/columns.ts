@@ -315,8 +315,7 @@ export class Columns {
 
         this.dt.data.data.forEach((row, rowIndex) => {
             // Check if this row has any rowspan placeholders
-            const hasPlaceholder = row.cells.some(cell => cell.attributes?.["data-rowspan-placeholder"] === "true"
-            )
+            const hasPlaceholder = row.cells.some(cell => cell.attributes?.["data-rowspan-placeholder"] === "true")
 
             if (hasPlaceholder) {
                 // This row belongs to the same group as the previous row
@@ -336,8 +335,7 @@ export class Columns {
                 rowToGroup.set(rowIndex, groupIndex)
             } else {
                 // Check if any cell in this row has rowspan > 1
-                const hasRowspan = row.cells.some(cell => cell.attributes?.rowspan && parseInt(cell.attributes.rowspan, 10) > 1
-                )
+                const hasRowspan = row.cells.some(cell => cell.attributes?.rowspan && parseInt(cell.attributes.rowspan, 10) > 1)
 
                 if (hasRowspan) {
                     // Start a new group with this row as the parent
@@ -353,15 +351,33 @@ export class Columns {
             }
         })
 
+
         // Sort groups by their first (parent) row's value
         rowGroups.sort((group1, group2) => {
-            const row1 = this.dt.data.data[group1[0]]
-            const row2 = this.dt.data.data[group2[0]]
-            const cell1 = row1.cells[index]
-            const cell2 = row2.cells[index]
 
-            let order1 = cell1.order ?? cellToText(cell1)
-            let order2 = cell2.order ?? cellToText(cell2)
+
+            // Helper function to get actual cell value for sorting, resolving rowspan placeholders
+            const getActualCellValue = (rowIndex: number, cellIndex: number) => {
+                const cell = this.dt.data.data[rowIndex].cells[cellIndex]
+
+                if (cell.attributes?.["data-rowspan-placeholder"] === "true") {
+                    // Find the actual rowspan cell by looking backward
+                    for (let i = rowIndex - 1; i >= 0; i--) {
+                        const prevCell = this.dt.data.data[i].cells[cellIndex]
+                        if (prevCell.attributes?.["data-rowspan-placeholder"] !== "true") {
+                            return prevCell.order ?? cellToText(prevCell)
+                        }
+                    }
+                    // Fallback if no rowspan cell found
+                    return ""
+                }
+
+                return cell.order ?? cellToText(cell)
+            }
+
+            let order1 = getActualCellValue(group1[0], index)
+            let order2 = getActualCellValue(group2[0], index)
+
             if (dir === "desc") {
                 const temp = order1
                 order1 = order2
@@ -386,6 +402,7 @@ export class Columns {
             })
         })
         this.dt.data.data = sortedData
+
 
         this._state.sort = {column: index,
             dir}

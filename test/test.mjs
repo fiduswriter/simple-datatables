@@ -254,7 +254,6 @@ describe("Integration tests pass", function() {
         // Note: This test may still fail due to DataTable library issues with rowspan sorting/searching
         // but the main CI vs local timing issues have been resolved
 
-
         // Verify that the summary indicates all tests passed
         assert(resultsText.includes("All tests passed! ✓"), "Rowspan JSON data tests should all pass")
 
