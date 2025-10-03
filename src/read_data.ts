@@ -14,55 +14,82 @@ import {
 } from "./types"
 
 export const readDataCell = (cell: inputCellType, columnSettings : columnSettingsType) : cellType => {
+    let cellData : cellType
+    let inputData: inputCellType
+    let attributes: { [key: string]: string } | undefined
+
+    // Check if cell is already a cellType object with data property
     if (cell?.constructor === Object && Object.prototype.hasOwnProperty.call(cell, "data") && !Object.keys(cell).find(key => !(["text", "order", "data", "attributes"].includes(key)))) {
-        return (cell as cellType)
-    }
-    const cellData : cellType = {
-        data: cell
-    }
-    switch (columnSettings.type) {
-    case "string":
-        if (!(typeof cell === "string")) {
-            cellData.text = String(cellData.data)
-            cellData.order = cellData.text
+        const cellObj = cell as cellType
+        inputData = cellObj.data
+        attributes = cellObj.attributes
+        // If text and order are already set, return as-is
+        if (cellObj.text !== undefined && cellObj.order !== undefined) {
+            return cellObj
         }
-        break
-    case "date":
-        if (columnSettings.format) {
-            cellData.order = parseDate(String(cellData.data), columnSettings.format)
+        cellData = {
+            data: cellObj.data,
+            text: cellObj.text,
+            order: cellObj.order,
+            attributes: cellObj.attributes
         }
-        break
-    case "number":
-        cellData.text = String(cellData.data as number)
-        cellData.data = parseFloat(cellData.data as string)
-        cellData.order = cellData.data
-        break
-    case "html": {
-        const node = Array.isArray(cellData.data) ?
-            {nodeName: "TD",
-                childNodes: (cellData.data as nodeType[])} : // If it is an array, we assume it is an array of nodeType
-            stringToObj(`<td>${String(cellData.data)}</td>`)
-        cellData.data = node.childNodes || []
-        const text = objToText(node)
-        cellData.text = text
-        cellData.order = text
-        break
+    } else {
+        inputData = cell
+        cellData = {
+            data: cell
+        }
     }
-    case "boolean":
-        if (typeof cellData.data === "string") {
-            cellData.data = cellData.data.toLowerCase().trim()
+    // Only process if text/order are not already set
+    if (cellData.text === undefined || cellData.order === undefined) {
+        switch (columnSettings.type) {
+        case "string":
+            if (!(typeof inputData === "string")) {
+                cellData.text = cellData.text ?? String(cellData.data)
+                cellData.order = cellData.order ?? cellData.text
+            }
+            break
+        case "date":
+            if (columnSettings.format) {
+                cellData.order = cellData.order ?? parseDate(String(cellData.data), columnSettings.format)
+            }
+            break
+        case "number":
+            cellData.text = cellData.text ?? String(cellData.data as number)
+            cellData.data = parseFloat(cellData.data as string)
+            cellData.order = cellData.order ?? cellData.data
+            break
+        case "html": {
+            const node = Array.isArray(cellData.data) ?
+                {nodeName: "TD",
+                    childNodes: (cellData.data as nodeType[])} : // If it is an array, we assume it is an array of nodeType
+                stringToObj(`<td>${String(cellData.data)}</td>`)
+            cellData.data = node.childNodes || []
+            const text = objToText(node)
+            cellData.text = cellData.text ?? text
+            cellData.order = cellData.order ?? text
+            break
         }
-        cellData.data = !["false", false, null, undefined, 0].includes(cellData.data as (string | number | boolean | null | undefined))
-        cellData.order = cellData.data ? 1 : 0
-        cellData.text = String(cellData.data)
-        break
-    case "other":
-        cellData.text = ""
-        cellData.order = 0
-        break
-    default:
-        cellData.text = JSON.stringify(cellData.data)
-        break
+        case "boolean":
+            if (typeof cellData.data === "string") {
+                cellData.data = cellData.data.toLowerCase().trim()
+            }
+            cellData.data = !["false", false, null, undefined, 0].includes(cellData.data as (string | number | boolean | null | undefined))
+            cellData.order = cellData.order ?? (cellData.data ? 1 : 0)
+            cellData.text = cellData.text ?? String(cellData.data)
+            break
+        case "other":
+            cellData.text = cellData.text ?? ""
+            cellData.order = cellData.order ?? 0
+            break
+        default:
+            cellData.text = cellData.text ?? JSON.stringify(cellData.data)
+            break
+        }
+    }
+
+    // Preserve attributes if they were provided
+    if (attributes) {
+        cellData.attributes = attributes
     }
 
     return cellData
@@ -124,10 +151,19 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
     if (
         cell instanceof Object &&
         cell.constructor === Object &&
-        cell.hasOwnProperty("data") &&
-        (typeof cell.text === "string" || typeof cell.data === "string")
+        cell.hasOwnProperty("data")
     ) {
-        return cell
+        // If it's already a headerCellType object, ensure text and type are set if data is a string
+        const headerCell = cell as headerCellType
+        if (typeof headerCell.data === "string") {
+            if (!headerCell.text) {
+                headerCell.text = headerCell.data
+            }
+            if (!headerCell.type) {
+                headerCell.type = "string"
+            }
+        }
+        return headerCell
     }
     const cellData : headerCellType = {
         data: cell
@@ -181,7 +217,26 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         headings: [] as headerCellType[]
     }
     if (dataOption.headings) {
-        data.headings = dataOption.headings.map((heading: inputHeaderCellType) => readHeaderCell(heading))
+        // Process headings and handle colspan
+        const processedHeadings: headerCellType[] = []
+        dataOption.headings.forEach((heading: inputHeaderCellType) => {
+            const headerCell = readHeaderCell(heading)
+            const colspan = parseInt(headerCell.attributes?.colspan || "1", 10)
+
+            processedHeadings.push(headerCell)
+
+            // Add placeholder headings for colspan > 1
+            for (let i = 1; i < colspan; i++) {
+                processedHeadings.push({
+                    data: "",
+                    text: "",
+                    attributes: {
+                        "data-colspan-placeholder": "true"
+                    }
+                })
+            }
+        })
+        data.headings = processedHeadings
     } else if (dom?.tHead) {
         // Collect all headings accounting for colspan
         const headings: headerCellType[] = []
@@ -282,9 +337,34 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                     }
                 })
             }
+
+            // Process cells and handle colspan
+            const processedCells: cellType[] = []
+            let cellIndex = 0
+            cells.forEach((cell: inputCellType) => {
+                const cellData = readDataCell(cell, columnSettings[cellIndex])
+                const colspan = parseInt(cellData.attributes?.colspan || "1", 10)
+
+                processedCells.push(cellData)
+                cellIndex++
+
+                // Add placeholder cells for colspan > 1
+                for (let i = 1; i < colspan; i++) {
+                    processedCells.push({
+                        data: "",
+                        text: "",
+                        order: "",
+                        attributes: {
+                            "data-colspan-placeholder": "true"
+                        }
+                    })
+                    cellIndex++
+                }
+            })
+
             return {
                 attributes,
-                cells: cells.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings[index]))
+                cells: processedCells
             } as dataRowType
         })
     } else if (dom?.tBodies?.length) {
