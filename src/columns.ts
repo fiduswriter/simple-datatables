@@ -299,7 +299,7 @@ export class Columns {
 
         }
 
-        const collator = ["string", "html"].includes(column.type) ?
+        const collator = column && ["string", "html"].includes(column.type) ?
             new Intl.Collator(column.locale || this.dt.options.locale, {
                 usage: "sort",
                 numeric: column.numeric || this.dt.options.numeric,
