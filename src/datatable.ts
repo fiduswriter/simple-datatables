@@ -452,7 +452,7 @@ export class DataTable {
 
             ]
         }
-        if (!tableVirtualDOM.attributes.class.includes(this.options.classes.table)) {
+        if (!tableVirtualDOM.attributes.class || !tableVirtualDOM.attributes.class.includes(this.options.classes.table)) {
             tableVirtualDOM.attributes.class = joinWithSpaces(tableVirtualDOM.attributes.class, this.options.classes.table)
         }
         if (this.options.tableRender) {

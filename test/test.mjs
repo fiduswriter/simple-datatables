@@ -177,6 +177,25 @@ describe("Integration tests pass", function() {
         await driver.get(`${baseUrl}tests/multiple-classes.html`)
         await Promise.all(classes.map(className => driver.findElement(webdriver.By.css(className))))
     })
+
+    it("handles colspan functionality comprehensively", async () => {
+        await driver.get(`${baseUrl}tests/colspan.html`)
+
+        // Wait for the DataTable to initialize and tests to run
+        await driver.sleep(2000)
+
+        // Check that all tests passed by looking for the success summary
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const resultsText = await results.getText()
+
+        // Verify that the summary indicates all tests passed
+        assert(resultsText.includes("All tests passed! ✓"), "Colspan comprehensive tests should all pass")
+
+        // Verify no JavaScript errors occurred during testing (ignoring unrelated UMD errors)
+        const logs = await driver.manage().logs().get("browser")
+        const errors = logs.filter(log => log.level.name === "SEVERE")
+        assert.deepEqual(errors, [], "No JavaScript errors should occur during colspan testing")
+    })
 })
 
 after(() => {

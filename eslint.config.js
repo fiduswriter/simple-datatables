@@ -315,6 +315,12 @@ module.exports = defineConfig([{
     },
 
     extends: compat.extends("plugin:@html-eslint/recommended"),
+    
+    rules: {
+        "indent": "off",
+        "no-mixed-spaces-and-tabs": "off",
+        "no-trailing-spaces": "off",
+    },
 }, {
     files: ["**/*.mjs"],
 }, {
@@ -326,5 +332,19 @@ module.exports = defineConfig([{
         "radix": "off",
         "no-new-func": "off",
         "implicit-arrow-linebreak": "off"
+    }
+}, {
+    files: ["test/**/*.html"],
+    rules: {
+        "func-style": "off",
+        "indent": "off",
+        "no-use-before-define": "off",
+        "radix": "off",
+        "no-new-func": "off",
+        "implicit-arrow-linebreak": "off",
+        "no-mixed-spaces-and-tabs": "off",
+        "no-trailing-spaces": "off",
+        "quotes": "off",
+        "semi": "off"
     }
 }, globalIgnores(["docs/demos/dist/"])]);

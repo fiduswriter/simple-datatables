@@ -31,7 +31,7 @@ export const headingsToVirtualHeaderRowDOM = (
                 sortable: true,
                 searchable: true
             } as columnSettingsType)
-            if (column.hidden) {
+            if (column.hidden || heading.attributes?.["data-colspan-placeholder"] === "true") {
                 return
             }
             const attributes : { [key: string]: string } = heading.attributes ? {...heading.attributes} : {}
@@ -138,7 +138,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                         sortable: true,
                                         searchable: true
                                     } as columnSettingsType)
-                                    if (column.hidden) {
+                                    if (column.hidden || cell.attributes?.["data-colspan-placeholder"] === "true") {
                                         return
                                     }
                                     const td: elementNodeType = {

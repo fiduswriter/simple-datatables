@@ -183,33 +183,65 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
     if (dataOption.headings) {
         data.headings = dataOption.headings.map((heading: inputHeaderCellType) => readHeaderCell(heading))
     } else if (dom?.tHead) {
-        data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
+        // Collect all headings accounting for colspan
+        const headings: headerCellType[] = []
+        Array.from(dom.tHead.querySelectorAll("th")).forEach(th => {
+            const colspan = parseInt(th.getAttribute("colspan") || "1", 10)
+
+            // Add the actual heading with colspan data
             const heading = readDOMHeaderCell(th)
-            if (!columnSettings[index]) {
-                columnSettings[index] = {
-                    type: defaultType,
-                    format: defaultFormat,
-                    searchable: true,
-                    sortable: true
+            headings.push(heading)
+
+            // Add placeholder headings for colspan > 1
+            for (let i = 1; i < colspan; i++) {
+                headings.push({
+                    data: "",
+                    text: "",
+                    attributes: {
+                        "data-colspan-placeholder": "true"
+                    }
+                })
+            }
+        })
+
+        data.headings = headings
+
+        // Process column settings for all columns including colspan placeholders
+        let columnIndex = 0
+        Array.from(dom.tHead.querySelectorAll("th")).forEach(th => {
+            const colspan = parseInt(th.getAttribute("colspan") || "1", 10)
+
+            for (let i = 0; i < colspan; i++) {
+                if (!columnSettings[columnIndex]) {
+                    columnSettings[columnIndex] = {
+                        type: defaultType,
+                        format: defaultFormat,
+                        searchable: true,
+                        sortable: true
+                    }
                 }
-            }
-            const settings = columnSettings[index]
-            if (th.dataset.sortable?.trim().toLowerCase() === "false" || th.dataset.sort?.trim().toLowerCase() === "false") {
-                settings.sortable = false
-            }
-            if (th.dataset.searchable?.trim().toLowerCase() === "false") {
-                settings.searchable = false
-            }
-            if (th.dataset.hidden?.trim().toLowerCase() === "true" || th.getAttribute("hidden")?.trim().toLowerCase() === "true") {
-                settings.hidden = true
-            }
-            if (["number", "string", "html", "date", "boolean", "other"].includes(th.dataset.type)) {
-                settings.type = th.dataset.type
-                if (settings.type === "date" && th.dataset.format) {
-                    settings.format = th.dataset.format
+                const settings = columnSettings[columnIndex]
+
+                // Only apply settings from the actual th element to the first column of the colspan
+                if (i === 0) {
+                    if (th.dataset.sortable?.trim().toLowerCase() === "false" || th.dataset.sort?.trim().toLowerCase() === "false") {
+                        settings.sortable = false
+                    }
+                    if (th.dataset.searchable?.trim().toLowerCase() === "false") {
+                        settings.searchable = false
+                    }
+                    if (th.dataset.hidden?.trim().toLowerCase() === "true" || th.getAttribute("hidden")?.trim().toLowerCase() === "true") {
+                        settings.hidden = true
+                    }
+                    if (th.dataset.type && ["number", "string", "html", "date", "boolean", "other"].includes(th.dataset.type)) {
+                        settings.type = th.dataset.type
+                        if (settings.type === "date" && th.dataset.format) {
+                            settings.format = th.dataset.format
+                        }
+                    }
                 }
+                columnIndex++
             }
-            return heading
         })
     } else if (dataOption.data?.length) {
         const firstRow = dataOption.data[0]
@@ -257,21 +289,42 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         })
     } else if (dom?.tBodies?.length) {
         data.data = Array.from(dom.tBodies[0].rows).map(
-            row => ({
-                attributes: namedNodeMapToObject(row.attributes),
-                cells: Array.from(row.cells).map(
-                    (cell, index) => {
-                        const cellData = cell.dataset.content ?
-                            readDataCell(cell.dataset.content, columnSettings[index]) :
-                            readDOMDataCell(cell, columnSettings[index])
-                        if (cell.dataset.order) {
-                            cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
-                        }
-                        return cellData
+            row => {
+                const cells: cellType[] = []
 
+                let cellIndex = 0
+                Array.from(row.cells).forEach(cell => {
+                    const colspan = parseInt(cell.getAttribute("colspan") || "1", 10)
+
+                    // Add the actual cell with colspan data
+                    const cellData = cell.dataset.content ?
+                        readDataCell(cell.dataset.content, columnSettings[cellIndex]) :
+                        readDOMDataCell(cell, columnSettings[cellIndex])
+                    if (cell.dataset.order) {
+                        cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
                     }
-                )
-            } as dataRowType)
+                    cells.push(cellData)
+
+                    // Add placeholder cells for colspan > 1
+                    for (let i = 1; i < colspan; i++) {
+                        cells.push({
+                            data: "",
+                            text: "",
+                            order: "",
+                            attributes: {
+                                "data-colspan-placeholder": "true"
+                            }
+                        })
+                        cellIndex++
+                    }
+                    cellIndex++
+                })
+
+                return {
+                    attributes: namedNodeMapToObject(row.attributes),
+                    cells
+                } as dataRowType
+            }
         )
     }
 
