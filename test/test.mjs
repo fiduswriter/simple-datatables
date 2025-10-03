@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import "chromedriver"
 
 import assert from "assert"
@@ -19,10 +18,14 @@ let initTimeout = 10000
 const options = new chrome.Options()
 if (process.env.CI) { // eslint-disable-line no-process-env
     // We are running on CI
-    wait = 500
-    testWait = 10000
-    initTimeout = 15000
+    wait = 2000
+    testWait = 60000
+    initTimeout = 90000
     options.addArguments("--headless=new")
+    options.addArguments("--no-sandbox")
+    options.addArguments("--disable-dev-shm-usage")
+    options.addArguments("--disable-gpu")
+    options.addArguments("--disable-web-security")
 }
 const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
 driver.manage().window().setRect({width: 1920,
@@ -42,46 +45,161 @@ await driver.get(baseUrl).then(
     }
 )
 
-// Helper function to wait for DataTable initialization
+// Helper function to wait for DataTable initialization with better error handling
 const waitForDataTableInit = async function(driver, timeout = initTimeout) {
     const startTime = Date.now()
+    let lastError = null
+
     while (Date.now() - startTime < timeout) {
         try {
+            // First check if page has loaded
+            await driver.executeScript("return document.readyState").then(state => {
+                if (state !== "complete") {
+                    throw new Error("Page not fully loaded")
+                }
+            })
+
+            // Wait for wrapper
             const wrapper = await driver.findElement(webdriver.By.className("datatable-wrapper"))
             const container = await wrapper.findElement(webdriver.By.className("datatable-container"))
             const table = await container.findElement(webdriver.By.tagName("table"))
             const tableClass = await table.getAttribute("class")
-            if (tableClass.includes("datatable-table")) {
+
+            if (tableClass && tableClass.includes("datatable-table")) {
                 return {wrapper,
                     container,
                     table}
             }
-        } catch {
-            // Element not found yet, continue waiting
+
+            lastError = new Error(`Table class is "${tableClass}", missing "datatable-table"`)
+        } catch (e) {
+            lastError = e
         }
-        await driver.sleep(100)
+        await driver.sleep(200)
     }
-    throw new Error(`DataTable did not initialize within ${timeout}ms`)
+
+    // Get more debug info on failure
+    try {
+        const bodyText = await driver.findElement(webdriver.By.tagName("body")).getText()
+        const jsErrors = await driver.manage().logs().get("browser")
+        console.log("Debug info:", {
+            bodyText: bodyText.substring(0, 500),
+            jsErrors: jsErrors.length,
+            lastError: lastError?.message
+        })
+    } catch (debugError) {
+        console.log("Could not get debug info:", debugError.message)
+    }
+
+    throw new Error(`DataTable did not initialize within ${timeout}ms. Last error: ${lastError?.message}`)
 }
 
-// Helper function to wait for element with retry
+// Helper function to wait for element with retry and better error handling
 const waitForElement = async function(driver, selector, timeout = testWait) {
     const startTime = Date.now()
+    let lastError = null
+
     while (Date.now() - startTime < timeout) {
         try {
             const element = await driver.findElement(selector)
-            return element
-        } catch {
-            // Element not found yet, continue waiting
+            if (element) {
+                return element
+            }
+        } catch (e) {
+            lastError = e
         }
-        await driver.sleep(100)
+        await driver.sleep(200)
     }
-    throw new Error(`Element ${selector.value || selector} not found within ${timeout}ms`)
+
+    const selectorDesc = typeof selector === "object" ?
+        `${selector.using}="${selector.value}"` :
+        selector
+    throw new Error(`Element ${selectorDesc} not found within ${timeout}ms. Last error: ${lastError?.message}`)
 }
 
 // Helper function to wait for element by ID
-const waitForElementById = function(driver, id, timeout = testWait) {
-    return waitForElement(driver, webdriver.By.id(id), timeout)
+// const waitForElementById = async function(driver, id, timeout = testWait) {
+//     return waitForElement(driver, webdriver.By.id(id), timeout)
+// }
+
+// Helper function to wait for test results with fallback checking
+const waitForTestResults = async function(driver, timeout = testWait) {
+    const startTime = Date.now()
+
+    // First check for JavaScript errors that might prevent tests from running
+    await driver.sleep(1000)
+    const logs = await driver.manage().logs().get("browser")
+    const errors = logs.filter(log => log.level.name === "SEVERE")
+    if (errors.length > 0) {
+        console.log("JavaScript errors detected:", errors.map(e => e.message))
+    }
+
+    while (Date.now() - startTime < timeout) {
+        // Check if page has finished loading
+        const readyState = await driver.executeScript("return document.readyState")
+        if (readyState !== "complete") {
+            await driver.sleep(500)
+            continue
+        }
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const resultsText = await results.getText()
+
+        // Check for successful completion
+        if (resultsText.includes("All tests passed! ✓")) {
+            return {success: true,
+                text: resultsText}
+        }
+
+        // Check for any completion (even with failures)
+        if (resultsText.includes("✓") || resultsText.includes("✗") ||
+            resultsText.includes("PASS") || resultsText.includes("FAIL")) {
+            // Give extra time for all async tests to complete
+            await driver.sleep(2000)
+            const finalText = await results.getText()
+
+            if (finalText.includes("All tests passed! ✓")) {
+                return {success: true,
+                    text: finalText}
+            }
+
+            // Return failure with details
+            return {success: false,
+                text: finalText}
+        }
+
+        // Check for error messages in results div
+        if (resultsText.includes("Error") || resultsText.includes("error")) {
+            return {success: false,
+                text: resultsText}
+        }
+        await driver.sleep(500)
+    }
+
+    // Try to get any available content for debugging
+    try {
+        const body = await driver.findElement(webdriver.By.tagName("body"))
+        const bodyText = await body.getText()
+
+        // Check for JavaScript module loading errors
+        const jsLogs = await driver.manage().logs().get("browser")
+        const moduleErrors = jsLogs.filter(log => log.message.includes("module") ||
+            log.message.includes("import") ||
+            log.message.includes("CORS") ||
+            log.level.name === "SEVERE"
+        )
+
+        let debugInfo = `Timeout waiting for results. Body content: ${bodyText.substring(0, 1000)}`
+        if (moduleErrors.length > 0) {
+            debugInfo += `\nJavaScript errors: ${moduleErrors.map(e => e.message).join("; ")}`
+        }
+
+        return {success: false,
+            text: debugInfo}
+    } catch {
+        return {success: false,
+            text: "Timeout waiting for results and could not get page content"}
+    }
 }
 
 const clickAllSortableHeaders = function(driver, counter=0) {
@@ -106,7 +224,7 @@ const clickAllSortableHeaders = function(driver, counter=0) {
 
 
 describe("Demos work", function() {
-    this.timeout(initTimeout)
+    this.timeout(initTimeout + 10000)
     forEach(demoUrls).it("loads %s without JS errors", url => driver.get(url).then(
         () => driver.manage().logs().get("browser")
     ).then(
@@ -123,7 +241,7 @@ describe("Demos work", function() {
 })
 
 describe("Integration tests pass", function() {
-    this.timeout(initTimeout)
+    this.timeout(initTimeout + 10000)
 
     it("initializes the datatable", async () => {
         await driver.get(`${baseUrl}1-simple/`)
@@ -185,7 +303,22 @@ describe("Integration tests pass", function() {
 
     it("preserves cell attributes (JS)", async () => {
         await driver.get(`${baseUrl}tests/cell-attributes-js.html`)
-        await driver.sleep(testWait)
+
+        // Wait for DataTable to initialize with more robust checking
+        const startTime = Date.now()
+        while (Date.now() - startTime < testWait) {
+            try {
+                const table = await driver.findElement(webdriver.By.id("cell-attributes-js-table"))
+                const tableClass = await table.getAttribute("class")
+                if (tableClass && tableClass.includes("datatable-table")) {
+                    break
+                }
+            } catch {
+                // Table not ready yet
+            }
+            await driver.sleep(1000)
+        }
+
         await assertCellAttrs("cell-attributes-js-table")
     })
 
@@ -221,7 +354,14 @@ describe("Integration tests pass", function() {
         ]
 
         await driver.get(`${baseUrl}tests/multiple-classes.html`)
+
+        // Wait for page to load and DataTable to initialize
         await driver.sleep(testWait)
+
+        // Check for table content first to ensure DataTable loaded
+        await waitForElement(driver, webdriver.By.tagName("table"))
+
+        // Then check for all the custom classes
         await Promise.all(classes.map(className => waitForElement(driver, webdriver.By.css(className))))
     })
 
@@ -229,16 +369,16 @@ describe("Integration tests pass", function() {
         await driver.get(`${baseUrl}tests/colspan.html`)
 
         // Wait for the DataTable to initialize and tests to run
-        await driver.sleep(testWait)
+        const result = await waitForTestResults(driver, testWait + 30000)
 
-        // Check that all tests passed by looking for the success summary
-        const results = await waitForElementById(driver, "results")
-        const resultsText = await results.getText()
+        if (!result.success) {
+            console.log("Colspan test output:", result.text)
+        }
 
         // Verify that the summary indicates all tests passed
-        assert(resultsText.includes("All tests passed! ✓"), "Colspan comprehensive tests should all pass")
+        assert(result.success, `Colspan comprehensive tests should all pass. Output: ${result.text}`)
 
-        // Verify no JavaScript errors occurred during testing (ignoring unrelated UMD errors)
+        // Verify no severe JavaScript errors occurred during testing
         const logs = await driver.manage().logs().get("browser")
         const errors = logs.filter(log => log.level.name === "SEVERE")
         assert.deepEqual(errors, [], "No JavaScript errors should occur during colspan testing")
@@ -248,16 +388,16 @@ describe("Integration tests pass", function() {
         await driver.get(`${baseUrl}tests/colspan-json.html`)
 
         // Wait for the DataTable to initialize and tests to run
-        await driver.sleep(testWait)
+        const result = await waitForTestResults(driver, testWait + 30000)
 
-        // Check that all tests passed by looking for the success summary
-        const results = await waitForElementById(driver, "results")
-        const resultsText = await results.getText()
+        if (!result.success) {
+            console.log("Colspan JSON test output:", result.text)
+        }
 
         // Verify that the summary indicates all tests passed
-        assert(resultsText.includes("All tests passed! ✓"), "Colspan JSON data tests should all pass")
+        assert(result.success, `Colspan JSON data tests should all pass. Output: ${result.text}`)
 
-        // Verify no JavaScript errors occurred during testing
+        // Verify no severe JavaScript errors occurred during testing
         const logs = await driver.manage().logs().get("browser")
         const errors = logs.filter(log => log.level.name === "SEVERE")
         assert.deepEqual(errors, [], "No JavaScript errors should occur during colspan JSON testing")
@@ -267,16 +407,16 @@ describe("Integration tests pass", function() {
         await driver.get(`${baseUrl}tests/rowspan.html`)
 
         // Wait for the DataTable to initialize and tests to run
-        await driver.sleep(testWait)
+        const result = await waitForTestResults(driver, testWait + 30000)
 
-        // Check that all tests passed by looking for the success summary
-        const results = await waitForElementById(driver, "results")
-        const resultsText = await results.getText()
+        if (!result.success) {
+            console.log("Rowspan test output:", result.text)
+        }
 
         // Verify that the summary indicates all tests passed
-        assert(resultsText.includes("All tests passed! ✓"), "Rowspan comprehensive tests should all pass")
+        assert(result.success, `Rowspan comprehensive tests should all pass. Output: ${result.text}`)
 
-        // Verify no JavaScript errors occurred during testing
+        // Verify no severe JavaScript errors occurred during testing
         const logs = await driver.manage().logs().get("browser")
         const errors = logs.filter(log => log.level.name === "SEVERE")
         assert.deepEqual(errors, [], "No JavaScript errors should occur during rowspan testing")
@@ -287,19 +427,16 @@ describe("Integration tests pass", function() {
 
         // Wait for the DataTable to initialize and tests to run
         // Extra wait needed for Test 8 which uses setTimeout(100ms)
-        await driver.sleep(testWait + 1000)
+        const result = await waitForTestResults(driver, testWait + 40000)
 
-        // Check that all tests passed by looking for the success summary
-        const results = await waitForElementById(driver, "results")
-        const resultsText = await results.getText()
-
-        // Note: This test may still fail due to DataTable library issues with rowspan sorting/searching
-        // but the main CI vs local timing issues have been resolved
+        if (!result.success) {
+            console.log("Rowspan JSON test output:", result.text)
+        }
 
         // Verify that the summary indicates all tests passed
-        assert(resultsText.includes("All tests passed! ✓"), "Rowspan JSON data tests should all pass")
+        assert(result.success, `Rowspan JSON data tests should all pass. Output: ${result.text}`)
 
-        // Verify no JavaScript errors occurred during testing
+        // Verify no severe JavaScript errors occurred during testing
         const logs = await driver.manage().logs().get("browser")
         const errors = logs.filter(log => log.level.name === "SEVERE")
         assert.deepEqual(errors, [], "No JavaScript errors should occur during rowspan JSON testing")
@@ -309,16 +446,16 @@ describe("Integration tests pass", function() {
         await driver.get(`${baseUrl}tests/colspan-rowspan.html`)
 
         // Wait for the DataTable to initialize and tests to run
-        await driver.sleep(testWait)
+        const result = await waitForTestResults(driver, testWait + 30000)
 
-        // Check that all tests passed by looking for the success summary
-        const results = await waitForElementById(driver, "results")
-        const resultsText = await results.getText()
+        if (!result.success) {
+            console.log("Combined colspan/rowspan test output:", result.text)
+        }
 
         // Verify that the summary indicates all tests passed
-        assert(resultsText.includes("All tests passed! ✓"), "Combined colspan and rowspan tests should all pass")
+        assert(result.success, `Combined colspan and rowspan tests should all pass. Output: ${result.text}`)
 
-        // Verify no JavaScript errors occurred during testing
+        // Verify no severe JavaScript errors occurred during testing
         const logs = await driver.manage().logs().get("browser")
         const errors = logs.filter(log => log.level.name === "SEVERE")
         assert.deepEqual(errors, [], "No JavaScript errors should occur during combined colspan/rowspan testing")

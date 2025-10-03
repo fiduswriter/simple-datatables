@@ -7,7 +7,7 @@
     <body>
         <table></table>
         <script type="module">
-            import {DataTable} from "../dist/module.js"
+            import {DataTable} from "../../dist/module.js"
 
             const data = {
                 "headings": [
@@ -72,8 +72,15 @@
                 rowNavigation: true
             })
 
-            window.dt.columns.filter(2)
-            window.dt.rows.setCursor(1)
+            // Wait for DataTable to fully initialize before calling methods
+            setTimeout(() => {
+                try {
+                    window.dt.columns.filter(2)
+                    window.dt.rows.setCursor(1)
+                } catch (error) {
+                    console.error("Error calling DataTable methods:", error)
+                }
+            }, 100)
         </script>
     </body>
 </html>

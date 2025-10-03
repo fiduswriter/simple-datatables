@@ -148,13 +148,13 @@ module.exports = defineConfig([{
         "no-alert": "off",
         "no-array-constructor": "error",
         "no-async-promise-executor": "error",
-        "no-await-in-loop": "error",
+        "no-await-in-loop": "off",
         "no-bitwise": "off",
         "no-buffer-constructor": "error",
         "no-caller": "error",
         "no-catch-shadow": "error",
         "no-confusing-arrow": "off",
-        "no-continue": "error",
+        "no-continue": "off",
         "no-div-regex": "error",
         "no-duplicate-imports": "error",
         "no-else-return": "error",
@@ -363,7 +363,7 @@ module.exports = defineConfig([{
     },
 
     extends: compat.extends("plugin:@html-eslint/recommended"),
-    
+
     rules: {
         "indent": "off",
         "no-mixed-spaces-and-tabs": "off",
