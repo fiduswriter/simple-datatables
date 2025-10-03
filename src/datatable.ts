@@ -851,10 +851,24 @@ export class DataTable {
             const searchRow = row.cells.map((cell, i) => {
                 const column = this.columns.settings[i]
                 const customSearchMethod = column?.searchMethod || this.options.searchMethod
-                if (customSearchMethod) {
-                    return cell
+
+                // Handle rowspan placeholders - find the actual cell value
+                let actualCell = cell
+                if (cell.attributes?.["data-rowspan-placeholder"] === "true") {
+                    // Look backward through rows to find the actual cell with rowspan
+                    for (let j = idx - 1; j >= 0; j--) {
+                        const prevCell = this.data.data[j].cells[i]
+                        if (prevCell.attributes?.["data-rowspan-placeholder"] !== "true") {
+                            actualCell = prevCell
+                            break
+                        }
+                    }
                 }
-                let content = cellToText(cell).trim()
+
+                if (customSearchMethod) {
+                    return actualCell
+                }
+                let content = cellToText(actualCell).trim()
                 if (content.length) {
                     const sensitivity = column?.sensitivity || this.options.sensitivity
                     if (["base", "accent"].includes(sensitivity)) {
@@ -881,6 +895,7 @@ export class DataTable {
                             const column = this.columns.settings[index]
                             const customSearchMethod = column?.searchMethod || this.options.searchMethod
                             if (customSearchMethod) {
+                                // For custom search methods, use the actual cell (which may have been resolved from rowspan)
                                 return customSearchMethod(queryColumnWord, (searchRow[index] as cellType), row, index, queries[queryIndex].source)
                             }
                             return queryColumnWord.find(queryWord => (searchRow[index] as string[])?.find(searchItem => searchItem?.includes(queryWord)))

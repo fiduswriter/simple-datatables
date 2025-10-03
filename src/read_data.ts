@@ -318,7 +318,11 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
     }
     if (dataOption.data) {
         const headings = data.headings.map((heading: headerCellType) => heading.data ? String(heading.data) : heading.text)
-        data.data = dataOption.data.map((row: inputRowType | inputCellType[]) => {
+
+        // Track rowspan carryover: columnIndex -> {remainingRows, cellData}
+        const rowspanCarryover: Map<number, {remainingRows: number, cellData: cellType}> = new Map()
+
+        data.data = dataOption.data.map((row: inputRowType | inputCellType[], _rowIndex: number) => {
             let attributes: { [key: string]: string }
             let cells: inputCellType[]
             if (Array.isArray(row)) {
@@ -338,56 +342,55 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                 })
             }
 
-            // Process cells and handle colspan
+            // Process cells and handle colspan and rowspan
             const processedCells: cellType[] = []
             let cellIndex = 0
-            cells.forEach((cell: inputCellType) => {
-                const cellData = readDataCell(cell, columnSettings[cellIndex])
-                const colspan = parseInt(cellData.attributes?.colspan || "1", 10)
+            let inputCellIndex = 0
 
-                processedCells.push(cellData)
-                cellIndex++
-
-                // Add placeholder cells for colspan > 1
-                for (let i = 1; i < colspan; i++) {
+            while (cellIndex < data.headings.length) {
+                // Check if this column is occupied by a rowspan from a previous row
+                if (rowspanCarryover.has(cellIndex)) {
+                    const carryover = rowspanCarryover.get(cellIndex)
+                    // Add placeholder for rowspan
                     processedCells.push({
                         data: "",
                         text: "",
                         order: "",
                         attributes: {
-                            "data-colspan-placeholder": "true"
+                            "data-rowspan-placeholder": "true"
                         }
                     })
-                    cellIndex++
-                }
-            })
 
-            return {
-                attributes,
-                cells: processedCells
-            } as dataRowType
-        })
-    } else if (dom?.tBodies?.length) {
-        data.data = Array.from(dom.tBodies[0].rows).map(
-            row => {
-                const cells: cellType[] = []
-
-                let cellIndex = 0
-                Array.from(row.cells).forEach(cell => {
-                    const colspan = parseInt(cell.getAttribute("colspan") || "1", 10)
-
-                    // Add the actual cell with colspan data
-                    const cellData = cell.dataset.content ?
-                        readDataCell(cell.dataset.content, columnSettings[cellIndex]) :
-                        readDOMDataCell(cell, columnSettings[cellIndex])
-                    if (cell.dataset.order) {
-                        cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
+                    // Decrement remaining rows
+                    carryover.remainingRows--
+                    if (carryover.remainingRows <= 0) {
+                        rowspanCarryover.delete(cellIndex)
                     }
-                    cells.push(cellData)
+
+                    cellIndex++
+                } else if (inputCellIndex < cells.length) {
+                    // Process the next input cell
+                    const cell = cells[inputCellIndex]
+                    const cellData = readDataCell(cell, columnSettings[cellIndex])
+                    const colspan = parseInt(cellData.attributes?.colspan || "1", 10)
+                    const rowspan = parseInt(cellData.attributes?.rowspan || "1", 10)
+
+                    processedCells.push(cellData)
+
+                    // Track rowspan for future rows
+                    if (rowspan > 1) {
+                        rowspanCarryover.set(cellIndex, {
+                            remainingRows: rowspan - 1,
+                            cellData
+                        })
+                    }
+
+                    cellIndex++
+                    inputCellIndex++
 
                     // Add placeholder cells for colspan > 1
                     for (let i = 1; i < colspan; i++) {
-                        cells.push({
+                        processedCells.push({
                             data: "",
                             text: "",
                             order: "",
@@ -397,8 +400,92 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                         })
                         cellIndex++
                     }
-                    cellIndex++
-                })
+                } else {
+                    // This shouldn't happen if data is well-formed, but handle it gracefully
+                    break
+                }
+            }
+
+            return {
+                attributes,
+                cells: processedCells
+            } as dataRowType
+        })
+    } else if (dom?.tBodies?.length) {
+        // Track rowspan carryover: columnIndex -> {remainingRows, cellData}
+        const rowspanCarryover: Map<number, {remainingRows: number, cellData: cellType}> = new Map()
+
+        data.data = Array.from(dom.tBodies[0].rows).map(
+            row => {
+                const cells: cellType[] = []
+                let cellIndex = 0
+                let domCellIndex = 0
+                const domCells = Array.from(row.cells)
+
+                while (cellIndex < data.headings.length) {
+                    // Check if this column is occupied by a rowspan from a previous row
+                    if (rowspanCarryover.has(cellIndex)) {
+                        const carryover = rowspanCarryover.get(cellIndex)
+                        // Add placeholder for rowspan
+                        cells.push({
+                            data: "",
+                            text: "",
+                            order: "",
+                            attributes: {
+                                "data-rowspan-placeholder": "true"
+                            }
+                        })
+
+                        // Decrement remaining rows
+                        carryover.remainingRows--
+                        if (carryover.remainingRows <= 0) {
+                            rowspanCarryover.delete(cellIndex)
+                        }
+
+                        cellIndex++
+                    } else if (domCellIndex < domCells.length) {
+                        // Process the next DOM cell
+                        const cell = domCells[domCellIndex]
+                        const colspan = parseInt(cell.getAttribute("colspan") || "1", 10)
+                        const rowspan = parseInt(cell.getAttribute("rowspan") || "1", 10)
+
+                        // Add the actual cell with colspan and rowspan data
+                        const cellData = cell.dataset.content ?
+                            readDataCell(cell.dataset.content, columnSettings[cellIndex]) :
+                            readDOMDataCell(cell, columnSettings[cellIndex])
+                        if (cell.dataset.order) {
+                            cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
+                        }
+                        cells.push(cellData)
+
+                        // Track rowspan for future rows
+                        if (rowspan > 1) {
+                            rowspanCarryover.set(cellIndex, {
+                                remainingRows: rowspan - 1,
+                                cellData
+                            })
+                        }
+
+                        cellIndex++
+                        domCellIndex++
+
+                        // Add placeholder cells for colspan > 1
+                        for (let i = 1; i < colspan; i++) {
+                            cells.push({
+                                data: "",
+                                text: "",
+                                order: "",
+                                attributes: {
+                                    "data-colspan-placeholder": "true"
+                                }
+                            })
+                            cellIndex++
+                        }
+                    } else {
+                        // This shouldn't happen if DOM is well-formed, but handle it gracefully
+                        break
+                    }
+                }
 
                 return {
                     attributes: namedNodeMapToObject(row.attributes),

@@ -5,7 +5,7 @@ import {
 import {DataTable} from "../datatable"
 import {
     cellDataType,
-    cellType,
+
     dataRowType,
     headerCellType
 } from "../types"
@@ -54,6 +54,9 @@ export const exportCSV = function(dt: DataTable, userOptions: csvUserOptions = {
         })
         .flat()
 
+    // Track rowspan for cells: column index -> {remainingRows, cellText}
+    const rowspanCarryover: Map<number, {remainingRows: number, cellText: string}> = new Map()
+
     // Selection or whole table
     let selectedRows: dataRowType[]
     if (options.selection) {
@@ -76,12 +79,70 @@ export const exportCSV = function(dt: DataTable, userOptions: csvUserOptions = {
     // Include headings
     rows[0] = headers
     rows = rows.concat(selectedRows.map((row: dataRowType) => {
-        const shownCells = row.cells.filter((_cell: cellType, index: number) => columnShown(index))
-        return shownCells.map((cell: cellType) => {
-            const colspan = Number(cell.attributes?.colspan || 1)
-            const cellText = cellToText(cell)
-            return [cellText, ...Array(colspan - 1).fill("")]
-        }).flat()
+        const csvRow: cellDataType[] = []
+        let csvColumnIndex = 0
+        let dataColumnIndex = 0
+
+        while (dataColumnIndex < row.cells.length) {
+            const cell = row.cells[dataColumnIndex]
+
+
+            if (columnShown(dataColumnIndex)) {
+
+
+                // Check if this column is occupied by a rowspan from a previous row
+                if (rowspanCarryover.has(csvColumnIndex)) {
+                    const carryover = rowspanCarryover.get(csvColumnIndex)
+                    // Use the carried over text
+                    csvRow.push(carryover.cellText)
+
+                    // Decrement remaining rows
+                    carryover.remainingRows--
+                    if (carryover.remainingRows <= 0) {
+                        rowspanCarryover.delete(csvColumnIndex)
+                    }
+
+                    csvColumnIndex++
+                    dataColumnIndex++
+                } else if (cell.attributes?.["data-rowspan-placeholder"] === "true") {
+                // This is a placeholder, should have been handled by carryover
+                    dataColumnIndex++
+                } else if (cell.attributes?.["data-colspan-placeholder"] === "true") {
+                // Colspan placeholder - add empty cell
+                    csvRow.push("")
+                    csvColumnIndex++
+                    dataColumnIndex++
+                } else {
+                // Regular cell or cell with colspan/rowspan
+                    const colspan = Number(cell.attributes?.colspan || 1)
+                    const rowspan = Number(cell.attributes?.rowspan || 1)
+                    const cellText = cellToText(cell)
+
+                    // Add the cell and colspan placeholders
+                    csvRow.push(cellText)
+                    for (let i = 1; i < colspan; i++) {
+                        csvRow.push("")
+                    }
+
+                    // Track rowspan for future rows
+                    if (rowspan > 1) {
+                        rowspanCarryover.set(csvColumnIndex, {
+                            remainingRows: rowspan - 1,
+                            cellText
+                        })
+                    }
+
+                    csvColumnIndex++
+                    dataColumnIndex++
+                }
+
+            } else {
+                // Skip hidden columns and placeholder cells
+                dataColumnIndex++
+            }
+        }
+
+        return csvRow
     }))
 
     // Only proceed if we have data

@@ -138,7 +138,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                         sortable: true,
                                         searchable: true
                                     } as columnSettingsType)
-                                    if (column.hidden || cell.attributes?.["data-colspan-placeholder"] === "true") {
+                                    if (column.hidden || cell.attributes?.["data-colspan-placeholder"] === "true" || cell.attributes?.["data-rowspan-placeholder"] === "true") {
                                         return
                                     }
                                     const td: elementNodeType = {
