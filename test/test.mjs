@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 import "chromedriver"
 
 import assert from "assert"
@@ -14,11 +15,13 @@ const port = await getPort({port: 3000})
 
 let wait = 100
 let testWait = 2000
+let initTimeout = 10000
 const options = new chrome.Options()
 if (process.env.CI) { // eslint-disable-line no-process-env
     // We are running on CI
-    wait = 300
-    testWait = 5000
+    wait = 500
+    testWait = 10000
+    initTimeout = 15000
     options.addArguments("--headless=new")
 }
 const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
@@ -39,6 +42,47 @@ await driver.get(baseUrl).then(
     }
 )
 
+// Helper function to wait for DataTable initialization
+const waitForDataTableInit = async function(driver, timeout = initTimeout) {
+    const startTime = Date.now()
+    while (Date.now() - startTime < timeout) {
+        try {
+            const wrapper = await driver.findElement(webdriver.By.className("datatable-wrapper"))
+            const container = await wrapper.findElement(webdriver.By.className("datatable-container"))
+            const table = await container.findElement(webdriver.By.tagName("table"))
+            const tableClass = await table.getAttribute("class")
+            if (tableClass.includes("datatable-table")) {
+                return {wrapper,
+                    container,
+                    table}
+            }
+        } catch {
+            // Element not found yet, continue waiting
+        }
+        await driver.sleep(100)
+    }
+    throw new Error(`DataTable did not initialize within ${timeout}ms`)
+}
+
+// Helper function to wait for element with retry
+const waitForElement = async function(driver, selector, timeout = testWait) {
+    const startTime = Date.now()
+    while (Date.now() - startTime < timeout) {
+        try {
+            const element = await driver.findElement(selector)
+            return element
+        } catch {
+            // Element not found yet, continue waiting
+        }
+        await driver.sleep(100)
+    }
+    throw new Error(`Element ${selector.value || selector} not found within ${timeout}ms`)
+}
+
+// Helper function to wait for element by ID
+const waitForElementById = function(driver, id, timeout = testWait) {
+    return waitForElement(driver, webdriver.By.id(id), timeout)
+}
 
 const clickAllSortableHeaders = function(driver, counter=0) {
     // Click each sort header. But query the list of all headers again after
@@ -48,7 +92,7 @@ const clickAllSortableHeaders = function(driver, counter=0) {
             if ((nodes.length-1) < counter) {
                 return Promise.resolve()
             }
-            nodes[counter].click().then(
+            return nodes[counter].click().then(
                 () => driver.sleep(wait)
             ).then(
                 () => {
@@ -62,7 +106,7 @@ const clickAllSortableHeaders = function(driver, counter=0) {
 
 
 describe("Demos work", function() {
-    this.timeout(5000)
+    this.timeout(initTimeout)
     forEach(demoUrls).it("loads %s without JS errors", url => driver.get(url).then(
         () => driver.manage().logs().get("browser")
     ).then(
@@ -79,13 +123,11 @@ describe("Demos work", function() {
 })
 
 describe("Integration tests pass", function() {
-    this.timeout(5000)
+    this.timeout(initTimeout)
 
     it("initializes the datatable", async () => {
         await driver.get(`${baseUrl}1-simple/`)
-        const wrapper = await driver.findElement(webdriver.By.className("datatable-wrapper"))
-        const container = await wrapper.findElement(webdriver.By.className("datatable-container"))
-        const table = await container.findElement(webdriver.By.tagName("table"))
+        const {wrapper, table} = await waitForDataTableInit(driver)
         const tableClass = await table.getAttribute("class")
         assert(tableClass.includes("datatable-table"), "table is missing class 'datatable-table'")
 
@@ -95,32 +137,32 @@ describe("Integration tests pass", function() {
 
     it("shows table footer", async () => {
         await driver.get(`${baseUrl}24-footer`)
-        const table = await driver.findElement(webdriver.By.tagName("table"))
-        const tfoot = table.findElement(webdriver.By.tagName("tfoot"))
+        const table = await waitForElement(driver, webdriver.By.tagName("table"))
+        const tfoot = await table.findElement(webdriver.By.tagName("tfoot"))
         const tfootText = await tfoot.getText()
         assert.equal(tfootText, "This is a table footer.")
     })
 
     it("shows table caption", async () => {
         await driver.get(`${baseUrl}24-footer`)
-        const table = await driver.findElement(webdriver.By.tagName("table"))
-        const caption = table.findElement(webdriver.By.tagName("caption"))
+        const table = await waitForElement(driver, webdriver.By.tagName("table"))
+        const caption = await table.findElement(webdriver.By.tagName("caption"))
         const captionText = await caption.getText()
         assert.equal(captionText, "This is a table caption.")
     })
 
     it("shows table footer when empty", async () => {
         await driver.get(`${baseUrl}tests/empty-table-with-footer.html`)
-        const table = await driver.findElement(webdriver.By.tagName("table"))
-        const tfoot = table.findElement(webdriver.By.tagName("tfoot"))
+        const table = await waitForElement(driver, webdriver.By.tagName("table"))
+        const tfoot = await table.findElement(webdriver.By.tagName("tfoot"))
         const tfootText = await tfoot.getText()
         assert.equal(tfootText, "This is a table footer.")
     })
 
     it("shows table caption when empty", async () => {
         await driver.get(`${baseUrl}tests/empty-table-with-footer.html`)
-        const table = await driver.findElement(webdriver.By.tagName("table"))
-        const caption = table.findElement(webdriver.By.tagName("caption"))
+        const table = await waitForElement(driver, webdriver.By.tagName("table"))
+        const caption = await table.findElement(webdriver.By.tagName("caption"))
         const captionText = await caption.getText()
         assert.equal(captionText, "This is a table caption.")
     })
@@ -129,10 +171,10 @@ describe("Integration tests pass", function() {
      * Assert that the rendered table has all the attributes defined.
      */
     const assertCellAttrs = async function(tableId) {
-        await driver.findElement(webdriver.By.xpath(`//table[@id='${tableId}' and contains(@class, 'my-table') and @style='white-space: nowrap;']`))
-        await driver.findElement(webdriver.By.xpath(`//table[@id='${tableId}']/thead/tr/th[@class='red']`))
-        await driver.findElement(webdriver.By.xpath(`//table[@id='${tableId}']/tbody/tr[@class='yellow']`))
-        await driver.findElement(webdriver.By.xpath(`//table[@id='${tableId}']/tbody/tr[@class='yellow']/td[@class='red']`))
+        await waitForElement(driver, webdriver.By.xpath(`//table[@id='${tableId}' and contains(@class, 'my-table') and @style='white-space: nowrap;']`))
+        await waitForElement(driver, webdriver.By.xpath(`//table[@id='${tableId}']/thead/tr/th[@class='red']`))
+        await waitForElement(driver, webdriver.By.xpath(`//table[@id='${tableId}']/tbody/tr[@class='yellow']`))
+        await waitForElement(driver, webdriver.By.xpath(`//table[@id='${tableId}']/tbody/tr[@class='yellow']/td[@class='red']`))
     }
 
     it("preserves cell attributes (DOM)", async () => {
@@ -180,7 +222,7 @@ describe("Integration tests pass", function() {
 
         await driver.get(`${baseUrl}tests/multiple-classes.html`)
         await driver.sleep(testWait)
-        await Promise.all(classes.map(className => driver.findElement(webdriver.By.css(className))))
+        await Promise.all(classes.map(className => waitForElement(driver, webdriver.By.css(className))))
     })
 
     it("handles colspan functionality comprehensively", async () => {
@@ -190,7 +232,7 @@ describe("Integration tests pass", function() {
         await driver.sleep(testWait)
 
         // Check that all tests passed by looking for the success summary
-        const results = await driver.findElement(webdriver.By.id("results"))
+        const results = await waitForElementById(driver, "results")
         const resultsText = await results.getText()
 
         // Verify that the summary indicates all tests passed
@@ -209,7 +251,7 @@ describe("Integration tests pass", function() {
         await driver.sleep(testWait)
 
         // Check that all tests passed by looking for the success summary
-        const results = await driver.findElement(webdriver.By.id("results"))
+        const results = await waitForElementById(driver, "results")
         const resultsText = await results.getText()
 
         // Verify that the summary indicates all tests passed
@@ -228,7 +270,7 @@ describe("Integration tests pass", function() {
         await driver.sleep(testWait)
 
         // Check that all tests passed by looking for the success summary
-        const results = await driver.findElement(webdriver.By.id("results"))
+        const results = await waitForElementById(driver, "results")
         const resultsText = await results.getText()
 
         // Verify that the summary indicates all tests passed
@@ -245,10 +287,10 @@ describe("Integration tests pass", function() {
 
         // Wait for the DataTable to initialize and tests to run
         // Extra wait needed for Test 8 which uses setTimeout(100ms)
-        await driver.sleep(testWait + 500)
+        await driver.sleep(testWait + 1000)
 
         // Check that all tests passed by looking for the success summary
-        const results = await driver.findElement(webdriver.By.id("results"))
+        const results = await waitForElementById(driver, "results")
         const resultsText = await results.getText()
 
         // Note: This test may still fail due to DataTable library issues with rowspan sorting/searching
@@ -270,7 +312,7 @@ describe("Integration tests pass", function() {
         await driver.sleep(testWait)
 
         // Check that all tests passed by looking for the success summary
-        const results = await driver.findElement(webdriver.By.id("results"))
+        const results = await waitForElementById(driver, "results")
         const resultsText = await results.getText()
 
         // Verify that the summary indicates all tests passed

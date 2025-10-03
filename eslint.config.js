@@ -1,25 +1,25 @@
 const {
     defineConfig,
-    globalIgnores,
-} = require("eslint/config");
+    globalIgnores
+} = require("eslint/config")
 
-const html = require("eslint-plugin-html");
-const htmlEslint = require("@html-eslint/eslint-plugin");
-const typescriptEslint = require("@typescript-eslint/eslint-plugin");
-const typescriptParser = require("@typescript-eslint/parser");
-const parser = require("@html-eslint/parser");
-const globals = require("globals");
-const js = require("@eslint/js");
+const html = require("eslint-plugin-html")
+const htmlEslint = require("@html-eslint/eslint-plugin")
+const typescriptEslint = require("@typescript-eslint/eslint-plugin")
+const typescriptParser = require("@typescript-eslint/parser")
+const parser = require("@html-eslint/parser")
+const globals = require("globals")
+const js = require("@eslint/js")
 
 const {
-    FlatCompat,
-} = require("@eslint/eslintrc");
+    FlatCompat
+} = require("@eslint/eslintrc")
 
 const compat = new FlatCompat({
     baseDirectory: __dirname,
     recommendedConfig: js.configs.recommended,
     allConfig: js.configs.all
-});
+})
 
 module.exports = defineConfig([{
     plugins: {
@@ -31,18 +31,18 @@ module.exports = defineConfig([{
     languageOptions: {
         globals: {
             ...globals.browser,
-            ...globals.mocha,
+            ...globals.mocha
         },
 
-        "ecmaVersion": 2021,
-        "sourceType": "module",
-        parserOptions: {},
+        ecmaVersion: 2021,
+        sourceType: "module",
+        parserOptions: {}
     },
 
     extends: compat.extends(
         "eslint:recommended",
         "plugin:@typescript-eslint/eslint-recommended",
-        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended"
     ),
 
     "rules": {
@@ -54,10 +54,13 @@ module.exports = defineConfig([{
         "arrow-body-style": "error",
         "arrow-parens": ["error", "as-needed"],
 
-        "arrow-spacing": ["error", {
-            "after": true,
-            "before": true,
-        }],
+        "arrow-spacing": [
+            "error",
+            {
+                after: true,
+                before: true
+            }
+        ],
 
         "block-scoped-var": "error",
         "block-spacing": "error",
@@ -68,10 +71,13 @@ module.exports = defineConfig([{
         "class-methods-use-this": "off",
         "comma-dangle": "error",
 
-        "comma-spacing": ["error", {
-            "after": true,
-            "before": false,
-        }],
+        "comma-spacing": [
+            "error",
+            {
+                after: true,
+                before: false
+            }
+        ],
 
         "comma-style": ["error", "last"],
         "complexity": "off",
@@ -82,9 +88,12 @@ module.exports = defineConfig([{
         "default-case": "off",
         "dot-location": ["error", "property"],
 
-        "dot-notation": ["error", {
-            "allowKeywords": true,
-        }],
+        "dot-notation": [
+            "error",
+            {
+                allowKeywords: true
+            }
+        ],
 
         "eol-last": "error",
         "eqeqeq": "off",
@@ -107,10 +116,13 @@ module.exports = defineConfig([{
         "jsx-quotes": "error",
         "key-spacing": "error",
 
-        "keyword-spacing": ["error", {
-            "after": true,
-            "before": true,
-        }],
+        "keyword-spacing": [
+            "error",
+            {
+                after: true,
+                before: true
+            }
+        ],
 
         "line-comment-position": "off",
         "linebreak-style": ["error", "unix"],
@@ -167,9 +179,12 @@ module.exports = defineConfig([{
         "no-magic-numbers": "off",
         "no-misleading-character-class": "error",
 
-        "no-mixed-operators": ["error", {
-            "allowSamePrecedence": true,
-        }],
+        "no-mixed-operators": [
+            "error",
+            {
+                allowSamePrecedence: true
+            }
+        ],
 
         "no-mixed-requires": "error",
         "no-multi-assign": "off",
@@ -262,10 +277,13 @@ module.exports = defineConfig([{
         "rest-spread-spacing": "error",
         "semi": ["error", "never"],
 
-        "semi-spacing": ["error", {
-            "after": true,
-            "before": false,
-        }],
+        "semi-spacing": [
+            "error",
+            {
+                after: true,
+                before: false
+            }
+        ],
 
         "semi-style": ["error", "last"],
         "sort-imports": "off",
@@ -290,17 +308,47 @@ module.exports = defineConfig([{
         "yield-star-spacing": "error",
         "yoda": "off",
 
-        "@typescript-eslint/no-explicit-any": ["warn", {
-            "ignoreRestArgs": true,
-        }],
+        "@typescript-eslint/no-explicit-any": [
+            "warn",
+            {
+                ignoreRestArgs: true
+            }
+        ],
 
-        "@typescript-eslint/no-unused-vars": ["error", {
-            "argsIgnorePattern": "^_",
-        }],
+        "@typescript-eslint/no-unused-vars": [
+            "error",
+            {
+                argsIgnorePattern: "^_"
+            }
+        ],
 
         "@typescript-eslint/no-unsafe-function-type": "off",
-        "@typescript-eslint/ban-types": "off",
+        "@typescript-eslint/ban-types": "off"
+    }
+},
+{
+    files: [
+        "eslint.config.js",
+        "rollup.config.mjs",
+        "rollup.demos.config.mjs"
+    ],
+    languageOptions: {
+        globals: {
+            ...globals.node
+        }
     },
+    rules: {
+        "comma-dangle": "off",
+        "semi": "off",
+        "quotes": "off",
+        "object-curly-spacing": "off",
+        "object-property-newline": "off",
+        "array-bracket-newline": "off",
+        "object-shorthand": "off",
+        "no-trailing-spaces": "off",
+        "@typescript-eslint/no-require-imports": "off",
+        "no-undef": "off"
+    }
 }, {
     files: ["**/*.ts", "**/*.tsx"],
 
@@ -347,4 +395,7 @@ module.exports = defineConfig([{
         "quotes": "off",
         "semi": "off"
     }
-}, globalIgnores(["docs/demos/dist/"])]);
+}, globalIgnores([
+    "docs/demos/dist/",
+    "dist/"
+])])
