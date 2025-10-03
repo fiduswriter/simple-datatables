@@ -255,7 +255,7 @@ cell: 1} // Row 5, Department column
                     // Verify that after sorting, the Department column still shows correct values
                     // Check that we don't see employee names in the Department column
                     const renderedTable = document.querySelector("#test-table")
-                    const departmentCells = renderedTable.querySelectorAll("tbody tr td:first-child")
+                    const departmentCells = renderedTable.querySelectorAll("tbody tr td:nth-child(2)")
                     
                     let hasInvalidDepartment = false
                     departmentCells.forEach(cell => {
@@ -290,7 +290,7 @@ cell: 1} // Row 5, Department column
                     
                     // Verify Department column still has valid values (no employee names)
                     const renderedTable = document.querySelector("#test-table")
-                    const departmentCells = renderedTable.querySelectorAll("tbody tr td:first-child")
+                    const departmentCells = renderedTable.querySelectorAll("tbody tr td:nth-child(2)")
                     
                     let hasInvalidDepartment = false
                     departmentCells.forEach(cell => {
