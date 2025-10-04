@@ -39,11 +39,23 @@ jobs:
                 # Verify installation
                 google-chrome --version
                 
-                # Install ChromeDriver
-                CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
-                CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%%.*}")
-                wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
-                sudo unzip /tmp/chromedriver.zip -d /usr/local/bin/
+                # Install ChromeDriver using Chrome for Testing API (for Chrome 115+)
+                CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+')
+                echo "Chrome version: $CHROME_VERSION"
+                
+                # Use the new Chrome for Testing API for versions 115+
+                CHROMEDRIVER_URL="https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}/linux64/chromedriver-linux64.zip"
+                echo "Downloading ChromeDriver from: $CHROMEDRIVER_URL"
+                
+                wget -O /tmp/chromedriver.zip "$CHROMEDRIVER_URL" || {
+                  echo "Failed to download from Chrome for Testing, trying fallback..."
+                  # Fallback to latest stable if specific version fails
+                  LATEST_VERSION=$(curl -s "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json" | grep -o '"version":"[^"]*' | head -1 | cut -d'"' -f4)
+                  wget -O /tmp/chromedriver.zip "https://storage.googleapis.com/chrome-for-testing-public/${LATEST_VERSION}/linux64/chromedriver-linux64.zip"
+                }
+                
+                sudo unzip /tmp/chromedriver.zip -d /tmp/
+                sudo mv /tmp/chromedriver-linux64/chromedriver /usr/local/bin/
                 sudo chmod +x /usr/local/bin/chromedriver
                 chromedriver --version
                 
