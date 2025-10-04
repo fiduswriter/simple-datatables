@@ -4,19 +4,53 @@ on: [pull_request, push]
 
 jobs:
     test:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04
         steps:
             - name: Checkout
-              uses: actions/checkout@v3
-            - name: Setup Chrome
-              run: sudo apt update && sudo apt install -y google-chrome-stable
-            - run: /usr/bin/google-chrome-stable --version
+              uses: actions/checkout@v4
+              
             - name: Setup Node.js
               uses: actions/setup-node@v4
               with:
-                  node-version: 24
+                  node-version: 20
+                  cache: 'npm'
+                  
             - name: Install dependencies
-              run: npm install
-            - uses: jamesmortensen/chromedriver-matcher-action@v1
-            - name: Tests
-              run: npm test
+              run: npm ci
+              
+            - name: Setup Chrome
+              run: |
+                # Update package lists
+                sudo apt-get update
+                
+                # Install Chrome stable
+                wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+                echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+                sudo apt-get update
+                sudo apt-get install -y google-chrome-stable
+                
+                # Verify installation
+                google-chrome --version
+                
+                # Install ChromeDriver
+                CHROME_VERSION=$(google-chrome --version | grep -oE '[0-9]+\.[0-9]+\.[0-9]+')
+                CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_${CHROME_VERSION%%.*}")
+                wget -O /tmp/chromedriver.zip "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip"
+                sudo unzip /tmp/chromedriver.zip -d /usr/local/bin/
+                sudo chmod +x /usr/local/bin/chromedriver
+                chromedriver --version
+                
+            - name: Setup display for headless testing
+              run: |
+                export DISPLAY=:99
+                sudo Xvfb -ac :99 -screen 0 1280x1024x24 > /dev/null 2>&1 &
+                
+            - name: Build project
+              run: npm run build
+              
+            - name: Run tests
+              run: npm run test:ci
+              env:
+                CI: true
+                DISPLAY: :99
+                NODE_ENV: test
