@@ -749,20 +749,20 @@
         <script type="module">
             (async () => {
                 try {
-                    let DataTable;
-                    
-                    // Try ES module import first
-                    try {
-                        const module = await import("../dist/module.js");
-                        DataTable = module.DataTable;
-                    } catch (moduleError) {
-                        console.log("ES module import failed, falling back to UMD:", moduleError);
-                        // Fallback to UMD
-                        if (window.simpleDatatables && window.simpleDatatables.DataTable) {
-                            DataTable = window.simpleDatatables.DataTable;
-                        } else {
-                            throw new Error("DataTable not available in either ES module or UMD");
-                        }
+                    let DataTable
+        
+        // Try ES module import first
+        try {
+                        const module = await import("../dist/module.js")
+            DataTable = module.DataTable
+        } catch (moduleError) {
+                        console.log("ES module import failed, falling back to UMD:", moduleError)
+            // Fallback to UMD
+            if (window.simpleDatatables && window.simpleDatatables.DataTable) {
+                            DataTable = window.simpleDatatables.DataTable
+            } else {
+                            throw new Error("DataTable not available in either ES module or UMD")
+            }
                     }
                     
                     window.dt = new DataTable("#demo-table", {
@@ -784,12 +784,12 @@
                         ]
                     })
                     
-                    console.log("DataTable initialized successfully");
-                } catch (error) {
-                    console.error("Error initializing DataTable:", error);
-                    window.lastError = error.message;
-                }
-            })();
+                    console.log("DataTable initialized successfully")
+    } catch (error) {
+                    console.error("Error initializing DataTable:", error)
+        window.lastError = error.message
+    }
+            })()
         </script>
     </body>
 </html>
