@@ -8,6 +8,8 @@
 * [Sorting Datetimes](datetime)
 * [Dynamically Adding Data](Dynamically-adding-data)
 * [Add columns from remote source](Adding-a-column-from-a-remote-source)
+* [Colspan Support](colspan)
+* [Rowspan Support](rowspan)
 
 #### Events
 * [datatable.init](Events#datatableinit)

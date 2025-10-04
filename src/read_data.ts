@@ -2,6 +2,7 @@ import {nodeToObj, stringToObj} from "diff-dom"
 import {parseDate} from "./date"
 import {namedNodeMapToObject, objToText} from "./helpers"
 import {
+    cellDataType,
     cellType,
     columnSettingsType,
     DataOption,
@@ -14,55 +15,82 @@ import {
 } from "./types"
 
 export const readDataCell = (cell: inputCellType, columnSettings : columnSettingsType) : cellType => {
+    let cellData : cellType
+    let inputData: cellDataType
+    let attributes: { [key: string]: string } | undefined
+
+    // Check if cell is already a cellType object with data property
     if (cell?.constructor === Object && Object.prototype.hasOwnProperty.call(cell, "data") && !Object.keys(cell).find(key => !(["text", "order", "data", "attributes"].includes(key)))) {
-        return (cell as cellType)
-    }
-    const cellData : cellType = {
-        data: cell
-    }
-    switch (columnSettings.type) {
-    case "string":
-        if (!(typeof cell === "string")) {
-            cellData.text = String(cellData.data)
-            cellData.order = cellData.text
+        const cellObj = cell as cellType
+        inputData = cellObj.data
+        attributes = cellObj.attributes
+        // If text and order are already set, return as-is
+        if (cellObj.text !== undefined && cellObj.order !== undefined) {
+            return cellObj
         }
-        break
-    case "date":
-        if (columnSettings.format) {
-            cellData.order = parseDate(String(cellData.data), columnSettings.format)
+        cellData = {
+            data: cellObj.data,
+            text: cellObj.text,
+            order: cellObj.order,
+            attributes: cellObj.attributes
         }
-        break
-    case "number":
-        cellData.text = String(cellData.data as number)
-        cellData.data = parseFloat(cellData.data as string)
-        cellData.order = cellData.data
-        break
-    case "html": {
-        const node = Array.isArray(cellData.data) ?
-            {nodeName: "TD",
-                childNodes: (cellData.data as nodeType[])} : // If it is an array, we assume it is an array of nodeType
-            stringToObj(`<td>${String(cellData.data)}</td>`)
-        cellData.data = node.childNodes || []
-        const text = objToText(node)
-        cellData.text = text
-        cellData.order = text
-        break
+    } else {
+        inputData = cell
+        cellData = {
+            data: cell
+        }
     }
-    case "boolean":
-        if (typeof cellData.data === "string") {
-            cellData.data = cellData.data.toLowerCase().trim()
+    // Only process if text/order are not already set
+    if (cellData.text === undefined || cellData.order === undefined) {
+        switch (columnSettings.type) {
+        case "string":
+            if (!(typeof inputData === "string")) {
+                cellData.text = cellData.text ?? String(cellData.data)
+                cellData.order = cellData.order ?? cellData.text
+            }
+            break
+        case "date":
+            if (columnSettings.format) {
+                cellData.order = cellData.order ?? parseDate(String(cellData.data), columnSettings.format)
+            }
+            break
+        case "number":
+            cellData.text = cellData.text ?? String(cellData.data as number)
+            cellData.data = parseFloat(cellData.data as string)
+            cellData.order = cellData.order ?? cellData.data
+            break
+        case "html": {
+            const node = Array.isArray(cellData.data) ?
+                {nodeName: "TD",
+                    childNodes: (cellData.data as nodeType[])} : // If it is an array, we assume it is an array of nodeType
+                stringToObj(`<td>${String(cellData.data)}</td>`)
+            cellData.data = node.childNodes || []
+            const text = objToText(node)
+            cellData.text = cellData.text ?? text
+            cellData.order = cellData.order ?? text
+            break
         }
-        cellData.data = !["false", false, null, undefined, 0].includes(cellData.data as (string | number | boolean | null | undefined))
-        cellData.order = cellData.data ? 1 : 0
-        cellData.text = String(cellData.data)
-        break
-    case "other":
-        cellData.text = ""
-        cellData.order = 0
-        break
-    default:
-        cellData.text = JSON.stringify(cellData.data)
-        break
+        case "boolean":
+            if (typeof cellData.data === "string") {
+                cellData.data = cellData.data.toLowerCase().trim()
+            }
+            cellData.data = !["false", false, null, undefined, 0].includes(cellData.data as (string | number | boolean | null | undefined))
+            cellData.order = cellData.order ?? (cellData.data ? 1 : 0)
+            cellData.text = cellData.text ?? String(cellData.data)
+            break
+        case "other":
+            cellData.text = cellData.text ?? ""
+            cellData.order = cellData.order ?? 0
+            break
+        default:
+            cellData.text = cellData.text ?? JSON.stringify(cellData.data)
+            break
+        }
+    }
+
+    // Preserve attributes if they were provided
+    if (attributes) {
+        cellData.attributes = attributes
     }
 
     return cellData
@@ -124,10 +152,19 @@ export const readHeaderCell = (cell: inputHeaderCellType) : headerCellType => {
     if (
         cell instanceof Object &&
         cell.constructor === Object &&
-        cell.hasOwnProperty("data") &&
-        (typeof cell.text === "string" || typeof cell.data === "string")
+        cell.hasOwnProperty("data")
     ) {
-        return cell
+        // If it's already a headerCellType object, ensure text and type are set if data is a string
+        const headerCell = cell as headerCellType
+        if (typeof headerCell.data === "string") {
+            if (!headerCell.text) {
+                headerCell.text = headerCell.data
+            }
+            if (!headerCell.type) {
+                headerCell.type = "string"
+            }
+        }
+        return headerCell
     }
     const cellData : headerCellType = {
         data: cell
@@ -181,35 +218,86 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         headings: [] as headerCellType[]
     }
     if (dataOption.headings) {
-        data.headings = dataOption.headings.map((heading: inputHeaderCellType) => readHeaderCell(heading))
+        // Process headings and handle colspan
+        const processedHeadings: headerCellType[] = []
+        dataOption.headings.forEach((heading: inputHeaderCellType) => {
+            const headerCell = readHeaderCell(heading)
+            const colspan = parseInt(headerCell.attributes?.colspan || "1", 10)
+
+            processedHeadings.push(headerCell)
+
+            // Add placeholder headings for colspan > 1
+            for (let i = 1; i < colspan; i++) {
+                processedHeadings.push({
+                    data: "",
+                    text: "",
+                    attributes: {
+                        "data-colspan-placeholder": "true"
+                    }
+                })
+            }
+        })
+        data.headings = processedHeadings
     } else if (dom?.tHead) {
-        data.headings = Array.from(dom.tHead.querySelectorAll("th")).map((th, index) => {
+        // Collect all headings accounting for colspan
+        const headings: headerCellType[] = []
+        Array.from(dom.tHead.querySelectorAll("th")).forEach(th => {
+            const colspan = parseInt(th.getAttribute("colspan") || "1", 10)
+
+            // Add the actual heading with colspan data
             const heading = readDOMHeaderCell(th)
-            if (!columnSettings[index]) {
-                columnSettings[index] = {
-                    type: defaultType,
-                    format: defaultFormat,
-                    searchable: true,
-                    sortable: true
+            headings.push(heading)
+
+            // Add placeholder headings for colspan > 1
+            for (let i = 1; i < colspan; i++) {
+                headings.push({
+                    data: "",
+                    text: "",
+                    attributes: {
+                        "data-colspan-placeholder": "true"
+                    }
+                })
+            }
+        })
+
+        data.headings = headings
+
+        // Process column settings for all columns including colspan placeholders
+        let columnIndex = 0
+        Array.from(dom.tHead.querySelectorAll("th")).forEach(th => {
+            const colspan = parseInt(th.getAttribute("colspan") || "1", 10)
+
+            for (let i = 0; i < colspan; i++) {
+                if (!columnSettings[columnIndex]) {
+                    columnSettings[columnIndex] = {
+                        type: defaultType,
+                        format: defaultFormat,
+                        searchable: true,
+                        sortable: true
+                    }
                 }
-            }
-            const settings = columnSettings[index]
-            if (th.dataset.sortable?.trim().toLowerCase() === "false" || th.dataset.sort?.trim().toLowerCase() === "false") {
-                settings.sortable = false
-            }
-            if (th.dataset.searchable?.trim().toLowerCase() === "false") {
-                settings.searchable = false
-            }
-            if (th.dataset.hidden?.trim().toLowerCase() === "true" || th.getAttribute("hidden")?.trim().toLowerCase() === "true") {
-                settings.hidden = true
-            }
-            if (["number", "string", "html", "date", "boolean", "other"].includes(th.dataset.type)) {
-                settings.type = th.dataset.type
-                if (settings.type === "date" && th.dataset.format) {
-                    settings.format = th.dataset.format
+                const settings = columnSettings[columnIndex]
+
+                // Only apply settings from the actual th element to the first column of the colspan
+                if (i === 0) {
+                    if (th.dataset.sortable?.trim().toLowerCase() === "false" || th.dataset.sort?.trim().toLowerCase() === "false") {
+                        settings.sortable = false
+                    }
+                    if (th.dataset.searchable?.trim().toLowerCase() === "false") {
+                        settings.searchable = false
+                    }
+                    if (th.dataset.hidden?.trim().toLowerCase() === "true" || th.getAttribute("hidden")?.trim().toLowerCase() === "true") {
+                        settings.hidden = true
+                    }
+                    if (th.dataset.type && ["number", "string", "html", "date", "boolean", "other"].includes(th.dataset.type)) {
+                        settings.type = th.dataset.type
+                        if (settings.type === "date" && th.dataset.format) {
+                            settings.format = th.dataset.format
+                        }
+                    }
                 }
+                columnIndex++
             }
-            return heading
         })
     } else if (dataOption.data?.length) {
         const firstRow = dataOption.data[0]
@@ -231,7 +319,11 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
     }
     if (dataOption.data) {
         const headings = data.headings.map((heading: headerCellType) => heading.data ? String(heading.data) : heading.text)
-        data.data = dataOption.data.map((row: inputRowType | inputCellType[]) => {
+
+        // Track rowspan carryover: columnIndex -> {remainingRows, cellData}
+        const rowspanCarryover: Map<number, {remainingRows: number, cellData: cellType}> = new Map()
+
+        data.data = dataOption.data.map((row: inputRowType | inputCellType[], _rowIndex: number) => {
             let attributes: { [key: string]: string }
             let cells: inputCellType[]
             if (Array.isArray(row)) {
@@ -250,28 +342,157 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                     }
                 })
             }
+
+            // Process cells and handle colspan and rowspan
+            const processedCells: cellType[] = []
+            let cellIndex = 0
+            let inputCellIndex = 0
+
+            while (cellIndex < data.headings.length) {
+                // Check if this column is occupied by a rowspan from a previous row
+                if (rowspanCarryover.has(cellIndex)) {
+                    const carryover = rowspanCarryover.get(cellIndex)
+                    // Add placeholder for rowspan
+                    processedCells.push({
+                        data: "",
+                        text: "",
+                        order: "",
+                        attributes: {
+                            "data-rowspan-placeholder": "true"
+                        }
+                    })
+
+                    // Decrement remaining rows
+                    carryover.remainingRows--
+                    if (carryover.remainingRows <= 0) {
+                        rowspanCarryover.delete(cellIndex)
+                    }
+
+                    cellIndex++
+                } else if (inputCellIndex < cells.length) {
+                    // Process the next input cell
+                    const cell = cells[inputCellIndex]
+                    const cellData = readDataCell(cell, columnSettings[cellIndex])
+                    const colspan = parseInt(cellData.attributes?.colspan || "1", 10)
+                    const rowspan = parseInt(cellData.attributes?.rowspan || "1", 10)
+
+                    processedCells.push(cellData)
+
+                    // Track rowspan for future rows
+                    if (rowspan > 1) {
+                        rowspanCarryover.set(cellIndex, {
+                            remainingRows: rowspan - 1,
+                            cellData
+                        })
+                    }
+
+                    cellIndex++
+                    inputCellIndex++
+
+                    // Add placeholder cells for colspan > 1
+                    for (let i = 1; i < colspan; i++) {
+                        processedCells.push({
+                            data: "",
+                            text: "",
+                            order: "",
+                            attributes: {
+                                "data-colspan-placeholder": "true"
+                            }
+                        })
+                        cellIndex++
+                    }
+                } else {
+                    // This shouldn't happen if data is well-formed, but handle it gracefully
+                    break
+                }
+            }
+
             return {
                 attributes,
-                cells: cells.map((cell: inputCellType, index: number) => readDataCell(cell, columnSettings[index]))
+                cells: processedCells
             } as dataRowType
         })
     } else if (dom?.tBodies?.length) {
+        // Track rowspan carryover: columnIndex -> {remainingRows, cellData}
+        const rowspanCarryover: Map<number, {remainingRows: number, cellData: cellType}> = new Map()
+
         data.data = Array.from(dom.tBodies[0].rows).map(
-            row => ({
-                attributes: namedNodeMapToObject(row.attributes),
-                cells: Array.from(row.cells).map(
-                    (cell, index) => {
+            row => {
+                const cells: cellType[] = []
+                let cellIndex = 0
+                let domCellIndex = 0
+                const domCells = Array.from(row.cells)
+
+                while (cellIndex < data.headings.length) {
+                    // Check if this column is occupied by a rowspan from a previous row
+                    if (rowspanCarryover.has(cellIndex)) {
+                        const carryover = rowspanCarryover.get(cellIndex)
+                        // Add placeholder for rowspan
+                        cells.push({
+                            data: "",
+                            text: "",
+                            order: "",
+                            attributes: {
+                                "data-rowspan-placeholder": "true"
+                            }
+                        })
+
+                        // Decrement remaining rows
+                        carryover.remainingRows--
+                        if (carryover.remainingRows <= 0) {
+                            rowspanCarryover.delete(cellIndex)
+                        }
+
+                        cellIndex++
+                    } else if (domCellIndex < domCells.length) {
+                        // Process the next DOM cell
+                        const cell = domCells[domCellIndex]
+                        const colspan = parseInt(cell.getAttribute("colspan") || "1", 10)
+                        const rowspan = parseInt(cell.getAttribute("rowspan") || "1", 10)
+
+                        // Add the actual cell with colspan and rowspan data
                         const cellData = cell.dataset.content ?
-                            readDataCell(cell.dataset.content, columnSettings[index]) :
-                            readDOMDataCell(cell, columnSettings[index])
+                            readDataCell(cell.dataset.content, columnSettings[cellIndex]) :
+                            readDOMDataCell(cell, columnSettings[cellIndex])
                         if (cell.dataset.order) {
                             cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
                         }
-                        return cellData
+                        cells.push(cellData)
 
+                        // Track rowspan for future rows
+                        if (rowspan > 1) {
+                            rowspanCarryover.set(cellIndex, {
+                                remainingRows: rowspan - 1,
+                                cellData
+                            })
+                        }
+
+                        cellIndex++
+                        domCellIndex++
+
+                        // Add placeholder cells for colspan > 1
+                        for (let i = 1; i < colspan; i++) {
+                            cells.push({
+                                data: "",
+                                text: "",
+                                order: "",
+                                attributes: {
+                                    "data-colspan-placeholder": "true"
+                                }
+                            })
+                            cellIndex++
+                        }
+                    } else {
+                        // This shouldn't happen if DOM is well-formed, but handle it gracefully
+                        break
                     }
-                )
-            } as dataRowType)
+                }
+
+                return {
+                    attributes: namedNodeMapToObject(row.attributes),
+                    cells
+                } as dataRowType
+            }
         )
     }
 

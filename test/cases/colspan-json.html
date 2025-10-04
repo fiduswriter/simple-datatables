@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Colspan JSON Data Test</title>
+        <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Colspan with JSON/JavaScript Data Test</h1>
+
+        <div class="test-section">
+            <h2>Test Table (populated from JSON)</h2>
+            <table id="test-table"></table>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Results</h2>
+            <div id="results"></div>
+        </div>
+
+        <script type="module">
+        import {DataTable} from "../../dist/module.js"
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const results = document.getElementById("results")
+
+            try {
+                // Create test data with colspan attributes
+                const testData = {
+                    headings: [
+                        "ID",
+                        "First Name",
+                        "Last Name",
+                        "Age",
+                        "Email",
+                        "Phone",
+                        "Address"
+                    ],
+                    data: [
+                        // Row 1: Full name in one cell with colspan="2"
+                        {
+                            cells: [
+                                "1",
+                                {
+                                    data: "John Doe",
+                                    attributes: {
+                                        colspan: "2"
+                                    }
+                                },
+                                "30",
+                                "john@example.com",
+                                "555-1234",
+                                "123 Main St"
+                            ]
+                        },
+                        // Row 2: Email and phone combined with colspan="2"
+                        {
+                            cells: [
+                                "2",
+                                "Jane",
+                                "Smith",
+                                "25",
+                                {
+                                    data: "jane@example.com",
+                                    attributes: {
+                                        colspan: "2"
+                                    }
+                                },
+                                "456 Oak Ave"
+                            ]
+                        },
+                        // Row 3: Normal row without colspan
+                        [
+                            "3",
+                            "Bob",
+                            "Johnson",
+                            "35",
+                            "bob@example.com",
+                            "555-5678",
+                            "789 Pine Rd"
+                        ],
+                        // Row 4: Name spanning 3 columns
+                        {
+                            cells: [
+                                "4",
+                                {
+                                    data: "Alice Brown",
+                                    attributes: {
+                                        colspan: "3"
+                                    }
+                                },
+                                "alice@example.com",
+                                "555-9012",
+                                "321 Elm St"
+                            ]
+                        }
+                    ]
+                }
+
+                const dt = new DataTable("#test-table", {
+                    data: testData,
+                    searchable: true,
+                    sortable: true,
+                    perPage: 10
+                })
+
+                // Test 1: Verify data structure integrity
+                const headingsCount = dt.data.headings.length
+                const expectedHeadings = 7 // ID + First Name + Last Name + Age + Email + Phone + Address
+
+                const test1Passed = headingsCount === expectedHeadings
+                results.innerHTML += `<p class="${test1Passed ? "success" : "error"}">
+                    Test 1: Headings count - Expected: ${expectedHeadings}, Actual: ${headingsCount}
+                    ${test1Passed ? "✓ PASS" : "✗ FAIL"}
+                </p>`
+
+                // Test 2: Verify all rows have correct number of cells
+                let test2Passed = true
+                dt.data.data.forEach((row, index) => {
+                    if (row.cells.length !== headingsCount) {
+                        test2Passed = false
+                        results.innerHTML += `<p class="error">
+                            Row ${index} has ${row.cells.length} cells but headings has ${headingsCount}
+                        </p>`
+                    }
+                })
+                results.innerHTML += `<p class="${test2Passed ? "success" : "error"}">
+                    Test 2: Row cell count consistency ${test2Passed ? "✓ PASS" : "✗ FAIL"}
+                </p>`
+
+                // Test 3: Verify placeholder cells are marked correctly
+                let test3Passed = true
+                let placeholderCount = 0
+
+                dt.data.data.forEach((row, rowIndex) => {
+                    row.cells.forEach((cell, cellIndex) => {
+                        if (cell.attributes && cell.attributes["data-colspan-placeholder"] === "true") {
+                            placeholderCount++
+                            if (cell.text !== "" || cell.data !== "" || cell.order !== "") {
+                                test3Passed = false
+                                results.innerHTML += `<p class="error">
+                                    Cell placeholder at row ${rowIndex}, col ${cellIndex} should be empty
+                                </p>`
+                            }
+                        }
+                    })
+                })
+
+                results.innerHTML += `<p class="${test3Passed ? "success" : "error"}">
+                    Test 3: Placeholder cells ${test3Passed ? "✓ PASS" : "✗ FAIL"} (${placeholderCount} placeholders found)
+                </p>`
+
+                // Test 4: Verify colspan attributes are preserved in actual cells
+                let test4Passed = true
+                const expectedColspans = [
+                    {row: 0,
+cell: 1,
+colspan: "2",
+content: "John Doe"},
+                    {row: 1,
+cell: 4,
+colspan: "2",
+content: "jane@example.com"},
+                    {row: 3,
+cell: 1,
+colspan: "3",
+content: "Alice Brown"}
+                ]
+
+                expectedColspans.forEach(expected => {
+                    const cell = dt.data.data[expected.row].cells[expected.cell]
+                    if (!cell.attributes || cell.attributes.colspan !== expected.colspan) {
+                        test4Passed = false
+                        results.innerHTML += `<p class="error">
+                            Row ${expected.row}, Cell ${expected.cell}: Expected colspan="${expected.colspan}",
+                            Got: ${cell.attributes?.colspan || "none"}
+                        </p>`
+                    }
+                    const cellContent = cell.text || String(cell.data)
+                    if (!cellContent.includes(expected.content)) {
+                        test4Passed = false
+                        results.innerHTML += `<p class="error">
+                            Row ${expected.row}, Cell ${expected.cell}: Expected content "${expected.content}",
+                            Got: "${cellContent}"
+                        </p>`
+                    }
+                })
+
+                results.innerHTML += `<p class="${test4Passed ? "success" : "error"}">
+                    Test 4: Colspan attributes preserved ${test4Passed ? "✓ PASS" : "✗ FAIL"}
+                </p>`
+
+                // Test 5: Test sorting with colspan data
+                let test5Passed = true
+                try {
+                    dt.columns.sort(0, "asc") // Sort by ID column
+                    results.innerHTML += `<p class="success">
+                        Test 5: Sorting with colspan data ✓ PASS
+                    </p>`
+                } catch (error) {
+                    test5Passed = false
+                    results.innerHTML += `<p class="error">
+                        Test 5: Sorting failed - ${error.message}
+                    </p>`
+                }
+
+                // Test 6: Test searching with colspan data
+                let test6Passed = true
+                try {
+                    dt.search("John")
+                    const visibleRows = dt.data.data.filter((row, index) =>
+                        dt.pages[dt.currentPage - 1]?.includes(index)
+                    )
+                    results.innerHTML += `<p class="success">
+                        Test 6: Searching with colspan data ✓ PASS (${visibleRows.length} results visible)
+                    </p>`
+                } catch (error) {
+                    test6Passed = false
+                    results.innerHTML += `<p class="error">
+                        Test 6: Searching failed - ${error.message}
+                    </p>`
+                }
+
+                // Test 7: Verify rendered table has correct colspan attributes
+                let test7Passed = true
+                setTimeout(() => {
+                    const renderedTable = document.querySelector("#test-table")
+                    const colspanCells = renderedTable.querySelectorAll("[colspan]")
+
+                    if (colspanCells.length === 0) {
+                        test7Passed = false
+                        results.innerHTML += `<p class="error">
+                            Test 7: No colspan attributes found in rendered table
+                        </p>`
+                    } else {
+                        results.innerHTML += `<p class="success">
+                            Test 7: Rendered table has colspan attributes ✓ PASS (${colspanCells.length} found)
+                        </p>`
+                    }
+
+                    // Summary
+                    const allTestsPassed = test1Passed && test2Passed && test3Passed && test4Passed && test5Passed && test6Passed && test7Passed
+                    results.innerHTML += `<h3 class="${allTestsPassed ? "success" : "error"}">
+                        ${allTestsPassed ? "All tests passed! ✓" : "Some tests failed! ✗"}
+                    </h3>`
+
+                    // Debug info
+                    results.innerHTML += `<details>
+                        <summary>Debug Information</summary>
+                        <pre>Headings: ${JSON.stringify(dt.data.headings.map(h => ({
+                            text: h.text || h.data,
+                            colspan: h.attributes?.colspan,
+                            placeholder: h.attributes?.["data-colspan-placeholder"]
+                        })), null, 2)}</pre>
+                        <pre>Data rows: ${dt.data.data.length}</pre>
+                        <pre>First row cells: ${JSON.stringify(dt.data.data[0].cells.map(c => ({
+                            data: c.data,
+                            text: c.text,
+                            colspan: c.attributes?.colspan,
+                            placeholder: c.attributes?.["data-colspan-placeholder"]
+                        })), null, 2)}</pre>
+                    </details>`
+                }, 100)
+
+            } catch (error) {
+                results.innerHTML = `<p class="error">Error initializing DataTable: ${error.message}</p>`
+                console.error("Test error:", error)
+            }
+        })
+        </script>
+    </body>
+</html>

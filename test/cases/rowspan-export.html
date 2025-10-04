@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Rowspan Export Test</title>
+        <style>
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+        .button-group {
+            margin: 20px 0;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .csv-output {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border: 1px solid #ddd;
+            font-family: monospace;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        </style>
+    </head>
+    <body>
+        <h1>Rowspan CSV Export Test</h1>
+
+        <div class="test-section">
+            <h2>Test Table with Rowspan and Colspan</h2>
+            <table id="test-table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Team</th>
+                        <th>Employee</th>
+                        <th>Position</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="3">Engineering</td>
+                        <td rowspan="2">Frontend</td>
+                        <td>Alice Johnson</td>
+                        <td>Lead Developer</td>
+                        <td>alice@example.com</td>
+                        <td>555-1001</td>
+                    </tr>
+                    <tr>
+                        <td>Bob Smith</td>
+                        <td>Developer</td>
+                        <td>bob@example.com</td>
+                        <td>555-1002</td>
+                    </tr>
+                    <tr>
+                        <td>Backend</td>
+                        <td>Carol Williams</td>
+                        <td colspan="2">Senior Developer - carol@example.com</td>
+                        <td>555-1003</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2">Marketing</td>
+                        <td>Social Media</td>
+                        <td>David Brown</td>
+                        <td>Social Media Manager</td>
+                        <td colspan="2">david@example.com / 555-2001</td>
+                    </tr>
+                    <tr>
+                        <td>Content</td>
+                        <td>Eve Davis</td>
+                        <td>Content Writer</td>
+                        <td>eve@example.com</td>
+                        <td>555-2002</td>
+                    </tr>
+                    <tr>
+                        <td>HR</td>
+                        <td>Recruitment</td>
+                        <td>Frank Miller</td>
+                        <td>HR Director</td>
+                        <td>frank@example.com</td>
+                        <td>555-3001</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="button-group">
+                <button id="export-csv">Export to CSV (Download)</button>
+                <button id="show-csv">Show CSV Output</button>
+            </div>
+
+            <div id="csv-preview" class="csv-output" style="display: none;"></div>
+        </div>
+
+        <div class="test-section">
+            <h2>Test Results</h2>
+            <div id="results"></div>
+        </div>
+
+        <script type="module">
+        import {DataTable, exportCSV} from "../../dist/module.js"
+
+        document.addEventListener("DOMContentLoaded", () => {
+            const results = document.getElementById("results")
+
+            try {
+                const dt = new DataTable("#test-table", {
+                    searchable: true,
+                    sortable: true,
+                    perPage: 10
+                })
+
+                // Test 1: Verify data structure
+                const headingsCount = dt.data.headings.length
+                const expectedHeadings = 6
+
+                const test1Passed = headingsCount === expectedHeadings
+                results.innerHTML += `<p class="${test1Passed ? "success" : "error"}">
+                    Test 1: Headings count - Expected: ${expectedHeadings}, Actual: ${headingsCount}
+                    ${test1Passed ? "✓ PASS" : "✗ FAIL"}
+                </p>`
+
+                // Test 2: Verify rowspan placeholders
+                let rowspanPlaceholders = 0
+                let colspanPlaceholders = 0
+
+                dt.data.data.forEach(row => {
+                    row.cells.forEach(cell => {
+                        if (cell.attributes?.["data-rowspan-placeholder"] === "true") {
+                            rowspanPlaceholders++
+                        }
+                        if (cell.attributes?.["data-colspan-placeholder"] === "true") {
+                            colspanPlaceholders++
+                        }
+                    })
+                })
+
+                // Expected: Row 2 (1 placeholder), Row 3 (1 placeholder), Row 5 (1 placeholder) = 3 total
+                const expectedRowspanPlaceholders = 3
+                const test2Passed = rowspanPlaceholders === expectedRowspanPlaceholders
+                results.innerHTML += `<p class="${test2Passed ? "success" : "error"}">
+                    Test 2: Rowspan placeholders - Expected: ${expectedRowspanPlaceholders}, Actual: ${rowspanPlaceholders}
+                    ${test2Passed ? "✓ PASS" : "✗ FAIL"}
+                </p>`
+
+                // Test 3: Verify colspan placeholders
+                const expectedColspanPlaceholders = 2
+                const test3Passed = colspanPlaceholders === expectedColspanPlaceholders
+                results.innerHTML += `<p class="${test3Passed ? "success" : "error"}">
+                    Test 3: Colspan placeholders - Expected: ${expectedColspanPlaceholders}, Actual: ${colspanPlaceholders}
+                    ${test3Passed ? "✓ PASS" : "✗ FAIL"}
+                </p>`
+
+                // Test 4: CSV Export test
+                let test4Passed = true
+                let csvOutput = ""
+                try {
+                    csvOutput = exportCSV(dt, {
+                        download: false,
+                        lineDelimiter: "\n",
+                        columnDelimiter: ","
+                    })
+
+                    if (!csvOutput) {
+                        test4Passed = false
+                        results.innerHTML += `<p class="error">Test 4: CSV export failed - returned false</p>`
+                    } else {
+                        const lines = csvOutput.split("\n")
+
+                        // Check header line
+                        const headerLine = lines[0]
+                        if (!headerLine.includes("Department")) {
+                            test4Passed = false
+                            results.innerHTML += `<p class="error">Test 4: CSV header missing Department column</p>`
+                        }
+
+                        // Check that Engineering appears in 3 rows (row 1, 2, 3)
+                        const engineeringCount = lines.filter(line => line.startsWith("Engineering")).length
+                        if (engineeringCount !== 3) {
+                            test4Passed = false
+                            results.innerHTML += `<p class="error">Test 4: Engineering should appear in 3 rows, found ${engineeringCount}</p>`
+                        }
+
+                        // Check that Marketing appears in 2 rows (row 4, 5)
+                        const marketingCount = lines.filter(line => line.startsWith("Marketing")).length
+                        if (marketingCount !== 2) {
+                            test4Passed = false
+                            results.innerHTML += `<p class="error">Test 4: Marketing should appear in 2 rows, found ${marketingCount}</p>`
+                        }
+
+                        // Verify total row count (header + 6 data rows)
+                        if (lines.length !== 7) {
+                            test4Passed = false
+                            results.innerHTML += `<p class="error">Test 4: Expected 7 lines (header + 6 rows), got ${lines.length}</p>`
+                        }
+
+                        results.innerHTML += `<p class="${test4Passed ? "success" : "error"}">
+                            Test 4: CSV export ${test4Passed ? "✓ PASS" : "✗ FAIL"}
+                        </p>`
+                    }
+                } catch (error) {
+                    test4Passed = false
+                    results.innerHTML += `<p class="error">Test 4: CSV export threw error - ${error.message}</p>`
+                }
+
+                // Test 5: Verify specific CSV content
+                let test5Passed = true
+                if (csvOutput) {
+                    const lines = csvOutput.split("\n")
+
+                    // Line 2 (index 1) should have "Engineering,Frontend,Alice Johnson..."
+                    if (!lines[1].startsWith("Engineering,Frontend,Alice Johnson")) {
+                        test5Passed = false
+                        results.innerHTML += `<p class="error">Test 5: Line 2 format incorrect: ${lines[1].substring(0, 50)}</p>`
+                    }
+
+                    // Line 3 (index 2) should have "Engineering,Frontend,Bob Smith..." (rowspan carryover)
+                    if (!lines[2].startsWith("Engineering,Frontend,Bob Smith")) {
+                        test5Passed = false
+                        results.innerHTML += `<p class="error">Test 5: Line 3 format incorrect: ${lines[2].substring(0, 50)}</p>`
+                    }
+
+                    // Line 4 (index 3) should have "Engineering,Backend,Carol Williams..." (rowspan carryover for Engineering)
+                    if (!lines[3].startsWith("Engineering,Backend,Carol Williams")) {
+                        test5Passed = false
+                        results.innerHTML += `<p class="error">Test 5: Line 4 format incorrect: ${lines[3].substring(0, 50)}</p>`
+                    }
+
+                    // Line 5 (index 4) should have "Marketing,Social Media,David Brown..."
+                    if (!lines[4].startsWith("Marketing,Social Media,David Brown")) {
+                        test5Passed = false
+                        results.innerHTML += `<p class="error">Test 5: Line 5 format incorrect: ${lines[4].substring(0, 50)}</p>`
+                    }
+
+                    // Line 6 (index 5) should have "Marketing,Content,Eve Davis..." (rowspan carryover)
+                    if (!lines[5].startsWith("Marketing,Content,Eve Davis")) {
+                        test5Passed = false
+                        results.innerHTML += `<p class="error">Test 5: Line 6 format incorrect: ${lines[5].substring(0, 50)}</p>`
+                    }
+
+                    results.innerHTML += `<p class="${test5Passed ? "success" : "error"}">
+                        Test 5: CSV content validation ${test5Passed ? "✓ PASS" : "✗ FAIL"}
+                    </p>`
+                }
+
+                // Summary
+                const allTestsPassed = test1Passed && test2Passed && test3Passed && test4Passed && test5Passed
+                results.innerHTML += `<h3 class="${allTestsPassed ? "success" : "error"}">
+                    ${allTestsPassed ? "All tests passed! ✓" : "Some tests failed! ✗"}
+                </h3>`
+
+                // Debug info
+                results.innerHTML += `<details>
+                    <summary>Debug Information</summary>
+                    <pre>Rowspan placeholders: ${rowspanPlaceholders}</pre>
+                    <pre>Colspan placeholders: ${colspanPlaceholders}</pre>
+                    <pre>Total rows: ${dt.data.data.length}</pre>
+                    <pre>CSV lines: ${csvOutput ? csvOutput.split("\n").length : "N/A"}</pre>
+                </details>`
+
+                // Export button handlers
+                document.getElementById("export-csv").addEventListener("click", () => {
+                    exportCSV(dt, {
+                        download: true,
+                        lineDelimiter: "\n",
+                        columnDelimiter: ","
+                    })
+                })
+
+                document.getElementById("show-csv").addEventListener("click", () => {
+                    const csvPreview = document.getElementById("csv-preview")
+                    const csvData = exportCSV(dt, {
+                        download: false,
+                        lineDelimiter: "\n",
+                        columnDelimiter: ","
+                    })
+                    csvPreview.textContent = csvData
+                    csvPreview.style.display = "block"
+                })
+
+            } catch (error) {
+                results.innerHTML = `<p class="error">Error initializing DataTable: ${error.message}</p>`
+                console.error("Test error:", error)
+            }
+        })
+        </script>
+    </body>
+</html>
