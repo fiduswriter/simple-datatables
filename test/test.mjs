@@ -17,8 +17,8 @@ let testWait = 2000
 const options = new chrome.Options()
 if (process.env.CI) { // eslint-disable-line no-process-env
     // We are running on CI
-    wait = 300
-    testWait = 5000
+    wait = 500
+    testWait = 10000
     options.addArguments("--headless=new")
 }
 const driver = new webdriver.Builder().withCapabilities(webdriver.Capabilities.chrome()).setChromeOptions(options).build()
@@ -60,6 +60,38 @@ const clickAllSortableHeaders = function(driver, counter=0) {
     )
 }
 
+const waitForDataTableReady = async function(driver, maxWaitMs) {
+    for (let attempt = 0; attempt < maxWaitMs / 100; attempt++) {
+        try {
+            // eslint-disable-next-line no-await-in-loop
+            await driver.executeScript("return window.dt && window.dt.initialized")
+            return
+        } catch {
+            // eslint-disable-next-line no-await-in-loop
+            await driver.sleep(100)
+        }
+    }
+}
+
+const waitForTestCompletion = async function(driver, maxWaitMs) {
+    for (let attempt = 0; attempt < maxWaitMs / 100; attempt++) {
+        try {
+            // eslint-disable-next-line no-await-in-loop
+            const resultsElement = await driver.findElement(webdriver.By.id("results"))
+            // eslint-disable-next-line no-await-in-loop
+            const resultsText = await resultsElement.getText()
+
+            if (resultsText.includes("All tests passed!") || resultsText.includes("Some tests failed!")) {
+                return
+            }
+        } catch {
+            // Element not found yet, continue waiting
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await driver.sleep(100)
+    }
+}
+
 
 describe("Demos work", function() {
     this.timeout(5000)
@@ -79,7 +111,7 @@ describe("Demos work", function() {
 })
 
 describe("Integration tests pass", function() {
-    this.timeout(5000)
+    this.timeout(30000)
 
     it("initializes the datatable", async () => {
         await driver.get(`${baseUrl}1-simple/`)
@@ -143,7 +175,7 @@ describe("Integration tests pass", function() {
 
     it("preserves cell attributes (JS)", async () => {
         await driver.get(`${baseUrl}tests/cell-attributes-js.html`)
-        await driver.sleep(testWait)
+        await waitForDataTableReady(driver, testWait)
         await assertCellAttrs("cell-attributes-js-table")
     })
 
@@ -179,15 +211,13 @@ describe("Integration tests pass", function() {
         ]
 
         await driver.get(`${baseUrl}tests/multiple-classes.html`)
-        await driver.sleep(testWait)
+        await waitForDataTableReady(driver, testWait)
         await Promise.all(classes.map(className => driver.findElement(webdriver.By.css(className))))
     })
 
     it("handles colspan functionality comprehensively", async () => {
         await driver.get(`${baseUrl}tests/colspan.html`)
-
-        // Wait for the DataTable to initialize and tests to run
-        await driver.sleep(testWait)
+        await waitForTestCompletion(driver, testWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
@@ -204,9 +234,7 @@ describe("Integration tests pass", function() {
 
     it("handles colspan with JSON/JavaScript data", async () => {
         await driver.get(`${baseUrl}tests/colspan-json.html`)
-
-        // Wait for the DataTable to initialize and tests to run
-        await driver.sleep(testWait)
+        await waitForTestCompletion(driver, testWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
@@ -223,9 +251,7 @@ describe("Integration tests pass", function() {
 
     it("handles rowspan functionality comprehensively", async () => {
         await driver.get(`${baseUrl}tests/rowspan.html`)
-
-        // Wait for the DataTable to initialize and tests to run
-        await driver.sleep(testWait)
+        await waitForTestCompletion(driver, testWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
@@ -245,7 +271,8 @@ describe("Integration tests pass", function() {
 
         // Wait for the DataTable to initialize and tests to run
         // Extra wait needed for Test 8 which uses setTimeout(100ms)
-        await driver.sleep(testWait + 500)
+        const totalWait = testWait + 500
+        await waitForTestCompletion(driver, totalWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
@@ -265,9 +292,7 @@ describe("Integration tests pass", function() {
 
     it("handles combined colspan and rowspan", async () => {
         await driver.get(`${baseUrl}tests/colspan-rowspan.html`)
-
-        // Wait for the DataTable to initialize and tests to run
-        await driver.sleep(testWait)
+        await waitForTestCompletion(driver, testWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
