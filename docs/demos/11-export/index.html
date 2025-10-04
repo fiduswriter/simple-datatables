@@ -786,33 +786,34 @@
                 }
                 return str
             }
-            const table = new DataTable("#demo-table")
+            const dataTable = new DataTable("#demo-table")
+            window.dataTable = dataTable
             document.getElementById("export-csv").addEventListener("click", () => {
-                exportCSV(table, {
+                exportCSV(dataTable, {
                     download: true,
                     lineDelimiter: "\n",
                     columnDelimiter: ";"
                 })
             })
             document.getElementById("export-sql").addEventListener("click", () => {
-                exportSQL(table, {
+                exportSQL(dataTable, {
                     download: true,
                     tableName: "export_table"
                 })
             })
             document.getElementById("export-txt").addEventListener("click", () => {
-                exportTXT(table, {
+                exportTXT(dataTable, {
                     download: true
                 })
             })
             document.getElementById("export-json").addEventListener("click", () => {
-                exportJSON(table, {
+                exportJSON(dataTable, {
                     download: true,
                     space: 3
                 })
             })
             document.getElementById("export-custom").addEventListener("click", () => {
-                exportCustomCSV(table, {
+                exportCustomCSV(dataTable, {
                     download: true
                 })
             })

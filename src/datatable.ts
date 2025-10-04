@@ -452,7 +452,7 @@ export class DataTable {
 
             ]
         }
-        if (!tableVirtualDOM.attributes.class.includes(this.options.classes.table)) {
+        if (!tableVirtualDOM.attributes.class || !tableVirtualDOM.attributes.class.includes(this.options.classes.table)) {
             tableVirtualDOM.attributes.class = joinWithSpaces(tableVirtualDOM.attributes.class, this.options.classes.table)
         }
         if (this.options.tableRender) {
@@ -829,7 +829,7 @@ export class DataTable {
         }
         const queryWords = queries.map(query => this.columns.settings.map(
             (column, index) => {
-                if (column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
+                if (!column || column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
                     return false
                 }
                 let columnQueries = query.terms
@@ -850,25 +850,39 @@ export class DataTable {
         this.data.data.forEach((row: dataRowType, idx: number) => {
             const searchRow = row.cells.map((cell, i) => {
                 const column = this.columns.settings[i]
-                const customSearchMethod = column.searchMethod || this.options.searchMethod
-                if (customSearchMethod) {
-                    return cell
+                const customSearchMethod = column?.searchMethod || this.options.searchMethod
+
+                // Handle rowspan placeholders - find the actual cell value
+                let actualCell = cell
+                if (cell.attributes?.["data-rowspan-placeholder"] === "true") {
+                    // Look backward through rows to find the actual cell with rowspan
+                    for (let j = idx - 1; j >= 0; j--) {
+                        const prevCell = this.data.data[j].cells[i]
+                        if (prevCell.attributes?.["data-rowspan-placeholder"] !== "true") {
+                            actualCell = prevCell
+                            break
+                        }
+                    }
                 }
-                let content = cellToText(cell).trim()
+
+                if (customSearchMethod) {
+                    return actualCell
+                }
+                let content = cellToText(actualCell).trim()
                 if (content.length) {
-                    const sensitivity = column.sensitivity || this.options.sensitivity
+                    const sensitivity = column?.sensitivity || this.options.sensitivity
                     if (["base", "accent"].includes(sensitivity)) {
                         content = content.toLowerCase()
                     }
                     if (["base", "case"].includes(sensitivity)) {
                         content = content.normalize("NFD").replace(/\p{Diacritic}/gu, "")
                     }
-                    const ignorePunctuation = column.ignorePunctuation ?? this.options.ignorePunctuation
+                    const ignorePunctuation = column?.ignorePunctuation ?? this.options.ignorePunctuation
                     if (ignorePunctuation) {
                         content = content.replace(/[.,/#!$%^&*;:{}=-_`~()]/g, "")
                     }
                 }
-                const searchItemSeparator = column.searchItemSeparator || this.options.searchItemSeparator
+                const searchItemSeparator = column?.searchItemSeparator || this.options.searchItemSeparator
                 return searchItemSeparator ? content.split(searchItemSeparator) : [content]
             })
             if (
@@ -879,11 +893,12 @@ export class DataTable {
                                 return false
                             }
                             const column = this.columns.settings[index]
-                            const customSearchMethod = column.searchMethod || this.options.searchMethod
+                            const customSearchMethod = column?.searchMethod || this.options.searchMethod
                             if (customSearchMethod) {
+                                // For custom search methods, use the actual cell (which may have been resolved from rowspan)
                                 return customSearchMethod(queryColumnWord, (searchRow[index] as cellType), row, index, queries[queryIndex].source)
                             }
-                            return queryColumnWord.find(queryWord => (searchRow[index] as string[]).find(searchItem => searchItem.includes(queryWord)))
+                            return queryColumnWord.find(queryWord => (searchRow[index] as string[])?.find(searchItem => searchItem?.includes(queryWord)))
                         }
                     )
                 )
@@ -1109,7 +1124,7 @@ export class DataTable {
         this._tableFooters.forEach(footer => newVirtualDOM.childNodes.push(footer))
         this._tableCaptions.forEach(caption => newVirtualDOM.childNodes.push(caption))
 
-        if (!newVirtualDOM.attributes.class.includes(this.options.classes.table)) {
+        if (!newVirtualDOM.attributes.class || !newVirtualDOM.attributes.class.includes(this.options.classes.table)) {
             newVirtualDOM.attributes.class = joinWithSpaces(newVirtualDOM.attributes.class, this.options.classes.table)
         }
 

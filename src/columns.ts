@@ -299,7 +299,7 @@ export class Columns {
 
         }
 
-        const collator = ["string", "html"].includes(column.type) ?
+        const collator = column && ["string", "html"].includes(column.type) ?
             new Intl.Collator(column.locale || this.dt.options.locale, {
                 usage: "sort",
                 numeric: column.numeric || this.dt.options.numeric,
@@ -308,11 +308,76 @@ export class Columns {
             }) :
             false
 
-        this.dt.data.data.sort((row1: dataRowType, row2: dataRowType) => {
-            const cell1 = row1.cells[index]
-            const cell2 = row2.cells[index]
-            let order1 = cell1.order ?? cellToText(cell1)
-            let order2 = cell2.order ?? cellToText(cell2)
+        // Group rows that are connected by rowspan
+        // A row with any rowspan placeholder must stay with its parent row
+        const rowGroups: number[][] = []
+        const rowToGroup: Map<number, number> = new Map()
+
+        this.dt.data.data.forEach((row, rowIndex) => {
+            // Check if this row has any rowspan placeholders
+            const hasPlaceholder = row.cells.some(cell => cell.attributes?.["data-rowspan-placeholder"] === "true")
+
+            if (hasPlaceholder) {
+                // This row belongs to the same group as the previous row
+                // Find the most recent row that's already in a group
+                for (let i = rowIndex - 1; i >= 0; i--) {
+                    if (rowToGroup.has(i)) {
+                        const groupIndex = rowToGroup.get(i)
+                        rowGroups[groupIndex].push(rowIndex)
+                        rowToGroup.set(rowIndex, groupIndex)
+                        return
+                    }
+                }
+                // If we didn't find a group, this shouldn't happen in valid data
+                // but create a new group anyway
+                const groupIndex = rowGroups.length
+                rowGroups.push([rowIndex])
+                rowToGroup.set(rowIndex, groupIndex)
+            } else {
+                // Check if any cell in this row has rowspan > 1
+                const hasRowspan = row.cells.some(cell => cell.attributes?.rowspan && parseInt(cell.attributes.rowspan, 10) > 1)
+
+                if (hasRowspan) {
+                    // Start a new group with this row as the parent
+                    const groupIndex = rowGroups.length
+                    rowGroups.push([rowIndex])
+                    rowToGroup.set(rowIndex, groupIndex)
+                } else {
+                    // This is an independent row, create a single-row group
+                    const groupIndex = rowGroups.length
+                    rowGroups.push([rowIndex])
+                    rowToGroup.set(rowIndex, groupIndex)
+                }
+            }
+        })
+
+
+        // Sort groups by their first (parent) row's value
+        rowGroups.sort((group1, group2) => {
+
+
+            // Helper function to get actual cell value for sorting, resolving rowspan placeholders
+            const getActualCellValue = (rowIndex: number, cellIndex: number) => {
+                const cell = this.dt.data.data[rowIndex].cells[cellIndex]
+
+                if (cell.attributes?.["data-rowspan-placeholder"] === "true") {
+                    // Find the actual rowspan cell by looking backward
+                    for (let i = rowIndex - 1; i >= 0; i--) {
+                        const prevCell = this.dt.data.data[i].cells[cellIndex]
+                        if (prevCell.attributes?.["data-rowspan-placeholder"] !== "true") {
+                            return prevCell.order ?? cellToText(prevCell)
+                        }
+                    }
+                    // Fallback if no rowspan cell found
+                    return ""
+                }
+
+                return cell.order ?? cellToText(cell)
+            }
+
+            let order1 = getActualCellValue(group1[0], index)
+            let order2 = getActualCellValue(group2[0], index)
+
             if (dir === "desc") {
                 const temp = order1
                 order1 = order2
@@ -328,6 +393,16 @@ export class Columns {
             }
             return 0
         })
+
+        // Rebuild the data array in the new sorted order
+        const sortedData: dataRowType[] = []
+        rowGroups.forEach(group => {
+            group.forEach(rowIndex => {
+                sortedData.push(this.dt.data.data[rowIndex])
+            })
+        })
+        this.dt.data.data = sortedData
+
 
         this._state.sort = {column: index,
             dir}

@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Rowspan Support - simple-datatables</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+        <style>
+            .demo-section {
+                margin: 40px 0;
+                padding: 20px;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: #f9f9f9;
+            }
+            .demo-section h3 {
+                margin-top: 0;
+                color: #333;
+            }
+            .code-example {
+                background-color: #fff;
+                padding: 15px;
+                border-left: 4px solid #4CAF50;
+                margin: 20px 0;
+                overflow-x: auto;
+            }
+            .code-example pre {
+                margin: 0;
+            }
+            .note {
+                background-color: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 10px 15px;
+                margin: 15px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Rowspan Support</h2>
+
+        <p>
+            Simple-datatables supports rowspan attributes in table cells, allowing cells to span multiple rows.
+            This works for both tables loaded from HTML and data loaded from JSON/JavaScript.
+        </p>
+
+        <div class="demo-section">
+            <h3>Example 1: Rowspan from HTML Table</h3>
+            <p>
+                When initializing from an existing HTML table, rowspan attributes are automatically preserved.
+            </p>
+
+            <table id="html-table">
+                <thead>
+                    <tr>
+                        <th>Department</th>
+                        <th>Team</th>
+                        <th>Employee</th>
+                        <th>Position</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td rowspan="3">Engineering</td>
+                        <td rowspan="2">Frontend</td>
+                        <td>Alice Johnson</td>
+                        <td>Lead Developer</td>
+                        <td>alice@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>Bob Smith</td>
+                        <td>Developer</td>
+                        <td>bob@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>Backend</td>
+                        <td>Carol Williams</td>
+                        <td>Senior Developer</td>
+                        <td>carol@example.com</td>
+                    </tr>
+                    <tr>
+                        <td rowspan="2">Marketing</td>
+                        <td>Social Media</td>
+                        <td>David Brown</td>
+                        <td>Social Media Manager</td>
+                        <td>david@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>Content</td>
+                        <td>Eve Davis</td>
+                        <td>Content Writer</td>
+                        <td>eve@example.com</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="demo-section">
+            <h3>Example 2: Rowspan from JSON/JavaScript Data</h3>
+            <p>
+                When loading data programmatically, you can specify rowspan by including an <code>attributes</code> object in your cell data.
+            </p>
+
+            <div class="code-example">
+                <pre>const data = {
+    headings: ["Department", "Employee", "Position", "Email", "Phone"],
+    data: [
+        {
+            cells: [
+                {
+                    data: "Engineering",
+                    attributes: { rowspan: "2" }  // Spans 2 rows
+                },
+                "John Doe",
+                "Senior Developer",
+                "john@example.com",
+                "555-1234"
+            ]
+        },
+        [
+            "Jane Smith",
+            "Developer",
+            "jane@example.com",
+            "555-5678"
+        ]
+    ]
+};</pre>
+            </div>
+
+            <div class="note">
+                <strong>Note:</strong> When using rowspan, subsequent rows should have fewer cells in the input data. The rowspan cell automatically fills those positions.
+            </div>
+
+            <table id="json-table"></table>
+        </div>
+
+        <div class="demo-section">
+            <h3>Example 3: Advanced Rowspan Usage</h3>
+            <p>
+                This example demonstrates more complex rowspan scenarios, including nested groupings.
+            </p>
+
+            <table id="advanced-table"></table>
+        </div>
+
+        <div class="demo-section">
+            <h3>Example 4: Combined Colspan and Rowspan</h3>
+            <p>
+                Cells can have both colspan and rowspan attributes simultaneously.
+            </p>
+
+            <table id="combined-table"></table>
+        </div>
+
+        <script type="module">
+            import {DataTable} from "../dist/module.js"
+
+            // Example 1: HTML table with rowspan
+            window.htmlTable = new DataTable("#html-table", {
+                searchable: true,
+                sortable: true,
+                perPage: 5
+            })
+
+            // Example 2: JSON data with rowspan
+            const jsonData = {
+                headings: ["Department", "Employee", "Position", "Email", "Phone"],
+                data: [
+                    {
+                        cells: [
+                            {
+                                data: "Engineering",
+                                attributes: {
+                                    rowspan: "2"
+                                }
+                            },
+                            "John Doe",
+                            "Senior Developer",
+                            "john@example.com",
+                            "555-1234"
+                        ]
+                    },
+                    [
+                        "Jane Smith",
+                        "Developer",
+                        "jane@example.com",
+                        "555-5678"
+                    ],
+                    {
+                        cells: [
+                            {
+                                data: "Marketing",
+                                attributes: {
+                                    rowspan: "3"
+                                }
+                            },
+                            "Bob Johnson",
+                            "Marketing Manager",
+                            "bob@example.com",
+                            "555-9012"
+                        ]
+                    },
+                    [
+                        "Alice Brown",
+                        "Content Writer",
+                        "alice@example.com",
+                        "555-3456"
+                    ],
+                    [
+                        "Charlie Davis",
+                        "Social Media Manager",
+                        "charlie@example.com",
+                        "555-7890"
+                    ]
+                ]
+            }
+
+            window.jsonTable = new DataTable("#json-table", {
+                data: jsonData,
+                searchable: true,
+                sortable: true,
+                perPage: 5
+            })
+
+            // Example 3: Advanced rowspan with nested groups
+            const advancedData = {
+                headings: ["Region", "Country", "City", "Population", "Area (km²)"],
+                data: [
+                    {
+                        cells: [
+                            {
+                                data: "North America",
+                                attributes: {rowspan: "4"}
+                            },
+                            {
+                                data: "United States",
+                                attributes: {rowspan: "2"}
+                            },
+                            "New York",
+                            "8,336,817",
+                            "783.8"
+                        ]
+                    },
+                    [
+                        "Los Angeles",
+                        "3,979,576",
+                        "1,302.15"
+                    ],
+                    {
+                        cells: [
+                            {
+                                data: "Canada",
+                                attributes: {rowspan: "2"}
+                            },
+                            "Toronto",
+                            "2,731,571",
+                            "630.2"
+                        ]
+                    },
+                    [
+                        "Montreal",
+                        "1,704,694",
+                        "431.5"
+                    ],
+                    {
+                        cells: [
+                            {
+                                data: "Europe",
+                                attributes: {rowspan: "3"}
+                            },
+                            {
+                                data: "United Kingdom",
+                                attributes: {rowspan: "2"}
+                            },
+                            "London",
+                            "8,982,000",
+                            "1,572"
+                        ]
+                    },
+                    [
+                        "Manchester",
+                        "547,627",
+                        "115.6"
+                    ],
+                    [
+                        "France",
+                        "Paris",
+                        "2,165,423",
+                        "105.4"
+                    ]
+                ]
+            }
+
+            window.advancedTable = new DataTable("#advanced-table", {
+                data: advancedData,
+                searchable: true,
+                sortable: true,
+                perPage: 10
+            })
+
+            // Example 4: Combined colspan and rowspan
+            const combinedData = {
+                headings: ["Week", "Project", "Task", "Status", "Hours", "Notes"],
+                data: [
+                    {
+                        cells: [
+                            {
+                                data: "Week 1",
+                                attributes: {rowspan: "2"}
+                            },
+                            {
+                                data: "Project Alpha",
+                                attributes: {rowspan: "2"}
+                            },
+                            "Planning",
+                            "Complete",
+                            "8",
+                            "Initial planning phase"
+                        ]
+                    },
+                    [
+                        "Design",
+                        "In Progress",
+                        "12",
+                        "UI/UX design work"
+                    ],
+                    [
+                        "Week 2",
+                        {
+                            data: "Project Beta - Full Development",
+                            attributes: {colspan: "2"}
+                        },
+                        "Active",
+                        "40",
+                        "Main development sprint"
+                    ],
+                    {
+                        cells: [
+                            {
+                                data: "Week 3",
+                                attributes: {rowspan: "3"}
+                            },
+                            "Project Gamma",
+                            "Testing",
+                            {
+                                data: "QA Testing - 16 hours",
+                                attributes: {colspan: "2"}
+                            },
+                            "Bug fixes needed"
+                        ]
+                    },
+                    [
+                        "Project Delta",
+                        "Review",
+                        "Complete",
+                        "4",
+                        "Code review completed"
+                    ],
+                    [
+                        {
+                            data: "Multiple Projects - Documentation",
+                            attributes: {colspan: "3"}
+                        },
+                        "8",
+                        "Technical documentation"
+                    ]
+                ]
+            }
+
+            window.combinedTable = new DataTable("#combined-table", {
+                data: combinedData,
+                searchable: true,
+                sortable: true,
+                perPage: 10
+            })
+        </script>
+    </body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link rel="icon" type="image/svg+xml" href="../../favicon.svg">
+        <title>Colspan Support - simple-datatables</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+        <style>
+            .demo-section {
+                margin: 40px 0;
+                padding: 20px;
+                border: 1px solid #e0e0e0;
+                border-radius: 4px;
+                background-color: #f9f9f9;
+            }
+            .demo-section h3 {
+                margin-top: 0;
+                color: #333;
+            }
+            .code-example {
+                background-color: #fff;
+                padding: 15px;
+                border-left: 4px solid #4CAF50;
+                margin: 20px 0;
+                overflow-x: auto;
+            }
+            .code-example pre {
+                margin: 0;
+            }
+            .note {
+                background-color: #fff3cd;
+                border-left: 4px solid #ffc107;
+                padding: 10px 15px;
+                margin: 15px 0;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Colspan Support</h2>
+
+        <p>
+            Simple-datatables supports colspan attributes in table cells, allowing cells to span multiple columns.
+            This works for both tables loaded from HTML and data loaded from JSON/JavaScript.
+        </p>
+
+        <div class="demo-section">
+            <h3>Example 1: Colspan from HTML Table</h3>
+            <p>
+                When initializing from an existing HTML table, colspan attributes are automatically preserved.
+            </p>
+
+            <table id="html-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>First Name</th>
+                        <th>Last Name</th>
+                        <th>Department</th>
+                        <th>Email</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td colspan="2">John Doe</td>
+                        <td>Engineering</td>
+                        <td>john.doe@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Jane</td>
+                        <td>Smith</td>
+                        <td colspan="2">Marketing - jane.smith@example.com</td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Bob</td>
+                        <td>Johnson</td>
+                        <td>Sales</td>
+                        <td>bob.johnson@example.com</td>
+                    </tr>
+                    <tr>
+                        <td colspan="3">Alice Williams (Former Employee)</td>
+                        <td>HR</td>
+                        <td>alice.w@example.com</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="demo-section">
+            <h3>Example 2: Colspan from JSON/JavaScript Data</h3>
+            <p>
+                When loading data programmatically, you can specify colspan by including an <code>attributes</code> object in your cell data.
+            </p>
+
+            <div class="code-example">
+                <pre>const data = {
+    headings: ["ID", "Name", "Department", "Email", "Phone"],
+    data: [
+        {
+            cells: [
+                "1",
+                {
+                    data: "Full Name Here",
+                    attributes: { colspan: "2" }  // Spans 2 columns
+                },
+                "email@example.com",
+                "555-1234"
+            ]
+        }
+    ]
+};</pre>
+            </div>
+
+            <table id="json-table"></table>
+
+            <div class="note">
+                <strong>Note:</strong> When using colspan, the total number of cells (including the colspan value) must match the number of headings.
+            </div>
+        </div>
+
+        <div class="demo-section">
+            <h3>Example 3: Advanced Colspan Usage</h3>
+            <p>
+                This example demonstrates more complex colspan scenarios, including cells spanning different numbers of columns.
+            </p>
+
+            <table id="advanced-table"></table>
+        </div>
+
+        <div class="demo-section">
+            <h3>Example 4: Colspan in Data Rows</h3>
+            <p>
+                This example shows colspan used in regular data cells (heading colspan support coming soon).
+            </p>
+
+            <table id="heading-colspan-table"></table>
+        </div>
+
+        <script type="module">
+            import {DataTable} from "../dist/module.js"
+
+            // Example 1: HTML table with colspan
+            window.htmlTable = new DataTable("#html-table", {
+                searchable: true,
+                sortable: true,
+                perPage: 5
+            })
+
+            // Example 2: JSON data with colspan
+            const jsonData = {
+                headings: ["ID", "Name", "Department", "Email", "Phone"],
+                data: [
+                    {
+                        cells: [
+                            "1",
+                            {
+                                data: "John Doe (Full Name)",
+                                attributes: {
+                                    colspan: "2"
+                                }
+                            },
+                            "john@example.com",
+                            "555-0101"
+                        ]
+                    },
+                    {
+                        cells: [
+                            "2",
+                            "Jane Smith",
+                            "Marketing",
+                            {
+                                data: "jane.smith@example.com / 555-0102",
+                                attributes: {
+                                    colspan: "2"
+                                }
+                            }
+                        ]
+                    },
+                    [
+                        "3",
+                        "Bob Johnson",
+                        "Sales",
+                        "bob@example.com",
+                        "555-0103"
+                    ],
+                    {
+                        cells: [
+                            "4",
+                            "Alice Brown",
+                            {
+                                data: "HR Department",
+                                attributes: {
+                                    colspan: "3"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+
+            window.jsonTable = new DataTable("#json-table", {
+                data: jsonData,
+                searchable: true,
+                sortable: true,
+                perPage: 5
+            })
+
+            // Example 3: Advanced colspan usage
+            const advancedData = {
+                headings: ["Week", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+                data: [
+                    {
+                        cells: [
+                            "Week 1",
+                            "Meeting",
+                            {
+                                data: "Conference (2 days)",
+                                attributes: {
+                                    colspan: "2"
+                                }
+                            },
+                            "Development",
+                            "Code Review"
+                        ]
+                    },
+                    {
+                        cells: [
+                            "Week 2",
+                            {
+                                data: "Team Building Event (All Week)",
+                                attributes: {
+                                    colspan: "5"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        cells: [
+                            "Week 3",
+                            "Sprint Planning",
+                            "Development",
+                            "Development",
+                            {
+                                data: "Demo & Retrospective",
+                                attributes: {
+                                    colspan: "2"
+                                }
+                            }
+                        ]
+                    },
+                    [
+                        "Week 4",
+                        "Development",
+                        "Development",
+                        "Development",
+                        "Testing",
+                        "Deployment"
+                    ]
+                ]
+            }
+
+            window.advancedTable = new DataTable("#advanced-table", {
+                data: advancedData,
+                searchable: true,
+                perPage: 10
+            })
+
+            // Example 4: Colspan in headings
+            const headingColspanData = {
+                headings: [
+                    "Product",
+                    "Jan Sales",
+                    "Feb Sales",
+                    "Mar Sales",
+                    "Apr Sales",
+                    "May Sales",
+                    "Jun Sales"
+                ],
+                data: [
+                    [
+                        "Widget A",
+                        "$1000",
+                        "$1200",
+                        "$1500",
+                        "$1300",
+                        "$1400",
+                        "$1600"
+                    ],
+                    [
+                        "Widget B",
+                        "$800",
+                        "$900",
+                        "$1100",
+                        "$950",
+                        "$1050",
+                        "$1200"
+                    ],
+                    {
+                        cells: [
+                            "Widget C",
+                            {
+                                data: "Product Discontinued in Q1",
+                                attributes: {
+                                    colspan: "3"
+                                }
+                            },
+                            {
+                                data: "N/A",
+                                attributes: {
+                                    colspan: "3"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+
+            window.headingColspanTable = new DataTable("#heading-colspan-table", {
+                data: headingColspanData,
+                searchable: false,
+                perPage: 10
+            })
+        </script>
+    </body>
+</html>
