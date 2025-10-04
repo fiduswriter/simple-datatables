@@ -9,63 +9,76 @@
 
         <script src="../dist/umd.js"></script>
         <script>
-            const data = {
-                "headings": [
-                    {
-                        "data": "ID"
-                    },
-                    {
-                        "data": "Drink",
-                        "attributes": {
-                            "class": "red"
-                        }
-                    },
-                    {
-                        "data": "Caffeinated"
-                    }
-                ],
-                "data": [
-                    {
-                        "attributes": {
-                            "class": "yellow"
+            try {
+                const data = {
+                    "headings": [
+                        {
+                            "data": "ID"
                         },
-                        "cells": [
-                            "1",
-                            {
-                                "data": [
-                                    {
-                                        "nodeName": "#text",
-                                        "data": "latte"
-                                    }
-                                ],
-                                "text": "latte",
-                                "order": "latte",
-                                "attributes": {
-                                    "class": "red"
-                                }
-                            },
-                            "false"
-                        ]
-                    },
-                    [
-                        "2",
-                        "herbal tea",
-                        "false"
+                        {
+                            "data": "Drink",
+                            "attributes": {
+                                "class": "red"
+                            }
+                        },
+                        {
+                            "data": "Caffeinated"
+                        }
                     ],
-                    [
-                        "3",
-                        "green tea",
-                        "true"
+                    "data": [
+                        {
+                            "attributes": {
+                                "class": "yellow"
+                            },
+                            "cells": [
+                                "1",
+                                {
+                                    "data": [
+                                        {
+                                            "nodeName": "#text",
+                                            "data": "latte"
+                                        }
+                                    ],
+                                    "text": "latte",
+                                    "order": "latte",
+                                    "attributes": {
+                                        "class": "red"
+                                    }
+                                },
+                                "false"
+                            ]
+                        },
+                        [
+                            "2",
+                            "herbal tea",
+                            "false"
+                        ],
+                        [
+                            "3",
+                            "green tea",
+                            "true"
+                        ]
                     ]
-                ]
-            }
-            window.dt = new window.simpleDatatables.DataTable("table", {
-                data,
-                tableRender: (_data, table, _type) => {
-                    table.attributes.class += " my-table"
-                    table.attributes.style = "white-space: nowrap;"
                 }
-            })
+                
+                // Check if DataTable is available
+                if (typeof window.simpleDatatables === 'undefined') {
+                    throw new Error('simpleDatatables not loaded')
+                }
+                
+                window.dt = new window.simpleDatatables.DataTable("table", {
+                    data,
+                    tableRender: (_data, table, _type) => {
+                        table.attributes.class += " my-table"
+                        table.attributes.style = "white-space: nowrap;"
+                    }
+                })
+                
+                console.log('DataTable initialized successfully')
+            } catch (error) {
+                console.error('Error initializing DataTable:', error)
+                window.lastError = error.message
+            }
         </script>
     </body>
 </html>

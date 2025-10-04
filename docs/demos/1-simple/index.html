@@ -745,26 +745,51 @@
             </tbody>
         </table>
 
+        <script src="../dist/umd.js"></script>
         <script type="module">
-            import {DataTable} from "../dist/module.js"
-            window.dt = new DataTable("#demo-table", {
-                perPageSelect: [5, 10, 15, ["All", -1]],
-                columns: [
-                    {
-                        select: 2,
-                        sortSequence: ["desc", "asc"]
-                    },
-                    {
-                        select: 3,
-                        sortSequence: ["desc"]
-                    },
-                    {
-                        select: 4,
-                        cellClass: "green",
-                        headerClass: "red"
+            (async () => {
+                try {
+                    let DataTable;
+                    
+                    // Try ES module import first
+                    try {
+                        const module = await import("../dist/module.js");
+                        DataTable = module.DataTable;
+                    } catch (moduleError) {
+                        console.log("ES module import failed, falling back to UMD:", moduleError);
+                        // Fallback to UMD
+                        if (window.simpleDatatables && window.simpleDatatables.DataTable) {
+                            DataTable = window.simpleDatatables.DataTable;
+                        } else {
+                            throw new Error("DataTable not available in either ES module or UMD");
+                        }
                     }
-                ]
-            })
+                    
+                    window.dt = new DataTable("#demo-table", {
+                        perPageSelect: [5, 10, 15, ["All", -1]],
+                        columns: [
+                            {
+                                select: 2,
+                                sortSequence: ["desc", "asc"]
+                            },
+                            {
+                                select: 3,
+                                sortSequence: ["desc"]
+                            },
+                            {
+                                select: 4,
+                                cellClass: "green",
+                                headerClass: "red"
+                            }
+                        ]
+                    })
+                    
+                    console.log("DataTable initialized successfully");
+                } catch (error) {
+                    console.error("Error initializing DataTable:", error);
+                    window.lastError = error.message;
+                }
+            })();
         </script>
     </body>
 </html>
