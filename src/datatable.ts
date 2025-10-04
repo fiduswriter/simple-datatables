@@ -452,7 +452,7 @@ export class DataTable {
 
             ]
         }
-        if (!tableVirtualDOM.attributes.class.includes(this.options.classes.table)) {
+        if (!tableVirtualDOM.attributes.class?.includes(this.options.classes.table)) {
             tableVirtualDOM.attributes.class = joinWithSpaces(tableVirtualDOM.attributes.class, this.options.classes.table)
         }
         if (this.options.tableRender) {
@@ -1109,7 +1109,7 @@ export class DataTable {
         this._tableFooters.forEach(footer => newVirtualDOM.childNodes.push(footer))
         this._tableCaptions.forEach(caption => newVirtualDOM.childNodes.push(caption))
 
-        if (!newVirtualDOM.attributes.class.includes(this.options.classes.table)) {
+        if (!newVirtualDOM.attributes.class?.includes(this.options.classes.table)) {
             newVirtualDOM.attributes.class = joinWithSpaces(newVirtualDOM.attributes.class, this.options.classes.table)
         }
 
