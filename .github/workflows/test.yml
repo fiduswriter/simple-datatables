@@ -13,10 +13,17 @@ jobs:
               uses: actions/setup-node@v4
               with:
                   node-version: 20
-                  cache: 'npm'
+                  
+            - name: Cache node modules
+              uses: actions/cache@v3
+              with:
+                  path: ~/.npm
+                  key: ${{ runner.os }}-node-${{ hashFiles('**/package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-node-
                   
             - name: Install dependencies
-              run: npm ci
+              run: npm install
               
             - name: Setup Chrome
               run: |
