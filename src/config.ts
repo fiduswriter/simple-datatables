@@ -60,7 +60,8 @@ export const defaultConfig: DataTableConfiguration = {
     rowRender: false,
     tableRender: false,
     diffDomOptions: {
-        valueDiffing: false
+        valueDiffing: false,
+        simplifiedElementCheck: false
     },
 
     // Customise the display text
