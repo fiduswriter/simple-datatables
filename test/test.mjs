@@ -60,6 +60,38 @@ const clickAllSortableHeaders = function(driver, counter=0) {
     )
 }
 
+const waitForDataTableReady = async function(driver, maxWaitMs) {
+    for (let attempt = 0; attempt < maxWaitMs / 100; attempt++) {
+        try {
+            // eslint-disable-next-line no-await-in-loop
+            await driver.executeScript("return window.dt && window.dt.initialized")
+            return
+        } catch {
+            // eslint-disable-next-line no-await-in-loop
+            await driver.sleep(100)
+        }
+    }
+}
+
+const waitForTestCompletion = async function(driver, maxWaitMs) {
+    for (let attempt = 0; attempt < maxWaitMs / 100; attempt++) {
+        try {
+            // eslint-disable-next-line no-await-in-loop
+            const resultsElement = await driver.findElement(webdriver.By.id("results"))
+            // eslint-disable-next-line no-await-in-loop
+            const resultsText = await resultsElement.getText()
+
+            if (resultsText.includes("All tests passed!") || resultsText.includes("Some tests failed!")) {
+                return
+            }
+        } catch {
+            // Element not found yet, continue waiting
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await driver.sleep(100)
+    }
+}
+
 
 describe("Demos work", function() {
     this.timeout(5000)
@@ -143,17 +175,7 @@ describe("Integration tests pass", function() {
 
     it("preserves cell attributes (JS)", async () => {
         await driver.get(`${baseUrl}tests/cell-attributes-js.html`)
-
-        // Wait for the DataTable to be available with intelligent retry
-        for (let attempt = 0; attempt < testWait / 100; attempt++) {
-            try {
-                await driver.executeScript("return window.dt && window.dt.initialized")
-                break
-            } catch (error) {
-                await driver.sleep(100)
-            }
-        }
-
+        await waitForDataTableReady(driver, testWait)
         await assertCellAttrs("cell-attributes-js-table")
     })
 
@@ -189,37 +211,13 @@ describe("Integration tests pass", function() {
         ]
 
         await driver.get(`${baseUrl}tests/multiple-classes.html`)
-
-        // Wait for the DataTable to be available with intelligent retry
-        for (let attempt = 0; attempt < testWait / 100; attempt++) {
-            try {
-                await driver.executeScript("return window.dt && window.dt.initialized")
-                break
-            } catch (error) {
-                await driver.sleep(100)
-            }
-        }
-
+        await waitForDataTableReady(driver, testWait)
         await Promise.all(classes.map(className => driver.findElement(webdriver.By.css(className))))
     })
 
     it("handles colspan functionality comprehensively", async () => {
         await driver.get(`${baseUrl}tests/colspan.html`)
-
-        // Wait for the DataTable to initialize and tests to run
-        for (let attempt = 0; attempt < testWait / 100; attempt++) {
-            try {
-                const resultsElement = await driver.findElement(webdriver.By.id("results"))
-                const resultsText = await resultsElement.getText()
-
-                if (resultsText.includes("All tests passed!") || resultsText.includes("Some tests failed!")) {
-                    break
-                }
-            } catch (error) {
-                // Element not found yet, continue waiting
-            }
-            await driver.sleep(100)
-        }
+        await waitForTestCompletion(driver, testWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
@@ -236,21 +234,7 @@ describe("Integration tests pass", function() {
 
     it("handles colspan with JSON/JavaScript data", async () => {
         await driver.get(`${baseUrl}tests/colspan-json.html`)
-
-        // Wait for the DataTable to initialize and tests to run
-        for (let attempt = 0; attempt < testWait / 100; attempt++) {
-            try {
-                const resultsElement = await driver.findElement(webdriver.By.id("results"))
-                const resultsText = await resultsElement.getText()
-
-                if (resultsText.includes("All tests passed!") || resultsText.includes("Some tests failed!")) {
-                    break
-                }
-            } catch (error) {
-                // Element not found yet, continue waiting
-            }
-            await driver.sleep(100)
-        }
+        await waitForTestCompletion(driver, testWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
@@ -267,21 +251,7 @@ describe("Integration tests pass", function() {
 
     it("handles rowspan functionality comprehensively", async () => {
         await driver.get(`${baseUrl}tests/rowspan.html`)
-
-        // Wait for the DataTable to initialize and tests to run
-        for (let attempt = 0; attempt < testWait / 100; attempt++) {
-            try {
-                const resultsElement = await driver.findElement(webdriver.By.id("results"))
-                const resultsText = await resultsElement.getText()
-
-                if (resultsText.includes("All tests passed!") || resultsText.includes("Some tests failed!")) {
-                    break
-                }
-            } catch (error) {
-                // Element not found yet, continue waiting
-            }
-            await driver.sleep(100)
-        }
+        await waitForTestCompletion(driver, testWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
@@ -302,20 +272,7 @@ describe("Integration tests pass", function() {
         // Wait for the DataTable to initialize and tests to run
         // Extra wait needed for Test 8 which uses setTimeout(100ms)
         const totalWait = testWait + 500
-
-        for (let attempt = 0; attempt < totalWait / 100; attempt++) {
-            try {
-                const resultsElement = await driver.findElement(webdriver.By.id("results"))
-                const resultsText = await resultsElement.getText()
-
-                if (resultsText.includes("All tests passed!") || resultsText.includes("Some tests failed!")) {
-                    break
-                }
-            } catch (error) {
-                // Element not found yet, continue waiting
-            }
-            await driver.sleep(100)
-        }
+        await waitForTestCompletion(driver, totalWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
@@ -335,21 +292,7 @@ describe("Integration tests pass", function() {
 
     it("handles combined colspan and rowspan", async () => {
         await driver.get(`${baseUrl}tests/colspan-rowspan.html`)
-
-        // Wait for the DataTable to initialize and tests to run
-        for (let attempt = 0; attempt < testWait / 100; attempt++) {
-            try {
-                const resultsElement = await driver.findElement(webdriver.By.id("results"))
-                const resultsText = await resultsElement.getText()
-
-                if (resultsText.includes("All tests passed!") || resultsText.includes("Some tests failed!")) {
-                    break
-                }
-            } catch (error) {
-                // Element not found yet, continue waiting
-            }
-            await driver.sleep(100)
-        }
+        await waitForTestCompletion(driver, testWait)
 
         // Check that all tests passed by looking for the success summary
         const results = await driver.findElement(webdriver.By.id("results"))
