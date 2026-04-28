@@ -165,7 +165,7 @@ interface LabelsConfiguration {
     pageTitle: string;
     /**
      * default: 'Page {page}'
-     * Displays current range as used in aria-labeel
+     * Displays current range as used in aria-label
      *
      * {page} - The current page number
      */

@@ -124,7 +124,7 @@ let columns = datatable.columns;
 // Hide the 4th of 5 columns
 columns.hide(3);
 
-// Check visiblilty
+// Check visibility
 columns.visible(3); // returns false
 ```
 
