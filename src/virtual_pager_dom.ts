@@ -42,7 +42,8 @@ const truncate = (paginationListItems: elementNodeType[], currentPage: number, p
                         {
                             nodeName: "BUTTON",
                             attributes: {
-                                class: classes.paginationListItemLink
+                                class: classes.paginationListItemLink,
+                                "aria-hidden": "true"
                             },
                             childNodes: [
                                 {
@@ -64,7 +65,7 @@ const truncate = (paginationListItems: elementNodeType[], currentPage: number, p
 }
 
 
-const paginationListItem = (page: number, label: string, options: DataTableConfiguration, state: {active?: boolean, hidden?: boolean} = {}) : elementNodeType => ({
+const paginationListItem = (page: number, label: string, options: DataTableConfiguration, state: {active?: boolean, hidden?: boolean} = {}, decorative = false) : elementNodeType => ({
     nodeName: "LI",
     attributes: {
         class:
@@ -83,10 +84,21 @@ const paginationListItem = (page: number, label: string, options: DataTableConfi
                 "aria-label": options.labels.pageTitle.replace("{page}", String(page))
             },
             childNodes: [
-                {
-                    nodeName: "#text",
-                    data: label
-                }
+                decorative ?
+                    {
+                        nodeName: "SPAN",
+                        attributes: {"aria-hidden": "true"},
+                        childNodes: [
+                            {
+                                nodeName: "#text",
+                                data: label
+                            }
+                        ]
+                    } :
+                    {
+                        nodeName: "#text",
+                        data: label
+                    }
             ]
         }
     ]
@@ -98,13 +110,13 @@ export const createVirtualPagerDOM = (onFirstPage: boolean, onLastPage: boolean,
 
     // first button
     if (options.firstLast) {
-        pagerListItems.push(paginationListItem(1, options.firstText, options))
+        pagerListItems.push(paginationListItem(1, options.firstText, options, {}, true))
     }
 
     // prev button
     if (options.nextPrev) {
         const prev = onFirstPage ? 1 : currentPage - 1
-        pagerListItems.push(paginationListItem(prev, options.prevText, options, {hidden: onFirstPage}))
+        pagerListItems.push(paginationListItem(prev, options.prevText, options, {hidden: onFirstPage}, true))
     }
 
     let pages = [...Array(totalPages).keys()].map(index => paginationListItem(index+1, String(index+1), options, {active: (index === (currentPage-1))}))
@@ -126,12 +138,12 @@ export const createVirtualPagerDOM = (onFirstPage: boolean, onLastPage: boolean,
     // next button
     if (options.nextPrev) {
         const next = onLastPage ? totalPages : currentPage + 1
-        pagerListItems.push(paginationListItem(next, options.nextText, options, {hidden: onLastPage}))
+        pagerListItems.push(paginationListItem(next, options.nextText, options, {hidden: onLastPage}, true))
     }
 
     // last button
     if (options.firstLast) {
-        pagerListItems.push(paginationListItem(totalPages, options.lastText, options))
+        pagerListItems.push(paginationListItem(totalPages, options.lastText, options, {}, true))
     }
 
     const pager : elementNodeType = {
