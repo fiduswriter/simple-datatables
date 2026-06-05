@@ -181,6 +181,11 @@ interface LabelsConfiguration {
      */
     info: string;
     /**
+     * default: 'Activate to sort'
+     * Screen reader hint indicating that the column is sortable
+     */
+    sortHint: string;
+    /**
      * default: 'Showing {start} to {end} of {rows} entries'
      * Displays current range, page number, etc
      *

@@ -72,7 +72,8 @@ export const defaultConfig: DataTableConfiguration = {
         pageTitle: "Page {page}", // page label used in Aria-label
         noRows: "No entries found", // Message shown when there are no records to show
         noResults: "No results match your search query", // Message shown when there are no search results
-        info: "Showing {start} to {end} of {rows} entries" //
+        info: "Showing {start} to {end} of {rows} entries", //
+        sortHint: "Activate to sort" // Screen reader hint for sortable columns
     },
 
     // Customise the layout

@@ -87,9 +87,13 @@ export const headingsToVirtualHeaderRowDOM = (
                             [
                                 {
                                     nodeName: "BUTTON",
-                                    attributes: {
-                                        class: column.filter ? classes.filter : classes.sorter
-                                    },
+                                    attributes:
+                                        column.filter ?
+                                            {class: classes.filter} :
+                                            {
+                                                class: classes.sorter,
+                                                "aria-describedby": "sort-hint"
+                                            },
                                     childNodes: headerNodes
                                 }
                             ]
