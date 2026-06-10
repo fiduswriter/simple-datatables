@@ -437,6 +437,19 @@ export class DataTable {
         this._virtualPagerDOM = newPagerVirtualDOM
     }
 
+    /**
+     * Focus the active page button after re-render.
+     * Prevents focus loss when prev/next buttons are removed at page boundaries.
+     */
+    _focusActivePageButton() {
+        const activeLi = this.wrapperDOM.querySelector(`.${this.options.classes.paginationListItem}.${this.options.classes.active}`)
+        if (!activeLi) return
+        const button = activeLi.querySelector("button, [data-page]")
+        if (button instanceof HTMLElement) {
+            button.focus()
+        }
+    }
+
     // Render header that is not in the same table element as the remainder
     // of the table. Used for tables with scrollY.
     _renderSeparateHeader() {
@@ -953,6 +966,10 @@ export class DataTable {
 
         this._renderPage(lastRowCursor)
         this._renderPagers()
+
+        if (this.onFirstPage || this.onLastPage) {
+            this._focusActivePageButton()
+        }
 
         this.emit("datatable.page", page)
     }
