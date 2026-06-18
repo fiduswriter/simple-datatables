@@ -68,6 +68,7 @@ export const defaultConfig: DataTableConfiguration = {
     labels: {
         placeholder: "Search...", // The search input placeholder
         searchTitle: "Search within table", // The search input title
+        searchLabel: "Search", // Label for the search input
         perPage: "entries per page", // per-page dropdown label
         pageTitle: "Page {page}", // page label used in Aria-label
         noRows: "No entries found", // Message shown when there are no records to show
@@ -103,6 +104,7 @@ export const defaultConfig: DataTableConfiguration = {
         paginationListItem: "datatable-pagination-list-item",
         paginationListItemLink: "datatable-pagination-list-item-link",
         search: "datatable-search",
+        searchLabel: "datatable-search-label",
         selector: "datatable-selector",
         sorter: "datatable-sorter",
         table: "datatable-table",

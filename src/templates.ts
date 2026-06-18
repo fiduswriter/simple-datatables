@@ -12,7 +12,10 @@ export const layoutTemplate = (options, dom) => `<div class='${options.classes.t
     ${
     options.searchable ?
         `<div class='${options.classes.search}'>
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' name="search" title='${options.labels.searchTitle}'${dom.id ? ` aria-controls="${dom.id}"` : ""}>
+            <label class='${options.classes.searchLabel}'>
+                ${options.labels.searchLabel}
+                <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' name="search" title='${options.labels.searchTitle}'${dom.id ? ` aria-controls="${dom.id}"` : ""}>
+            </label>
         </div>` :
         ""
 }
