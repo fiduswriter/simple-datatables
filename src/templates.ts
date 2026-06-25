@@ -12,12 +12,17 @@ export const layoutTemplate = (options, dom) => `<div class='${options.classes.t
     ${
     options.searchable ?
         `<div class='${options.classes.search}'>
-            <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' name="search" title='${options.labels.searchTitle}'${dom.id ? ` aria-controls="${dom.id}"` : ""}>
+            <label class='${options.classes.searchLabel}'>
+                ${options.labels.searchLabel}
+                <input class='${options.classes.input}' placeholder='${options.labels.placeholder}' type='search' name="search" title='${options.labels.searchTitle}'${dom.id ? ` aria-controls="${dom.id}"` : ""}>
+            </label>
         </div>` :
         ""
 }
 </div>
-<div class='${options.classes.container}'${options.scrollY.length ? ` style='height: ${options.scrollY}; overflow-Y: auto;'` : ""}></div>
+<div class='${options.classes.container}'${options.scrollY.length ? ` style='height: ${options.scrollY}; overflow-Y: auto;'` : ""}>
+    ${options.sortable ? `<p hidden id="sort-hint">${options.labels.sortHint}</p>` : ""}
+</div>
 <div class='${options.classes.bottom}'>
     ${
     options.paging ?

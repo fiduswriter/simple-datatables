@@ -157,6 +157,11 @@ interface LabelsConfiguration {
      * default: 'Search within table'
      * Sets the title of the search input.
      */
+    searchLabel: string;
+    /**
+     * default: 'Search'
+     * Sets the label for the search input.
+     */
     perPage: string;
     /**
      * default: 'entries per page'
@@ -180,6 +185,11 @@ interface LabelsConfiguration {
      * The message displayed when there are no search results
      */
     info: string;
+    /**
+     * default: 'Activate to sort'
+     * Screen reader hint indicating that the column is sortable
+     */
+    sortHint: string;
     /**
      * default: 'Showing {start} to {end} of {rows} entries'
      * Displays current range, page number, etc
@@ -215,6 +225,7 @@ interface ClassConfiguration {
     paginationListItem: string;
     paginationListItemLink: string;
     search: string;
+    searchLabel: string;
     selector: string;
     sorter: string;
     table: string;

@@ -72,6 +72,8 @@ export class DataTable {
 
     _pagerDOMs: HTMLElement[]
 
+    _pagerContainers: HTMLElement[]
+
     _virtualPagerDOM: elementNodeType
 
     pages: rowType[][]
@@ -233,6 +235,7 @@ export class DataTable {
         this.containerDOM = this.wrapperDOM.querySelector(containerSelector)
 
         this._pagerDOMs = []
+        this._pagerContainers = []
         const paginationSelector = classNamesToSelector(this.options.classes.pagination)
         Array.from(this.wrapperDOM.querySelectorAll(paginationSelector)).forEach(el => {
             if (!(el instanceof HTMLElement)) {
@@ -241,6 +244,7 @@ export class DataTable {
             // We remove the inner part of the pager containers to ensure they are all the same.
             el.innerHTML = `<ul class="${this.options.classes.paginationList}"></ul>`
             this._pagerDOMs.push(el.firstElementChild as HTMLElement)
+            this._pagerContainers.push(el)
         })
 
         this._virtualPagerDOM = {
@@ -416,13 +420,34 @@ export class DataTable {
             }
         }
 
+        const hasPagerItems = newPagerVirtualDOM.childNodes.length > 0
         const diffs = this._dd.diff(this._virtualPagerDOM, newPagerVirtualDOM)
-        // We may have more than one pager
-        this._pagerDOMs.forEach((pagerDOM: HTMLElement) => {
+
+        this._pagerDOMs.forEach((pagerDOM: HTMLElement, i: number) => {
             this._dd.apply(pagerDOM, diffs)
+            if (!hasPagerItems) {
+                if (pagerDOM.parentNode) {
+                    pagerDOM.parentNode.removeChild(pagerDOM)
+                }
+            } else if (!pagerDOM.parentNode) {
+                this._pagerContainers[i].appendChild(pagerDOM)
+            }
         })
 
         this._virtualPagerDOM = newPagerVirtualDOM
+    }
+
+    /**
+     * Focus the active page button after re-render.
+     * Prevents focus loss when prev/next buttons are removed at page boundaries.
+     */
+    _focusActivePageButton() {
+        const activeLi = this.wrapperDOM.querySelector(`.${this.options.classes.paginationListItem}.${this.options.classes.active}`)
+        if (!activeLi) return
+        const button = activeLi.querySelector("button, [data-page]")
+        if (button instanceof HTMLElement) {
+            button.focus()
+        }
     }
 
     // Render header that is not in the same table element as the remainder
@@ -941,6 +966,10 @@ export class DataTable {
 
         this._renderPage(lastRowCursor)
         this._renderPagers()
+
+        if (this.onFirstPage || this.onLastPage) {
+            this._focusActivePageButton()
+        }
 
         this.emit("datatable.page", page)
     }
