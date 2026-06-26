@@ -58,7 +58,7 @@ A custom search method to be used for the column(s). The function should take 5 
 `cell` (the cell that is to be checked for the search terms),
 `row` (the data row that the cell is part of),
 `column` (the id of the column of the cell),
-`source` (a unique string given to a particular search interface so that multiple search itnerfaces can be used simultaneously).
+`source` (a unique string given to a particular search interface so that multiple search interfaces can be used simultaneously).
 
 It should return `true` if the search string is found in the data, `false` otherwise.
 

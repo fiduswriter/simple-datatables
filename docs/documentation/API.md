@@ -75,7 +75,7 @@ The data of the table, containing two parts: `headings` and `data` (contents of 
 ### data-index
 #### type `Integer`
 
-All rows in the `data.data` array have a custom propery named `data-index`. This represents the position in the `data` array. It can be useful for getting the correct position of a row as the native `rowIndex` property may be either `-1` if the row isn't rendered or incorrect if you're on any other page than page 1.
+All rows in the `data.data` array have a custom property named `data-index`. This represents the position in the `data` array. It can be useful for getting the correct position of a row as the native `rowIndex` property may be either `-1` if the row isn't rendered or incorrect if you're on any other page than page 1.
 
 Also, in some browsers, the first row of a `tbody` element will have a `rowIndex` of `1` instead of `0` as they take the `thead` row as the first row.
 

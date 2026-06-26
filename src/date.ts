@@ -14,7 +14,7 @@ export const parseDate = (content: string, format: string) => {
     if (format) {
         switch (format) {
         case "ISO_8601":
-            // ISO8601 is already lexiographically sorted, so we can just sort it as a string.
+            // ISO8601 is already lexicographically sorted, so we can just sort it as a string.
             date = content
             break
         case "RFC_2822":
