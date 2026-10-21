@@ -761,14 +761,14 @@
                     const filterHeaders = {
                         nodeName: "TR",
                         childNodes: tHead.childNodes[0].childNodes.map(
-                            (_th, index) => ({nodeName: "TH",
+                            th => ({nodeName: "TH",
                                 childNodes: [
                                     {
                                         nodeName: "INPUT",
                                         attributes: {
                                             class: "datatable-input",
                                             type: "search",
-                                            "data-columns": `[${index}]`
+                                            "data-columns": `[${th.attributes["data-column"]}]`
                                         }
                                     }
                                 ]})
