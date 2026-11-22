@@ -36,6 +36,10 @@
             <input id="replace">
             <button id="update">Update</button>
         </div>
+        <div id="clear-div">
+            <button id="clear">Clear all rows</button>
+            <button id="reload">Reload original data</button>
+        </div>
         <br>
 
         <script src="../dist/umd.js"></script>
@@ -98,6 +102,14 @@
                 cols[colIndex] = document.getElementById("replace").value.trim()
                 // update row in data table
                 rows.updateRow(index, cols)
+            })
+            document.getElementById("clear").addEventListener("click", _event => {
+                // rows.clear() removes every row and resets any search state
+                window.dt.rows.clear()
+            })
+            document.getElementById("reload").addEventListener("click", _event => {
+                window.dt.rows.clear()
+                window.dt.insert({data: data.data})
             })
         </script>
     </body>

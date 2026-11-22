@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="../../favicon.svg"
+        >
+        <title>Colgroup - simple-datatables</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+    </head>
+    <body>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Colgroup</h2>
+        <p>
+            A <code>colgroup</code> defined in the source table is kept when the table is
+            rendered, along with all attributes of its <code>col</code> elements. The widths
+            defined here survive sorting and paging. Look at the source of this page.
+        </p>
+        <table id="width-table">
+            <colgroup>
+                <col style="width: 50%;">
+                <col style="width: 10%;">
+                <col class="status-col" style="width: 40%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>First entry</td>
+                    <td>10</td>
+                    <td>Open</td>
+                </tr>
+                <tr>
+                    <td>Second entry</td>
+                    <td>250</td>
+                    <td>Closed</td>
+                </tr>
+                <tr>
+                    <td>Third entry</td>
+                    <td>7</td>
+                    <td>Open</td>
+                </tr>
+                <tr>
+                    <td>Fourth entry</td>
+                    <td>42</td>
+                    <td>Pending</td>
+                </tr>
+            </tbody>
+        </table>
+        <style>
+            .status-col {
+                color: darkslateblue;
+            }
+        </style>
+        <script type="module">
+            import {DataTable} from "../dist/module.js"
+
+            window.dt = new DataTable("#width-table")
+        </script>
+    </body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <link
+            rel="icon"
+            type="image/svg+xml"
+            href="../../favicon.svg"
+        >
+        <title>Search hidden columns - simple-datatables</title>
+        <!-- DataTable Styles -->
+        <link rel="stylesheet" href="../dist/css/style.css">
+        <!-- Demo Styles -->
+        <link rel="stylesheet" href="../demo.css">
+    </head>
+    <body>
+        <header>
+            <h1>
+                <a href="../../">simple-datatables</a>
+            </h1>
+            <a href="../../documentation">Documentation</a>
+            <a href="../">Demos</a>
+        </header>
+
+        <h2>Search hidden columns</h2>
+        <p>
+            Hidden columns are not searched by default. Adding
+            <code>data-search-hidden="true"</code> to a <code>th</code> (or setting
+            <code>searchHidden: true</code> globally or per column) includes the content of
+            the hidden column in search results, without making it visible. Try searching
+            for "Clacton" or "Norwich" — the rows match even though the City column stays hidden.
+        </p>
+        <table id="houses">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Type</th>
+                    <th data-hidden="true" data-search-hidden="true">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Alpha House</td>
+                    <td>Detached</td>
+                    <td>Clacton</td>
+                </tr>
+                <tr>
+                    <td>Beta House</td>
+                    <td>Terraced</td>
+                    <td>Norwich</td>
+                </tr>
+                <tr>
+                    <td>Gamma House</td>
+                    <td>Detached</td>
+                    <td>Oxford</td>
+                </tr>
+                <tr>
+                    <td>Delta House</td>
+                    <td>Flat</td>
+                    <td>Clacton</td>
+                </tr>
+            </tbody>
+        </table>
+        <script type="module">
+            import {DataTable} from "../dist/module.js"
+
+            // The column above is hidden and searchable purely through markup:
+            // data-hidden="true" data-search-hidden="true"
+            // The same can be achieved in the constructor, either for all columns
+            // at once with { searchHidden: true } or per column with
+            // { columns: [{ select: 2, hidden: true, searchHidden: true }] }
+            window.dt = new DataTable("#houses")
+        </script>
+    </body>
+</html>
