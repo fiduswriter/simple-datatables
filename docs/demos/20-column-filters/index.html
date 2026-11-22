@@ -741,8 +741,13 @@
 
         <script type="module">
             import {DataTable} from "../dist/module.js"
-            window.dt = new DataTable("#demo-table", {
+            const options = {
                 perPageSelect: [10, 50, ["All", -1]],
+                // Setting this, e.g. to "30vh", makes the table body scroll.
+                // The filter row is then added to the fixed header table
+                // (rendered with type "header") instead of the scrolling
+                // table ("main"), so that the inputs are not duplicated.
+                scrollY: "",
                 columns: [
                     {
                         select: 2,
@@ -754,7 +759,15 @@
                     }
                 ],
                 tableRender: (_data, table, type) => {
-                    if (type === "print") {
+                    if (options.scrollY.length) {
+                        // With scrollY the visible header is rendered as a
+                        // separate table of type "header". Adding the filter
+                        // row to the "main" table, too, would display the
+                        // search inputs twice.
+                        if (type !== "header") {
+                            return table
+                        }
+                    } else if (type !== "main") {
                         return table
                     }
                     const tHead = table.childNodes[0]
@@ -777,7 +790,8 @@
                     tHead.childNodes.push(filterHeaders)
                     return table
                 }
-            })
+            }
+            window.dt = new DataTable("#demo-table", options)
         </script>
     </body>
 </html>

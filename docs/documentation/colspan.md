@@ -117,6 +117,25 @@ const dataTable = new DataTable("#myTable", {
 });
 ```
 
+## Multi-row Headings
+
+When initializing from an HTML table, the `<thead>` may contain multiple rows, combining `colspan` and `rowspan` to create grouped column headings:
+
+```html
+<thead>
+    <tr>
+        <th rowspan="2">Name</th>
+        <th colspan="2">Location</th>
+    </tr>
+    <tr>
+        <th>City</th>
+        <th>Country</th>
+    </tr>
+</thead>
+```
+
+The cells of the last heading row define the table's columns (in the example: `Name`, `City` and `Country`). A heading that spans several rows with `rowspan` carries over into the last row; per-column settings (`data-type`, `data-sortable`, etc.) are read from the heading cell covering the column in that last row. The table is rendered with a single heading row.
+
 ## Important Notes
 
 1. **Column Count Consistency**: When using colspan, ensure that the total number of columns (accounting for the colspan values) matches the number of headings. For example:

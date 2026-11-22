@@ -1,5 +1,28 @@
 ## Upgrading
 
+### Unreleased
+
+- Sorting via the `data-order` attribute: only values that are numeric in
+  their entirety are treated as numbers now. Previously, values such as ISO
+  date strings were silently truncated to their leading digits (e.g.
+  `2026-03-25T09:45:43+01:00` became `2026`), which led to incorrect sorting.
+- `exportCSV`/`exportTXT` now produce RFC 4180 style output: `#` characters
+  are kept verbatim (previously they were replaced with `%23`), cells that
+  contain quotes or the column delimiter are enclosed in quotes, and trailing
+  empty cells are no longer trimmed away.
+- Tables with a `<thead>` containing multiple rows (using `rowspan`/`colspan`
+  for grouped column headings) are now supported; the last header row defines
+  the table's columns. Previously such tables threw a "Data heading length
+  mismatch" error.
+- `render`/`rowRender` callbacks returning a plain string no longer throw a
+  `TypeError` when the original cell/row is empty. This bug previously also
+  caused subsequent `update()` calls to fail silently, e.g. when using
+  `render` to display time-based values refreshed via `setInterval` +
+  `update()`.
+- The TypeScript types (`DataTableOptions`, `cellType`, `dataRowType`, etc.)
+  are now re-exported from the package root, so they can be imported with
+  `import type { DataTableOptions } from "simple-datatables";`.
+
 ### From 9.x.x to 10.x.x
 
 - The `datatable.selectrow` event is now fired even if the table has no focus.

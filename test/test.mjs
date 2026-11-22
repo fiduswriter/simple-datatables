@@ -300,6 +300,56 @@ describe("Integration tests pass", function() {
         assert.deepEqual(errors, [], "No JavaScript errors should occur during rowspan JSON testing")
     })
 
+    it("re-runs render callbacks and tolerates empty cells", async () => {
+        await driver.get(`${baseUrl}tests/render-callback-rerender.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed! ✓"), text)
+    })
+
+    it("sorts using the full data-order attribute value", async () => {
+        await driver.get(`${baseUrl}tests/data-order-sorting.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed! ✓"), text)
+    })
+
+    it("exports CSV and TXT with correct escaping", async () => {
+        await driver.get(`${baseUrl}tests/export-csv-txt.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed! ✓"), text)
+    })
+
+    it("handles table heads with multiple rows and rowspan/colspan", async () => {
+        await driver.get(`${baseUrl}tests/multirow-thead.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed! ✓"), text)
+    })
+
+    it("keeps a single column filter row when scrollY is enabled", async () => {
+        await driver.get(`${baseUrl}tests/column-filters-scrollY.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed! ✓"), text)
+    })
+
     it("handles combined colspan and rowspan", async () => {
         await driver.get(`${baseUrl}tests/colspan-rowspan.html`)
         await waitForTestCompletion(driver, testWait)

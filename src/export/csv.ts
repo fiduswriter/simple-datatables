@@ -149,35 +149,33 @@ export const exportCSV = function(dt: DataTable, userOptions: csvUserOptions = {
     if (rows.length) {
         let str = ""
         rows.forEach(row => {
-            row.forEach((cell: cellDataType) => {
+            str += row.map((cell: cellDataType) => {
                 if (typeof cell === "string") {
                     cell = cell.trim()
                     cell = cell.replace(/\s{2,}/g, " ")
                     cell = cell.replace(/\n/g, "  ")
+                    // Quote cells that contain the column delimiter or quotes
+                    const needsQuoting = cell.includes(options.columnDelimiter) || cell.includes("\"")
                     cell = cell.replace(/"/g, "\"\"")
-                    //have to manually encode "#" as encodeURI leaves it as is.
-                    cell = cell.replace(/#/g, "%23")
-                    if (cell.includes(",")) {
+                    if (needsQuoting) {
                         cell = `"${cell}"`
                     }
                 }
-                str += cell + options.columnDelimiter
-            })
-            // Remove trailing column delimiter
-            str = str.trim().substring(0, str.length - 1)
+                return cell
+            }).join(options.columnDelimiter)
 
             // Apply line delimiter
             str += options.lineDelimiter
         })
 
         // Remove trailing line delimiter
-        str = str.trim().substring(0, str.length - 1)
+        str = str.slice(0, str.length - options.lineDelimiter.length)
 
         // Download
         if (options.download) {
             // Create a link to trigger the download
             const link = document.createElement("a")
-            link.href = encodeURI(`data:text/csv;charset=utf-8,${str}`)
+            link.href = `data:text/csv;charset=utf-8,${encodeURIComponent(str)}`
             link.download = `${options.filename || "datatable_export"}.csv`
 
             // Append the link

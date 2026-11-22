@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>data-order attribute sorting</title>
+    </head>
+    <body>
+        <h1>data-order attribute sorting</h1>
+        <pre id="results">Running tests...</pre>
+
+        <table id="dates">
+            <thead>
+                <tr>
+                    <th>Event date</th>
+                    <th>Label</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-order="2026-03-25T09:45:43+01:00">25 Mar 2026 09:45:43</td>
+                    <td>C</td>
+                </tr>
+                <tr>
+                    <td data-order="2025-01-02T00:00:00Z">02 Jan 2025 00:00:00</td>
+                    <td>A</td>
+                </tr>
+                <tr>
+                    <td data-order="2026-03-25T08:00:00+02:00">25 Mar 2026 08:00:00</td>
+                    <td>B</td>
+                </tr>
+                <tr>
+                    <td data-order="2024-11-09T12:00:00+00:00">09 Nov 2024 12:00:00</td>
+                    <td>D</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table id="numbers">
+            <thead>
+                <tr>
+                    <th>Value</th>
+                    <th>Label</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td data-order="100">one hundred</td>
+                    <td>N1</td>
+                </tr>
+                <tr>
+                    <td data-order="-5">minus five</td>
+                    <td>N2</td>
+                </tr>
+                <tr>
+                    <td data-order="20">twenty</td>
+                    <td>N3</td>
+                </tr>
+                <tr>
+                    <td data-order="3.5">three and a half</td>
+                    <td>N4</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script type="module">
+            import {DataTable} from "../../dist/module.js"
+
+            (async () => {
+
+            const results = document.getElementById("results")
+            let failed = false
+            const check = (name, condition, extra = "") => {
+                if (!condition) {
+                    failed = true
+                }
+                results.textContent += `\n${condition ? "PASS" : "FAIL"}: ${name}${extra ? ` (${extra})` : ""}`
+            }
+            const whenReady = dt => new Promise(resolve => {
+                if (dt.initialized) {
+                    resolve()
+                    return
+                }
+                dt.on("datatable.init", () => setTimeout(resolve, 0))
+            })
+
+            // Test 1: ISO date strings in data-order must not be reduced to
+            // their leading year; sorting must follow the full order values.
+            const dtDates = new DataTable("#dates", {
+                paging: false
+            })
+            await whenReady(dtDates)
+            check("Dates table initialized", dtDates.initialized)
+            check("ISO order values kept as strings",
+                dtDates.data.data.every(row => typeof row.cells[0].order === "string"),
+                dtDates.data.data.map(row => String(row.cells[0].order)).join(", "))
+
+            dtDates.columns.sort(0, "asc")
+            const ascLabels = dtDates.data.data.map(row => row.cells[1].text)
+            check("Ascending sort chronological", ascLabels.join(",") === "D,A,B,C", ascLabels.join(","))
+
+            dtDates.columns.sort(0, "desc")
+            const descLabels = dtDates.data.data.map(row => row.cells[1].text)
+            check("Descending sort chronological", descLabels.join(",") === "C,B,A,D", descLabels.join(","))
+
+            // Test 2: Plain numeric data-order values are still compared as numbers.
+            const dtNumbers = new DataTable("#numbers", {
+                paging: false
+            })
+            await whenReady(dtNumbers)
+            check("Numbers table initialized", dtNumbers.initialized)
+            check("Numeric order values are numbers",
+                dtNumbers.data.data.every(row => typeof row.cells[0].order === "number"),
+                dtNumbers.data.data.map(row => String(row.cells[0].order)).join(", "))
+
+            dtNumbers.columns.sort(0, "asc")
+            const ascNumbers = dtNumbers.data.data.map(row => row.cells[1].text)
+            check("Numeric ascending sort", ascNumbers.join(",") === "N2,N4,N3,N1", ascNumbers.join(","))
+
+            results.textContent += failed ? "\nSome tests failed! ✗" : "\nAll tests passed! ✓"
+
+                    })()
+        </script>
+    </body>
+</html>

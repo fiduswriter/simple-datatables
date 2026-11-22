@@ -76,22 +76,20 @@ export const exportTXT = function(dt: DataTable, userOptions : txtUserOptions = 
         let str = ""
 
         rows.forEach(row => {
-            row.forEach((cell: cellDataType) => {
+            str += row.map((cell: cellDataType) => {
                 if (typeof cell === "string") {
                     cell = cell.trim()
                     cell = cell.replace(/\s{2,}/g, " ")
                     cell = cell.replace(/\n/g, "  ")
+                    // Quote cells that contain the column delimiter or quotes
+                    const needsQuoting = cell.includes(options.columnDelimiter) || cell.includes("\"")
                     cell = cell.replace(/"/g, "\"\"")
-                    //have to manually encode "#" as encodeURI leaves it as is.
-                    cell = cell.replace(/#/g, "%23")
-                    if (cell.includes(",")) {
+                    if (needsQuoting) {
                         cell = `"${cell}"`
                     }
                 }
-                str += cell + options.columnDelimiter
-            })
-            // Remove trailing column delimiter
-            str = str.trim().substring(0, str.length - 1)
+                return cell
+            }).join(options.columnDelimiter)
 
             // Apply line delimiter
             str += options.lineDelimiter
@@ -99,16 +97,16 @@ export const exportTXT = function(dt: DataTable, userOptions : txtUserOptions = 
         })
 
         // Remove trailing line delimiter
-        str = str.trim().substring(0, str.length - 1)
+        str = str.slice(0, str.length - options.lineDelimiter.length)
 
         if (options.download) {
-            str = `data:text/csv;charset=utf-8,${str}`
+            str = `data:text/csv;charset=utf-8,${encodeURIComponent(str)}`
         }
         // Download
         if (options.download) {
             // Create a link to trigger the download
             const link = document.createElement("a")
-            link.href = encodeURI(str)
+            link.href = str
             link.download = `${options.filename || "datatable_export"}.txt`
 
             // Append the link

@@ -176,7 +176,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                                 // Convenience method to make it work similarly to what it did up to version 5.
                                                 const node = stringToObj(`<td>${renderedCell}</td>`)
 
-                                                if (node.childNodes!.length !== 1 || !["#text", "#comment"].includes(node.childNodes![0].nodeName)) {
+                                                if (node.childNodes!.length !== 1 || !["#text", "#comment"].includes(node.childNodes![0].nodeName) || !td.childNodes!.length) {
                                                     td.childNodes = node.childNodes
                                                 } else {
                                                     (td.childNodes![0] as textNodeType).data = renderedCell
@@ -201,7 +201,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
                                 if (typeof renderedRow === "string") {
                                     // Convenience method to make it work similarly to what it did up to version 5.
                                     const node = stringToObj(`<tr>${renderedRow}</tr>`)
-                                    if (node.childNodes && (node.childNodes.length !== 1 || !["#text", "#comment"].includes(node.childNodes[0].nodeName))) {
+                                    if (node.childNodes && (node.childNodes.length !== 1 || !["#text", "#comment"].includes(node.childNodes[0].nodeName) || !tr.childNodes!.length)) {
                                         tr.childNodes = node.childNodes
                                     } else {
                                         (tr.childNodes![0] as textNodeType).data = renderedRow

@@ -239,64 +239,107 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
         })
         data.headings = processedHeadings
     } else if (dom?.tHead) {
-        // Collect all headings accounting for colspan
-        const headings: headerCellType[] = []
-        Array.from(dom.tHead.querySelectorAll("th")).forEach(th => {
-            const colspan = parseInt(th.getAttribute("colspan") || "1", 10)
-
-            // Add the actual heading with colspan data
-            const heading = readDOMHeaderCell(th)
-            headings.push(heading)
-
-            // Add placeholder headings for colspan > 1
-            for (let i = 1; i < colspan; i++) {
-                headings.push({
-                    data: "",
-                    text: "",
-                    attributes: {
-                        "data-colspan-placeholder": "true"
+        // Lay out all header rows in a grid, taking colspan and rowspan into
+        // account, so theads with multiple rows (grouped column headings) are
+        // supported. The cells of the last header row define the table's
+        // columns; cells of that row that are covered by a rowspan from a
+        // header row above carry over that row's heading.
+        interface headerGridEntry {
+            heading: headerCellType
+            th: HTMLElement
+            // position of this grid slot within the colspan of the source th
+            pos: number
+        }
+        const covered: Map<number, {entry: headerGridEntry, remainingRows: number}> = new Map()
+        const headerRows: headerGridEntry[][] = []
+        Array.from(dom.tHead.rows).forEach(tr => {
+            const gridRow: headerGridEntry[] = []
+            const cells = Array.from(tr.cells)
+            let columnIndex = 0
+            let cellIndex = 0
+            const consumeCoveredColumns = () => {
+                while (covered.has(columnIndex)) {
+                    const covering = covered.get(columnIndex)!
+                    gridRow[columnIndex] = covering.entry
+                    covering.remainingRows -= 1
+                    if (covering.remainingRows <= 0) {
+                        covered.delete(columnIndex)
                     }
-                })
+                    columnIndex++
+                }
+            }
+            while (cellIndex < cells.length) {
+                consumeCoveredColumns()
+                const th = cells[cellIndex]
+                cellIndex++
+                const colspan = parseInt(th.getAttribute("colspan") || "1", 10)
+                const rowspan = parseInt(th.getAttribute("rowspan") || "1", 10)
+                const heading = readDOMHeaderCell(th)
+                for (let i = 0; i < colspan; i++) {
+                    const entry: headerGridEntry = {heading,
+                        th,
+                        pos: i}
+                    gridRow[columnIndex] = entry
+                    if (rowspan > 1) {
+                        covered.set(columnIndex, {entry,
+                            remainingRows: rowspan - 1})
+                    }
+                    columnIndex++
+                }
+            }
+            // Trailing columns covered by rowspans from header rows above
+            consumeCoveredColumns()
+            headerRows.push(gridRow)
+        })
+
+        const lastHeaderRow: headerGridEntry[] = headerRows[headerRows.length - 1] || []
+        const headings: headerCellType[] = lastHeaderRow.map(entry => {
+            if (entry.pos === 0) {
+                return entry.heading
+            }
+            // Placeholder heading for columns covered by the colspan of a heading
+            return {
+                data: "",
+                text: "",
+                attributes: {
+                    "data-colspan-placeholder": "true"
+                }
             }
         })
 
         data.headings = headings
 
-        // Process column settings for all columns including colspan placeholders
-        let columnIndex = 0
-        Array.from(dom.tHead.querySelectorAll("th")).forEach(th => {
-            const colspan = parseInt(th.getAttribute("colspan") || "1", 10)
+        // Process column settings for all columns including colspan placeholders.
+        // Settings are taken from the th of the last header row covering the column.
+        lastHeaderRow.forEach((entry, columnIndex) => {
+            if (!columnSettings[columnIndex]) {
+                columnSettings[columnIndex] = {
+                    type: defaultType,
+                    format: defaultFormat,
+                    searchable: true,
+                    sortable: true
+                }
+            }
+            const settings = columnSettings[columnIndex]
 
-            for (let i = 0; i < colspan; i++) {
-                if (!columnSettings[columnIndex]) {
-                    columnSettings[columnIndex] = {
-                        type: defaultType,
-                        format: defaultFormat,
-                        searchable: true,
-                        sortable: true
+            // Only apply settings from the actual th element to the first column of its colspan
+            if (entry.pos === 0) {
+                const th = entry.th
+                if (th.dataset.sortable?.trim().toLowerCase() === "false" || th.dataset.sort?.trim().toLowerCase() === "false") {
+                    settings.sortable = false
+                }
+                if (th.dataset.searchable?.trim().toLowerCase() === "false") {
+                    settings.searchable = false
+                }
+                if (th.dataset.hidden?.trim().toLowerCase() === "true" || th.getAttribute("hidden")?.trim().toLowerCase() === "true") {
+                    settings.hidden = true
+                }
+                if (th.dataset.type && ["number", "string", "html", "date", "boolean", "other"].includes(th.dataset.type)) {
+                    settings.type = th.dataset.type as columnSettingsType["type"]
+                    if (settings.type === "date" && th.dataset.format) {
+                        settings.format = th.dataset.format
                     }
                 }
-                const settings = columnSettings[columnIndex]
-
-                // Only apply settings from the actual th element to the first column of the colspan
-                if (i === 0) {
-                    if (th.dataset.sortable?.trim().toLowerCase() === "false" || th.dataset.sort?.trim().toLowerCase() === "false") {
-                        settings.sortable = false
-                    }
-                    if (th.dataset.searchable?.trim().toLowerCase() === "false") {
-                        settings.searchable = false
-                    }
-                    if (th.dataset.hidden?.trim().toLowerCase() === "true" || th.getAttribute("hidden")?.trim().toLowerCase() === "true") {
-                        settings.hidden = true
-                    }
-                    if (th.dataset.type && ["number", "string", "html", "date", "boolean", "other"].includes(th.dataset.type)) {
-                        settings.type = th.dataset.type as columnSettingsType["type"]
-                        if (settings.type === "date" && th.dataset.format) {
-                            settings.format = th.dataset.format
-                        }
-                    }
-                }
-                columnIndex++
             }
         })
     } else if (dataOption.data?.length) {
@@ -459,7 +502,12 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                             readDataCell(cell.dataset.content, columnSettings[cellIndex]) :
                             readDOMDataCell(cell, columnSettings[cellIndex])
                         if (cell.dataset.order) {
-                            cellData.order = isNaN(parseFloat(cell.dataset.order)) ? cell.dataset.order : parseFloat(cell.dataset.order)
+                            // Only treat the value as a number if the *whole*
+                            // string is numeric, so that, e.g., ISO date strings
+                            // are kept intact instead of being reduced to their
+                            // leading year by parseFloat.
+                            const order = Number(cell.dataset.order)
+                            cellData.order = Number.isNaN(order) ? cell.dataset.order : order
                         }
                         cells.push(cellData)
 

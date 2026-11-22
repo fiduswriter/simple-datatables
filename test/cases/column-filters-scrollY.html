@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Column filters with scrollY</title>
+    </head>
+    <body>
+        <h1>Column filters with scrollY</h1>
+        <pre id="results">Running tests...</pre>
+
+        <table id="filters">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>alpha</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>bravo</td>
+                    <td>2</td>
+                </tr>
+                <tr>
+                    <td>charlie</td>
+                    <td>3</td>
+                </tr>
+                <tr>
+                    <td>delta</td>
+                    <td>4</td>
+                </tr>
+                <tr>
+                    <td>echo</td>
+                    <td>5</td>
+                </tr>
+                <tr>
+                    <td>foxtrot</td>
+                    <td>6</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script type="module">
+            import {DataTable} from "../../dist/module.js"
+
+            (async () => {
+
+            const results = document.getElementById("results")
+            let failed = false
+            const check = (name, condition, extra = "") => {
+                if (!condition) {
+                    failed = true
+                }
+                results.textContent += `\n${condition ? "PASS" : "FAIL"}: ${name}${extra ? ` (${extra})` : ""}`
+            }
+
+            // Filter row added like in demo 20-column-filters, but only to the
+            // table type that carries the visible header when scrollY is used.
+            const options = {
+                scrollY: "100px",
+                paging: false,
+                tableRender: (_data, table, type) => {
+                    if (type !== "header") {
+                        return table
+                    }
+                    const tHead = table.childNodes[0]
+                    const filterHeaders = {
+                        nodeName: "TR",
+                        childNodes: tHead.childNodes[0].childNodes.map(
+                            th => ({
+                                nodeName: "TH",
+                                childNodes: [
+                                    {
+                                        nodeName: "INPUT",
+                                        attributes: {
+                                            class: "datatable-input",
+                                            type: "search",
+                                            "data-columns": `[${th.attributes["data-column"]}]`
+                                        }
+                                    }
+                                ]
+                            })
+                        )
+                    }
+                    tHead.childNodes.push(filterHeaders)
+                    return table
+                }
+            }
+            window.dt = new DataTable("#filters", options)
+            const dt = window.dt
+            const whenReady = dt => new Promise(resolve => {
+                if (dt.initialized) {
+                    resolve()
+                    return
+                }
+                dt.on("datatable.init", () => setTimeout(resolve, 0))
+            })
+            await whenReady(dt)
+            check("Table initialized", dt.initialized)
+
+            // Test 1: exactly one set of column filter inputs, in the fixed
+            // header container, none inside the scrolling table's thead.
+            const allFilterInputs = dt.wrapperDOM.querySelectorAll("input[data-columns]").length
+            check("One set of column filter inputs", allFilterInputs === 2, allFilterInputs)
+
+            const headerContainer = dt.wrapperDOM.querySelector(".datatable-headercontainer")
+            check("Header container rendered", headerContainer !== null)
+            if (headerContainer) {
+                check("Filter inputs are in the header container",
+                    headerContainer.querySelectorAll("input[data-columns]").length === 2,
+                    headerContainer.querySelectorAll("input[data-columns]").length)
+            }
+            check("No filter inputs in scrolling table header",
+                dt.containerDOM.querySelectorAll("thead input[data-columns]").length === 0)
+
+            // Test 2: typing into a header filter input searches the table.
+            const input = headerContainer.querySelector("input[data-columns='[0]']")
+            input.value = "bravo"
+            input.dispatchEvent(new Event("input", {bubbles: true}))
+            const visibleRows = dt.containerDOM.querySelectorAll("tbody tr").length
+            check("Filtering via header input works", visibleRows === 1, visibleRows)
+
+            const visibleCells = dt.containerDOM.querySelectorAll("tbody tr td")
+            check("Correct row matched", visibleCells.length === 2 && visibleCells[0].textContent === "bravo",
+                Array.from(visibleCells).map(td => td.textContent).join(","))
+
+            // Test 3: filters did not get duplicated by the re-render.
+            check("Filter inputs not duplicated after search",
+                dt.wrapperDOM.querySelectorAll("input[data-columns]").length === 2,
+                dt.wrapperDOM.querySelectorAll("input[data-columns]").length)
+
+            results.textContent += failed ? "\nSome tests failed! ✗" : "\nAll tests passed! ✓"
+
+                    })()
+        </script>
+    </body>
+</html>

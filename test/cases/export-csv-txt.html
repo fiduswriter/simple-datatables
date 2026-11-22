@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>CSV/TXT export escaping</title>
+    </head>
+    <body>
+        <h1>CSV/TXT export escaping</h1>
+        <pre id="results">Running tests...</pre>
+
+        <table id="export-table">
+            <thead>
+                <tr>
+                    <th>name</th>
+                    <th>note</th>
+                    <th>tag</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Ann</td>
+                    <td>say "hi"</td>
+                    <td>#1</td>
+                </tr>
+                <tr>
+                    <td>Bob</td>
+                    <td>a;b</td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <td></td>
+                    <td>x</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script type="module">
+            import {DataTable, exportCSV, exportTXT} from "../../dist/module.js"
+
+            (async () => {
+
+            const results = document.getElementById("results")
+            let failed = false
+            const check = (name, condition, extra = "") => {
+                if (!condition) {
+                    failed = true
+                }
+                results.textContent += `\n${condition ? "PASS" : "FAIL"}: ${name}${extra ? ` (${JSON.stringify(extra)})` : ""}`
+            }
+            const whenReady = dt => new Promise(resolve => {
+                if (dt.initialized) {
+                    resolve()
+                    return
+                }
+                dt.on("datatable.init", () => setTimeout(resolve, 0))
+            })
+
+            const dt = new DataTable("#export-table", {
+                paging: false
+            })
+            await whenReady(dt)
+            check("Table initialized", dt.initialized)
+
+            // Test 1: "#" must survive verbatim, quotes around cells that
+            // contain quotes, empty trailing cells kept.
+            const csv = exportCSV(dt, {download: false})
+            check("CSV output correct",
+                csv === "name,note,tag\nAnn,\"say \"\"hi\"\"\",#1\nBob,a;b,\n,x,", csv)
+            check("CSV keeps hash verbatim", csv.includes("#1") && !csv.includes("%23"), csv)
+            check("CSV quotes quoted cell", csv.includes("\"say \"\"hi\"\"\""), csv)
+
+            // Test 2: With a tab delimiter, rows keep all columns, including empty trailing cells.
+            const tsv = exportCSV(dt, {download: false,
+columnDelimiter: "\t"})
+            const tsvRows = tsv.split("\n")
+            check("Tab-delimited export has 4 rows", tsvRows.length === 4, tsvRows.length)
+            check("Tab-delimited rows keep all 3 columns",
+                tsvRows.every(row => row.split("\t").length === 3), tsvRows)
+
+            // Test 3: Cells containing the column delimiter are quoted.
+            const scv = exportCSV(dt, {download: false,
+columnDelimiter: ";"})
+            check("Semicolon-delimited cell containing delimiter is quoted",
+                scv.includes("\"a;b\""), scv)
+            check("Semicolon output correct",
+                scv === "name;note;tag\nAnn;\"say \"\"hi\"\"\";#1\nBob;\"a;b\";\n;x;", scv)
+
+            // Test 4: TXT export uses the same escaping rules.
+            const txt = exportTXT(dt, {download: false})
+            check("TXT output correct", txt === csv, txt)
+            const tsvTxt = exportTXT(dt, {download: false,
+columnDelimiter: "\t"})
+            check("TXT tab-delimited rows keep all 3 columns",
+                tsvTxt.split("\n").every(row => row.split("\t").length === 3), tsvTxt)
+
+            results.textContent += failed ? "\nSome tests failed! ✗" : "\nAll tests passed! ✓"
+
+                    })()
+        </script>
+    </body>
+</html>

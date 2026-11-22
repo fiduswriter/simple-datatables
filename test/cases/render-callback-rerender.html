@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Render callback re-rendering</title>
+    </head>
+    <body>
+        <h1>Render callback re-rendering</h1>
+        <pre id="results">Running tests...</pre>
+
+        <table id="render-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Code</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>x</td>
+                    <td></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script type="module">
+            import {DataTable} from "../../dist/module.js"
+
+            const results = document.getElementById("results")
+            let failed = false
+            const check = (name, condition, extra = "") => {
+                if (!condition) {
+                    failed = true
+                }
+                results.textContent += `\n${condition ? "PASS" : "FAIL"}: ${name}${extra ? ` (${extra})` : ""}`
+            }
+            (async () => {
+                const whenReady = dt => new Promise(resolve => {
+                    if (dt.initialized) {
+                        resolve()
+                        return
+                    }
+                    dt.on("datatable.init", () => setTimeout(resolve, 0))
+                })
+                const dt = new DataTable("#render-table", {
+                    paging: false
+                })
+                await whenReady(dt)
+
+                // Test 1: A render callback returning a plain string for a cell
+                // with empty content must not throw and must render the value.
+                const cell = () => dt.dom.querySelector("tbody tr td:nth-child(2)")
+                dt.columns.settings[1].render = () => "first"
+                dt.update()
+                check("Render on empty cell renders value", cell().textContent === "first", cell().textContent)
+
+                // Test 2: update() must re-run the render callback and patch the
+                // DOM with the new value, without changing the data.
+                dt.columns.settings[1].render = () => "second"
+                dt.update()
+                check("update() re-renders cells", cell().textContent === "second", cell().textContent)
+
+                // Test 3: rowRender returning a string for a row must work too.
+                dt.options.rowRender = (_data, tr) => {
+                    tr.childNodes[1].childNodes = [
+                        {
+                            nodeName: "#text",
+                            data: "row-rendered"
+                        }
+                    ]
+                    return tr
+                }
+                dt.update()
+                check("rowRender keeps working", cell().textContent === "row-rendered", cell().textContent)
+                dt.options.rowRender = false
+                dt.update()
+
+                results.textContent += failed ? "\nSome tests failed! ✗" : "\nAll tests passed! ✓"
+            })()
+        </script>
+    </body>
+</html>

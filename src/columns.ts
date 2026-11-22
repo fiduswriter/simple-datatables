@@ -446,8 +446,12 @@ export class Columns {
 
                 const activeDOMHeadings : HTMLTableCellElement[] = Array.from(this.dt.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
                 let domCounter = 0
-                const absoluteColumnWidths = this.dt.data.headings.map((_heading: headerCellType, index: number) => {
+                const absoluteColumnWidths = this.dt.data.headings.map((heading: headerCellType, index: number) => {
                     if (this.settings[index]?.hidden) {
+                        return 0
+                    }
+                    // Placeholder headings for colspan are not rendered and have no width of their own.
+                    if (heading.attributes?.["data-colspan-placeholder"] === "true") {
                         return 0
                     }
                     const width = activeDOMHeadings[domCounter].offsetWidth
@@ -467,8 +471,12 @@ export class Columns {
 
                 const activeDOMHeadings: HTMLTableCellElement[] = Array.from(this.dt.dom.querySelector("thead, tfoot")?.firstElementChild?.querySelectorAll("th") || [])
                 let domCounter = 0
-                const absoluteColumnWidths = this.dt.data.headings.map((_heading: headerCellType, index: number) => {
+                const absoluteColumnWidths = this.dt.data.headings.map((heading: headerCellType, index: number) => {
                     if (this.settings[index]?.hidden) {
+                        return 0
+                    }
+                    // Placeholder headings for colspan are not rendered and have no width of their own.
+                    if (heading.attributes?.["data-colspan-placeholder"] === "true") {
                         return 0
                     }
                     const width = activeDOMHeadings[domCounter].offsetWidth

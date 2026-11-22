@@ -14,3 +14,5 @@ If specified, declares a callback to customise the rendering of all tables. The 
 You can either modify the table in place, or you can return a new table object in the same format.
 
 Rendered column headers have a `data-column` attribute containing their index in `data.headings`. Use this index when creating column-specific search inputs, because a header's visible position changes when preceding columns are hidden. For example, set an input's `data-columns` attribute to `[${header.attributes["data-column"]}]` in a template literal.
+
+When `scrollY` is enabled, the visible header is rendered as a separate table with type `"header"`, while the `"main"` table's own header is only used for column widths. If you add column search inputs, add them to the `"header"` table only — otherwise they will be displayed twice.

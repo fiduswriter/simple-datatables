@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Multi-row thead with rowspan/colspan</title>
+    </head>
+    <body>
+        <h1>Multi-row thead with rowspan/colspan</h1>
+        <pre id="results">Running tests...</pre>
+
+        <table id="multi">
+            <thead>
+                <tr>
+                    <th rowspan="2">Name</th>
+                    <th colspan="2">Location</th>
+                </tr>
+                <tr>
+                    <th data-type="string">City</th>
+                    <th>Country</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Zoe</td>
+                    <td>Paris</td>
+                    <td>FR</td>
+                </tr>
+                <tr>
+                    <td>Ann</td>
+                    <td>Berlin</td>
+                    <td>DE</td>
+                </tr>
+                <tr>
+                    <td>Bo</td>
+                    <td>Vienna</td>
+                    <td>AT</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table id="grouped">
+            <thead>
+                <tr>
+                    <th rowspan="2" colspan="2">Group</th>
+                    <th>Top</th>
+                </tr>
+                <tr>
+                    <th>Sub</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>a1</td>
+                    <td>a2</td>
+                    <td>a3</td>
+                </tr>
+                <tr>
+                    <td>b1</td>
+                    <td>b2</td>
+                    <td>b3</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script type="module">
+            import {DataTable} from "../../dist/module.js"
+
+            (async () => {
+
+            const results = document.getElementById("results")
+            let failed = false
+            const check = (name, condition, extra = "") => {
+                if (!condition) {
+                    failed = true
+                }
+                results.textContent += `\n${condition ? "PASS" : "FAIL"}: ${name}${extra ? ` (${extra})` : ""}`
+            }
+            const whenReady = dt => new Promise(resolve => {
+                if (dt.initialized) {
+                    resolve()
+                    return
+                }
+                dt.on("datatable.init", () => setTimeout(resolve, 0))
+            })
+
+            // Test 1: A thead with two rows using rowspan/colspan must not
+            // throw a heading mismatch error and must yield 3 columns.
+            let dt = null
+            try {
+                dt = new DataTable("#multi", {
+                    paging: false
+                })
+                await whenReady(dt)
+                check("Multi-row thead initialized without error", dt.initialized)
+            } catch (error) {
+                check("Multi-row thead initialized without error", false, error.message)
+            }
+
+            if (dt) {
+                const headingTexts = dt.data.headings.map(heading => heading.text ?? String(heading.data))
+                check("3 headings read", dt.data.headings.length === 3, dt.data.headings.length)
+                check("Heading texts are last row cells, carrying over rowspans",
+                    headingTexts.join(",") === "Name,City,Country", headingTexts.join(","))
+                check("All data rows have 3 cells",
+                    dt.data.data.every(row => row.cells.length === 3))
+
+                // Settings of the covering last-row th must be picked up.
+                check("data-type of last-row th applied", dt.columns.settings[1].type === "string")
+
+                dt.columns.sort(2, "asc")
+                const countries = dt.data.data.map(row => row.cells[2].text)
+                check("Sorting on spanned table works", countries.join(",") === "AT,DE,FR", countries.join(","))
+
+                // Rendered body keeps 3 columns per row.
+                const rendered = Array.from(dt.dom.querySelectorAll("tbody tr")).map(tr => tr.cells.length)
+                check("Rendered rows keep 3 columns", rendered.every(n => n === 3), rendered.join(","))
+            }
+
+            // Test 2: Combined colspan+rowspan header cell.
+            let dtGrouped = null
+            try {
+                dtGrouped = new DataTable("#grouped", {
+                    paging: false
+                })
+                await whenReady(dtGrouped)
+                check("Colspan+rowspan thead initialized without error", dtGrouped.initialized)
+            } catch (error) {
+                check("Colspan+rowspan thead initialized without error", false, error.message)
+            }
+
+            if (dtGrouped) {
+                check("3 headings for grouped header", dtGrouped.data.headings.length === 3, dtGrouped.data.headings.length)
+                const lastHeading = dtGrouped.data.headings[2]
+                check("Last heading is Sub", (lastHeading.text ?? String(lastHeading.data)) === "Sub",
+                    `${lastHeading.text}/${lastHeading.data}`)
+                check("Colspan placeholder present",
+                    dtGrouped.data.headings[1].attributes?.["data-colspan-placeholder"] === "true")
+                check("Grouped data rows have 3 cells",
+                    dtGrouped.data.data.every(row => row.cells.length === 3))
+                dtGrouped.columns.sort(2, "asc")
+                const thirds = dtGrouped.data.data.map(row => row.cells[2].text)
+                check("Grouped table sorting works", thirds.join(",") === "a3,b3", thirds.join(","))
+            }
+
+            results.textContent += failed ? "\nSome tests failed! ✗" : "\nAll tests passed! ✓"
+
+                    })()
+        </script>
+    </body>
+</html>

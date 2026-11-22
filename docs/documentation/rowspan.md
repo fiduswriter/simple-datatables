@@ -1,6 +1,6 @@
 ### `rowspan`
 
-Rowspan support allows table cells to span multiple rows, both in headings and data rows. This feature works whether you're initializing a DataTable from an existing HTML table or loading data from JSON/JavaScript.
+Rowspan support allows table cells to span multiple rows, both in headings and data rows. This feature works whether you're initializing a DataTable from an existing HTML table or loading data from JSON/JavaScript. Headings that use `rowspan` require a multi-row `<thead>`; see [colspan](colspan.md) for how the columns of multi-row headings are derived.
 
 ## Using Rowspan with HTML Tables
 

@@ -59,7 +59,7 @@
         "@typescript-eslint/eslint-plugin": "^8.65.0",
         "@typescript-eslint/parser": "^8.65.0",
         "browserify": "^17.0.1",
-        "chromedriver": "^151.0.1",
+        "chromedriver": "^158.0.0",
         "cspell": "^10.0.1",
         "eslint": "^10.8.0",
         "eslint-plugin-htm": "^1.0.1",

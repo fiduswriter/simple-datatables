@@ -107,3 +107,34 @@ which will produce:
    ]
 }
 ```
+
+### Cells containing form elements
+
+The table is always rendered from the data model, not from the current state of the DOM. This means that values which the user has typed into form elements (`<input>`, `<textarea>`, `<select>`) inside table cells are **not stored automatically**: whenever the table is re-rendered - for example through searching, sorting or changing the page - the cells are rebuilt from `dataTable.data`, which still holds the original cell content, so any unsaved user input is lost.
+
+To keep the values, write them back into the data model when they change, and then the cell can be rebuilt with the stored value:
+
+```javascript
+let dataTable = new DataTable("#table");
+
+dataTable.wrapperDOM.addEventListener("input", e => {
+    if (!(e.target instanceof HTMLInputElement)) {
+        return;
+    }
+    // Find the row and column indices of the changed input
+    const tr = e.target.closest("tr");
+    const td = e.target.closest("td");
+    const rowIndex = parseInt(tr.dataset.index, 10);
+    const cellIndex = Array.from(tr.cells).indexOf(td);
+
+    // Update the cell in the data model
+    const cell = dataTable.data.data[rowIndex].cells[cellIndex];
+    cell.data.childNodes.forEach(node => {
+        if (node.nodeName === "INPUT") {
+            node.attributes.value = e.target.value;
+        }
+    });
+});
+```
+
+The same principle applies to checkboxes and select fields; see the [checkbox column demo](../demos/17-checkbox-column/) for a worked example that stores the checked state in the data model. For complete form-style editing of cells, use the [`makeEditable`](../demos/15-editing/) helper.

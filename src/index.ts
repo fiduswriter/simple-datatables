@@ -9,3 +9,26 @@ export {exportCSV, exportJSON, exportSQL, exportTXT} from "./export"
 export {createElement, isJson, isObject} from "./helpers"
 export {makeEditable} from "./editing"
 export {addColumnFilter} from "./column_filter"
+export type {
+    cellDataType,
+    cellType,
+    columnsStateType,
+    columnSettingsType,
+    DataOption,
+    dataRowType,
+    DataTableConfiguration,
+    DataTableOptions,
+    elementNodeType,
+    filterStateType,
+    headerCellType,
+    inputCellType,
+    inputHeaderCellType,
+    inputRowType,
+    nodeType,
+    renderOptions,
+    renderType,
+    rowRenderType,
+    rowType,
+    TableDataType,
+    textNodeType
+} from "./types"
