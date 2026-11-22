@@ -125,6 +125,16 @@ describe("Integration tests pass", function() {
         await wrapper.findElement(webdriver.By.className("datatable-bottom"))
     })
 
+    it("keeps column filters correct when columns are hidden and shown", async () => {
+        await driver.get(`${baseUrl}tests/column-filters-hidden-columns.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed!"), text)
+    })
+
     it("shows table footer", async () => {
         await driver.get(`${baseUrl}24-footer`)
         const table = await driver.findElement(webdriver.By.tagName("table"))

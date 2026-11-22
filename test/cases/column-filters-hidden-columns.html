@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Column filters with hidden columns</title>
+    </head>
+    <body>
+        <h1>Column filter regression tests</h1>
+        <pre id="results">Running tests...</pre>
+
+        <script>
+            const results = document.getElementById("results")
+            const frame = document.createElement("iframe")
+            frame.title = "Original column-filter demo"
+            frame.style.width = "100%"
+            frame.style.height = "500px"
+
+            frame.addEventListener("load", () => {
+                const demoWindow = frame.contentWindow
+                const demoDocument = frame.contentDocument
+                const dt = demoWindow.dt
+
+                if (!dt) {
+                    results.textContent =
+                        "Some tests failed!\nThe demo did not initialize."
+                    return
+                }
+
+                const assert = (condition, message) => {
+                    if (!condition) {
+                        throw new Error(message)
+                    }
+                }
+
+                const searchCompletion = value => {
+                    // Find the input again because rendering can replace it.
+                    const inputs = demoDocument.querySelectorAll(
+                        "#demo-table thead input[data-columns]"
+                    )
+                    const input = inputs[inputs.length - 1]
+
+                    assert(input, "Completion filter is missing")
+
+                    input.value = value
+                    input.dispatchEvent(
+                        new demoWindow.Event("input", {bubbles: true})
+                    )
+                }
+
+                const runTests = () => {
+                    const cases = [
+                        {
+                            name: "All columns visible",
+                            steps: [],
+                            headerCount: 5
+                        },
+                        {
+                            name: "Ext. hidden",
+                            steps: ["hide"],
+                            headerCount: 4
+                        },
+                        {
+                            name: "Ext. hidden and shown again",
+                            steps: ["hide", "show"],
+                            headerCount: 5
+                        }
+                    ]
+
+                    let failures = 0
+                    const messages = []
+
+                    cases.forEach(({name, steps, headerCount}) => {
+                        try {
+                            // Start each case with a cleared search.
+                            searchCompletion("")
+                            dt.columns.show([1])
+
+                            for (const action of steps) {
+                                dt.columns[action]([1])
+                            }
+
+                            const table = demoDocument.querySelector(
+                                "#demo-table"
+                            )
+
+                            assert(
+                                table.tHead.rows[0].cells.length === headerCount,
+                                `Expected ${headerCount} visible headers`
+                            )
+
+                            searchCompletion("39%")
+
+                            const names = Array.from(
+                                table.querySelectorAll("tbody tr"),
+                                row => row.cells[0].textContent.trim()
+                            )
+
+                            assert(
+                                names.length === 1 && names[0] === "Alisa Horn",
+                                `Expected Alisa Horn; got: ${names.join(", ")}`
+                            )
+
+                            messages.push(`PASS: ${name}`)
+                        } catch (error) {
+                            failures++
+                            messages.push(`FAIL: ${name}: ${error.message}`)
+                        }
+                    })
+
+                    messages.push(
+                        failures ? "Some tests failed!" : "All tests passed!"
+                    )
+                    results.textContent = messages.join("\n")
+                }
+
+                if (dt.initialized) {
+                    runTests()
+                } else {
+                    dt.on("datatable.init", runTests)
+                }
+            }, {once: true})
+
+            frame.src = "../20-column-filters/"
+            document.body.append(frame)
+        </script>
+    </body>
+</html>

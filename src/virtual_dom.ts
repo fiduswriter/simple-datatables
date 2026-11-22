@@ -35,6 +35,7 @@ export const headingsToVirtualHeaderRowDOM = (
                 return
             }
             const attributes : { [key: string]: string } = heading.attributes ? {...heading.attributes} : {}
+            attributes["data-column"] = String(index)
             if (column.sortable && sortable && (!scrollY!.length || unhideHeader)) {
                 if (column.filter) {
                     attributes["data-filterable"] = "true"
