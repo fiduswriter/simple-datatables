@@ -1,6 +1,6 @@
 ## Upgrading
 
-### Unreleased
+### From 10.3.x to 10.4.0
 
 - New `rows.clear()` method removes all rows and resets search state, so a
   table can be emptied and re-populated without destroying the instance.
