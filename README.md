@@ -112,14 +112,12 @@ const dataTable = new simpleDatatables.DataTable("#myTable", {
 
 ## How to contribute?
 
-1. Fork the repository
-2. Create a sub-branch
-3. Clone the sub-branch to your local system
-4. Install [NodeJS](https://nodejs.org/en)
-5. Open the project in a code editor (for example [Visual Studio Code](https://code.visualstudio.com/) or [Pulsar Edit](https://pulsar-edit.dev/))
-6. Open the Terminal
-7. Run `npm install` in the Terminal
-8. Start making changes and contributing to the project 🙂
-9. You can run `npm run test_server` to test your code. This runs on port 3000 (http://localhost:3000/)
-10. You can also run `npm run build` in the Terminal to build the final files
-11. Once finished, then commit/push your code and create a Pull Request on GitHub for the changes
+Please read our [contribution policy](CONTRIBUTING.md) before opening a pull request.
+
+Quick start:
+
+1. Fork the repository and create a branch
+2. Run `npm install` (requires [NodeJS](https://nodejs.org/en))
+3. Make your changes, together with tests and documentation
+4. Verify with `npm run build`, `npm run lint` and `npm test`; `npm run test_server` serves the demos on http://localhost:3000/
+5. Commit/push and open a pull request against `main`
