@@ -26,8 +26,11 @@
         <h2>Colgroup</h2>
         <p>
             A <code>colgroup</code> defined in the source table is kept when the table is
-            rendered, along with all attributes of its <code>col</code> elements. The widths
-            defined here survive sorting and paging. Look at the source of this page.
+            rendered, along with all attributes of its <code>col</code> elements. As <a
+                href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/colgroup">per
+                the HTML spec</a>, properties like <code>background-color</code> set on a
+            <code>col</code> apply to the whole column — the third column below is styled
+            through its <code>col</code> alone. Look at the source of this page.
         </p>
         <table id="width-table">
             <colgroup>
@@ -67,7 +70,7 @@
         </table>
         <style>
             .status-col {
-                color: darkslateblue;
+                background-color: #ddecff;
             }
         </style>
         <script type="module">

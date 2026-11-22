@@ -10,7 +10,7 @@
 
         <table id="colgroup-table">
             <colgroup>
-                <col class="name-col" style="width: 40%;">
+                <col class="name-col" style="width: 40%; background-color: rgb(221, 236, 255);">
                 <col style="width: 10%;">
             </colgroup>
             <thead>
@@ -68,8 +68,12 @@
                 const cols = Array.from(dt.dom.querySelectorAll("colgroup > col"))
                 check("Colgroup preserved after init", cols.length === 2, cols.length)
                 check("Col attributes kept",
-                    cols[0]?.getAttribute("class") === "name-col" && cols[0]?.getAttribute("style") === "width: 40%;",
+                    cols[0]?.getAttribute("class") === "name-col" &&
+                    cols[0]?.getAttribute("style") === "width: 40%; background-color: rgb(221, 236, 255);",
                 `${cols[0]?.getAttribute("class")}/${cols[0]?.getAttribute("style")}`)
+                check("Col styling applies to the column",
+                    getComputedStyle(cols[0]).backgroundColor === "rgb(221, 236, 255)",
+                getComputedStyle(cols[0]).backgroundColor)
                 check("Colgroup precedes thead",
                     dt.dom.querySelector("colgroup")?.compareDocumentPosition(dt.dom.querySelector("thead")) & Node.DOCUMENT_POSITION_FOLLOWING)
 
