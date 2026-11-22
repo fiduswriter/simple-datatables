@@ -69,6 +69,20 @@ export class Rows {
         }
     }
 
+    /**
+     * Remove all rows
+     */
+    clear(): void {
+        this.dt.data.data = []
+        this.dt.hasRows = false
+        // Search state indexes into the now removed rows, so it needs to be reset.
+        this.dt._searchQueries = []
+        this.dt._searchData = []
+        this.cursor = false
+        this.dt._currentPage = 1
+        this.dt.update(true)
+    }
+
 
     /**
      * Find index of row by searching for a value in a column

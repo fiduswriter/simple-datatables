@@ -300,6 +300,36 @@ describe("Integration tests pass", function() {
         assert.deepEqual(errors, [], "No JavaScript errors should occur during rowspan JSON testing")
     })
 
+    it("clears all rows and resets state via rows.clear()", async () => {
+        await driver.get(`${baseUrl}tests/rows-clear.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed! ✓"), text)
+    })
+
+    it("preserves colgroup definitions", async () => {
+        await driver.get(`${baseUrl}tests/colgroup.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed! ✓"), text)
+    })
+
+    it("optionally includes hidden columns in searches", async () => {
+        await driver.get(`${baseUrl}tests/search-hidden-column.html`)
+        await waitForTestCompletion(driver, testWait)
+
+        const results = await driver.findElement(webdriver.By.id("results"))
+        const text = await results.getText()
+
+        assert(text.includes("All tests passed! ✓"), text)
+    })
+
     it("re-runs render callbacks and tolerates empty cells", async () => {
         await driver.get(`${baseUrl}tests/render-callback-rerender.html`)
         await waitForTestCompletion(driver, testWait)

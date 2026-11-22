@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>rows.clear()</title>
+    </head>
+    <body>
+        <h1>rows.clear()</h1>
+        <pre id="results">Running tests...</pre>
+
+        <table id="clear-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>one</td>
+                    <td>1</td>
+                </tr>
+                <tr>
+                    <td>two</td>
+                    <td>2</td>
+                </tr>
+                <tr>
+                    <td>three</td>
+                    <td>3</td>
+                </tr>
+                <tr>
+                    <td>four</td>
+                    <td>4</td>
+                </tr>
+                <tr>
+                    <td>five</td>
+                    <td>5</td>
+                </tr>
+                <tr>
+                    <td>six</td>
+                    <td>6</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script type="module">
+            import {DataTable} from "../../dist/module.js"
+
+            (async () => {
+                const results = document.getElementById("results")
+                let failed = false
+                const check = (name, condition, extra = "") => {
+                    if (!condition) {
+                        failed = true
+                    }
+                    results.textContent += `\n${condition ? "PASS" : "FAIL"}: ${name}${extra ? ` (${extra})` : ""}`
+                }
+                const whenReady = dt => new Promise(resolve => {
+                    if (dt.initialized) {
+                        resolve()
+                        return
+                    }
+                    dt.on("datatable.init", () => setTimeout(resolve, 0))
+                })
+
+                const dt = new DataTable("#clear-table", {
+                    perPage: 4
+                })
+                await whenReady(dt)
+
+                // Move to the last page, search, then clear: all state must be
+                // reset so that adding rows afterwards renders them on page 1.
+                dt.page(2)
+                dt.search("one")
+                dt.rows.clear()
+
+                check("Data emptied", dt.data.data.length === 0, dt.data.data.length)
+                check("hasRows false", dt.hasRows === false)
+                check("Search state reset", dt._searchQueries.length === 0 && dt._searchData.length === 0)
+                check("Page reset", dt._currentPage === 1, dt._currentPage)
+
+                const tbodyRows = Array.from(dt.dom.querySelectorAll("tbody tr"))
+                check("Empty message shown", tbodyRows.length === 1 &&
+                    tbodyRows[0].textContent.includes(dt.options.labels.noRows),
+                tbodyRows.map(tr => tr.textContent).join("|"))
+
+                dt.rows.add(["fresh", "7"])
+                const rendered = Array.from(dt.dom.querySelectorAll("tbody tr td")).map(td => td.textContent)
+                check("Rows can be added after clear", rendered.length === 2 && rendered[0] === "fresh", rendered.join(","))
+
+                results.textContent += failed ? "\nSome tests failed! ✗" : "\nAll tests passed! ✓"
+            })()
+        </script>
+    </body>
+</html>

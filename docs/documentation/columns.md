@@ -47,6 +47,10 @@ as part of the table's configuration will define a default for all columns.
 
 When set to `false` the column(s) cannot be searched.
 
+#### `searchHidden`
+
+Default: `false` (boolean). When set to `true`, the content of hidden column(s) is included in search results even though the column is not visible. Matches are rendered without revealing the hidden column's content. Can be set on the table configuration as a default for all columns or per column, and in markup via `data-search-hidden="true"` on the `th`.
+
 #### `searchItemSeparator`
 
 Default: `""`. Influences searching in that cell content will be split with this value by default when searching for content. Specifying `searchItemSeparator` as part of the table's configuration will define a default for all search boxes.

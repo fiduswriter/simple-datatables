@@ -331,6 +331,9 @@ export const readTableData = (dataOption: DataOption, dom: (HTMLTableElement | u
                 if (th.dataset.searchable?.trim().toLowerCase() === "false") {
                     settings.searchable = false
                 }
+                if (th.dataset.searchHidden?.trim().toLowerCase() === "true") {
+                    settings.searchHidden = true
+                }
                 if (th.dataset.hidden?.trim().toLowerCase() === "true" || th.getAttribute("hidden")?.trim().toLowerCase() === "true") {
                     settings.hidden = true
                 }

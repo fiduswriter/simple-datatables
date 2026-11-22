@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Searching hidden columns</title>
+    </head>
+    <body>
+        <h1>Searching hidden columns</h1>
+        <pre id="results">Running tests...</pre>
+
+        <table id="default-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th data-hidden="true">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Alice</td>
+                    <td>Clacton</td>
+                </tr>
+                <tr>
+                    <td>Bob</td>
+                    <td>Norwich</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table id="search-hidden-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th data-hidden="true" data-search-hidden="true">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Alice</td>
+                    <td>Clacton</td>
+                </tr>
+                <tr>
+                    <td>Bob</td>
+                    <td>Norwich</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <table id="option-table">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th data-hidden="true">City</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Alice</td>
+                    <td>Clacton</td>
+                </tr>
+                <tr>
+                    <td>Bob</td>
+                    <td>Norwich</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script type="module">
+            import {DataTable} from "../../dist/module.js"
+
+            (async () => {
+                const results = document.getElementById("results")
+                let failed = false
+                const check = (name, condition, extra = "") => {
+                    if (!condition) {
+                        failed = true
+                    }
+                    results.textContent += `\n${condition ? "PASS" : "FAIL"}: ${name}${extra ? ` (${extra})` : ""}`
+                }
+                const whenReady = dt => new Promise(resolve => {
+                    if (dt.initialized) {
+                        resolve()
+                        return
+                    }
+                    dt.on("datatable.init", () => setTimeout(resolve, 0))
+                })
+
+                // Test 1: default behavior — hidden columns are not searched.
+                const dtDefault = new DataTable("#default-table", {
+                    paging: false
+                })
+                await whenReady(dtDefault)
+                dtDefault.search("clacton")
+                check("Hidden column not searched by default", dtDefault._searchData.length === 0, dtDefault._searchData.length)
+                dtDefault.search("")
+
+                // Test 2: data-search-hidden="true" on the th includes the column.
+                const dtAttr = new DataTable("#search-hidden-table", {
+                    paging: false
+                })
+                await whenReady(dtAttr)
+                check("data-search-hidden read", dtAttr.columns.settings[1].searchHidden === true)
+                dtAttr.search("clacton")
+                check("Column matched via data-search-hidden", dtAttr._searchData.length === 1, dtAttr._searchData.length)
+                const visibleCells = Array.from(dtAttr.dom.querySelectorAll("tbody tr td"))
+                check("Only visible column rendered", visibleCells.length === 1 && visibleCells[0].textContent === "Alice",
+                    visibleCells.map(td => td.textContent).join(","))
+                dtAttr.search("")
+
+                // Test 3: global searchHidden option.
+                const dtOption = new DataTable("#option-table", {
+                    paging: false,
+                    searchHidden: true
+                })
+                await whenReady(dtOption)
+                dtOption.search("norwich")
+                check("Column matched via searchHidden option", dtOption._searchData.length === 1, dtOption._searchData.length)
+
+                results.textContent += failed ? "\nSome tests failed! ✗" : "\nAll tests passed! ✓"
+            })()
+        </script>
+    </body>
+</html>

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <title>Colgroup preservation</title>
+    </head>
+    <body>
+        <h1>Colgroup preservation</h1>
+        <pre id="results">Running tests...</pre>
+
+        <table id="colgroup-table">
+            <colgroup>
+                <col class="name-col" style="width: 40%;">
+                <col style="width: 10%;">
+            </colgroup>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Value</th>
+                    <th>Extra</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>alpha</td>
+                    <td>1</td>
+                    <td>a</td>
+                </tr>
+                <tr>
+                    <td>bravo</td>
+                    <td>2</td>
+                    <td>b</td>
+                </tr>
+                <tr>
+                    <td>charlie</td>
+                    <td>3</td>
+                    <td>c</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <script type="module">
+            import {DataTable} from "../../dist/module.js"
+
+            (async () => {
+                const results = document.getElementById("results")
+                let failed = false
+                const check = (name, condition, extra = "") => {
+                    if (!condition) {
+                        failed = true
+                    }
+                    results.textContent += `\n${condition ? "PASS" : "FAIL"}: ${name}${extra ? ` (${extra})` : ""}`
+                }
+                const whenReady = dt => new Promise(resolve => {
+                    if (dt.initialized) {
+                        resolve()
+                        return
+                    }
+                    dt.on("datatable.init", () => setTimeout(resolve, 0))
+                })
+
+                const dt = new DataTable("#colgroup-table", {
+                    paging: false
+                })
+                await whenReady(dt)
+
+                // Test 1: colgroup survives initialization with correct columns.
+                const cols = Array.from(dt.dom.querySelectorAll("colgroup > col"))
+                check("Colgroup preserved after init", cols.length === 2, cols.length)
+                check("Col attributes kept",
+                    cols[0]?.getAttribute("class") === "name-col" && cols[0]?.getAttribute("style") === "width: 40%;",
+                `${cols[0]?.getAttribute("class")}/${cols[0]?.getAttribute("style")}`)
+                check("Colgroup precedes thead",
+                    dt.dom.querySelector("colgroup")?.compareDocumentPosition(dt.dom.querySelector("thead")) & Node.DOCUMENT_POSITION_FOLLOWING)
+
+                // Test 2: colgroup also survives a sort and a message render.
+                dt.columns.sort(1, "desc")
+                check("Colgroup kept after sorting", dt.dom.querySelectorAll("colgroup > col").length === 2)
+                dt.search("nonexistent-term-xyz")
+                check("Colgroup kept in message render", dt.dom.querySelectorAll("colgroup > col").length === 2)
+                dt.search("")
+
+                // Test 3: widths apply.
+                const firstColWidth = dt.dom.querySelector("tbody tr td").getBoundingClientRect().width
+                const tableWidth = dt.dom.getBoundingClientRect().width
+                check("Col width applied", Math.abs(firstColWidth - (tableWidth * 0.4)) < (tableWidth * 0.1),
+                    `${firstColWidth}/${tableWidth}`)
+
+                results.textContent += failed ? "\nSome tests failed! ✗" : "\nAll tests passed! ✓"
+            })()
+        </script>
+    </body>
+</html>

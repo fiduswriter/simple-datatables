@@ -136,6 +136,9 @@ interface ColumnOption{
     /** Default: " ". Influences searching. When performing search, the cell content is split up using this separator.*/
     searchItemSeparator?: string
 
+    /** Default: false. If true, the content of this column is included in searches even when the column is hidden. */
+    searchHidden?: boolean
+
     /** Default: false. Influences searching. Overrides default search method. */
     searchMethod?: false | ((query: string[], cell: cellType, row: dataRowType, columnIndex: number, source: string) => boolean);
 
@@ -418,6 +421,7 @@ interface DataTableConfiguration {
     sensitivity: string,
     ignorePunctuation: boolean;
     searchItemSeparator: string;
+    searchHidden: boolean;
     searchQuerySeparator: string;
     searchAnd: boolean;
     searchMethod: false | ((query: string[], cell: cellType, row: dataRowType, columnIndex: number, source: string) => boolean);
@@ -478,6 +482,7 @@ interface columnSettingsType {
     sensitivity?: string,
     ignorePunctuation?: boolean,
     searchItemSeparator?: string,
+    searchHidden?: boolean,
     searchMethod?: false | ((query: string[], cell: cellType, row: dataRowType, columnIndex: number, source: string) => boolean),
     //
     headerClass?: string,

@@ -85,3 +85,16 @@ dataTable.rows.remove(parseInt(rowToRemove.dataset.index));
 ```
 
 ---
+
+### `clear()`
+
+Remove all rows from the current instance and show the empty-table message. Any active search queries are reset. Useful when re-populating the table from a new data set, for example after an AJAX request:
+
+```javascript
+let rows = dataTable.rows;
+
+rows.clear();
+dataTable.insert({data: newData});
+```
+
+---

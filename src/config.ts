@@ -18,6 +18,7 @@ export const defaultConfig: DataTableConfiguration = {
     searchItemSeparator: "", // If specified, splits the content of cells up using this separator before performing search.
     searchQuerySeparator: " ",
     searchAnd: false,
+    searchHidden: false, // If true, the content of hidden columns is included in searches.
     searchMethod: false, // Custom search method to use. If not false, this will override built-in search methods.
 
     // data

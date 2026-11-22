@@ -92,6 +92,8 @@ export class DataTable {
 
     _tableCaptions!: elementNodeType[]
 
+    _tableColgroups!: elementNodeType[]
+
     totalPages!: number
 
     _virtualDOM!: elementNodeType
@@ -175,6 +177,7 @@ export class DataTable {
         this._tableAttributes = {...this._virtualDOM.attributes}
         this._tableFooters = this._virtualDOM.childNodes?.filter(node => node.nodeName === "TFOOT") ?? []
         this._tableCaptions = this._virtualDOM.childNodes?.filter(node => node.nodeName === "CAPTION") ?? []
+        this._tableColgroups = this._virtualDOM.childNodes?.filter(node => node.nodeName === "COLGROUP") ?? []
         if (this.options.caption !== undefined) {
             this._tableCaptions.push({
                 nodeName: "CAPTION",
@@ -324,7 +327,8 @@ export class DataTable {
             this.options,
             renderOptions,
             this._tableFooters,
-            this._tableCaptions
+            this._tableCaptions,
+            this._tableColgroups
         )
 
         if (this.options.tableRender) {
@@ -852,7 +856,8 @@ export class DataTable {
         }
         const queryWords = queries.map(query => this.columns.settings.map(
             (column, index) => {
-                if (!column || column.hidden || !column.searchable || (query.columns && !query.columns.includes(index))) {
+                const searchHidden = column.searchHidden ?? this.options.searchHidden
+                if (!column || (column.hidden && !searchHidden) || !column.searchable || (query.columns && !query.columns.includes(index))) {
                     return false
                 }
                 let columnQueries = query.terms
@@ -1072,7 +1077,8 @@ export class DataTable {
                 unhideHeader: true
             },
             this._tableFooters,
-            this._tableCaptions
+            this._tableCaptions,
+            this._tableColgroups
         )
 
         if (this.options.tableRender) {
@@ -1148,6 +1154,8 @@ export class DataTable {
             ]
         }
 
+        // Insert colgroups before the thead so that column widths etc. apply.
+        newVirtualDOM.childNodes!.unshift(...this._tableColgroups)
         this._tableFooters.forEach(footer => newVirtualDOM.childNodes!.push(footer))
         this._tableCaptions.forEach(caption => newVirtualDOM.childNodes!.push(caption))
 

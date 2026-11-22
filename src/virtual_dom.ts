@@ -118,7 +118,7 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
     noColumnWidths,
     unhideHeader,
     renderHeader
-}: renderOptions, footers: elementNodeType[], captions: elementNodeType[]) => {
+}: renderOptions, footers: elementNodeType[], captions: elementNodeType[], colgroups: elementNodeType[] = []) => {
     const table: elementNodeType = {
         nodeName: "TABLE",
         attributes: {...tableAttributes},
@@ -251,6 +251,11 @@ export const dataToVirtualDOM = (tableAttributes: { [key: string]: string}, head
             }
             table.childNodes!.push(tfoot)
         }
+    }
+
+    // Insert colgroups before the thead so that column widths etc. apply.
+    if (colgroups.length) {
+        table.childNodes!.unshift(...colgroups)
     }
 
     footers.forEach(foot => table.childNodes!.push(foot))

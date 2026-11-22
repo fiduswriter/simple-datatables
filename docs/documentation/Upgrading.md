@@ -2,6 +2,13 @@
 
 ### Unreleased
 
+- New `rows.clear()` method removes all rows and resets search state, so a
+  table can be emptied and re-populated without destroying the instance.
+- `<colgroup>` elements in the source table are now kept when the table is
+  rendered, along with all `col` attributes.
+- New `searchHidden` option (global, per column, or
+  `data-search-hidden="true"` on a `th`) includes the content of hidden
+  columns in search results.
 - Sorting via the `data-order` attribute: only values that are numeric in
   their entirety are treated as numbers now. Previously, values such as ISO
   date strings were silently truncated to their leading digits (e.g.
